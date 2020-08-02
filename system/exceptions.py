@@ -1,0 +1,2 @@
+class DuplicateFileDownloaded(Exception):
+    pass
