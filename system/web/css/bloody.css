@@ -1,9 +1,0 @@
-@font-face {
-    font-family: 'Bloody';
-    src: url('/font/Bloody.woff2') format('woff2'),
-         url('/font/Bloody.woff') format('woff'),
-         url('/font/Bloody.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
