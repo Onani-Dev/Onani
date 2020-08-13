@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-12 20:22:16
+# @Last Modified time: 2020-08-13 18:24:40
 
 import logging
 import os
@@ -23,7 +23,6 @@ sockets = Sockets(app)
 
 @app.route("/")
 def index():
-    onaniDB.test({"link": "cocknuckle"})
     return "Hello world"
 
 
