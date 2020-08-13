@@ -6,7 +6,7 @@ Heh
 
 # Tutorial for Onani setup! (Confidential) (Subject to change)
 
-1. [Setup MongoDB](https://github.com/michaeltreat/Windows-Subsystem-For-Linux-Setup-Guide/blob/master/readmes/installs/MongoDB.md) (May vary, Tutorial is for WSL)
+1. [Setup MongoDB](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb) (May vary, Tutorial is for WSL)
 1. `python3 -m venv env`
 1. `source env/bin/activate`
 1. Install dependancies: `pip install -r requirements.txt`
