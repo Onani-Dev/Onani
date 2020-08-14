@@ -2,13 +2,13 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-14 00:54:22
+# @Last Modified time: 2020-08-14 19:10:13
 import logging
 
 log = logging.getLogger(__name__)
 
 
-class Tag:
+class Tag(object):
     """
     Onani Tag Object
     """
@@ -43,17 +43,53 @@ class Tag:
         return self.tag_string
 
 
-class Post:
+class Post(object):
     """
     Onani Post Object
     """
 
     def __init__(self, db, post_data: dict):
         self._db = db
+        self.id = int(post_data.get("id"))
         self.file_url = post_data.get("file_url")
         self.thumb_url = post_data.get("thumb_url")
         self.tags = [Tag(self._db, x) for x in (post_data.get("tags") or list())]
         self.meta = post_data.get("meta")
 
     def add_tags(self, tags: list):
+        # add stuff for adding tags here
+        pass
+
+    def remove_tags(self, tags: list):
+        # add stuff for adding tags here
+        pass
+
+
+class User(object):
+    """
+    Onani User Object
+    """
+
+    def __init__(
+        self,
+        db,
+        id: int,
+        username: str,
+        is_admin: bool,
+        is_banned: bool,
+        favourites: list,
+        settings: dict,
+        api_key: str,
+    ):
+        self._db = db
+        self.id = id
+        self.username = username
+        self.is_admin = is_admin
+        self.is_banned = is_banned
+        self.favourites = favourites
+        self.settings = settings
+        self.api_key = api_key
+
+    def ban(self, reason: str):
+        # add ban function for users
         pass

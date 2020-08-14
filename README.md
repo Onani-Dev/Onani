@@ -30,7 +30,7 @@
 You should only need to use the `. env/bin/activate` command once you have done step 1 and 2.
 
 ## Setup Gunicorn
-1. Install onani dependancies: `pip install -r requirements.txt`
+1. Install Onani dependancies: `pip install -r requirements.txt`
 
 1. Start Gunicorn: `gunicorn -k flask_sockets.worker -w 8 app:app`
 

@@ -129,8 +129,4 @@ dmypy.json
 .pyre/
 
 # Custom
-thumbs/
-Logs/
-db_backup/
-database/
 .vscode/
