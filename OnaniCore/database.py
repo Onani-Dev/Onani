@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-15 18:32:55
+# @Last Modified time: 2020-08-15 23:11:55
 
 import logging
 import os
@@ -16,6 +16,7 @@ import pymongo
 from werkzeug.security import generate_password_hash
 
 from .models import *
+from .permissions import UserPermissions
 
 log = logging.getLogger(__name__)
 
@@ -25,17 +26,18 @@ class DatabaseController:
     Controller for the Onani Database
     """
 
-    __slots__ = ("client", "db", "posts", "tags", "users", "collections")
+    __slots__ = ("client", "db", "posts", "tags", "users", "collections", "bans")
 
     def __init__(
         self, client: pymongo.MongoClient,
     ):
         self.client = client
         self.db = self.client["OnaniDB"]
+        self.bans = self.db["OnaniBans"]
+        self.collections = self.db["OnaniCollections"]
         self.posts = self.db["OnaniPosts"]
         self.tags = self.db["OnaniTags"]
         self.users = self.db["OnaniUsers"]
-        self.collections = self.db["OnaniCollections"]
 
     ## ADDING
 
@@ -47,19 +49,18 @@ class DatabaseController:
     def add_user(self, **kwargs) -> None:
         # add a user to the database
         if kwargs.get("password") is None:
-            log.error("Account had no password!")
+            # We didnt recieve a password
             raise ValueError("Accounts MUST have a password.")
 
         # Check if Username is already taken, If one is supplied.
         if kwargs.get("username") is not None:
             user = self.users.find_one(
-                {"id": re.compile(kwargs.get("username"), re.IGNORECASE)}
+                {"username": re.compile(kwargs.get("username"), re.IGNORECASE)}
             )
             if user is not None:
                 # We can't use this username.
-                log.error("Username is taken.")
                 raise ValueError("Username is taken.")
-            log.info(f""""{kwargs.get("username")}" looks good to use.""")
+            log.debug(f""""{kwargs.get("username")}" looks good to use.""")
 
         # Construct dict to insert into database
         user_data = {
@@ -76,7 +77,7 @@ class DatabaseController:
 
         # insert the dict
         insert = self.users.insert_one(user_data)
-        log.info(
+        log.debug(
             f"""User "{user_data.get("username")}" inserted into Database with _id "{insert.inserted_id}\""""
         )
         return
@@ -91,20 +92,49 @@ class DatabaseController:
 
     def get_user(self, id=None, username=None, api_key=None) -> User:
         if id is not None:
+            # Check for user with ID
             user = self.users.find_one({"id": id})
             if user is None:
                 raise ValueError("Supplied ID does not exist in Database.")
-            return User(
-                self,
-                user.get("id"),
-                user.get("username"),
-                user.get("permissions"),
-                user.get("is_banned"),
-                user.get("favourites"),
-                user.get("settings"),
-                user.get("api_key"),
-                user.get("created_at"),
+            log.debug(
+                f"""Found user {user.get("username")} (ID: {user.get("id")}) with ID."""
             )
+
+        elif username is not None:
+            # Check for user with Username
+            user = self.users.find_one(
+                {"username": re.compile(username, re.IGNORECASE)}
+            )
+            if user is None:
+                raise ValueError("Supplied Username does not exist in Database.")
+            log.debug(
+                f"""Found user {user.get("username")} (ID: {user.get("id")}) with Username."""
+            )
+
+        elif api_key is not None:
+            # Check for user with API key
+            user = self.users.find_one({"api_key": api_key})
+            if user is None:
+                raise ValueError("Supplied API Key does not exist in Database.")
+            log.debug(
+                f"""Found user {user.get("username")} (ID: {user.get("id")}) with API key."""
+            )
+        else:
+            raise ValueError("One of: id, username, api_key must be supplied.")
+
+        return User(
+            self,
+            user.get("id"),
+            user.get("username"),
+            UserPermissions(user.get("permissions") or 1),
+            user.get("is_banned"),
+            user.get("favourites"),
+            user.get("settings"),
+            user.get("api_key"),
+            user.get("created_at"),
+            user.get("pfp"),
+            user.get("bio"),
+        )
 
     def get_raw_tag_info(self, tag_string: str) -> dict:
         # return raw tag data from database

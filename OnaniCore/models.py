@@ -2,9 +2,11 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-15 18:30:06
+# @Last Modified time: 2020-08-15 22:11:19
 import logging
 from datetime import datetime
+
+from .permissions import UserPermissions
 
 log = logging.getLogger(__name__)
 
@@ -86,11 +88,13 @@ class User(object):
     __slots__ = (
         "_db",
         "api_key",
+        "bio",
         "created_at",
         "favourites",
         "id",
-        "permissions",
         "is_banned",
+        "permissions",
+        "pfp",
         "settings",
         "username",
     )
@@ -100,20 +104,24 @@ class User(object):
         db,
         id: int,
         username: str,
-        permissions: int,
+        permissions: UserPermissions,
         is_banned: bool,
         favourites: list,
         settings: dict,
         api_key: str,
         created_at: datetime,
+        pfp: str,
+        bio: str,
     ):
         self._db = db
         self.api_key = api_key
+        self.bio = bio
         self.created_at = created_at
         self.favourites = favourites
         self.id = id
-        self.permissions = permissions
         self.is_banned = is_banned
+        self.permissions = permissions
+        self.pfp = pfp
         self.settings = settings
         self.username = username
 
