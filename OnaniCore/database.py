@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-15 23:11:55
+# @Last Modified time: 2020-08-15 23:55:51
 
 import logging
 import os
@@ -40,11 +40,23 @@ class DatabaseController:
         self.users = self.db["OnaniUsers"]
 
     ## ADDING
-
+    # TODO #11 Change kwargs to actual properties
     def add_post(self, **kwargs) -> None:
         # add a post to the database
-        x = self.posts.insert_one(data)
-        print(x.inserted_id)
+        post_data = {
+            "id": self.posts.find().count() + 1,
+            # Need to use file controller here!
+            "file_url": kwargs.get("file_url"),
+            "thumb_url": kwargs.get("thumb_url"),
+            "tags": kwargs.get("tags") or list(),
+            "meta": kwargs.get("meta") or dict(),
+        }
+        # TODO #10 need to add extra logic to database add_post method
+        insert = self.posts.insert_one(post_data)
+        log.debug(
+            f"""Inserted post {post_data.get("id")} with _id {insert.inserted_id}"""
+        )
+        return
 
     def add_user(self, **kwargs) -> None:
         # add a user to the database
@@ -127,18 +139,18 @@ class DatabaseController:
             user.get("id"),
             user.get("username"),
             UserPermissions(user.get("permissions") or 1),
-            user.get("is_banned"),
-            user.get("favourites"),
-            user.get("settings"),
+            user.get("is_banned") or False,
+            user.get("favourites") or list(),
+            user.get("settings") or dict(),
             user.get("api_key"),
             user.get("created_at"),
             user.get("pfp"),
             user.get("bio"),
         )
 
-    def get_raw_tag_info(self, tag_string: str) -> dict:
-        # return raw tag data from database
-        return dict()
+    # def get_raw_tag_info(self, tag_string: str) -> dict:
+    #     # return raw tag data from database
+    #     return dict()
 
     ## INTERNAL FUNCTIONS
 

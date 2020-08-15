@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-15 22:58:53
+# @Last Modified time: 2020-08-15 23:56:00
 
 import logging
 import os
@@ -60,7 +60,8 @@ logger.addHandler(handler)
 @app.route("/")
 def index():
     # onaniDB.add_user(username="Blakeando", password="test", permissions=666)
-    user = onaniDB.get_user(id=2)
+    user = onaniDB.get_user(id=1)
+    # onaniDB.add_post()
     print(user.permissions.fullname, user.api_key, user.id, user.username)
     return render_template("/index.html")
 
