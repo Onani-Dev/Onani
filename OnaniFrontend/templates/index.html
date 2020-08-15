@@ -2,7 +2,7 @@
   @Author: Blakeando
   @Date:   2020-08-14 19:33:07
   @Last Modified by:   Blakeando
-  @Last Modified time: 2020-08-14 22:33:45
+  @Last Modified time: 2020-08-15 14:34:51
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -12,12 +12,25 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
   <link href="/css/onani.style.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 
 <body>
   <div id="main">
     <header>
-      <div id="logo" onclick="location.href='/'">Onani</div>
+      <div class="navbar">
+        <div id="logo" onclick="location.href='/'">Onani</div>
+        <a href="/">Monkey</a>
+        <a href="/">Monkey1</a>
+        <div class="dropdown">
+          <button class="dropbtn">Dropdown</button>
+          <div class="dropdown-content">
+            <a class="dropdown-item">Profile</a>
+            <a class="dropdown-item">Favourites</a>
+            <a class="dropdown-item">Logout</a>
+          </div>
+        </div>
+      </div>
     </header>
   </div>
 </body>

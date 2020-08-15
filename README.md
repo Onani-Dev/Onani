@@ -18,7 +18,7 @@
 
 1. Verify that MongoDB has started: `sudo systemctl status mongod`
 
-1. Enable MongoDB startup on boot: `sudo systemctl enable mongod` (Optional)
+1. Enable MongoDB startup on boot: `sudo systemctl enable mongod` (Optional, But reccommended)
 
 ## Setup Virtualenv
 1. `sudo pip install virtualenv` (If not already installed)

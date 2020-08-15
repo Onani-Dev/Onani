@@ -2,8 +2,9 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-14 19:10:13
+# @Last Modified time: 2020-08-15 18:30:06
 import logging
+from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -12,6 +13,16 @@ class Tag(object):
     """
     Onani Tag Object
     """
+
+    __slots__ = (
+        "_db",
+        "tag_string",
+        "raw",
+        "type",
+        "is_banned",
+        "aliases",
+        "description",
+    )
 
     def __init__(self, db, tag_string: str):
         self._db = db
@@ -48,6 +59,8 @@ class Post(object):
     Onani Post Object
     """
 
+    __slots__ = ("_db", "id", "file_url", "thumb_url", "tags", "meta")
+
     def __init__(self, db, post_data: dict):
         self._db = db
         self.id = int(post_data.get("id"))
@@ -70,26 +83,43 @@ class User(object):
     Onani User Object
     """
 
+    __slots__ = (
+        "_db",
+        "api_key",
+        "created_at",
+        "favourites",
+        "id",
+        "permissions",
+        "is_banned",
+        "settings",
+        "username",
+    )
+
     def __init__(
         self,
         db,
         id: int,
         username: str,
-        is_admin: bool,
+        permissions: int,
         is_banned: bool,
         favourites: list,
         settings: dict,
         api_key: str,
+        created_at: datetime,
     ):
         self._db = db
-        self.id = id
-        self.username = username
-        self.is_admin = is_admin
-        self.is_banned = is_banned
-        self.favourites = favourites
-        self.settings = settings
         self.api_key = api_key
+        self.created_at = created_at
+        self.favourites = favourites
+        self.id = id
+        self.permissions = permissions
+        self.is_banned = is_banned
+        self.settings = settings
+        self.username = username
 
     def ban(self, reason: str):
         # add ban function for users
         pass
+
+    def __repr__(self):
+        return f"<User(id={self.id}, username='{self.username}', created_at='{self.created_at}')>"

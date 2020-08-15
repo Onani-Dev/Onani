@@ -2,9 +2,11 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-08-14 22:44:32
+ * @Last Modified time: 2020-08-15 14:37:13
 */
 
+
+/* All elements */
 * {
   color: rgb(255, 0, 0);
   font-family: "MADEEvolveSans";
@@ -12,19 +14,113 @@
   padding: 0;
 }
 
+/* Body */
 body {
   background-color: black;
 }
 
+/* Navbar logo */
 #logo {
+  color: red;
   cursor: pointer;
+  display: inline-block;
   font-family: "Bloody";
-  font-size: 3em;
-  max-height: 75px;
-  max-width: 110px;
-  padding: 10px 10px 10px 10px;
+  font-size: 36px;
+  padding: 14px 16px;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 0.3s ease;
   user-select: none;
 }
+#logo:hover {
+  transform: scale(1.1);
+}
+
+/* Navigation bar */
+div.navbar {
+  align-items: flex-start;
+  border-bottom: 3px solid red;
+  justify-content: left;
+  overflow: hidden;
+  position: absolute;
+  text-align: left;
+  top: 0;
+  width: 100%;
+}
+
+/* Links in the Navigation bar */
+div.navbar a {
+  color: red;
+  display: inline-block;
+  font-size: 16px;
+  padding: 14px 16px;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* The dropdown container */
+div.dropdown {
+  color: red;
+  display: inline-block;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Dropdown button */
+div.dropdown button.dropbtn {
+  background-color: black;
+  border: none;
+  color: red;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0;
+  outline: none;
+  padding: 14px 16px;
+}
+
+/* Dropdown content */
+div.dropdown-content {
+  background-color: black;
+  border: 1px solid red;
+  box-shadow: 0px 8px 16px 0px rgba(253, 0, 0, 0.2);
+  display: none;
+  min-width: 15%;
+  position: absolute;
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+div.dropdown-content a {
+  color: red;
+  display: block;
+  float: none;
+  padding: 12px 16px;
+  text-align: left;
+  text-decoration: none;
+}
+
+/* Add a grey background color to dropdown links on hover */
+div.dropdown-content a:hover {
+  background-color: #252525;
+}
+
+/* Show the dropdown menu on hover */
+div.dropdown:hover div.dropdown-content {
+  display: block;
+}
+
+/* Add a red background color to navbar links on hover */
+div.navbar a:hover, div.dropdown:hover button.dropbtn {
+  background-color: #252525;
+}
+
+
+
+
+
+
+/* FONTS */
 
 /* Onani Logo Font */
 @font-face {
@@ -46,7 +142,7 @@ body {
   font-style: normal;
 }
 
-/* Literally consolas font */
+/* Literally Consolas font */
 @font-face {
   font-family: "Consolas";
   src: 
@@ -54,4 +150,12 @@ body {
     url("/fonts/Consolas.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
+}
+
+/* ANIMATION */
+
+/* Floating animation */
+@keyframes float { 
+  0%, 20%, 40%, 60%, 80%, 100% {transform: translateY(-3px);} 
+  10%, 30%, 50%, 70%, 90% {transform: translateY(3px);} 
 }
