@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-15 20:29:55
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-15 22:02:48
+# @Last Modified time: 2020-08-16 17:27:53
 
 from aenum import Enum, MultiValue
 

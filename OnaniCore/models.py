@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-15 23:46:03
+# @Last Modified time: 2020-08-17 00:09:19
 import logging
 from datetime import datetime
 
@@ -88,13 +88,11 @@ class User(object):
     __slots__ = (
         "_db",
         "api_key",
-        "bio",
         "created_at",
         "favourites",
         "id",
         "is_banned",
         "permissions",
-        "pfp",
         "settings",
         "username",
     )
@@ -110,24 +108,30 @@ class User(object):
         settings: dict,
         api_key: str,
         created_at: datetime,
-        pfp: str,
-        bio: str,
     ):
         self._db = db
         self.api_key = api_key
-        self.bio = bio
         self.created_at = created_at
         self.favourites = favourites
         self.id = id
         self.is_banned = is_banned
         self.permissions = permissions
-        self.pfp = pfp
         self.settings = settings
         self.username = username
 
     def ban(self, reason: str):
-        # add ban function for users
-        pass
+        self._db.add_ban(self, reason)
+        self.is_banned = True
 
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}', created_at='{self.created_at}')>"
+        return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"
+
+
+class UserSettings(object):
+    __slots__ = ("DEFAULT", "values")
+    DEFAULT = {"profile_pic": None, "bio": None}
+
+    def __init__(self, **kwargs):
+        self.values = dict()
+        self.values.update(self.DEFAULT)
+        self.values.update(kwargs)

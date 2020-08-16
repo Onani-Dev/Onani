@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-15 23:55:51
+# @Last Modified time: 2020-08-17 00:09:05
 
 import logging
 import os
@@ -40,16 +40,15 @@ class DatabaseController:
         self.users = self.db["OnaniUsers"]
 
     ## ADDING
-    # TODO #11 Change kwargs to actual properties
-    def add_post(self, **kwargs) -> None:
+    def add_post(self, file_url=None, thumb_url=None, tags=list(), meta=dict()) -> None:
         # add a post to the database
         post_data = {
             "id": self.posts.find().count() + 1,
             # Need to use file controller here!
-            "file_url": kwargs.get("file_url"),
-            "thumb_url": kwargs.get("thumb_url"),
-            "tags": kwargs.get("tags") or list(),
-            "meta": kwargs.get("meta") or dict(),
+            "file_url": file_url,
+            "thumb_url": thumb_url,
+            "tags": tags,
+            "meta": meta,
         }
         # TODO #10 need to add extra logic to database add_post method
         insert = self.posts.insert_one(post_data)
@@ -58,39 +57,45 @@ class DatabaseController:
         )
         return
 
-    def add_user(self, **kwargs) -> None:
+    def add_user(
+        self,
+        username: str = None,
+        is_banned: bool = False,
+        favourites: list = list(),
+        permissions: UserPermissions = UserPermissions.MEMBER,
+        settings: dict = dict(),
+        password: str = None,
+    ) -> None:
         # add a user to the database
-        if kwargs.get("password") is None:
+        if password is None:
             # We didnt recieve a password
             raise ValueError("Accounts MUST have a password.")
-
+        if username is None:
+            username = self._random_username()
         # Check if Username is already taken, If one is supplied.
-        if kwargs.get("username") is not None:
-            user = self.users.find_one(
-                {"username": re.compile(kwargs.get("username"), re.IGNORECASE)}
-            )
-            if user is not None:
-                # We can't use this username.
-                raise ValueError("Username is taken.")
-            log.debug(f""""{kwargs.get("username")}" looks good to use.""")
+        user = self.users.find_one({"username": re.compile(username, re.IGNORECASE)})
+        if user is not None:
+            # We can't use this username.
+            raise ValueError("Username is taken.")
+        log.debug(f""""{username}" looks good to use.""")
 
         # Construct dict to insert into database
         user_data = {
+            "id": self.users.find().count() + 1,
+            "username": username,
             "api_key": self._create_api_key(),
             "created_at": datetime.utcnow(),
-            "favourites": kwargs.get("favourites") or list(),
-            "id": self.users.find().count() + 1,
-            "is_banned": kwargs.get("is_banned") or False,
-            "pass_hash": generate_password_hash(kwargs.get("password")),
-            "permissions": kwargs.get("permissions") or 1,
-            "settings": kwargs.get("settings") or dict(),
-            "username": kwargs.get("username") or self._random_username(),
+            "is_banned": is_banned,
+            "favourites": favourites,
+            "permissions": permissions.value,
+            "settings": settings,
+            "pass_hash": generate_password_hash(password),
         }
 
         # insert the dict
         insert = self.users.insert_one(user_data)
         log.debug(
-            f"""User "{user_data.get("username")}" inserted into Database with _id "{insert.inserted_id}\""""
+            f"""User \"{user_data.get("username")}\" inserted into Database with _id \"{insert.inserted_id}\""""
         )
         return
 
@@ -99,6 +104,14 @@ class DatabaseController:
 
     def add_tag(self, data: [list, dict]):
         pass
+
+    def add_ban(self, user: User, reason: str = None) -> None:
+        # add a ban for a user
+        self.bans.insert_one({"user_id": user.id, "reason": reason})
+        self.users.update_one(
+            {"username": user.username}, {"$set": {"is_banned": True}}
+        )
+        return
 
     ## GETTING
 
@@ -144,13 +157,7 @@ class DatabaseController:
             user.get("settings") or dict(),
             user.get("api_key"),
             user.get("created_at"),
-            user.get("pfp"),
-            user.get("bio"),
         )
-
-    # def get_raw_tag_info(self, tag_string: str) -> dict:
-    #     # return raw tag data from database
-    #     return dict()
 
     ## INTERNAL FUNCTIONS
 
