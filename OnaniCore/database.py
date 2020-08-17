@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-17 00:09:05
+# @Last Modified time: 2020-08-17 20:22:57
 
 import logging
 import os
@@ -15,8 +15,9 @@ from datetime import datetime
 import pymongo
 from werkzeug.security import generate_password_hash
 
-from .models import *
-from .permissions import UserPermissions
+from .post import Post
+from .tag import Tag
+from .user import User, UserPermissions, UserSettings
 
 log = logging.getLogger(__name__)
 
@@ -60,10 +61,9 @@ class DatabaseController:
     def add_user(
         self,
         username: str = None,
-        is_banned: bool = False,
         favourites: list = list(),
         permissions: UserPermissions = UserPermissions.MEMBER,
-        settings: dict = dict(),
+        settings: UserSettings = UserSettings(),
         password: str = None,
     ) -> None:
         # add a user to the database
@@ -85,10 +85,9 @@ class DatabaseController:
             "username": username,
             "api_key": self._create_api_key(),
             "created_at": datetime.utcnow(),
-            "is_banned": is_banned,
             "favourites": favourites,
             "permissions": permissions.value,
-            "settings": settings,
+            "settings": settings.to_dict(),
             "pass_hash": generate_password_hash(password),
         }
 
@@ -107,9 +106,20 @@ class DatabaseController:
 
     def add_ban(self, user: User, reason: str = None) -> None:
         # add a ban for a user
+
+        # Check if a ban already exists
+        ban = self.bans.find_one({"user_id": user.id})
+        if ban is not None:
+            # there is already a ban for this user
+            raise ValueError("This user is already banned")
+
         self.bans.insert_one({"user_id": user.id, "reason": reason})
         self.users.update_one(
-            {"username": user.username}, {"$set": {"is_banned": True}}
+            {"username": user.username, "id": user.id},
+            {"$set": {"permissions": UserPermissions.BANNED.value}},
+        )
+        log.info(
+            f"{user.username} (ID: {user.id}) has been banned with reason: {reason}."
         )
         return
 
@@ -151,10 +161,9 @@ class DatabaseController:
             self,
             user.get("id"),
             user.get("username"),
-            UserPermissions(user.get("permissions") or 1),
-            user.get("is_banned") or False,
+            UserPermissions(user.get("permissions")),
             user.get("favourites") or list(),
-            user.get("settings") or dict(),
+            UserSettings(**user.get("settings")) or UserSettings(),
             user.get("api_key"),
             user.get("created_at"),
         )

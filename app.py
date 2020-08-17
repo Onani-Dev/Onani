@@ -2,14 +2,13 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-16 21:22:33
+# @Last Modified time: 2020-08-17 20:42:19
 
 import logging
 import os
 
 import pymongo
-from flask import Flask, render_template, send_from_directory
-from flask_sockets import Sockets
+from flask import Flask, abort, redirect, render_template, request, send_from_directory
 from flask_login import (
     LoginManager,
     current_user,
@@ -17,6 +16,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from flask_sockets import Sockets
 
 from OnaniCore import *
 
@@ -59,12 +59,9 @@ logger.addHandler(handler)
 
 @app.route("/")
 def index():
-    # onaniDB.add_user(
-    #     username="Blakeando", password="test", permissions=UserPermissions(666)
-    # )
-    # user = onaniDB.get_user(id=1)
-    # onaniDB.add_post()
-    # print(user.permissions.fullname, user.api_key, user.id, user.username)
+    onaniDB.add_user(password="test")
+    user = onaniDB.get_user(id=1)
+    print(user.permissions, user.api_key, user.id, user.username)
     return render_template("/index.html")
 
 
