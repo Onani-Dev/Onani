@@ -2,10 +2,10 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-17 20:27:21
+# @Last Modified time: 2020-08-18 19:17:10
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from aenum import Enum, MultiValue
 
@@ -82,10 +82,13 @@ class User(object):
         self.settings = settings
         self.username = username
 
-    def ban(self, reason: str):
-        self._db.add_ban(self, reason)
+    def ban(
+        self,
+        reason: str = "No reason Specified",
+        duration: timedelta = timedelta(days=30),
+    ):
+        self._db.add_ban(self, reason, duration)
         self.permissions = UserPermissions.BANNED
 
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"
-

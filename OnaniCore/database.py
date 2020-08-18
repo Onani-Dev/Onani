@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-17 20:22:57
+# @Last Modified time: 2020-08-18 19:24:16
 
 import logging
 import os
@@ -10,7 +10,7 @@ import random
 import re
 import string
 from binascii import hexlify
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pymongo
 from werkzeug.security import generate_password_hash
@@ -30,9 +30,9 @@ class DatabaseController:
     __slots__ = ("client", "db", "posts", "tags", "users", "collections", "bans")
 
     def __init__(
-        self, client: pymongo.MongoClient,
+        self, mongo_uri: str = "mongodb://localhost:27017/",
     ):
-        self.client = client
+        self.client = pymongo.MongoClient(mongo_uri)
         self.db = self.client["OnaniDB"]
         self.bans = self.db["OnaniBans"]
         self.collections = self.db["OnaniCollections"]
@@ -65,7 +65,7 @@ class DatabaseController:
         permissions: UserPermissions = UserPermissions.MEMBER,
         settings: UserSettings = UserSettings(),
         password: str = None,
-    ) -> None:
+    ) -> User:
         # add a user to the database
         if password is None:
             # We didnt recieve a password
@@ -96,7 +96,7 @@ class DatabaseController:
         log.debug(
             f"""User \"{user_data.get("username")}\" inserted into Database with _id \"{insert.inserted_id}\""""
         )
-        return
+        return self.get_user(mongo_id=insert.inserted_id)
 
     def add_collection(self, data: [list, dict]):
         pass
@@ -104,7 +104,9 @@ class DatabaseController:
     def add_tag(self, data: [list, dict]):
         pass
 
-    def add_ban(self, user: User, reason: str = None) -> None:
+    def add_ban(
+        self, user: User, reason: str = None, duration: timedelta = timedelta(days=30)
+    ) -> None:
         # add a ban for a user
 
         # Check if a ban already exists
@@ -113,7 +115,13 @@ class DatabaseController:
             # there is already a ban for this user
             raise ValueError("This user is already banned")
 
-        self.bans.insert_one({"user_id": user.id, "reason": reason})
+        self.bans.insert_one(
+            {
+                "user_id": user.id,
+                "reason": reason,
+                "expires": datetime.utcnow() + duration,
+            }
+        )
         self.users.update_one(
             {"username": user.username, "id": user.id},
             {"$set": {"permissions": UserPermissions.BANNED.value}},
@@ -125,7 +133,7 @@ class DatabaseController:
 
     ## GETTING
 
-    def get_user(self, id=None, username=None, api_key=None) -> User:
+    def get_user(self, id=None, username=None, api_key=None, mongo_id=None) -> User:
         if id is not None:
             # Check for user with ID
             user = self.users.find_one({"id": id})
@@ -153,6 +161,16 @@ class DatabaseController:
                 raise ValueError("Supplied API Key does not exist in Database.")
             log.debug(
                 f"""Found user {user.get("username")} (ID: {user.get("id")}) with API key."""
+            )
+        elif mongo_id is not None:
+            # Check for user with a mongo document ID
+            user = self.users.find_one({"_id": mongo_id})
+            if user is None:
+                raise ValueError(
+                    "Supplied Mongo Document ID does not exist in Database."
+                )
+            log.debug(
+                f"""Found user {user.get("username")} (ID: {user.get("id")}) with MongoDB ID."""
             )
         else:
             raise ValueError("One of: id, username, api_key must be supplied.")

@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-17 20:42:19
+# @Last Modified time: 2020-08-18 19:36:28
 
 import logging
 import os
@@ -26,42 +26,17 @@ app = Flask(
     static_folder="OnaniFrontend/static",
     template_folder="OnaniFrontend/templates",
 )
-app.config[
-    "SECRET_KEY"
-] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"  # Temporary; Change to config generated one
-onaniDB = DatabaseController(pymongo.MongoClient("mongodb://localhost:27017/"))
+# Temporary secret key; Change to config generated one
+app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
+
+onaniDB = DatabaseController("mongodb://localhost:27017/")
 sockets = Sockets(app)
 
-
-logger = logging.getLogger("OnaniCore")
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-
-# @login_manager.user_loader
-# def user_loader(username):
-#     user_check = system.database.get_user(username)
-#     if user_check is None:
-#         return
-#     user = User()
-#     user.id = user_check["username"]
-#     user.is_admin = user_check["is_admin"]
-#     user.api_key = user_check["api_key"]
-#     user.favourites = user_check["favourites"]
-#     user.settings = dict(system.default_user_settings)
-#     user.settings.update(user_check["settings"])
-#     return user
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 @app.route("/")
 def index():
-    onaniDB.add_user(password="test")
-    user = onaniDB.get_user(id=1)
-    print(user.permissions, user.api_key, user.id, user.username)
     return render_template("/index.html")
 
 
