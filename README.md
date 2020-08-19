@@ -35,7 +35,7 @@ You should only need to use the `. env/bin/activate` command once you have done 
 1. Start Gunicorn: `gunicorn -k flask_sockets.worker -w 8 app:app`
 
 ## Setup nginx
-TODO
+TODO #12
 
 
 

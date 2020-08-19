@@ -2,11 +2,33 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-17 20:08:51
+# @Last Modified time: 2020-08-19 23:54:00
 
 import logging
 
+from aenum import Enum, MultiValue
+
 log = logging.getLogger(__name__)
+
+
+class TagType(Enum):
+    """
+    Types for Tag Objects
+    Can be: ARTIST, CHARACTER, COPYRIGHT, GENERAL, META
+    """
+
+    _init_ = "value string"
+    _settings_ = MultiValue
+
+    BANNED = 0, "Banned"
+    GENERAL = 1, "General"
+    ARTIST = 2, "Artist"
+    CHARACTER = 3, "Character"
+    COPYRIGHT = 4, "Copyright"
+    META = 5, "Meta"
+
+    def __int__(self):
+        return self.value
 
 
 class Tag(object):
@@ -16,39 +38,49 @@ class Tag(object):
 
     __slots__ = (
         "_db",
-        "tag_string",
-        "raw",
+        "string",
         "type",
-        "is_banned",
         "aliases",
         "description",
     )
 
-    def __init__(self, db, tag_string: str):
+    def __init__(
+        self,
+        db,
+        tag_string: str,
+        tag_type: TagType,
+        aliases: list = list(),
+        description: str = None,
+    ):
         self._db = db
-        self.tag_string = tag_string
-        self.raw = self._db.get_raw_tag_info(self.tag_string)
-        self.type = self.raw.get("type") or "Unknown"
-        self.is_banned = self.raw.get("is_banned") or False
-        self.aliases = self.raw.get("aliases") or list()
-        self.description = self.raw.get("description") or str()
+        self.string = tag_string
+        self.type = tag_type
+        self.aliases = aliases
+        self.description = description
 
-    def ban(self):
-        self.is_banned = True
-        # need to do extra db stuff here
+    def ban(self) -> None:
+        self._db.add_tag_ban(self)
+        self.type = TagType.BANNED
 
-    def edit_description(self, description: str):
+    def unban(self, tag_type: TagType = TagType.GENERAL) -> None:
+        self._db.remove_tag_ban(self)
+        self.type = tag_type
+
+    def edit_description(self, description: str) -> None:
         self.description = description
         # need to do extra db stuff here
 
-    def edit_alias(self, mode: str = "add", alias: str = None):
-        if alias is None:
-            raise ValueError("Alias is missing.")
-        if mode == "add":
-            self.aliases.append(alias)
-        elif mode == "remove":
-            self.aliases.remove(alias)
-        # need to do extra db stuff here
+    def add_alias(self, alias: str) -> [str, None]:
+        update = self._db.add_tag_alias(self, alias)
+        if update is not None:
+            self.aliases.append(update)
+        return update
+
+    def remove_alias(self, alias: str) -> [str, None]:
+        update = self._db.remove_tag_alias(self, alias)
+        if update is not None:
+            self.aliases.remove(update)
+        return update
 
     def __str__(self):
-        return self.tag_string
+        return self.string
