@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-19 16:37:06
+# @Last Modified time: 2020-08-20 13:52:21
 
 import logging
 from datetime import datetime, timedelta
@@ -88,7 +88,6 @@ class User(object):
         duration: timedelta = timedelta(days=30),
     ):
         self._db.add_user_ban(self, reason, duration)
-        self.permissions = UserPermissions.BANNED
 
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"

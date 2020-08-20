@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-19 23:56:52
+# @Last Modified time: 2020-08-20 13:57:20
 
 import logging
 import os
@@ -56,7 +56,6 @@ class DatabaseController:
         log.debug(
             f"""Inserted post {post_data.get("id")} with _id {insert.inserted_id}"""
         )
-        return
 
     def add_user(
         self,
@@ -127,7 +126,7 @@ class DatabaseController:
         log.info(
             f"{user.username} (ID: {user.id}) has been banned with reason: {reason}."
         )
-        return
+        user.permissions = UserPermissions.BANNED
 
     def add_tag(
         self,
@@ -162,14 +161,16 @@ class DatabaseController:
         self.tags.update_one(
             {"string": tag.string}, {"$set": {"type": TagType.BANNED.value}},
         )
-        return
+        tag.type = TagType.BANNED
 
-    def add_tag_alias(self, tag: Tag, alias: str) -> [str, None]:
+    def add_tag_alias(self, tag: Tag, alias: str) -> None:
         # add an alias to a tag
+        alias = self._parse_tag(alias)
         update = self.tags.update_one(
-            {"string": tag.string}, {"$addToSet": {"aliases": self._parse_tag(alias)}}
+            {"string": tag.string}, {"$addToSet": {"aliases": alias}}
         )
-        return self._parse_tag(alias) if update.modified_count > 0 else None
+        if update.modified_count > 0:
+            tag.aliases.append(alias)
 
     ## GETTING
 
@@ -250,21 +251,51 @@ class DatabaseController:
 
     ## REMOVING
 
-    def remove_tag_alias(self, tag: Tag, alias: str) -> [str, None]:
+    def remove_tag_alias(self, tag: Tag, alias: str) -> None:
         # add an alias to a tag
         update = self.tags.update_one(
             {"string": tag.string}, {"$pull": {"aliases": alias}}
         )
-        return alias if update.modified_count > 0 else None
+        if update.modified_count > 0:
+            tag.aliases.remove(alias)
 
-    def remove_tag_ban(self, tag: Tag, type: TagType = TagType.GENERAL):
-        # TODO #14 #13 add remove_tag_ban and modify_tag
-        pass
+    def remove_tag_ban(self, tag: Tag, tag_type: TagType = TagType.GENERAL) -> None:
+        # remove a tag ban
+        self.tags.update_one(
+            {"string": tag.string}, {"$set": {"type": tag_type.value}},
+        )
+        tag.type = tag_type
 
     ## MODIFYING
 
-    def modify_tag(self, tag: Tag, **kwargs):
-        pass
+    def modify_tag(
+        self,
+        tag: Tag,
+        tag_string: str = None,
+        tag_type: TagType = None,
+        description: str = None,
+    ) -> None:
+        # Update string if present
+        if tag_string is not None:
+            tag_string = self._parse_tag(tag_string)
+            self.tags.update_one(
+                {"string": tag.string}, {"$set": {"string": tag_string}},
+            )
+            tag.string = tag_string
+
+        # update type if present
+        if tag_type is not None:
+            self.tags.update_one(
+                {"string": tag.string}, {"$set": {"type": tag_type.value}},
+            )
+            tag.type = tag_type
+
+        # update description if present
+        if description is not None:
+            self.tags.update_one(
+                {"string": tag.string}, {"$set": {"description": description}},
+            )
+            tag.description = description
 
     ## INTERNAL FUNCTIONS
 

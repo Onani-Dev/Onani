@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-18 16:41:43
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-19 22:43:30
+# @Last Modified time: 2020-08-20 13:57:05
 import datetime
 import random
 import string
@@ -55,13 +55,15 @@ class TestOnaniDatabase(unittest.TestCase):
             onaniDB.add_tag(tag.string)
 
         # Test aliases
-        alias = "".join(
-            random.choice(
-                string.ascii_uppercase + string.ascii_lowercase + string.digits
+        alias = onaniDB._parse_tag(
+            "".join(
+                random.choice(
+                    string.ascii_uppercase + string.ascii_lowercase + string.digits
+                )
+                for x in range(10)
             )
-            for x in range(10)
         )
-        alias = tag.add_alias(alias)
+        tag.add_alias(alias)
         self.assertIn(alias, tag.aliases)
 
         # Try to add again
@@ -78,6 +80,31 @@ class TestOnaniDatabase(unittest.TestCase):
         self.assertEquals(test1.aliases[0], alias)
         self.assertIsNotNone(test2)
         self.assertEquals(test2.string, tag.string)
+
+        # Test modification
+        test1.edit_description("This is a modification test")
+        self.assertEquals(test1.description, "This is a modification test")
+        new_name = "This is a modification test " + "".join(
+            random.choice(
+                string.ascii_uppercase + string.ascii_lowercase + string.digits
+            )
+            for x in range(10)
+        )
+        test1.edit_name(new_name)
+        self.assertEquals(test1.string, onaniDB._parse_tag(new_name))
+
+        # Test removing alias
+        remove = test1.aliases[0]
+        test1.remove_alias(remove)
+        self.assertNotIn(remove, test1.aliases)
+
+        # Test unbanning
+        test1.unban()
+        self.assertEquals(test1.type.value, TagType.GENERAL.value)
+
+        # Test type changing
+        test1.edit_type(TagType.CHARACTER)
+        self.assertEquals(test1.type.value, TagType.CHARACTER.value)
 
 
 if __name__ == "__main__":

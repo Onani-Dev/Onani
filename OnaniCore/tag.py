@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-19 23:54:00
+# @Last Modified time: 2020-08-20 13:56:18
 
 import logging
 
@@ -58,29 +58,26 @@ class Tag(object):
         self.aliases = aliases
         self.description = description
 
+    def edit_name(self, new_name: str) -> None:
+        self._db.modify_tag(self, tag_string=new_name)
+
     def ban(self) -> None:
         self._db.add_tag_ban(self)
-        self.type = TagType.BANNED
 
     def unban(self, tag_type: TagType = TagType.GENERAL) -> None:
         self._db.remove_tag_ban(self)
-        self.type = tag_type
 
     def edit_description(self, description: str) -> None:
-        self.description = description
-        # need to do extra db stuff here
+        self._db.modify_tag(self, description=description)
 
-    def add_alias(self, alias: str) -> [str, None]:
-        update = self._db.add_tag_alias(self, alias)
-        if update is not None:
-            self.aliases.append(update)
-        return update
+    def add_alias(self, alias: str) -> None:
+        self._db.add_tag_alias(self, alias)
 
-    def remove_alias(self, alias: str) -> [str, None]:
-        update = self._db.remove_tag_alias(self, alias)
-        if update is not None:
-            self.aliases.remove(update)
-        return update
+    def remove_alias(self, alias: str) -> None:
+        self._db.remove_tag_alias(self, alias)
+
+    def edit_type(self, new_type: TagType) -> None:
+        self._db.modify_tag(self, tag_type=new_type)
 
     def __str__(self):
         return self.string

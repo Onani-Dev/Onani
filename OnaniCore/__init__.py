@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:57
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-17 20:13:00
+# @Last Modified time: 2020-08-20 13:49:03
 
 import logging
 import platform
@@ -20,5 +20,5 @@ user_agent = f"Onani-Core/{__version__} Python/{platform.python_version()} Reque
 from .database import DatabaseController
 from .post import Post
 from .scrapers import DanBooruScraper, Scraper
-from .tag import Tag
+from .tag import Tag, TagType
 from .user import User, UserPermissions, UserSettings
