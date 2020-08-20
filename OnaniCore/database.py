@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-20 13:57:20
+# @Last Modified time: 2020-08-20 14:33:43
 
 import logging
 import os
@@ -162,6 +162,7 @@ class DatabaseController:
             {"string": tag.string}, {"$set": {"type": TagType.BANNED.value}},
         )
         tag.type = TagType.BANNED
+        log.debug(f'Ban for tag "{tag.string}" added.')
 
     def add_tag_alias(self, tag: Tag, alias: str) -> None:
         # add an alias to a tag
@@ -171,6 +172,9 @@ class DatabaseController:
         )
         if update.modified_count > 0:
             tag.aliases.append(alias)
+            log.debug('Alias added for tag "{tag.string}"')
+        else:
+            log.warning("Alias was not added as it already exists.")
 
     ## GETTING
 
@@ -239,6 +243,7 @@ class DatabaseController:
                 raise ValueError(
                     f'No tag mathching the name "{tag_string}" could be found.'
                 )
+        log.debug(f'Tag found with name "{tag_string}"')
 
         # return our tag
         return Tag(
@@ -258,6 +263,9 @@ class DatabaseController:
         )
         if update.modified_count > 0:
             tag.aliases.remove(alias)
+            log.debug('Alias removed for tag "{tag.string}"')
+        else:
+            log.warning("Alias was not removed as it doesnt't exist.")
 
     def remove_tag_ban(self, tag: Tag, tag_type: TagType = TagType.GENERAL) -> None:
         # remove a tag ban
@@ -265,6 +273,7 @@ class DatabaseController:
             {"string": tag.string}, {"$set": {"type": tag_type.value}},
         )
         tag.type = tag_type
+        log.debug(f'Type changed to "{tag_type.string}" for tag "{tag.string}"')
 
     ## MODIFYING
 
@@ -282,6 +291,7 @@ class DatabaseController:
                 {"string": tag.string}, {"$set": {"string": tag_string}},
             )
             tag.string = tag_string
+            log.debug(f'Tag name changed to "{tag.string}"')
 
         # update type if present
         if tag_type is not None:
@@ -289,6 +299,7 @@ class DatabaseController:
                 {"string": tag.string}, {"$set": {"type": tag_type.value}},
             )
             tag.type = tag_type
+            log.debug(f'Type changed to "{tag_type.string}" for tag "{tag.string}"')
 
         # update description if present
         if description is not None:
@@ -296,6 +307,7 @@ class DatabaseController:
                 {"string": tag.string}, {"$set": {"description": description}},
             )
             tag.description = description
+            log.debug(f'Description changed for tag "{tag.string}"')
 
     ## INTERNAL FUNCTIONS
 
