@@ -2,10 +2,11 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-20 13:56:18
+# @Last Modified time: 2020-08-20 20:52:49
 
 import logging
 
+import json
 from aenum import Enum, MultiValue
 
 log = logging.getLogger(__name__)
@@ -61,11 +62,14 @@ class Tag(object):
     def edit_name(self, new_name: str) -> None:
         self._db.modify_tag(self, tag_string=new_name)
 
+    def edit_type(self, new_type: TagType) -> None:
+        self._db.modify_tag(self, tag_type=new_type)
+
     def ban(self) -> None:
-        self._db.add_tag_ban(self)
+        self._db.modify_tag(self, tag_type=TagType.BANNED)
 
     def unban(self, tag_type: TagType = TagType.GENERAL) -> None:
-        self._db.remove_tag_ban(self)
+        self._db.modify_tag(self, tag_type=tag_type)
 
     def edit_description(self, description: str) -> None:
         self._db.modify_tag(self, description=description)
@@ -76,8 +80,12 @@ class Tag(object):
     def remove_alias(self, alias: str) -> None:
         self._db.remove_tag_alias(self, alias)
 
-    def edit_type(self, new_type: TagType) -> None:
-        self._db.modify_tag(self, tag_type=new_type)
-
     def __str__(self):
         return self.string
+
+    def __repr__(self):
+        return f"<Tag(string='{self.string}', type='{self.type}', aliases='{json.dumps(self.aliases)}')>"
+
+    # Turns out i didn't need this, but i'm keeping it here because i think its neat
+    # def to_dict(self):
+    #     return {x: getattr(self, x) for x in self.__slots__ if x != "_db"}

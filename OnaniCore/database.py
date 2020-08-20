@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-20 14:33:43
+# @Last Modified time: 2020-08-21 00:44:45
 
 import logging
 import os
@@ -40,7 +40,7 @@ class DatabaseController:
         self.tags = self.db["OnaniTags"]
         self.users = self.db["OnaniUsers"]
 
-    ## ADDING
+    ## POSTS
     def add_post(self, file_url=None, thumb_url=None, tags=list(), meta=dict()) -> None:
         # add a post to the database
         post_data = {
@@ -57,6 +57,7 @@ class DatabaseController:
             f"""Inserted post {post_data.get("id")} with _id {insert.inserted_id}"""
         )
 
+    ## USERS
     def add_user(
         self,
         username: str = None,
@@ -90,6 +91,7 @@ class DatabaseController:
             "permissions": permissions.value,
             "settings": settings.to_dict(),
             "pass_hash": generate_password_hash(password),
+            "is_deleted": False,
         }
 
         # insert the dict
@@ -98,85 +100,6 @@ class DatabaseController:
             f"""User \"{user_data.get("username")}\" inserted into Database with _id \"{insert.inserted_id}\""""
         )
         return self.get_user(mongo_id=insert.inserted_id)
-
-    def add_user_ban(
-        self, user: User, reason: str = None, duration: timedelta = timedelta(days=30)
-    ) -> None:
-        # add a ban for a user
-
-        # Check if a ban already exists
-        ban = self.bans.find_one({"user_id": user.id})
-        if ban is not None:
-            # there is already a ban for this user
-            raise ValueError("This user is already banned")
-
-        # create dict and add the ban to the database
-        ban_data = {
-            "user_id": user.id,
-            "reason": reason,
-            "expires": datetime.utcnow() + duration,
-        }
-        self.bans.insert_one(ban_data)
-
-        # give the user BANNED perms
-        self.users.update_one(
-            {"username": user.username, "id": user.id},
-            {"$set": {"permissions": UserPermissions.BANNED.value}},
-        )
-        log.info(
-            f"{user.username} (ID: {user.id}) has been banned with reason: {reason}."
-        )
-        user.permissions = UserPermissions.BANNED
-
-    def add_tag(
-        self,
-        tag_string: str,
-        tag_type: TagType = TagType.GENERAL,
-        aliases: list = list(),
-        description: str = None,
-    ) -> Tag:
-        # add a tag to the database
-        tag_string = self._parse_tag(tag_string)
-
-        tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
-        if tag is not None:
-            # What the ValueError says :)
-            raise ValueError("A tag with this name already exists.")
-
-        # Create dict and insert
-        tag_data = {
-            "string": tag_string,
-            "type": tag_type.value,
-            "aliases": aliases,
-            "description": description,
-        }
-        insert = self.tags.insert_one(tag_data)
-        log.debug(
-            f"Tag \"{tag_data.get('string')}\" inserted into Database with _id \"{insert.inserted_id}\""
-        )
-        return self.get_tag(tag_data.get("string"))
-
-    def add_tag_ban(self, tag: Tag) -> None:
-        # ban a tag
-        self.tags.update_one(
-            {"string": tag.string}, {"$set": {"type": TagType.BANNED.value}},
-        )
-        tag.type = TagType.BANNED
-        log.debug(f'Ban for tag "{tag.string}" added.')
-
-    def add_tag_alias(self, tag: Tag, alias: str) -> None:
-        # add an alias to a tag
-        alias = self._parse_tag(alias)
-        update = self.tags.update_one(
-            {"string": tag.string}, {"$addToSet": {"aliases": alias}}
-        )
-        if update.modified_count > 0:
-            tag.aliases.append(alias)
-            log.debug('Alias added for tag "{tag.string}"')
-        else:
-            log.warning("Alias was not added as it already exists.")
-
-    ## GETTING
 
     def get_user(self, id=None, username=None, api_key=None, mongo_id=None) -> User:
         if id is not None:
@@ -232,7 +155,157 @@ class DatabaseController:
             UserSettings(**user.get("settings")),
             user.get("api_key"),
             user.get("created_at"),
+            user.get("is_deleted"),
         )
+
+    def modify_user(
+        self,
+        user: User,
+        username: str = None,
+        settings: dict = None,
+        permissions: UserPermissions = None,
+    ) -> None:
+        # Edit username if present
+        if username is not None:
+            user = self.users.find_one(
+                {"username": re.compile(username, re.IGNORECASE)}
+            )
+            if user is not None:
+                # We can't use this username.
+                raise ValueError("Username is taken.")
+            self.users.update_one({"id": user.id}, {"$set": {"username": username}})
+            user.username = username
+
+        # Edit settings if present
+        if settings is not None:
+            user.settings.update(**settings)
+            self.users.update_one(
+                {"id": user.id}, {"$set": {"settings": user.settings.to_dict()}}
+            )
+
+        # Edit permissions if present
+        if permissions is not None:
+            self.users.update_one(
+                {"id": user.id}, {"$set": {"permissions": permissions.value}}
+            )
+            user.permissions = permissions
+
+    def regen_user_api_key(self, user: User) -> None:
+        # regen api key for user
+        api_key = self._create_api_key()
+        self.users.update_one({"id": user.id}, {"$set": {"api_key": api_key}})
+        user.api_key = api_key
+
+    def add_user_favourite(self, user: User, post: Post) -> None:
+        # add a post to user favourites
+        update = self.users.update_one(
+            {"id": user.id}, {"$addToSet": {"favourites": post.id}}
+        )
+        if update.modified_count > 0:
+            user.favourites.append(post.id)
+            log.debug(f"Post {post.id} was added to {user.username}'s Favourites")
+        else:
+            log.warning("Post was not added as it already exists as a favourite.")
+
+    def remove_user_favourite(self, user: User, post: Post) -> None:
+        # remove a post from user favourites
+        update = self.users.update_one(
+            {"id": user.id}, {"$pull": {"favourites": post.id}}
+        )
+        if update.modified_count > 0:
+            user.favourites.remove(post.id)
+            log.debug(f"Post {post.id} was removed from {user.username}'s Favourites")
+        else:
+            log.warning("Post was not removed as it does not exist as a favourite.")
+
+    def add_user_ban(
+        self, user: User, reason: str = None, duration: timedelta = timedelta(days=30)
+    ) -> None:
+        # add a ban for a user
+
+        # Check if a ban already exists
+        ban = self.bans.find_one({"user_id": user.id})
+        if ban is not None:
+            # there is already a ban for this user
+            raise ValueError("This user is already banned")
+
+        # create dict and add the ban to the database
+        ban_data = {
+            "user_id": user.id,
+            "reason": reason,
+            "expires": datetime.utcnow() + duration,
+        }
+        self.bans.insert_one(ban_data)
+
+        # give the user BANNED perms
+        self.users.update_one(
+            {"username": user.username, "id": user.id},
+            {"$set": {"permissions": UserPermissions.BANNED.value}},
+        )
+        log.info(
+            f"{user.username} (ID: {user.id}) has been banned with reason: {reason}."
+        )
+        user.permissions = UserPermissions.BANNED
+
+    def remove_user_ban(self, user: User) -> None:
+        # Remove a ban for a user
+
+        # Check if a ban exists
+        ban = self.bans.find_one({"user_id": user.id})
+        if ban is None:
+            # there is no existing ban
+            raise ValueError("This user is not banned")
+
+        self.bans.delete_one({"user_id": user.id})
+
+        # remove the BANNED perms
+        self.users.update_one(
+            {"username": user.username, "id": user.id},
+            {"$set": {"permissions": UserPermissions.MEMBER.value}},
+        )
+        log.info(f"{user.username} (ID: {user.id}) has been unbanned")
+        user.permissions = UserPermissions.MEMBER
+
+    ## TAGS
+    def add_tag(
+        self,
+        tag_string: str,
+        tag_type: TagType = TagType.GENERAL,
+        aliases: list = list(),
+        description: str = None,
+    ) -> Tag:
+        # add a tag to the database
+        tag_string = self._parse_tag(tag_string)
+
+        tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
+        if tag is not None:
+            # What the ValueError says :)
+            raise ValueError("A tag with this name already exists.")
+
+        # Create dict and insert
+        tag_data = {
+            "string": tag_string,
+            "type": tag_type.value,
+            "aliases": aliases,
+            "description": description,
+        }
+        insert = self.tags.insert_one(tag_data)
+        log.debug(
+            f"Tag \"{tag_data.get('string')}\" inserted into Database with _id \"{insert.inserted_id}\""
+        )
+        return self.get_tag(tag_data.get("string"))
+
+    def add_tag_alias(self, tag: Tag, alias: str) -> None:
+        # add an alias to a tag
+        alias = self._parse_tag(alias)
+        update = self.tags.update_one(
+            {"string": tag.string}, {"$addToSet": {"aliases": alias}}
+        )
+        if update.modified_count > 0:
+            tag.aliases.append(alias)
+            log.debug(f'Alias added for tag "{tag.string}"')
+        else:
+            log.warning("Alias was not added as it already exists.")
 
     def get_tag(self, tag_string: str):
         # Find a tag in the database with the provided name
@@ -254,8 +327,6 @@ class DatabaseController:
             description=tag.get("description"),
         )
 
-    ## REMOVING
-
     def remove_tag_alias(self, tag: Tag, alias: str) -> None:
         # add an alias to a tag
         update = self.tags.update_one(
@@ -263,19 +334,9 @@ class DatabaseController:
         )
         if update.modified_count > 0:
             tag.aliases.remove(alias)
-            log.debug('Alias removed for tag "{tag.string}"')
+            log.debug(f'Alias removed for tag "{tag.string}"')
         else:
             log.warning("Alias was not removed as it doesnt't exist.")
-
-    def remove_tag_ban(self, tag: Tag, tag_type: TagType = TagType.GENERAL) -> None:
-        # remove a tag ban
-        self.tags.update_one(
-            {"string": tag.string}, {"$set": {"type": tag_type.value}},
-        )
-        tag.type = tag_type
-        log.debug(f'Type changed to "{tag_type.string}" for tag "{tag.string}"')
-
-    ## MODIFYING
 
     def modify_tag(
         self,

@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-18 16:41:43
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-20 13:57:05
+# @Last Modified time: 2020-08-20 17:59:01
 import datetime
 import random
 import string
@@ -27,13 +27,11 @@ class TestOnaniDatabase(unittest.TestCase):
         with self.assertRaises(ValueError):
             onaniDB.add_user(username=user.username, password="test")
 
-        # Test Banning
+        # Test Banning and unbanning
         user.ban("Automated Test", datetime.timedelta(days=243090))
-        self.assertTrue(user.permissions.value == 0)
-
-        # Test if objects are what they are meant to be
-        self.assertTrue(isinstance(user, User))
-        self.assertTrue(isinstance(user.permissions, UserPermissions))
+        self.assertEqual(user.permissions.value, 0)
+        user.unban()
+        self.assertEqual(user.permissions.value, 1)
 
     def test_tag_creation(self):
         # Test Connection

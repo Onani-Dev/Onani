@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-17 20:07:56
+# @Last Modified time: 2020-08-21 00:51:10
 
 import logging
 from datetime import datetime
@@ -15,7 +15,7 @@ class Post(object):
     Onani Post Object
     """
 
-    __slots__ = ("_db", "id", "file_url", "thumb_url", "tags", "meta")
+    __slots__ = ("_db", "id", "filename", "thumb_filename", "tags", "meta")
 
     def __init__(self, db, post_data: dict):
         self._db = db
