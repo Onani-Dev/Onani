@@ -2,11 +2,15 @@
 # @Author: Blakeando
 # @Date:   2020-08-15 23:31:53
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-18 09:41:46
+# @Last Modified time: 2020-08-20 14:07:29
 
 import hashlib
 import os
 from io import BytesIO
+
+
+class DownloadController(object):
+    pass
 
 
 class FileController(object):
@@ -22,7 +26,9 @@ class FileController(object):
         self.location = location
 
     def save_file(self, filebytes: bytes, filename: str = None):
-        pass
+        # TODO #15
+        with open(f"{location}/{filename}", "wb") as f:
+			f.write(filebytes)
 
     # INTERNAL FUNCTIONS
     def _get_md5(self, file: BytesIO):
