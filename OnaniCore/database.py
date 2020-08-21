@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-21 00:44:45
+# @Last Modified time: 2020-08-21 18:49:34
 
 import logging
 import os
@@ -205,7 +205,7 @@ class DatabaseController:
             user.favourites.append(post.id)
             log.debug(f"Post {post.id} was added to {user.username}'s Favourites")
         else:
-            log.warning("Post was not added as it already exists as a favourite.")
+            log.debug("Post was not added as it already exists as a favourite.")
 
     def remove_user_favourite(self, user: User, post: Post) -> None:
         # remove a post from user favourites
@@ -216,7 +216,7 @@ class DatabaseController:
             user.favourites.remove(post.id)
             log.debug(f"Post {post.id} was removed from {user.username}'s Favourites")
         else:
-            log.warning("Post was not removed as it does not exist as a favourite.")
+            log.debug("Post was not removed as it does not exist as a favourite.")
 
     def add_user_ban(
         self, user: User, reason: str = None, duration: timedelta = timedelta(days=30)
@@ -305,7 +305,7 @@ class DatabaseController:
             tag.aliases.append(alias)
             log.debug(f'Alias added for tag "{tag.string}"')
         else:
-            log.warning("Alias was not added as it already exists.")
+            log.debug("Alias was not added as it already exists.")
 
     def get_tag(self, tag_string: str):
         # Find a tag in the database with the provided name
@@ -336,7 +336,7 @@ class DatabaseController:
             tag.aliases.remove(alias)
             log.debug(f'Alias removed for tag "{tag.string}"')
         else:
-            log.warning("Alias was not removed as it doesnt't exist.")
+            log.debug("Alias was not removed as it doesnt't exist.")
 
     def modify_tag(
         self,
