@@ -2,13 +2,13 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-21 00:47:47
+# @Last Modified time: 2020-08-21 23:57:59
 
 import logging
 from datetime import datetime, timedelta
 
 from aenum import Enum, MultiValue
-from .post import Post
+from ..models.post import Post
 
 log = logging.getLogger(__name__)
 

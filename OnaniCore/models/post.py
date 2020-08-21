@@ -2,12 +2,12 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-21 21:52:44
+# @Last Modified time: 2020-08-21 23:56:58
 
 import logging
 from datetime import datetime
 
-from .tag import Tag, TagType
+from ..models.tag import Tag, TagType
 
 log = logging.getLogger(__name__)
 
