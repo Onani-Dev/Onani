@@ -2,15 +2,30 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-21 23:57:59
+# @Last Modified time: 2020-08-22 14:31:46
 
 import logging
 from datetime import datetime, timedelta
 
 from aenum import Enum, MultiValue
-from ..models.post import Post
 
 log = logging.getLogger(__name__)
+
+
+class UserSettings(object):
+    """
+    Settings for User objects
+    """
+
+    def __init__(self, **kwargs):
+        self.__dict__.update({"profile_pic": None, "bio": None})
+        self.__dict__.update(kwargs)
+
+    def update(self, **kwargs) -> None:
+        self.__dict__.update(kwargs)
+
+    def to_dict(self) -> dict:
+        return self.__dict__
 
 
 class UserPermissions(Enum):
@@ -32,22 +47,6 @@ class UserPermissions(Enum):
 
     def __int__(self):
         return self.value
-
-
-class UserSettings(object):
-    """
-    Settings for User objects
-    """
-
-    def __init__(self, **kwargs):
-        self.__dict__.update({"profile_pic": None, "bio": None})
-        self.__dict__.update(kwargs)
-
-    def update(self, **kwargs) -> None:
-        self.__dict__.update(kwargs)
-
-    def to_dict(self) -> dict:
-        return self.__dict__
 
 
 class User(object):
@@ -89,29 +88,29 @@ class User(object):
         self.username = username
         self.is_deleted = is_deleted
 
-    def ban(self, reason: str, duration: timedelta = timedelta(days=30)):
+    def ban(self, reason: str, duration: timedelta = timedelta(days=30)) -> None:
         self._db.add_user_ban(self, reason, duration)
 
-    def unban(self):
+    def unban(self) -> None:
         self._db.remove_user_ban(self)
 
-    def edit_username(self, new_username: str):
+    def edit_username(self, new_username: str) -> None:
         self._db.modify_user(self, username=new_username)
 
-    def add_favourite(self, post: Post):
+    def add_favourite(self, post) -> None:
         self._db.add_user_favourite(self, post)
 
-    def remove_favourite(self, post: Post):
+    def remove_favourite(self, post) -> None:
         self._db.remove_user_favourite(self, post)
 
-    def edit_permissions(self, new_permissions: UserPermissions):
+    def edit_permissions(self, new_permissions: UserPermissions) -> None:
         self._db.modify_user(self, permissions=new_permissions)
 
-    def edit_settings(self, **kwargs):
+    def edit_settings(self, **kwargs) -> None:
         self._db.modify_user(self, settings=kwargs)
 
-    def regen_api_key(self):
+    def regen_api_key(self) -> None:
         self._db.regen_user_api_key(self)
 
-    def __repr__(self):
+    def __repr__(self) -> None:
         return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"

@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-21 23:58:54
+# @Last Modified time: 2020-08-22 13:49:15
 
 import logging
 import os
@@ -15,9 +15,7 @@ from datetime import datetime, timedelta
 import pymongo
 from werkzeug.security import generate_password_hash
 
-from .models.post import Post
-from .models.tag import Tag, TagType
-from .models.user import User, UserPermissions, UserSettings
+from ..models import Post, Tag, TagType, User, UserPermissions, UserSettings
 
 log = logging.getLogger(__name__)
 

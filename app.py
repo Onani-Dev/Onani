@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-18 19:36:28
+# @Last Modified time: 2020-08-22 00:31:36
 
 import logging
 import os
@@ -24,7 +24,7 @@ app = Flask(
     __name__,
     static_url_path="",
     static_folder="OnaniFrontend/static",
-    template_folder="OnaniFrontend/templates",
+    template_folder="OnaniFrontend/views",
 )
 # Temporary secret key; Change to config generated one
 app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"

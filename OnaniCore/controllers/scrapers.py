@@ -2,14 +2,14 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:57:03
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-21 00:31:53
+# @Last Modified time: 2020-08-22 14:33:34
 
 import logging
 import threading
 
 import requests
 
-from . import user_agent
+from .. import user_agent
 
 
 log = logging.getLogger(__name__)

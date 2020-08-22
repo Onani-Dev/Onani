@@ -2,11 +2,11 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-20 20:52:49
+# @Last Modified time: 2020-08-22 14:19:45
 
 import logging
+from json import dumps
 
-import json
 from aenum import Enum, MultiValue
 
 log = logging.getLogger(__name__)
@@ -84,8 +84,4 @@ class Tag(object):
         return self.string
 
     def __repr__(self):
-        return f"<Tag(string='{self.string}', type='{self.type}', aliases='{json.dumps(self.aliases)}')>"
-
-    # Turns out i didn't need this, but i'm keeping it here because i think its neat
-    # def to_dict(self):
-    #     return {x: getattr(self, x) for x in self.__slots__ if x != "_db"}
+        return f"<Tag(string='{self.string}', type='{self.type}', aliases='{dumps(self.aliases)}')>"
