@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-08-23 00:00:38
+ * @Last Modified time: 2020-08-24 00:14:51
 */
 
 
@@ -51,22 +51,26 @@ body, html {
 /* Navigation bar */
 div.navbar {
   align-items: flex-start;
-  outline: 1px solid red;
-  outline-offset: -1px;
+  display: flex;
+  height: 65px;
   justify-content: left;
+  margin-bottom: 70px;
+  max-height: 65px;
+  outline-offset: -1px;
+  outline: 1px solid red;
   overflow: hidden;
   position: absolute;
   text-align: left;
   top: 0;
   width: 100%;
   z-index: 666;
-  margin-bottom: 70px;
 }
 
 /* Links in the Navigation bar */
 div.navbar a {
+  align-self: center;
   color: red;
-  display: inline-block;
+  display: inline-flex;
   font-size: 16px;
   padding: 14px 16px;
   text-align: center;
@@ -76,8 +80,9 @@ div.navbar a {
 
 /* The dropdown container */
 div.dropdown {
+  align-self: center;
   color: red;
-  display: inline-block;
+  display: inline-flex;
   font-size: 16px;
   text-align: center;
   text-decoration: none;
@@ -119,35 +124,41 @@ div.dropdown-content a {
 
 /* Search box container */
 div#search-box {
+  align-self: center;
   display: inline-flex;
   font-size: 16px;
+  margin-left: 15px;
   outline: 1px solid red;
-  width: min-content;
   padding: 11px 16px 11px 6px;
   vertical-align: middle;
-  margin: auto;
+  width: min-content;
+}
+
+/* The search form */
+form#search-form {
+  display: inline-flex;
 }
 
 /* search icon svg */
 img#search-icon {
   cursor: pointer;
-  padding: 0px 10px 0px 0px;
   transition: all 0.5s ease;
   width: 20px;
 }
-
 img#search-icon:hover {
   transform: scale(1.1);
 }
 
 /* The input for the search box */
-div.navbar input[type=text] {
-  display: inline-block;
-  font-size: 16px;
-  text-align: start;
-  vertical-align: middle;
+input#search-input {
   background-color: black;
   border: 0;
+  display: inline-flex;
+  font-size: 16px;
+  padding: 0px 15px 0px 15px;
+  text-align: start;
+  vertical-align: middle;
+  width: 215px;
 }
 
 /* Add a grey background color to dropdown links on hover */
@@ -167,17 +178,38 @@ div.navbar a:hover, div.dropdown:hover button.dropbtn {
 
 /* Tags bar */
 div#left-pannel {
-  margin-top: 120px;
-  position: absolute;
-  padding-left: 25px;
   left: 0;
+  margin-top: 120px;
+  padding-left: 25px;
+  position: absolute;
 }
 
+/* User pfp */
+div#user-pfp-container {
+  align-self: center;
+  display: inline-flex;
+  margin-left: auto;
+  margin-right: 15px;
+  max-height: 50px;
+  max-width: 50px;
+  outline: 1px solid red;
+  vertical-align: middle;
+  cursor: pointer;
+}
+img#user-pfp {
+  max-width: 50px;
+  object-fit: contain;
+}
+
+
+/* Tag list items */
 div#left-pannel li{
   list-style-type: none;
   font-size: larger;
 }
-
+a.tag-list-item {
+  text-decoration: none;
+}
 
 /* FONTS */
 
