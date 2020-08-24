@@ -161,7 +161,7 @@ splashes = ['Hows this for splash text?', 'Welcome to the cum zone.',
             'shit and piss and cum', 'Giantess Vore MMMMMMM', 'bruh',
             'hot sauce anal sandwich', os.urandom(35).decode("utf-8", errors="replace"), 'Full of futa cum.',
 			'angogogogoanan', 'Not Django', ' DJ Ango',
-			'Cool!', 'Compatible with nothing', 'Buggy']
+			'Cool!', 'Compatible with nothing', 'Buggy','Fat and proud!']
 
 
 # start uptime counter
