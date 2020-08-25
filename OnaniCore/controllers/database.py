@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-25 20:05:49
+# @Last Modified time: 2020-08-26 01:28:13
 
 import logging
 import os
@@ -220,7 +220,7 @@ class DatabaseController:
         self, user: User, reason: str = None, duration: timedelta = timedelta(days=30)
     ) -> None:
         # add a ban for a user
-
+        # TODO #21 Add who issued ban and when
         # Check if a ban already exists
         ban = self.bans.find_one({"user_id": user.id})
         if ban is not None:
