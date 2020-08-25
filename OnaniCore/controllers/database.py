@@ -2,14 +2,14 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 13:49:15
+# @Last Modified time: 2020-08-25 20:05:49
 
 import logging
 import os
 import random
 import re
 import string
-from binascii import hexlify
+import secrets
 from datetime import datetime, timedelta
 
 import pymongo
@@ -165,10 +165,10 @@ class DatabaseController:
     ) -> None:
         # Edit username if present
         if username is not None:
-            user = self.users.find_one(
+            existing_user = self.users.find_one(
                 {"username": re.compile(username, re.IGNORECASE)}
             )
-            if user is not None:
+            if existing_user is not None:
                 # We can't use this username.
                 raise ValueError("Username is taken.")
             self.users.update_one({"id": user.id}, {"$set": {"username": username}})
@@ -388,4 +388,4 @@ class DatabaseController:
         )
 
     def _create_api_key(self) -> str:
-        return hexlify(os.urandom(20)).decode()
+        return secrets.token_urlsafe(32)
