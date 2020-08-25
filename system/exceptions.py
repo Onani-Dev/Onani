@@ -1,2 +1,0 @@
-class DuplicateFileDownloaded(Exception):
-    pass
