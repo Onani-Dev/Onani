@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 14:31:46
+# @Last Modified time: 2020-08-27 22:25:59
 
 import logging
 from datetime import datetime, timedelta
@@ -88,8 +88,12 @@ class User(object):
         self.username = username
         self.is_deleted = is_deleted
 
-    def ban(self, reason: str, duration: timedelta = timedelta(days=30)) -> None:
-        self._db.add_user_ban(self, reason, duration)
+    def ban(
+        self, reason: str, duration: timedelta = timedelta(days=30), ban_creator=None,
+    ) -> None:
+        self._db.add_user_ban(
+            self, reason, duration, (self if ban_creator is None else ban_creator)
+        )
 
     def unban(self) -> None:
         self._db.remove_user_ban(self)

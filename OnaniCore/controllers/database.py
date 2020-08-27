@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-26 01:28:13
+# @Last Modified time: 2020-08-27 18:37:13
 
 import logging
 import os
@@ -217,7 +217,11 @@ class DatabaseController:
             log.debug("Post was not removed as it does not exist as a favourite.")
 
     def add_user_ban(
-        self, user: User, reason: str = None, duration: timedelta = timedelta(days=30)
+        self,
+        user: User,
+        reason: str = None,
+        duration: timedelta = timedelta(days=30),
+        ban_creator: User = None,
     ) -> None:
         # add a ban for a user
         # TODO #21 Add who issued ban and when
@@ -231,6 +235,8 @@ class DatabaseController:
         ban_data = {
             "user_id": user.id,
             "reason": reason,
+            "ban_creator_id": ban_creator.id,
+            "since": datetime.utcnow(),
             "expires": datetime.utcnow() + duration,
         }
         self.bans.insert_one(ban_data)
