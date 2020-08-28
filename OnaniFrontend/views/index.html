@@ -2,7 +2,7 @@
   @Author: Blakeando
   @Date:   2020-08-14 19:33:07
   @Last Modified by:   Blakeando
-  @Last Modified time: 2020-08-24 00:52:51
+  @Last Modified time: 2020-08-28 18:06:10
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -43,31 +43,11 @@
     <!-- Left pannel/Tags -->
     <div id="left-pannel">
       <h2>Tags</h2>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
-      <li><a href="/" class="tag-list-item">azur lane 55k</a></li>
+      {% for tag in tags %}
+      <li><a href="/posts?tags={{ tag.string }}"
+          class="tag-list-item {{ tag.type.string.lower() }}">{{ tag.string[:20] }}{{'...' if tag.string|length > 20 else ''}}
+          {{ tag.count }}</a></li>
+      {% endfor %}
     </div>
     <!-- Chat -->
     <div id="chatbox">

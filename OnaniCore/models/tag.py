@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 14:19:45
+# @Last Modified time: 2020-08-28 21:33:15
 
 import logging
 from json import dumps
@@ -37,13 +37,7 @@ class Tag(object):
     Onani Tag Object
     """
 
-    __slots__ = (
-        "_db",
-        "string",
-        "type",
-        "aliases",
-        "description",
-    )
+    __slots__ = ("_db", "string", "type", "aliases", "description", "count")
 
     def __init__(
         self,
@@ -52,12 +46,14 @@ class Tag(object):
         tag_type: TagType,
         aliases: list = list(),
         description: str = None,
+        count: int = 0,
     ):
         self._db = db
         self.string = tag_string
         self.type = tag_type
         self.aliases = aliases
         self.description = description
+        self.count = count
 
     def edit_name(self, new_name: str) -> None:
         self._db.modify_tag(self, tag_string=new_name)

@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-08-24 00:14:51
+ * @Last Modified time: 2020-08-28 18:32:36
 */
 
 
@@ -23,6 +23,7 @@ body, html {
   background-color: black;
   height: 100vh;
   width: 100vw;
+  /* cursor: progress; le epic troll :) */
 }
 
 /* Navbar logo */
@@ -187,14 +188,17 @@ div#left-pannel {
 /* User pfp */
 div#user-pfp-container {
   align-self: center;
+  cursor: pointer;
   display: inline-flex;
   margin-left: auto;
   margin-right: 15px;
   max-height: 50px;
   max-width: 50px;
   outline: 1px solid red;
-  vertical-align: middle;
-  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+div#user-pfp-container:hover {
+  transform: scale(1.1);
 }
 img#user-pfp {
   max-width: 50px;
@@ -205,10 +209,35 @@ img#user-pfp {
 /* Tag list items */
 div#left-pannel li{
   list-style-type: none;
-  font-size: larger;
 }
 a.tag-list-item {
   text-decoration: none;
+}
+
+/* Colours */
+.banned {
+  color: #ff00001a;
+  cursor: not-allowed;
+}
+
+.general {
+  color: #d61212;
+}
+
+.artist {
+  color: #3c790a;
+}
+
+.character {
+  color: #00fafa;
+}
+
+.copyright {
+  color: #490b9b;
+}
+
+.meta {
+  color: #757575
 }
 
 /* FONTS */

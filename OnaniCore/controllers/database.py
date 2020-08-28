@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-27 18:37:13
+# @Last Modified time: 2020-08-28 21:25:31
 
 import logging
 import os
@@ -42,7 +42,7 @@ class DatabaseController:
     def add_post(self, file_url=None, thumb_url=None, tags=list(), meta=dict()) -> None:
         # add a post to the database
         post_data = {
-            "id": self.posts.find().count() + 1,
+            "id": self.posts.count_documents({}) + 1,
             # Need to use file controller here!
             "file_url": file_url,
             "thumb_url": thumb_url,
@@ -81,7 +81,7 @@ class DatabaseController:
 
         # Construct dict to insert into database
         user_data = {
-            "id": self.users.find().count() + 1,
+            "id": self.users.count_documents({}) + 1,
             "username": username,
             "api_key": self._create_api_key(),
             "created_at": datetime.utcnow(),
@@ -311,7 +311,7 @@ class DatabaseController:
         else:
             log.debug("Alias was not added as it already exists.")
 
-    def get_tag(self, tag_string: str):
+    def get_tag(self, tag_string: str) -> Tag:
         # Find a tag in the database with the provided name
         tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
         if tag is None:
@@ -330,6 +330,41 @@ class DatabaseController:
             aliases=tag.get("aliases"),
             description=tag.get("description"),
         )
+
+    def get_tags(
+        self,
+        limit: int = 100,
+        tag_regex: str = None,
+        sort: str = "_id",
+        sort_direction: int = pymongo.DESCENDING,
+    ) -> list:
+        # get tags with regex
+        if tag_regex is None:
+            # Find all
+            found_tags = self.tags.find().limit(limit).sort(sort, sort_direction)
+        else:
+            # Find with regex
+            found_tags = set(
+                self.tags.find({"string": re.compile(tag_regex, re.IGNORECASE)})
+                .limit(limit)
+                .sort(sort, sort_direction)
+            )
+            found_tags.update(
+                self.tags.find({"aliases": re.compile(tag_regex, re.IGNORECASE),})
+                .limit(limit)
+                .sort(sort, sort_direction)
+            )
+        # return a list of Tag objects
+        return [
+            Tag(
+                self,
+                x.get("string"),
+                TagType(x.get("type")),
+                aliases=x.get("aliases"),
+                description=x.get("description"),
+            )
+            for x in found_tags
+        ]
 
     def remove_tag_alias(self, tag: Tag, alias: str) -> None:
         # add an alias to a tag

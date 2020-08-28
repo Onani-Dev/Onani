@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 00:31:36
+# @Last Modified time: 2020-08-28 21:26:36
 
 import logging
 import os
@@ -36,8 +36,9 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 @app.route("/")
+@app.route("/posts")
 def index():
-    return render_template("/index.html")
+    return render_template("/index.html", tags=onaniDB.get_tags(limit=25))
 
 
 if __name__ == "__main__":
