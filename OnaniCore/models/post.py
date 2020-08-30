@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 14:32:34
+# @Last Modified time: 2020-08-31 00:47:47
 
 import logging
 from datetime import datetime
@@ -14,6 +14,7 @@ from .commentary import Commentary
 from .note import Note
 from .tag import Tag
 from .user import User
+from .tag import TagType
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +64,9 @@ class PostFile(object):
         self.filename = filename
         self.directory = directory
         self.thumbnail = thumbnail
+
+    def to_dict(self) -> dict:
+        return {x: getattr(self, x) for x in self.__slots__}
 
 
 class PostData(object):
@@ -119,7 +123,7 @@ class PostData(object):
         self.commentary = commentary
         self.notes = notes
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             x: (
                 getattr(self, x).to_dict()
@@ -140,12 +144,21 @@ class Post(object):
 
     __slots__ = ("_db", "id", "file", "tags", "data")
 
-    def __init__(self, db, post_id: int, file_data: dict, tags: list, data: PostData):
+    def __init__(self, db, post_id: int, file_data: dict, tags: list, data: dict):
         self._db = db
         self.id = post_id
-        self.file = PostFile(**file_data)
-        self.tags = [Tag(self._db, x) for x in tags]
-        self.data = data
+        self.file = PostFile(self._db, **file_data)
+        self.data = PostData(self._db, **data)
+        self.tags = [
+            Tag(
+                self._db,
+                x.get("string"),
+                TagType(x.get("type")),
+                x.get("aliases"),
+                x.get("description"),
+            )
+            for x in tags
+        ]
 
     def add_tags(self, tags: list):
         # add stuff for adding tags here

@@ -2,12 +2,13 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-27 22:25:59
+# @Last Modified time: 2020-08-30 23:17:22
 
 import logging
 from datetime import datetime, timedelta
 
 from aenum import Enum, MultiValue
+from passlib.hash import argon2
 
 log = logging.getLogger(__name__)
 
@@ -56,14 +57,17 @@ class User(object):
 
     __slots__ = (
         "_db",
+        "_pass_hash",
         "api_key",
         "created_at",
         "favourites",
         "id",
-        "is_deleted",
+        "is_active",
         "permissions",
         "settings",
         "username",
+        "is_authenticated",
+        "is_anonymous",
     )
 
     def __init__(
@@ -76,7 +80,8 @@ class User(object):
         settings: UserSettings,
         api_key: str,
         created_at: datetime,
-        is_deleted: bool,
+        is_active: bool,
+        pass_hash: str,
     ):
         self._db = db
         self.api_key = api_key
@@ -86,7 +91,13 @@ class User(object):
         self.permissions = permissions
         self.settings = settings
         self.username = username
-        self.is_deleted = is_deleted
+        self.is_active = is_active
+        self._pass_hash = pass_hash
+
+        # Flask login
+
+        self.is_authenticated = False
+        self.is_anonymous = False
 
     def ban(
         self, reason: str, duration: timedelta = timedelta(days=30), ban_creator=None,
@@ -116,5 +127,16 @@ class User(object):
     def regen_api_key(self) -> None:
         self._db.regen_user_api_key(self)
 
+    def authenticate(self, password: str) -> bool:
+        auth = argon2.verify(password, self._pass_hash)
+        if auth:
+            self.is_authenticated = True
+        return auth
+
     def __repr__(self) -> None:
         return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"
+
+    ## Flask login
+
+    def get_id(self):
+        return self.username
