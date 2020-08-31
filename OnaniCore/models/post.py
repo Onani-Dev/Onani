@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-31 00:47:47
+# @Last Modified time: 2020-08-31 21:12:15
 
 import logging
 from datetime import datetime
@@ -68,6 +68,9 @@ class PostFile(object):
     def to_dict(self) -> dict:
         return {x: getattr(self, x) for x in self.__slots__}
 
+    def __repr__(self):
+        return f"<PostFile(directory='{self.directory}', filename='{self.filename}')>"
+
 
 class PostData(object):
     """
@@ -95,16 +98,16 @@ class PostData(object):
         self,
         db,
         md5: str = None,
-        uploaded_at: datetime = None,
+        uploaded_at: datetime = datetime.utcnow(),
         source: str = None,
         rating: PostRating = PostRating.YELLOW,
         status: PostStatus = PostStatus.PENDING,
         uploader: User = None,
-        height: int = None,
-        width: int = None,
-        filesize: int = None,
-        score: int = None,
-        favourites: int = None,
+        height: int = 0,
+        width: int = 0,
+        filesize: int = 0,
+        score: int = 0,
+        favourites: int = 0,
         commentary: Commentary = None,
         notes: List[Note] = list(),
     ):
@@ -124,17 +127,21 @@ class PostData(object):
         self.notes = notes
 
     def to_dict(self) -> dict:
-        return {
-            x: (
-                getattr(self, x).to_dict()
-                if isinstance(
-                    getattr(self, x), (PostRating, PostStatus, User, Commentary, Note,),
-                )
-                else getattr(self, x)
-            )
-            for x in self.__slots__
-            if x != "_db"
-        }
+        d = dict()
+        for x in self.__slots__:
+            if isinstance(getattr(self, x), (User, Commentary, Note)):
+                # object is able to be turned into a dict
+                d[x] = getattr(self, x).to_dict()
+            elif isinstance(getattr(self, x), (PostRating, PostStatus)):
+                # object is able to be turned into an int
+                d[x] = getattr(self, x).value
+            elif x != "_db":
+                # object is fine in raw form
+                d[x] = getattr(self, x)
+        return d
+
+    def __repr__(self):
+        return f"<PostData(md5='{self.md5}', uploader='{self.uploader}')>"
 
 
 class Post(object):
@@ -147,7 +154,11 @@ class Post(object):
     def __init__(self, db, post_id: int, file_data: dict, tags: list, data: dict):
         self._db = db
         self.id = post_id
-        self.file = PostFile(self._db, **file_data)
+        self.file = PostFile(
+            file_data.get("filename"),
+            file_data.get("directory"),
+            file_data.get("thumbnail"),
+        )
         self.data = PostData(self._db, **data)
         self.tags = [
             Tag(
@@ -160,10 +171,12 @@ class Post(object):
             for x in tags
         ]
 
-    def add_tags(self, tags: list):
+    def add_tags(self, tags: List[Tag]):
+        pass
+
+    def remove_tags(self, tags: List[Tag]):
         # add stuff for adding tags here
         pass
 
-    def remove_tags(self, tags: list):
-        # add stuff for adding tags here
-        pass
+    def __repr__(self):
+        return f"<Post(id={self.id}, file='{self.file}')>"

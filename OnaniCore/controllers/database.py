@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-31 00:47:30
+# @Last Modified time: 2020-08-31 21:45:47
 
 import logging
 import os
@@ -17,7 +17,17 @@ from typing import Dict, List, Tuple
 import pymongo
 from passlib.hash import argon2
 
-from ..models import Post, Tag, TagType, User, UserPermissions, UserSettings, PostFile
+from ..models import (
+    Post,
+    PostData,
+    PostFile,
+    PostRating,
+    Tag,
+    TagType,
+    User,
+    UserPermissions,
+    UserSettings,
+)
 
 log = logging.getLogger(__name__)
 
@@ -29,9 +39,7 @@ class DatabaseController:
 
     __slots__ = ("client", "db", "posts", "tags", "users", "collections", "bans")
 
-    def __init__(
-        self, mongo_uri: str = "mongodb://localhost:27017/",
-    ):
+    def __init__(self, mongo_uri: str = "mongodb://localhost:27017/"):
         self.client = pymongo.MongoClient(mongo_uri)
         self.db = self.client["OnaniDB"]
         self.bans = self.db["OnaniBans"]
@@ -41,17 +49,33 @@ class DatabaseController:
         self.users = self.db["OnaniUsers"]
 
     ## POSTS
-    def add_post(self, file: PostFile = None, tags=list(), data=dict()) -> Post:
+    def add_post(self, filedata: PostFile, tags: List[Tag], data: PostData) -> Post:
         # add a post to the database
         post_data = {
             "_id": self.posts.count_documents({}) + 1,
-            "file": file.to_dict(),
+            "file": filedata.to_dict(),
             "tags": tags,
-            "data": data,
+            "data": data.to_dict(),
         }
-        # TODO #10 need to add extra logic to database add_post method
         insert = self.posts.insert_one(post_data)
         log.debug(f"""Inserted post {insert.inserted_id}""")
+        # get post and return
+        return self.get_post(insert.inserted_id)
+
+    def get_post(self, id) -> Post:
+        # get a post from the database
+        post = self.posts.find_one({"_id": id})
+        if post is None:
+            # no post found
+            raise ValueError("The specified ID could not be found in the database.")
+
+        # Return post
+        return Post(
+            self, post.get("_id"), post.get("file"), post.get("tags"), post.get("data"),
+        )
+
+    def modify_post_file(self, file: PostFile):
+        pass
 
     ## USERS
     def add_user(
@@ -336,7 +360,9 @@ class DatabaseController:
             # get tags with regex
             if tag_regex is None:
                 # Find all
-                found_tags = self.tags.find().limit(limit).sort(sort, sort_direction)
+                found_tags = list(
+                    self.tags.find().limit(limit).sort(sort, sort_direction)
+                )
             else:
                 # Find with regex
                 found_tags = list(
@@ -353,6 +379,7 @@ class DatabaseController:
                         .sort(sort, sort_direction)
                     )
                 )
+        log.debug(f"Found {len(found_tags)} Tags.")
         # return a list of Tag objects
         return [
             Tag(
@@ -407,6 +434,8 @@ class DatabaseController:
             )
             tag.description = description
             log.debug(f'Description changed for tag "{tag.string}"')
+
+    ## LOGS
 
     ## INTERNAL FUNCTIONS
 

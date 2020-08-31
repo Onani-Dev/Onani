@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-18 16:41:43
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-25 22:34:54
+# @Last Modified time: 2020-08-31 21:47:41
 import datetime
 import random
 import string
@@ -115,6 +115,14 @@ class TestUser(unittest.TestCase):
 
         # Test if changed
         self.assertNotEqual(user.api_key, original_key, msg="Api key did not change.")
+
+    def test_authenticate(self):
+        # Create a user
+        user = self.onaniDB.add_user(password="test")
+
+        self.assertTrue(
+            user.authenticate("test"), msg="Authentication did not return True."
+        )
 
 
 if __name__ == "__main__":
