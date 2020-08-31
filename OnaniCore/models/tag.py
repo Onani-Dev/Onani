@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-28 21:33:15
+# @Last Modified time: 2020-09-01 09:48:06
 
 import logging
 from json import dumps
@@ -46,14 +46,14 @@ class Tag(object):
         tag_type: TagType,
         aliases: list = list(),
         description: str = None,
-        count: int = 0,
+        post_count: int = 0,
     ):
         self._db = db
         self.string = tag_string
         self.type = tag_type
         self.aliases = aliases
         self.description = description
-        self.count = count
+        self.post_count = post_count
 
     def edit_name(self, new_name: str) -> None:
         self._db.modify_tag(self, tag_string=new_name)
@@ -75,6 +75,12 @@ class Tag(object):
 
     def remove_alias(self, alias: str) -> None:
         self._db.remove_tag_alias(self, alias)
+
+    def increase_post_count(self):
+        self._db.modify_tag_post_count(self, mode="increase")
+
+    def decrease_post_count(self):
+        self._db.modify_tag_post_count(self, mode="decrease")
 
     def __str__(self):
         return self.string
