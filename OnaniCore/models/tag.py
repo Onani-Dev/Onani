@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-01 09:48:06
+# @Last Modified time: 2020-09-01 09:56:36
 
 import logging
 from json import dumps
@@ -37,7 +37,7 @@ class Tag(object):
     Onani Tag Object
     """
 
-    __slots__ = ("_db", "string", "type", "aliases", "description", "count")
+    __slots__ = ("_db", "string", "type", "aliases", "description", "post_count")
 
     def __init__(
         self,
