@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-31 21:12:15
+# @Last Modified time: 2020-09-03 19:20:21
 
 import logging
 from datetime import datetime
@@ -10,13 +10,13 @@ from typing import List
 
 from aenum import Enum, MultiValue
 
+from ..utils import setup_logger
 from .commentary import Commentary
 from .note import Note
-from .tag import Tag
+from .tag import Tag, TagType
 from .user import User
-from .tag import TagType
 
-log = logging.getLogger(__name__)
+log = setup_logger(__name__)
 
 
 class PostRating(Enum):

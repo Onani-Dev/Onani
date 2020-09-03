@@ -2,13 +2,14 @@
 # @Author: Blakeando
 # @Date:   2020-08-31 18:25:05
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-31 21:45:08
+# @Last Modified time: 2020-09-03 19:24:35
 
 import inspect
-from datetime import datetime
 import logging
+import time
+from datetime import datetime
 
-from ..models.user import User
+import pymongo
 
 
 class EventLogger(logging.Handler):
@@ -16,10 +17,18 @@ class EventLogger(logging.Handler):
     Onani Logger for events.
     """
 
-    def __init__(self, db):
-        super().__init__(self)
-        self.db = db
+    def __init__(self, mongo_uri):
+        logging.Handler.__init__(self)
+        self.client = pymongo.MongoClient(mongo_uri)
+        self.db = self.client["OnaniDB"]
+        self.logs = self.db["OnaniLogs"]
 
     def emit(self, record):
-        tm = datetime.strftime("%Y-%m-%d %H:%M:%S", record.created)
-        # TODO #26 WIP logger for onani database
+        log_data = {
+            "time": datetime.fromtimestamp(record.created),
+            "name": record.name,
+            "funcname": record.funcName,
+            "level": record.levelname,
+            "message": record.msg,
+        }
+        self.logs.insert_one(log_data)

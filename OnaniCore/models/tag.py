@@ -2,14 +2,16 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-01 09:56:36
+# @Last Modified time: 2020-09-03 19:20:27
 
 import logging
 from json import dumps
 
 from aenum import Enum, MultiValue
 
-log = logging.getLogger(__name__)
+from ..utils import setup_logger
+
+log = setup_logger(__name__)
 
 
 class TagType(Enum):

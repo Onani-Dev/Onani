@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-01 09:47:07
+# @Last Modified time: 2020-09-03 19:19:51
 
 import logging
 import os
@@ -28,8 +28,9 @@ from ..models import (
     UserPermissions,
     UserSettings,
 )
+from ..utils import setup_logger
 
-log = logging.getLogger(__name__)
+log = setup_logger(__name__)
 
 
 class DatabaseController:

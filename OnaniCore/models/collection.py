@@ -2,18 +2,18 @@
 # @Author: Blakeando
 # @Date:   2020-08-22 01:03:56
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-29 23:02:48
+# @Last Modified time: 2020-09-03 19:28:37
 
-import logging
 from datetime import datetime
 from typing import List
 
 from aenum import Enum, MultiValue
 
+from ..utils import setup_logger
 from .post import Post
 from .user import User
 
-log = logging.getLogger(__name__)
+log = setup_logger(__name__)
 
 
 class CollectionStatus(Enum):

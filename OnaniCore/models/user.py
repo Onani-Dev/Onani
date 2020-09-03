@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-30 23:17:22
+# @Last Modified time: 2020-09-03 19:20:43
 
 import logging
 from datetime import datetime, timedelta
@@ -10,7 +10,9 @@ from datetime import datetime, timedelta
 from aenum import Enum, MultiValue
 from passlib.hash import argon2
 
-log = logging.getLogger(__name__)
+from ..utils import setup_logger
+
+log = setup_logger(__name__)
 
 
 class UserSettings(object):

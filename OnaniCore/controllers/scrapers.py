@@ -2,17 +2,16 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:57:03
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 14:33:34
+# @Last Modified time: 2020-09-03 19:28:29
 
-import logging
 import threading
 
 import requests
 
 from .. import user_agent
+from ..utils import setup_logger
 
-
-log = logging.getLogger(__name__)
+log = setup_logger(__name__)
 
 
 class Scraper:
