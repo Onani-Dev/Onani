@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-18 16:41:43
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-31 21:47:41
+# @Last Modified time: 2020-09-07 15:45:25
 import datetime
 import random
 import string
@@ -58,8 +58,8 @@ class TestUser(unittest.TestCase):
         # Check the settings
         self.assertEquals(
             user.settings.profile_pic,
-            None,
-            msg="User settings profile_pic was not set to None.",
+            "/image/default.png",
+            msg="User settings profile_pic was not set to Default.png.",
         )
         self.assertEquals(
             user.settings.bio, None, msg="User settings bio was not set to None."

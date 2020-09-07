@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-03 19:19:51
+# @Last Modified time: 2020-09-07 15:56:52
 
 import logging
 import os
@@ -41,6 +41,7 @@ class DatabaseController:
     __slots__ = ("client", "db", "posts", "tags", "users", "collections", "bans")
 
     def __init__(self, mongo_uri: str = "mongodb://localhost:27017/"):
+        # Connect to the mongoDB instance
         self.client = pymongo.MongoClient(mongo_uri)
         self.db = self.client["OnaniDB"]
         self.bans = self.db["OnaniBans"]
@@ -48,6 +49,11 @@ class DatabaseController:
         self.posts = self.db["OnaniPosts"]
         self.tags = self.db["OnaniTags"]
         self.users = self.db["OnaniUsers"]
+
+        # Create indexes if they don't exist
+        self.tags.create_index("string")
+        self.tags.create_index("aliases")
+        self.users.create_index("username")
 
     ## POSTS
     def add_post(self, filedata: PostFile, tags: List[Tag], data: PostData) -> Post:
@@ -290,6 +296,7 @@ class DatabaseController:
         aliases: list = list(),
         description: str = None,
         post_count: int = 0,
+        popularity: float = 0.0,
     ) -> Tag:
         # add a tag to the database
         tag_string = self._parse_tag(tag_string)
@@ -306,6 +313,7 @@ class DatabaseController:
             "aliases": aliases,
             "description": description,
             "post_count": post_count,
+            "popularity": popularity,
         }
         insert = self.tags.insert_one(tag_data)
         log.debug(
@@ -343,6 +351,8 @@ class DatabaseController:
             TagType(tag.get("type")),
             tag.get("aliases"),
             tag.get("description"),
+            tag.get("post_count"),
+            tag.get("popularity"),
         )
 
     def get_tags(
@@ -391,6 +401,8 @@ class DatabaseController:
                 TagType(x.get("type")),
                 x.get("aliases"),
                 x.get("description"),
+                x.get("post_count"),
+                x.get("popularity"),
             )
             for x in found_tags
         ]
@@ -412,6 +424,8 @@ class DatabaseController:
         tag_string: str = None,
         tag_type: TagType = None,
         description: str = None,
+        post_count: int = None,
+        popularity: float = None,
     ) -> None:
         # Update string if present
         if tag_string is not None:
@@ -438,18 +452,25 @@ class DatabaseController:
             tag.description = description
             log.debug(f'Description changed for tag "{tag.string}"')
 
-    def modify_tag_post_count(self, tag: Tag, mode: str = "increase"):
-        if mode == "increase":
-            tag.post_count += 1
-        elif mode == "decrease":
-            tag.post_count -= 1
-        else:
-            raise ValueError("Invalid Mode.")
-        self.tags.update_one(
-            {"string": tag.string}, {"$set": {"post_count": tag.post_count}},
-        )
+        # Update post count if present
+        if post_count is not None:
+            tag.post_count += post_count
+            self.tags.update_one(
+                {"string": tag.string}, {"$set": {"post_count": tag.post_count}},
+            )
+            log.debug(
+                f'Post count changed to value {tag.post_count} for tag "{tag.string}"'
+            )
 
-    ## LOGS
+        # Update popularity if present
+        if popularity is not None:
+            tag.popularity += popularity
+            self.tags.update_one(
+                {"string": tag.string}, {"$set": {"popularity": tag.popularity}},
+            )
+            log.debug(
+                f'Popularity changed to value {tag.popularity} for tag "{tag.string}"'
+            )
 
     ## INTERNAL FUNCTIONS
 

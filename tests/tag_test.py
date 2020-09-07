@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-25 22:29:02
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-26 01:18:39
+# @Last Modified time: 2020-09-07 06:08:45
 import datetime
 import random
 import string
@@ -168,6 +168,54 @@ class TestTag(unittest.TestCase):
             TagType.CHARACTER.value,
             msg="Tag did not change to the Character value.",
         )
+
+    def test_post_count_increase(self):
+        # Create tag
+        tag = self.onaniDB.add_tag(
+            "".join(
+                random.choice(
+                    string.ascii_uppercase + string.ascii_lowercase + string.digits
+                )
+                for x in range(10)
+            ),
+            description="Automated Test",
+        )
+
+        # increase count by 2
+        tag.modify_post_count(2)
+
+        # Check if really 2
+        self.assertEqual(tag.post_count, 2, msg="Post count was not 2.")
+
+        # decrease count by 1
+        tag.modify_post_count(-1)
+
+        # Check if 1
+        self.assertEqual(tag.post_count, 1, msg="Post count was not 1.")
+
+    def test_popularity_increase(self):
+        # Create tag
+        tag = self.onaniDB.add_tag(
+            "".join(
+                random.choice(
+                    string.ascii_uppercase + string.ascii_lowercase + string.digits
+                )
+                for x in range(10)
+            ),
+            description="Automated Test",
+        )
+
+        # increase count by 0.2
+        tag.modify_popularity(0.2)
+
+        # Check if really 0.2
+        self.assertEqual(tag.popularity, 0.2, msg="Popularity was not 0.2.")
+
+        # decrease count by 0.1
+        tag.modify_popularity(-0.1)
+
+        # Check if 0.1
+        self.assertEqual(tag.popularity, 0.1, msg="Popularity was not 1.")
 
 
 if __name__ == "__main__":

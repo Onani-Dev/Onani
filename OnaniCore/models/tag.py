@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-03 19:20:27
+# @Last Modified time: 2020-09-06 19:59:58
 
 import logging
 from json import dumps
@@ -39,7 +39,15 @@ class Tag(object):
     Onani Tag Object
     """
 
-    __slots__ = ("_db", "string", "type", "aliases", "description", "post_count")
+    __slots__ = (
+        "_db",
+        "aliases",
+        "description",
+        "popularity",
+        "post_count",
+        "string",
+        "type",
+    )
 
     def __init__(
         self,
@@ -49,6 +57,7 @@ class Tag(object):
         aliases: list = list(),
         description: str = None,
         post_count: int = 0,
+        popularity: float = 0.0,
     ):
         self._db = db
         self.string = tag_string
@@ -56,6 +65,7 @@ class Tag(object):
         self.aliases = aliases
         self.description = description
         self.post_count = post_count
+        self.popularity = popularity
 
     def edit_name(self, new_name: str) -> None:
         self._db.modify_tag(self, tag_string=new_name)
@@ -78,11 +88,11 @@ class Tag(object):
     def remove_alias(self, alias: str) -> None:
         self._db.remove_tag_alias(self, alias)
 
-    def increase_post_count(self):
-        self._db.modify_tag_post_count(self, mode="increase")
+    def modify_post_count(self, amount: int = 1) -> None:
+        self._db.modify_tag(self, post_count=amount)
 
-    def decrease_post_count(self):
-        self._db.modify_tag_post_count(self, mode="decrease")
+    def modify_popularity(self, amount: float = 0.001) -> None:
+        self._db.modify_tag(self, popularity=amount)
 
     def __str__(self):
         return self.string

@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-03 19:20:43
+# @Last Modified time: 2020-09-07 14:20:14
 
 import logging
 from datetime import datetime, timedelta
@@ -21,7 +21,7 @@ class UserSettings(object):
     """
 
     def __init__(self, **kwargs):
-        self.__dict__.update({"profile_pic": None, "bio": None})
+        self.__dict__.update({"profile_pic": "/image/default.png", "bio": None})
         self.__dict__.update(kwargs)
 
     def update(self, **kwargs) -> None:

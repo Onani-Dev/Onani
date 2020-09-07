@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-31 18:25:05
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-03 19:24:35
+# @Last Modified time: 2020-09-07 12:40:25
 
 import inspect
 import logging
@@ -25,7 +25,7 @@ class EventLogger(logging.Handler):
 
     def emit(self, record):
         log_data = {
-            "time": datetime.fromtimestamp(record.created),
+            "time": datetime.utcfromtimestamp(record.created),
             "name": record.name,
             "funcname": record.funcName,
             "level": record.levelname,
