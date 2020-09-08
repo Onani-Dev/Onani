@@ -2,14 +2,14 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-07 14:20:14
+# @Last Modified time: 2020-09-09 03:44:53
 
 import logging
 from datetime import datetime, timedelta
 
 from aenum import Enum, MultiValue
 from passlib.hash import argon2
-
+from flask_login import UserMixin
 from ..utils import setup_logger
 
 log = setup_logger(__name__)
@@ -58,18 +58,18 @@ class User(object):
     """
 
     __slots__ = (
+        "_ban",
         "_db",
+        "_is_active",
+        "_is_authenticated",
         "_pass_hash",
         "api_key",
         "created_at",
         "favourites",
         "id",
-        "is_active",
         "permissions",
         "settings",
         "username",
-        "is_authenticated",
-        "is_anonymous",
     )
 
     def __init__(
@@ -93,13 +93,10 @@ class User(object):
         self.permissions = permissions
         self.settings = settings
         self.username = username
-        self.is_active = is_active
+        self._is_active = is_active
         self._pass_hash = pass_hash
-
-        # Flask login
-
-        self.is_authenticated = False
-        self.is_anonymous = False
+        self._is_authenticated = False
+        self._ban = None
 
     def ban(
         self, reason: str, duration: timedelta = timedelta(days=30), ban_creator=None,
@@ -132,13 +129,52 @@ class User(object):
     def authenticate(self, password: str) -> bool:
         auth = argon2.verify(password, self._pass_hash)
         if auth:
-            self.is_authenticated = True
+            self._is_authenticated = True
         return auth
 
-    def __repr__(self) -> None:
+    def deauthenticate(self) -> None:
+        if self._is_authenticated:
+            self._is_authenticated = False
+
+    def get_ban(self):
+        if self.is_banned:
+            if self._ban is None:
+                self._ban = self._db.get_user_ban(self)
+        else:
+            self._ban = None
+        return self._ban
+
+    def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"
+
+    @property
+    def is_banned(self):
+        return self.permissions == UserPermissions.BANNED
 
     ## Flask login
 
+    @property
+    def is_active(self):
+        return self._is_active
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
     def get_id(self):
         return self.username
+
+    def __eq__(self, other):
+        if isinstance(other, User):
+            return self.get_id() == other.get_id()
+        return NotImplemented
+
+    def __ne__(self, other):
+        equal = self.__eq__(other)
+        if equal is NotImplemented:
+            return NotImplemented
+        return not equal

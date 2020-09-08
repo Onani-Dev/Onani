@@ -1,0 +1,18 @@
+{% extends "base.html.jinja2" %}
+{% block title %}Posts{% endblock %}
+
+{% block content %}
+<!-- Left pannel/Tags -->
+<div id="left-pannel">
+  <h2>Tags</h2>
+  {% for tag in tags %}
+  <li><a href="/posts?tags={{ tag.string }}"
+      class="tag-list-item {{ tag.type.string.lower() }}">{{ tag.string[:20] }}{{'...' if tag.string|length > 20 else ''}}
+      {{ tag.post_count }}</a></li>
+  {% endfor %}
+</div>
+<!-- Chat -->
+<div id="chatbox">
+  <!-- TODO #20 -->
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-07 15:56:52
+# @Last Modified time: 2020-09-09 03:33:30
 
 import logging
 import os
@@ -15,9 +15,12 @@ from timeit import timeit
 from typing import Dict, List, Tuple
 
 import pymongo
+from dateutil import tz
 from passlib.hash import argon2
 
+from ..exceptions import OnaniDatabaseException
 from ..models import (
+    Ban,
     Post,
     PostData,
     PostFile,
@@ -74,7 +77,9 @@ class DatabaseController:
         post = self.posts.find_one({"_id": id})
         if post is None:
             # no post found
-            raise ValueError("The specified ID could not be found in the database.")
+            raise OnaniDatabaseException(
+                "The specified ID could not be found in the database."
+            )
 
         # Return post
         return Post(
@@ -96,7 +101,7 @@ class DatabaseController:
         # add a user to the database
         if password is None:
             # We didnt recieve a password
-            raise ValueError("Accounts MUST have a password.")
+            raise OnaniDatabaseException("Accounts MUST have a password.")
         if username is None:
             username = self._random_username()
 
@@ -104,7 +109,7 @@ class DatabaseController:
         user = self.users.find_one({"username": re.compile(username, re.IGNORECASE)})
         if user is not None:
             # We can't use this username.
-            raise ValueError("Username is taken.")
+            raise OnaniDatabaseException("Username is taken.")
 
         log.debug(f""""{username}" looks good to use.""")
 
@@ -113,7 +118,7 @@ class DatabaseController:
             "_id": self.users.count_documents({}) + 1,
             "username": username,
             "api_key": self._create_api_key(),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.utcnow().replace(tzinfo=tz.tzutc()),
             "favourites": favourites,
             "permissions": permissions.value,
             "settings": settings.to_dict(),
@@ -133,7 +138,7 @@ class DatabaseController:
             # Check for user with ID
             user = self.users.find_one({"_id": id})
             if user is None:
-                raise ValueError("Supplied ID does not exist in Database.")
+                raise OnaniDatabaseException("Supplied ID does not exist in Database.")
             log.debug(
                 f"""Found user {user.get("username")} (ID: {user.get("_id")}) with ID."""
             )
@@ -144,7 +149,9 @@ class DatabaseController:
                 {"username": re.compile(username, re.IGNORECASE)}
             )
             if user is None:
-                raise ValueError("Supplied Username does not exist in Database.")
+                raise OnaniDatabaseException(
+                    "Supplied Username does not exist in Database."
+                )
             log.debug(
                 f"""Found user {user.get("username")} (ID: {user.get("_id")}) with Username."""
             )
@@ -153,12 +160,16 @@ class DatabaseController:
             # Check for user with API key
             user = self.users.find_one({"api_key": api_key})
             if user is None:
-                raise ValueError("Supplied API Key does not exist in Database.")
+                raise OnaniDatabaseException(
+                    "Supplied API Key does not exist in Database."
+                )
             log.debug(
                 f"""Found user {user.get("username")} (ID: {user.get("_id")}) with API key."""
             )
         else:
-            raise ValueError("One of: id, username, api_key must be supplied.")
+            raise OnaniDatabaseException(
+                "One of: id, username, api_key must be supplied."
+            )
 
         # Return our user
         return User(
@@ -188,7 +199,7 @@ class DatabaseController:
             )
             if existing_user is not None:
                 # We can't use this username.
-                raise ValueError("Username is taken.")
+                raise OnaniDatabaseException("Username is taken.")
             self.users.update_one({"_id": user.id}, {"$set": {"username": username}})
             user.username = username
 
@@ -240,22 +251,22 @@ class DatabaseController:
         reason: str = None,
         duration: timedelta = timedelta(days=30),
         ban_creator: User = None,
-    ) -> None:
+    ) -> Ban:
         # add a ban for a user
         # TODO #21 Add who issued ban and when
         # Check if a ban already exists
         ban = self.bans.find_one({"user_id": user.id})
         if ban is not None:
             # there is already a ban for this user
-            raise ValueError("This user is already banned")
+            raise OnaniDatabaseException("This user is already banned")
 
         # create dict and add the ban to the database
         ban_data = {
             "user_id": user.id,
             "reason": reason,
             "ban_creator_id": ban_creator.id,
-            "since": datetime.utcnow(),
-            "expires": datetime.utcnow() + duration,
+            "since": datetime.utcnow().replace(tzinfo=tz.tzutc()),
+            "expires": datetime.utcnow().replace(tzinfo=tz.tzutc()) + duration,
         }
         self.bans.insert_one(ban_data)
 
@@ -276,7 +287,7 @@ class DatabaseController:
         ban = self.bans.find_one({"user_id": user.id})
         if ban is None:
             # there is no existing ban
-            raise ValueError("This user is not banned")
+            raise OnaniDatabaseException("This user is not banned")
 
         self.bans.delete_one({"user_id": user.id})
 
@@ -287,6 +298,21 @@ class DatabaseController:
         )
         log.info(f"{user.username} (ID: {user.id}) has been unbanned")
         user.permissions = UserPermissions.MEMBER
+
+    def get_user_ban(self, user: User) -> Ban:
+        # Check if a ban exists
+        ban = self.bans.find_one({"user_id": user.id})
+        if ban is None:
+            # there is no existing ban
+            raise OnaniDatabaseException("This user is not banned")
+        return Ban(
+            self,
+            self.get_user(id=ban.get("user_id")),
+            ban.get("reason"),
+            self.get_user(id=ban.get("ban_creator_id")),
+            ban.get("since"),
+            ban.get("expires"),
+        )
 
     ## TAGS
     def add_tag(
@@ -303,8 +329,8 @@ class DatabaseController:
 
         tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
         if tag is not None:
-            # What the ValueError says :)
-            raise ValueError("A tag with this name already exists.")
+            # What the OnaniDatabaseException says :)
+            raise OnaniDatabaseException("A tag with this name already exists.")
 
         # Create dict and insert
         tag_data = {
@@ -339,7 +365,7 @@ class DatabaseController:
         if tag is None:
             tag = self.tags.find_one({"aliases": re.compile(tag_string, re.IGNORECASE)})
             if tag is None:
-                raise ValueError(
+                raise OnaniDatabaseException(
                     f'No tag mathching the name "{tag_string}" could be found.'
                 )
         log.debug(f'Tag found with name "{tag_string}"')

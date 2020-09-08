@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:57
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-31 14:53:27
+# @Last Modified time: 2020-09-09 03:09:01
 
 import logging
 import platform
@@ -31,3 +31,4 @@ from .models import (
     UserPermissions,
     UserSettings,
 )
+from .exceptions import *

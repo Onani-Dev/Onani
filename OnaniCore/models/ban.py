@@ -2,7 +2,38 @@
 # @Author: Blakeando
 # @Date:   2020-08-27 18:39:21
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-27 18:39:36
+# @Last Modified time: 2020-09-09 03:44:49
+
+import logging
+from datetime import datetime, timedelta
+
+from dateutil import tz
+
+from ..utils import setup_logger
+
+log = setup_logger(__name__)
 
 
-# TODO #23 Ban object
+class Ban(object):
+    """
+    Onani User Ban object
+    """
+
+    __slots__ = ("_db", "user", "reason", "ban_creator", "since", "expires")
+
+    def __init__(
+        self, db, user, reason: str, ban_creator, since: datetime, expires: datetime,
+    ):
+        self._db = db
+        self.user = user
+        self.reason = reason
+        self.ban_creator = ban_creator
+        self.since = since.replace(tzinfo=tz.tzutc())
+        self.expires = expires.replace(tzinfo=tz.tzutc())
+
+    @property
+    def has_expired(self):
+        return datetime.utcnow().replace(tzinfo=tz.tzutc()) >= self.expires
+
+    def __repr__(self):
+        return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"

@@ -1,14 +1,8 @@
-<!-- 
-  @Author: Blakeando
-  @Date:   2020-08-14 19:33:07
-  @Last Modified by:   Blakeando
-  @Last Modified time: 2020-09-07 14:21:01
--->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <title>Onani</title>
+  <title>{% block title %}{% endblock %} - Onani</title>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
   <link href="/css/onani.style.min.css" rel="stylesheet">
@@ -35,24 +29,17 @@
           </form>
         </div>
         <!-- User Profile Picture -->
+        {% if current_user.is_authenticated %}
         <div id="user-pfp-container" onclick="location.href='/profile'">
-          <img id="user-pfp" src="/image/default.png" alt="Username">
+          <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
         </div>
+        {% else %}
+        <a id="login-user-button" href="/login">Login</a>
+        {% endif %}
       </div>
     </header>
-    <!-- Left pannel/Tags -->
-    <div id="left-pannel">
-      <h2>Tags</h2>
-      {% for tag in tags %}
-      <li><a href="/posts?tags={{ tag.string }}"
-          class="tag-list-item {{ tag.type.string.lower() }}">{{ tag.string[:20] }}{{'...' if tag.string|length > 20 else ''}}
-          {{ tag.post_count }}</a></li>
-      {% endfor %}
-    </div>
-    <!-- Chat -->
-    <div id="chatbox">
-      <!-- TODO #20 -->
-    </div>
+    {% block content %}
+    {% endblock %}
   </div>
 </body>
 

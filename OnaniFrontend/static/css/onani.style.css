@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-08-28 18:32:36
+ * @Last Modified time: 2020-09-09 00:15:46
 */
 
 
@@ -16,6 +16,7 @@
   padding: 0;
   transform: translateZ(0);
   font-weight: bold;
+  z-index: 1;
 }
 
 /* Body */
@@ -24,6 +25,15 @@ body, html {
   height: 100vh;
   width: 100vw;
   /* cursor: progress; le epic troll :) */
+}
+
+/* Input elements */
+input {
+  background-color: black;
+  text-decoration: none;
+  text-align: center;
+  border: 2px solid red;
+  border-radius: 4px;
 }
 
 /* Navbar logo */
@@ -64,7 +74,6 @@ div.navbar {
   text-align: left;
   top: 0;
   width: 100%;
-  z-index: 666;
 }
 
 /* Links in the Navigation bar */
@@ -146,6 +155,7 @@ img#search-icon {
   transition: all 0.5s ease;
   width: 20px;
 }
+
 img#search-icon:hover {
   transform: scale(1.1);
 }
@@ -200,16 +210,58 @@ div#user-pfp-container {
 div#user-pfp-container:hover {
   transform: scale(1.1);
 }
+
 img#user-pfp {
   max-width: 50px;
   object-fit: contain;
 }
 
+/* .dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #f1f1f1;}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown:hover .dropbtn {
+  background-color: #3e8e41;
+} */
+
+/* Login button */
+a#login-user-button {
+  align-self: center;
+  cursor: pointer;
+  display: inline-flex;
+  margin-left: auto;
+  margin-right: 15px;
+}
 
 /* Tag list items */
 div#left-pannel li{
   list-style-type: none;
 }
+
 a.tag-list-item {
   text-decoration: none;
 }
@@ -240,6 +292,68 @@ a.tag-list-item {
   color: #757575
 }
 
+/* Login box */
+div.login-box {
+  border: 3px solid red;
+  background-color: black;
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  transform: translate(-50%, -50%);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-sizing: content-box;
+  display: flex;
+  padding: 80px 80px 20px 80px;
+}
+
+/* Login Bloody H1 */
+h1.login-bloody-header {
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  margin-top: 30px;
+  font-family:'Bloody';
+  top: 0;
+  background: -webkit-linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(255, 0, 0, 1) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2.5em;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* Input boxes */
+input#username, 
+input#password {
+  display: flex;
+  font-size: medium;
+  margin: 5px;
+  padding: 5px 10px 5px 10px;
+  text-align: center;
+  width: 210px;
+}
+
+/* Submit button */
+input#submit {
+  cursor: pointer;
+  display: inline-flex;
+  margin: 5px;
+  padding: 5px 10px 5px 10px;
+}
+
+/* Flask flash message */
+div.flash-message {
+  animation: fadein 0.5s;
+  font-size: 1.7em;
+  left: 0;
+  margin-top: 20vh;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  white-space: pre;
+}
 /* FONTS */
 
 /* Onani Logo Font */
@@ -278,6 +392,12 @@ a.tag-list-item {
 @keyframes float { 
   0%, 20%, 40%, 60%, 80%, 100% {transform: translateY(-3px);} 
   10%, 30%, 50%, 70%, 90% {transform: translateY(3px);} 
+}
+
+/* Fade-in animation */
+@keyframes fadein {
+  from {opacity: 0}
+  to {opacity: 1}
 }
 
 /* EXTRAS */

@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-25 22:29:02
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-07 06:08:45
+# @Last Modified time: 2020-09-09 03:11:06
 import datetime
 import random
 import string
@@ -30,7 +30,7 @@ class TestTag(unittest.TestCase):
 
         # Try to add tag again
         with self.assertRaises(
-            ValueError,
+            OnaniDatabaseException,
             msg="Tag did not raise exception when created again with same name",
         ):
             self.onaniDB.add_tag(tag.string)
