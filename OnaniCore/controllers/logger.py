@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-31 18:25:05
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-07 12:40:25
+# @Last Modified time: 2020-09-09 13:00:45
 
 import inspect
 import logging
@@ -10,6 +10,7 @@ import time
 from datetime import datetime
 
 import pymongo
+from dateutil import tz
 
 
 class EventLogger(logging.Handler):
@@ -25,7 +26,9 @@ class EventLogger(logging.Handler):
 
     def emit(self, record):
         log_data = {
-            "time": datetime.utcfromtimestamp(record.created),
+            "time": datetime.utcfromtimestamp(record.created).replace(
+                tzinfo=tz.tzutc()
+            ),
             "name": record.name,
             "funcname": record.funcName,
             "level": record.levelname,

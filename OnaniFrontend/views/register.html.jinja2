@@ -1,0 +1,25 @@
+{% extends "base.html.jinja2" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<div class="flash-message">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+<!-- Register box -->
+<div class="login-box">
+  <h1 class="login-bloody-header">Register</h1>
+  <!-- Form -->
+  <form action="/register" method="POST">
+    <input autocapitalize="off" id="username" name="username" placeholder="Username" type="text">
+    <input autocapitalize="off" id="email" name="email" placeholder="Email (Optional)" type="text">
+    <input autocomplete="off" id="password" name="password" placeholder="Password" type="password">
+    <input autocomplete="off" id="confirm-password" name="confirm-password" placeholder="Confirm Password"
+      type="password">
+    <input id="submit" type="submit" value="Register">
+  </form>
+</div>
+{% endblock %}

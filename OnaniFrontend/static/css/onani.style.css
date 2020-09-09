@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-09 00:15:46
+ * @Last Modified time: 2020-09-10 04:52:57
 */
 
 
@@ -207,6 +207,7 @@ div#user-pfp-container {
   outline: 1px solid red;
   transition: transform 0.3s ease;
 }
+
 div#user-pfp-container:hover {
   transform: scale(1.1);
 }
@@ -248,13 +249,95 @@ img#user-pfp {
   background-color: #3e8e41;
 } */
 
-/* Login button */
-a#login-user-button {
+/* News and chat */
+div#right-pannel {
+  right: 0;
+  margin-top: 120px;
+  padding-right: 25px;
+  position: absolute;
+}
+
+/* News box */
+div#news-container {
+  width: 350px;
+  height: 100px;
+  border: 1px solid red;
+  overflow-y: scroll;
+}
+
+/* News box items */
+div#news-container li {
+  padding: 3px;
+  font-size: 1.2em;
+  list-style-type: none;
+}
+
+/* News box links */
+div#news-container li a {
+  text-decoration: none;
+}
+
+/* Chat box */
+div#chat-container {
+  border: 1px solid red;
+  height: 300px;
+  width: 350px;
+}
+
+div#chat-message-area {
+  height: 265px;
+  overflow-y: scroll;
+  width: 100%;
+}
+
+div#chat-message-area li {
+  color: rgb(219, 92, 92);
+  padding: 5px;
+  font-size: 1em;
+  list-style-type: none;
+}
+
+div#chat-message-input-container {
+  display: flex;
+  border-top: 1px solid red;
+  height: 35px;
+  width: 100%;
+}
+
+input#chat-box-textarea {
+  border: 0px solid red;
+  display: inline-flex;
+  font-size: 16px;
+  padding: 0 15px 0 15px;
+  text-align: start;
+  vertical-align: middle;
+  width: 82.5%;
+  height: 95%;
+  z-index: 0;
+}
+
+i#chat-box-send {
+  align-self:center;
+  cursor: pointer;
+}
+
+div#chatbox {
+  padding-top: 50px;
+}
+
+/* Login/register button group */
+div#login-register-buttons {
   align-self: center;
   cursor: pointer;
   display: inline-flex;
   margin-left: auto;
   margin-right: 15px;
+}
+
+/* Login/register button */
+a#login-user-button, 
+a#register-user-button {
+  cursor: pointer;
 }
 
 /* Tag list items */
@@ -310,23 +393,26 @@ div.login-box {
 
 /* Login Bloody H1 */
 h1.login-bloody-header {
-  position: absolute;
-  left: 25%;
-  right: 25%;
-  margin-top: 30px;
+  flex-direction: column;
   font-family:'Bloody';
+  font-size: 2.5em;
+  justify-content: space-evenly;
+  left: 25%;
+  margin-top: 30px;
+  position: absolute;
+  right: 25%;
   top: 0;
+  user-select: none;
   background: -webkit-linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(255, 0, 0, 1) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-size: 2.5em;
-  flex-direction: column;
-  justify-content: space-evenly;
 }
 
 /* Input boxes */
 input#username, 
-input#password {
+input#password,
+input#email,
+input#confirm-password {
   display: flex;
   font-size: medium;
   margin: 5px;
@@ -348,12 +434,13 @@ div.flash-message {
   animation: fadein 0.5s;
   font-size: 1.7em;
   left: 0;
-  margin-top: 20vh;
+  margin-top: 15vh;
   position: absolute;
   right: 0;
   text-align: center;
   white-space: pre;
 }
+
 /* FONTS */
 
 /* Onani Logo Font */

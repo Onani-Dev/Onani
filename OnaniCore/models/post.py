@@ -2,13 +2,14 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-03 19:20:21
+# @Last Modified time: 2020-09-09 13:02:31
 
 import logging
 from datetime import datetime
 from typing import List
 
 from aenum import Enum, MultiValue
+from dateutil import tz
 
 from ..utils import setup_logger
 from .commentary import Commentary
@@ -113,7 +114,7 @@ class PostData(object):
     ):
         self._db = db
         self.md5 = md5
-        self.uploaded_at = uploaded_at
+        self.uploaded_at = uploaded_at.replace(tzinfo=tz.tzutc())
         self.source = source
         self.rating = rating
         self.status = status

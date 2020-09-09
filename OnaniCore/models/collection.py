@@ -2,12 +2,13 @@
 # @Author: Blakeando
 # @Date:   2020-08-22 01:03:56
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-09 03:38:20
+# @Last Modified time: 2020-09-09 13:01:52
 
 from datetime import datetime
 from typing import List
 
 from aenum import Enum, MultiValue
+from dateutil import tz
 
 from ..utils import setup_logger
 from .post import Post
@@ -64,7 +65,7 @@ class Collection(object):
         self.description = description
         self.posts = posts
         self.status = status
-        self.created_at = created_at
+        self.created_at = created_at.replace(tzinfo=tz.tzutc())
         self.creator = creator
         self.rating
 

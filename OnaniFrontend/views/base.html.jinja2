@@ -3,11 +3,18 @@
 
 <head>
   <title>{% block title %}{% endblock %} - Onani</title>
+  <!-- META -->
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
-  <link href="/css/onani.style.min.css" rel="stylesheet">
   <link href="/favicon.ico" rel="icon">
+  <!-- STYLES -->
+  <link href="/css/onani.style.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- SCRIPTS -->
+  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+    integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -30,11 +37,14 @@
         </div>
         <!-- User Profile Picture -->
         {% if current_user.is_authenticated %}
-        <div id="user-pfp-container" onclick="location.href='/profile'">
+        <div id="user-pfp-container" onclick="location.href='/users/{{ current_user.id }}'">
           <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
         </div>
         {% else %}
-        <a id="login-user-button" href="/login">Login</a>
+        <div id="login-register-buttons">
+          <a id="register-user-button" href="/register">Register</a>
+          <a id="login-user-button" href="/login">Login</a>
+        </div>
         {% endif %}
       </div>
     </header>
