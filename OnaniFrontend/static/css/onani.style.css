@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-10 04:52:57
+ * @Last Modified time: 2020-09-10 15:19:29
 */
 
 
@@ -277,6 +277,11 @@ div#news-container li a {
   text-decoration: none;
 }
 
+/* Chatbox container */
+div#chatbox {
+  padding-top: 50px;
+}
+
 /* Chat box */
 div#chat-container {
   border: 1px solid red;
@@ -284,19 +289,23 @@ div#chat-container {
   width: 350px;
 }
 
+/* Message area */
 div#chat-message-area {
   height: 265px;
   overflow-y: scroll;
   width: 100%;
 }
 
+/* Message area item aka message */
 div#chat-message-area li {
   color: rgb(219, 92, 92);
   padding: 5px;
   font-size: 1em;
   list-style-type: none;
+  vertical-align: middle;
 }
 
+/* The message input box */
 div#chat-message-input-container {
   display: flex;
   border-top: 1px solid red;
@@ -304,6 +313,7 @@ div#chat-message-input-container {
   width: 100%;
 }
 
+/* The place where you enter text */
 input#chat-box-textarea {
   border: 0px solid red;
   display: inline-flex;
@@ -316,13 +326,18 @@ input#chat-box-textarea {
   z-index: 0;
 }
 
+/* The send button */
 i#chat-box-send {
   align-self:center;
   cursor: pointer;
 }
 
-div#chatbox {
-  padding-top: 50px;
+/* Twemoji emojis */
+img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 .05em 0 .1em;
+  vertical-align: -0.1em;
 }
 
 /* Login/register button group */
@@ -501,7 +516,7 @@ textarea:focus, input:focus{
 }
 
 ::-webkit-scrollbar-thumb {
-    width: 1px;
+    width: 5px;
     background-color: red;
 }
 
@@ -511,8 +526,8 @@ textarea:focus, input:focus{
 }
 
 ::-webkit-scrollbar {
-    width: 1px;
-    height: 1px;
+    width: 5px;
+    height: 5px;
     background-color: black;
     transition: ease;
 }

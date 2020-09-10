@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 03:18:21
+# @Last Modified time: 2020-09-10 15:28:13
 
 import logging
 import os
@@ -145,17 +145,18 @@ class DatabaseController:
         if username is None:
             username = self._random_username()
 
-        # Check if Username is already taken, If one is supplied.
+        # Check if Username is already taken.
         user = self.users.find_one({"username": re.compile(username, re.IGNORECASE)})
         if user is not None:
             # We can't use this username.
             raise OnaniDatabaseException("Username is taken.")
 
         # Check if email is already used, If one is supplied.
-        user = self.users.find_one({"email": email})
-        if user is not None:
-            # We can't use this email.
-            raise OnaniDatabaseException("Email is already in use.")
+        if email is not None:
+            user = self.users.find_one({"email": email})
+            if user is not None:
+                # We can't use this email.
+                raise OnaniDatabaseException("Email is already in use.")
 
         log.debug(f""""{username}" looks good to use.""")
 

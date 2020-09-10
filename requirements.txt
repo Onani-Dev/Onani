@@ -1,5 +1,6 @@
 aenum>=2.2.4
 black>=19.10b0
+emoji>=0.6.0 
 Flask-Login>=0.5.0
 Flask-Sockets>=0.2.1
 Flask>=1.1.2

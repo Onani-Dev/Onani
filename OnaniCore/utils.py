@@ -2,7 +2,8 @@
 # @Author: Blakeando
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-07 12:43:25
+# @Last Modified time: 2020-09-10 14:15:16
+import html
 import logging
 
 from .controllers.logger import EventLogger
@@ -17,3 +18,16 @@ def setup_logger(
     log.addHandler(logdb)
     log.setLevel(level)
     return log
+
+
+def html_escape(string: str):
+    """```raw
+    Escape HTML to prevent XSS attacks
+
+    Args:
+        string (str): The text to escape
+
+    Returns:
+        str: The escaped string
+    """
+    return html.escape(string)

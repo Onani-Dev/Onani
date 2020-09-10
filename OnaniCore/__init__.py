@@ -2,12 +2,12 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:57
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-09 22:27:10
+# @Last Modified time: 2020-09-10 14:12:11
 
-from collections import namedtuple
 import logging
 import platform
 import sys
+from collections import namedtuple
 
 import requests
 
@@ -23,6 +23,7 @@ user_agent = f"Onani-Core/{__version__} Python/{platform.python_version()} Reque
 
 from .controllers.database import DatabaseController
 from .controllers.scrapers import DanBooruScraper, Scraper
+from .exceptions import *
 from .models import (
     Post,
     PostData,
@@ -35,4 +36,4 @@ from .models import (
     UserPermissions,
     UserSettings,
 )
-from .exceptions import *
+from .utils import *

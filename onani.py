@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 04:49:44
+# @Last Modified time: 2020-09-10 15:03:09
 
 import functools
 import logging
@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 
 import humanize
 import pymongo
+import emoji
 from dateutil import tz
 from flask import (
     Flask,
@@ -30,7 +31,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO, disconnect, emit, send, join_room, leave_room
+from flask_socketio import SocketIO, disconnect, emit, join_room, leave_room, send
 
 from OnaniCore import *
 
@@ -184,20 +185,29 @@ def error401(e):
 
 
 @socketio.on("message", namespace="/chat")
-@authenticated_only
 def handle_message(message):
-    emit("message", {"user": current_user.username, "message": message}, broadcast=True)
-    print("Received message: " + message + " from: " + current_user.username)
+    if current_user.is_authenticated:
+        emit(
+            "message",
+            {
+                "user": current_user.username,
+                "user_id": current_user.id,
+                "message": emoji.emojize(html_escape(message), use_aliases=True),
+            },
+            broadcast=True,
+        )
 
 
 @socketio.on("connect", namespace="/chat")
-@authenticated_only
 def chat_connect():
-    emit(
-        "connection",
-        {"data": f"{current_user.username} has connected."},
-        broadcast=True,
-    )
+    if not current_user.is_authenticated:
+        emit("connection", {"data": f"You must be logged in to use chat."})
+    else:
+        emit(
+            "connection",
+            {"data": f"{current_user.username} has connected."},
+            broadcast=True,
+        )
 
 
 @socketio.on("disconnect", namespace="/chat")
