@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 15:03:09
+# @Last Modified time: 2020-09-11 01:10:45
 
 import functools
 import logging
@@ -31,7 +31,15 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO, disconnect, emit, join_room, leave_room, send
+from flask_socketio import (
+    SocketIO,
+    disconnect,
+    emit,
+    join_room,
+    leave_room,
+    send,
+    rooms,
+)
 
 from OnaniCore import *
 
@@ -49,7 +57,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 socketio = SocketIO(app)
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+chat_rooms = {"general": list()}
 
 
 def authenticated_only(f):
@@ -100,7 +109,6 @@ def login():
                         current_user.unban()
                         return redirect("/")
                     logout_user()
-                    print(user_ban.expires)
                     flash(
                         f"This account has been banned.\nReason: {user_ban.reason}\nExpires: {humanize.naturaltime(datetime.utcnow().replace(tzinfo=tz.tzutc()) - user_ban.expires.astimezone(tz.tzlocal()))} ({user_ban.expires.strftime('%d/%m/%Y %H:%M:%S')} UTC)"
                     )
@@ -125,8 +133,10 @@ def register():
             return redirect("/register")
         try:
             user = onaniDB.add_user(
-                username=request.form["username"],
-                email=request.form.get("email"),
+                username=html_escape(request.form["username"]),
+                email=html_escape(request.form["email"])
+                if request.form.get("email") != ""
+                else None,
                 password=request.form["password"],
             )
         except OnaniDatabaseException as e:
@@ -177,14 +187,8 @@ def error401(e):
     return redirect("/login")
 
 
-# @socketio.on("join", namespace="/chat")
-# def on_join(data):
-#     room = data["room"]
-#     join_room(room, namespace="/chat")
-#     emit(current_user.username + " has entered the room.", room=room)
-
-
 @socketio.on("message", namespace="/chat")
+@authenticated_only
 def handle_message(message):
     if current_user.is_authenticated:
         emit(
@@ -192,32 +196,47 @@ def handle_message(message):
             {
                 "user": current_user.username,
                 "user_id": current_user.id,
-                "message": emoji.emojize(html_escape(message), use_aliases=True),
+                "message": emoji.emojize(
+                    html_escape(message["text"]), use_aliases=True
+                ),
             },
-            broadcast=True,
+            room=message["room"],
         )
 
 
-@socketio.on("connect", namespace="/chat")
-def chat_connect():
-    if not current_user.is_authenticated:
-        emit("connection", {"data": f"You must be logged in to use chat."})
-    else:
-        emit(
-            "connection",
-            {"data": f"{current_user.username} has connected."},
-            broadcast=True,
-        )
-
-
-@socketio.on("disconnect", namespace="/chat")
+@socketio.on("join", namespace="/chat")
 @authenticated_only
-def chat_disconnect():
+def on_join(data):
+    room = data["room"]
+    join_room(room)
+    emit(
+        "connection",
+        {"data": f"{current_user.username} has joined {html_escape(room)}."},
+        room=room,
+    )
+
+
+@socketio.on("leave", namespace="/chat")
+@authenticated_only
+def on_leave(data):
+    room = data["room"]
+    leave_room(room)
     emit(
         "disconnection",
-        {"data": f"{current_user.username} has disconnected."},
+        {"data": f"{current_user.username} has left {html_escape(room)}."},
         broadcast=True,
+        room=room,
     )
+
+
+# @socketio.on("connect", namespace="/chat")
+# def connect():
+#     pass
+
+
+# @socketio.on("disconnect", namespace="/chat")
+# def disconnect():
+#     pass
 
 
 if __name__ == "__main__":

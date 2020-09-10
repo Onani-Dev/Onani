@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-09 22:32:13
+# @Last Modified time: 2020-09-11 00:57:07
 
 import logging
 from datetime import datetime, timedelta
@@ -73,6 +73,7 @@ class User(object):
         "permissions",
         "settings",
         "username",
+        "connected_to",
     )
 
     def __init__(

@@ -34,7 +34,7 @@ You should only need to use the `source env/bin/activate` command once you have 
 ## Setup Gunicorn
 1. Install Onani dependancies: `pip install -r requirements.txt`
 
-1. Start Gunicorn: `gunicorn -k flask_sockets.worker -w 8 onani:app`
+1. Start Gunicorn: `gunicorn -w 1 --worker-class eventlet onani:app`
 
 ## Setup nginx
 TODO #12
