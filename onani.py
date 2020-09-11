@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 15:52:51
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-11 01:10:45
+# @Last Modified time: 2020-09-11 16:21:53
 
 import functools
 import logging
@@ -190,7 +190,9 @@ def error401(e):
 @socketio.on("message", namespace="/chat")
 @authenticated_only
 def handle_message(message):
-    if current_user.is_authenticated:
+    if len(message["text"]) > 400:
+        emit("notification", {"data": "Your message was too long. (> 400)"})
+    else:
         emit(
             "message",
             {
@@ -209,6 +211,8 @@ def handle_message(message):
 def on_join(data):
     room = data["room"]
     join_room(room)
+    if room == "general":
+        return  # Save spamming general
     emit(
         "connection",
         {"data": f"{current_user.username} has joined {html_escape(room)}."},
@@ -221,6 +225,8 @@ def on_join(data):
 def on_leave(data):
     room = data["room"]
     leave_room(room)
+    if room == "general":
+        return  # Save spamming general
     emit(
         "disconnection",
         {"data": f"{current_user.username} has left {html_escape(room)}."},

@@ -2,12 +2,11 @@
  * @Author: Blakeando
  * @Date:   2020-09-10 02:40:26
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-11 01:24:03
+ * @Last Modified time: 2020-09-11 16:22:47
  */
 'use strict';
 var currentRoom = "general";
 var scrolled = false;
-var started = false;
 
 jQuery(function ($) {
   $('#chat-message-area').on('scroll', function () {
@@ -54,41 +53,45 @@ window.onload = function () {
     document.getElementById('chat-box-textarea').value = '';
     if (text != "") {
       var splitText = text.split(" ");
-      switch (splitText[0].replace("/", "")) {
-        case "join":
-          if (splitText.length > 1) {
-            socket.emit('leave', { 'room': currentRoom });
-            currentRoom = splitText[1];
-            socket.emit('join', { 'room': currentRoom });
-            document.getElementById('chat-box-textarea').placeholder = `Send message to ${currentRoom}...`;
+      if (splitText[0].startsWith("/")) {
+        switch (splitText[0].replace("/", "")) {
+          case "join":
+            if (splitText.length > 1) {
+              ConnectTo(splitText[1]);
+            }
             return;
-          }
 
-        case "clear":
-          document.getElementById("chat-message-area").innerHTML = "";
-          return;
-
-        case "start":
-          if (!started) {
-            socket.emit('join', { 'room': currentRoom });
-            document.getElementById('chat-box-textarea').placeholder = `Send message to ${currentRoom}...`;
-            started = true;
-          }
-          return;
+          case "clear":
+            document.getElementById("chat-message-area").innerHTML = "";
+            return;
+        }
       }
       socket.emit('message', { "text": text, "room": currentRoom });
     }
   }
 
+  function ConnectTo(room, reconnect = false, leavePrevious = true) {
+    if (leavePrevious) {
+      socket.emit('leave', { "room": currentRoom });
+    }
+    socket.emit('join', { "room": room, "reconnect": reconnect });
+    currentRoom = room;
+    // AddChatMessage(`You joined <b>${currentRoom}</b>`);
+    document.getElementById('chat-box-textarea').placeholder = `Send message to ${currentRoom}...`;
+  }
+
+  // function Disconnect() {
+  //   socket.emit('leave', { "room": currentRoom });
+  // }
+
   socket.on('connect', function () {
     AddChatMessage("<b>Connected.</b>");
-    // socket.emit('join', { 'room': currentRoom });
-    AddChatMessage("Type /start to start chat.");
-    document.getElementById('chat-box-textarea').placeholder = "Type /start to start chatting.";
+    AddChatMessage("Type /join {room} to join another room.");
+    ConnectTo(currentRoom);
   });
 
   socket.on('message', function (message) {
-    AddChatMessage(`<b>${message.user}:</b> ${message.message}`);
+    AddChatMessage(`<a style="text-decoration:none;" href="/users/${message.user_id}"><b>${message.user}:</b></a> ${message.message}`);
   });
 
   socket.on('connection', function (data) {
