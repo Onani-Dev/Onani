@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:31:11
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-12 14:37:13
+# @Last Modified time: 2020-09-12 20:14:39
 
 from datetime import datetime, timedelta
 
@@ -42,7 +42,7 @@ def user_loader(username):
 @main.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("/login.html.jinja2", current_user=current_user)
+        return render_template("/login.jinja2", current_user=current_user)
     else:
         if request.form["username"] == "" and request.form["password"] == "":
             flash("Enter something!")
@@ -81,7 +81,7 @@ def login():
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
-        return render_template("/register.html.jinja2", current_user=current_user)
+        return render_template("/register.jinja2", current_user=current_user)
     else:
         if " " in request.form["username"]:
             flash("Usernames cannot have whitespace.")

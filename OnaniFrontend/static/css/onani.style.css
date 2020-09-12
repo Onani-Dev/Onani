@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-11 11:58:15
+ * @Last Modified time: 2020-09-13 04:00:39
 */
 
 
@@ -10,22 +10,27 @@
 * {
   -webkit-font-smoothing: subpixel-antialiased;
   backface-visibility: hidden;
-  color: rgb(255, 0, 0);
-  font-family: "MADEEvolveSans";
+  color: red;
+  font-family: 'Jost', sans-serif;
   margin: 0;
   padding: 0;
   transform: translateZ(0);
-  font-weight: bold;
   z-index: 1;
 }
 
-/* Body */
-body, html {
+html {
   background-color: black;
-  height: 100vh;
-  width: 100vw;
-  /* cursor: progress; le epic troll :) */
 }
+
+/* Body */
+body {
+  background-color: black;
+  margin-left: 215px;
+  margin-right: 390px;
+  margin-top: 65px;
+  overflow-x: hidden; 
+}
+
 
 /* Input elements */
 input {
@@ -60,24 +65,26 @@ input {
 }
 
 /* Navigation bar */
-div.navbar {
+header.navbar {
   align-items: flex-start;
   display: flex;
   height: 65px;
   justify-content: left;
+  left: -215px;
   margin-bottom: 70px;
   max-height: 65px;
   outline-offset: -1px;
   outline: 1px solid red;
   overflow: hidden;
   position: absolute;
+  right: -390px;
   text-align: left;
-  top: 0;
-  width: 100%;
+  top: -65px;
+  /* width: 100vw; */
 }
 
 /* Links in the Navigation bar */
-div.navbar a {
+header.navbar a {
   align-self: center;
   color: red;
   display: inline-flex;
@@ -189,8 +196,8 @@ div.navbar a:hover, div.dropdown:hover button.dropbtn {
 
 /* Tags bar */
 div#left-pannel {
-  left: 0;
-  margin-top: 120px;
+  left: -215px;
+  margin-top: 30px;
   padding-left: 25px;
   position: absolute;
 }
@@ -252,8 +259,9 @@ img#user-pfp {
 /* News and chat */
 div#right-pannel {
   right: 0;
-  margin-top: 120px;
+  margin-top: 30px;
   padding-right: 25px;
+  right: -390px;
   position: absolute;
 }
 
@@ -455,6 +463,44 @@ div.flash-message {
   right: 0;
   text-align: center;
   white-space: pre;
+}
+
+
+/* Profile Container */
+div#profile-container {
+  border: 1px solid red;
+  margin-top: 30px;
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+}
+
+div#profile-info-container {
+  border-bottom: 1px solid red;
+}
+
+div#profile-picture-container {
+  display: inline-block;
+  border: 1px solid red;
+  max-width: 150px;
+  max-height: 150px;
+  margin: 10px;
+}
+
+img#profile-picture-image {
+  max-width: 150px;
+  max-height: 150px;
+}
+
+h1#profile-username-header {
+  position: absolute;
+  display: inline-block;
+  top: 50px;
+}
+h3#profile-user-permissions {
+  position: absolute;
+  display: inline-block;
+  top: 100px;
 }
 
 /* FONTS */

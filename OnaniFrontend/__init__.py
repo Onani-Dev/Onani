@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-12 16:13:34
+# @Last Modified time: 2020-09-12 21:11:38
 
 import os
 
@@ -18,6 +18,7 @@ def create_app():
     app = Flask(__name__, static_url_path="")
     # Temporary secret key; Change to config generated one
     app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
 
     from .main import main as main_blueprint
 

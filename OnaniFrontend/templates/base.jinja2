@@ -2,55 +2,58 @@
 <html lang="en">
 
 <head>
-  <title>{% block title %}{% endblock %} - Onani</title>
+  <title>{% block title %}{% endblock %}Onani</title>
+  <link href="/favicon.ico" rel="icon">
   <!-- META -->
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
-  <link href="/favicon.ico" rel="icon">
+  {% block meta %}
+  {% endblock %}
   <!-- STYLES -->
   <link href="/css/onani.style.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Jost&display=swap" rel="stylesheet">
+  {% block styles %}
+  {% endblock %}
   <!-- SCRIPTS -->
   <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
     integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+  {% block scripts %}
+  {% endblock %}
 </head>
 
 <body>
-  <div id="main">
-    <!-- Navbar/header -->
-    <header>
-      <div class="navbar">
-        <!-- logo -->
-        <div id="logo" onclick="location.href='/'">Onani</div>
-        <!-- Navbar links -->
-        <a href="/">Posts</a>
-        <a href="/collections">Collections</a>
-        <a href="/upload">Upload</a>
-        <!-- Search Box -->
-        <div id="search-box">
-          <form id="search-form">
-            <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off">
-            <img src="/svg/search.svg" id="search-icon">
-          </form>
-        </div>
-        <!-- User Profile Picture -->
-        {% if current_user.is_authenticated %}
-        <div id="user-pfp-container" onclick="location.href='/users/{{ current_user.id }}'">
-          <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
-        </div>
-        {% else %}
-        <div id="login-register-buttons">
-          <a id="register-user-button" href="/register">Register</a>
-          <a id="login-user-button" href="/login">Login</a>
-        </div>
-        {% endif %}
-      </div>
-    </header>
-    {% block content %}
-    {% endblock %}
-  </div>
+  <!-- Navbar/header -->
+  <header class="navbar">
+    <!-- logo -->
+    <div id="logo" onclick="location.href='/'">Onani</div>
+    <!-- Navbar links -->
+    <a href="/">Posts</a>
+    <a href="/collections">Collections</a>
+    <a href="/upload">Upload</a>
+    <!-- Search Box -->
+    <div id="search-box">
+      <form id="search-form">
+        <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off">
+        <img src="/svg/search.svg" id="search-icon">
+      </form>
+    </div>
+    <!-- User Profile Picture -->
+    {% if current_user.is_authenticated %}
+    <div id="user-pfp-container" onclick="location.href='/users/{{ current_user.id }}'">
+      <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
+    </div>
+    {% else %}
+    <div id="login-register-buttons">
+      <a id="register-user-button" href="/register">Register</a>
+      <a id="login-user-button" href="/login">Login</a>
+    </div>
+    {% endif %}
+  </header>
+  {% block content %}
+  {% endblock %}
 </body>
 
 </html>

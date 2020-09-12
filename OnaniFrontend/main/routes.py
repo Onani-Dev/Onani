@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-12 16:22:30
+# @Last Modified time: 2020-09-13 04:10:01
 
 from flask import (
     abort,
@@ -24,7 +24,7 @@ from . import main, onaniDB
 @main.route("/posts")
 def posts():
     return render_template(
-        "/index.html.jinja2",
+        "/index.jinja2",
         current_user=current_user,
         tags=onaniDB.get_tags(limit=25, sort="post_count"),
     )
@@ -39,8 +39,12 @@ def users(user_id=None):
             return current_user.username
         try:
             user_id = int(user_id)
+            user = onaniDB.get_user(id=user_id)
         except:
             abort(404)
-        user = onaniDB.get_user(id=user_id)
-        return user.username + " " + user.permissions.string
-    return NotImplemented
+        return render_template(
+            "/profile.jinja2",
+            user=user,
+            tags=onaniDB.get_tags(limit=25, sort="post_count"),
+        )
+    return "Sorry nothing"
