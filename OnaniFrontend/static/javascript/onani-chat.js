@@ -2,11 +2,23 @@
  * @Author: Blakeando
  * @Date:   2020-09-10 02:40:26
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-11 16:22:47
+ * @Last Modified time: 2020-09-14 04:31:22
  */
 'use strict';
-var currentRoom = "general";
-var scrolled = false;
+let currentRoom = "general";
+let scrolled = false;
+
+const messageArea = document.getElementById("chat-message-area");
+const inputArea = document.getElementById('chat-box-textarea');
+const customEmotes = /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g
+const emojiTable = {
+  don: "/svg/don.svg",
+  katsu: "/svg/katsu.svg",
+  desuwa: "/svg/desuwa.svg",
+  dirt: "/image/dirt_small.gif",
+  armagan: "/image/armagan_small.gif"
+}
+
 
 jQuery(function ($) {
   $('#chat-message-area').on('scroll', function () {
@@ -19,7 +31,6 @@ jQuery(function ($) {
 });
 
 function ScrollChat() {
-  var messageArea = document.getElementById("chat-message-area");
   if (!scrolled) {
     messageArea.scrollTop = messageArea.scrollHeight;
   }
@@ -28,20 +39,21 @@ function ScrollChat() {
 function AddChatMessage(content) {
   var recievedMessage = document.createElement("li");
   recievedMessage.innerHTML = content;
-  document.getElementById("chat-message-area").appendChild(recievedMessage);
+  messageArea.appendChild(recievedMessage);
   twemoji.parse(recievedMessage);
   ScrollChat();
 }
 
-window.onload = function () {
-  var socket = io.connect('/chat');
+document.addEventListener('DOMContentLoaded', init, false);
+function init() {
+  const socket = io.connect('/chat');
 
-  var connectMessage = document.createElement("li");
+  let connectMessage = document.createElement("li");
   connectMessage.innerHTML = "<b>Connecting...</b>";
   console.log("Connecting...");
-  document.getElementById("chat-message-area").appendChild(connectMessage);
+  messageArea.appendChild(connectMessage);
   document.getElementById("chat-box-send").addEventListener("click", function () { SendMessage(); })
-  document.getElementById("chat-box-textarea").addEventListener("keypress", function (e) {
+  inputArea.addEventListener("keypress", function (e) {
     if (e.keyCode === 13) {
       e.preventDefault();
       SendMessage();
@@ -49,10 +61,10 @@ window.onload = function () {
   })
 
   function SendMessage() {
-    var text = document.getElementById('chat-box-textarea').value;
-    document.getElementById('chat-box-textarea').value = '';
+    let text = inputArea.value;
+    inputArea.value = '';
     if (text != "") {
-      var splitText = text.split(" ");
+      let splitText = text.split(" ");
       if (splitText[0].startsWith("/")) {
         switch (splitText[0].replace("/", "")) {
           case "join":
@@ -62,7 +74,7 @@ window.onload = function () {
             return;
 
           case "clear":
-            document.getElementById("chat-message-area").innerHTML = "";
+            messageArea.innerHTML = "";
             return;
         }
       }
@@ -77,7 +89,7 @@ window.onload = function () {
     socket.emit('join', { "room": room, "reconnect": reconnect });
     currentRoom = room;
     // AddChatMessage(`You joined <b>${currentRoom}</b>`);
-    document.getElementById('chat-box-textarea').placeholder = `Send message to ${currentRoom}...`;
+    inputArea.placeholder = `Send message to ${currentRoom}...`;
   }
 
   // function Disconnect() {
@@ -91,7 +103,10 @@ window.onload = function () {
   });
 
   socket.on('message', function (message) {
-    AddChatMessage(`<a style="text-decoration:none;" href="/users/${message.user_id}"><b>${message.user}:</b></a> ${message.message}`);
+    let msg = message.message.replace(customEmotes, (current) => {
+      return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji'></img>`
+    });
+    AddChatMessage(`<a style="text-decoration:none;cursor:pointer;" title="Double click to view profile." ondblclick="location.href='/users/${message.user_id}'"><b>${message.user}:</b></a> ${msg}`);
   });
 
   socket.on('connection', function (data) {

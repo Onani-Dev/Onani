@@ -1,6 +1,16 @@
 {% extends "base.jinja2" %}
 {% block title %}{{ user.username }} - {% endblock %}
 
+{% block bodymodifier %}
+class="profile";
+{% endblock %}
+{% block headermodifier %}
+style="right: -390px;"
+{% endblock %}
+{% block scripts %}
+<script src="/javascript/edit-profile.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <!-- Left pannel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
@@ -13,11 +23,15 @@
     </div>
     <h1 id="profile-username-header" class="">{{ user.username }}</h1>
     <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
-    <i class="fa fa-twitter fa-2x" aria-hidden="true"></i>
-    <i class="fa fa-github fa-2x" aria-hidden="true"></i>
-    <i class="fa fa-deviantart fa-2x" aria-hidden="true"></i>
-    <i class="fa fa-bitcoin fa-2x" aria-hidden="true"></i>
-    <i class="fa fa-paypal fa-2x" aria-hidden="true"></i>
+    {% if current_user.id == user.id %}
+    <button id="profile-edit-button">Edit Profile</button>
+    {% endif %}
+    <i class="fab fa-patreon fa-2x"></i>
+    <i class="fab fa-twitter fa-2x"></i>
+    <i class="fab fa-github fa-2x"></i>
+    <i class="fab fa-deviantart fa-2x"></i>
+    <i class="fab fa-bitcoin fa-2x"></i>
+    <i class="fab fa-paypal fa-2x"></i>
 
 
   </div>

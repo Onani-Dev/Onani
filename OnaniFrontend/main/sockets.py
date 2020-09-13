@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:21:03
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-12 16:13:38
+# @Last Modified time: 2020-09-14 03:17:12
 
 import functools
 
@@ -10,7 +10,7 @@ import emoji
 from flask_login import current_user
 from flask_socketio import disconnect, emit, join_room, leave_room, send
 
-from OnaniCore import html_escape
+from OnaniCore import html_escape, custom_emoji
 
 from .. import socketio
 from . import main
@@ -30,8 +30,11 @@ def authenticated_only(f):
 @socketio.on("message", namespace="/chat")
 @authenticated_only
 def handle_message(message):
+    message["text"] = message["text"].strip()
     if len(message["text"]) > 400:
         emit("notification", {"data": "Your message was too long. (> 400)"})
+    elif len(message["text"]) < 1:
+        pass
     else:
         emit(
             "message",
@@ -39,7 +42,7 @@ def handle_message(message):
                 "user": current_user.username,
                 "user_id": current_user.id,
                 "message": emoji.emojize(
-                    html_escape(message["text"]), use_aliases=True
+                    html_escape(message["text"]), use_aliases=True,
                 ),
             },
             room=message["room"],

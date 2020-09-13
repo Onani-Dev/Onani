@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-13 04:10:01
+# @Last Modified time: 2020-09-13 22:10:06
 
 from flask import (
     abort,
@@ -21,16 +21,20 @@ from . import main, onaniDB
 
 
 @main.route("/")
-@main.route("/posts")
+@main.route("/posts/")
 def posts():
     return render_template(
-        "/index.jinja2",
-        current_user=current_user,
-        tags=onaniDB.get_tags(limit=25, sort="post_count"),
+        "/index.jinja2", tags=onaniDB.get_tags(limit=25, sort="post_count"),
     )
 
 
-@main.route("/users")
+@main.route("/collections/")
+@main.route("/collections/<collection_id>")
+def collections():
+    return "Sorry nothing"
+
+
+@main.route("/users/")
 @main.route("/users/<user_id>")
 @login_required
 def users(user_id=None):
@@ -48,3 +52,15 @@ def users(user_id=None):
             tags=onaniDB.get_tags(limit=25, sort="post_count"),
         )
     return "Sorry nothing"
+
+
+@main.route("/upload/")
+@login_required
+def upload():
+    return "Sorry nothing"
+
+
+# Easter eggs
+@main.route("/fun")
+def sonic_fun():
+    return render_template("/fun.jinja2")

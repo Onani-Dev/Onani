@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-13 04:00:39
+ * @Last Modified time: 2020-09-14 01:06:22
 */
 
 
@@ -24,13 +24,24 @@ html {
 
 /* Body */
 body {
+  /* margin-right: 390px; */
+  background-color: black;
+  margin-left: 215px;
+  margin-right: 215px;
+  margin-top: 65px;
+  min-height: calc(100vh - 65px);
+  overflow-x: hidden; 
+}
+
+/* Profile body */
+body.profile {
   background-color: black;
   margin-left: 215px;
   margin-right: 390px;
   margin-top: 65px;
+  min-height: calc(100vh - 65px);
   overflow-x: hidden; 
 }
-
 
 /* Input elements */
 input {
@@ -51,7 +62,6 @@ input {
   padding: 14px 16px;
   text-align: center;
   text-decoration: none;
-  transition: transform 0.3s ease;
   user-select: none;
   vertical-align: middle;
   font-weight: normal;
@@ -59,9 +69,6 @@ input {
   background: -webkit-linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(255, 0, 0, 1) 80%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-#logo:hover {
-  transform: scale(1.1);
 }
 
 /* Navigation bar */
@@ -75,12 +82,11 @@ header.navbar {
   max-height: 65px;
   outline-offset: -1px;
   outline: 1px solid red;
-  overflow: hidden;
   position: absolute;
-  right: -390px;
+  right: -215px;
   text-align: left;
   top: -65px;
-  /* width: 100vw; */
+  z-index: 666; /* fuck you css */
 }
 
 /* Links in the Navigation bar */
@@ -106,38 +112,6 @@ div.dropdown {
   vertical-align: middle;
 }
 
-/* Dropdown button */
-div.dropdown button.dropbtn {
-  background-color: black;
-  border: none;
-  color: red;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 0;
-  outline: none;
-  padding: 14px 16px;
-}
-
-/* Dropdown content */
-div.dropdown-content {
-  background-color: black;
-  border: 1px solid red;
-  box-shadow: 0px 8px 16px 0px rgba(253, 0, 0, 0.2);
-  display: none;
-  min-width: 15%;
-  position: absolute;
-  z-index: 1;
-}
-
-/* Links inside the dropdown */
-div.dropdown-content a {
-  color: red;
-  display: block;
-  float: none;
-  padding: 12px 16px;
-  text-align: left;
-  text-decoration: none;
-}
 
 /* Search box container */
 div#search-box {
@@ -147,8 +121,8 @@ div#search-box {
   margin-left: 15px;
   outline: 1px solid red;
   padding: 11px 16px 11px 6px;
-  vertical-align: middle;
   width: min-content;
+  height: 20px;
 }
 
 /* The search form */
@@ -179,21 +153,6 @@ input#search-input {
   width: 215px;
 }
 
-/* Add a grey background color to dropdown links on hover */
-div.dropdown-content a:hover {
-  background-color: #252525;
-}
-
-/* Show the dropdown menu on hover */
-div.dropdown:hover div.dropdown-content {
-  display: block;
-}
-
-/* Add a red background color to navbar links on hover */
-div.navbar a:hover, div.dropdown:hover button.dropbtn {
-  background-color: #252525;
-}
-
 /* Tags bar */
 div#left-pannel {
   left: -215px;
@@ -212,11 +171,6 @@ div#user-pfp-container {
   max-height: 50px;
   max-width: 50px;
   outline: 1px solid red;
-  transition: transform 0.3s ease;
-}
-
-div#user-pfp-container:hover {
-  transform: scale(1.1);
 }
 
 img#user-pfp {
@@ -224,37 +178,40 @@ img#user-pfp {
   object-fit: contain;
 }
 
-/* .dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-content {
+div.dropdown-content {
+  background-color: black;
+  opacity: 100%;
+  border: 1px solid red;
+  box-shadow: 0px 8px 16px 0px rgba(253, 0, 0, 0.2);
   display: none;
+  min-width: 50px;
+  overflow: visible;
   position: absolute;
   right: 0;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
+  top: 51px;
+  z-index: 5;
 }
 
-.dropdown-content a {
-  color: black;
+div.dropdown-content a {
+  color: red;
+  background-color: black;
   padding: 12px 16px;
   text-decoration: none;
   display: block;
+  z-index: 5;
 }
 
-.dropdown-content a:hover {background-color: #f1f1f1;}
+div.dropdown-content a:hover {
+  background-color: #252525;
+}
 
-.dropdown:hover .dropdown-content {
+div.dropdown:hover div.dropdown-content {
   display: block;
 }
 
-.dropdown:hover .dropbtn {
-  background-color: #3e8e41;
-} */
+header.navbar a:hover, div.dropdown:hover button.dropbtn {
+  background-color: #252525;
+}
 
 /* News and chat */
 div#right-pannel {
@@ -313,6 +270,28 @@ div#chat-message-area li {
   list-style-type: none;
   vertical-align: middle;
 }
+
+/* Markdown shit */
+div#chat-message-area li p {
+  display: inline-block;
+  color: rgb(219, 92, 92);
+}
+
+/* Code blocks */
+div#chat-message-area li p code {
+  border: 1px solid#ff000056;
+  background-color: #ff00001e;
+  color: rgb(219, 92, 92);
+  padding: 0px 5px 0px 5px;
+  font-family: 'Consolas';
+}
+
+/* Link */
+div#chat-message-area li p a {
+  background-color: #ff00001e;
+  color: rgb(219, 92, 92);
+}
+
 
 /* The message input box */
 div#chat-message-input-container {
@@ -404,8 +383,10 @@ div.login-box {
   border: 3px solid red;
   background-color: black;
   position: absolute;
-  top: 50vh;
-  left: 50vw;
+  top: 50%;
+  left: 50%;
+  margin-top: -65px;
+  margin-right: -50%;
   transform: translate(-50%, -50%);
   justify-content: center;
   align-items: center;
@@ -458,13 +439,12 @@ div.flash-message {
   animation: fadein 0.5s;
   font-size: 1.7em;
   left: 0;
-  margin-top: 15vh;
+  margin-top: 10vh;
   position: absolute;
   right: 0;
   text-align: center;
   white-space: pre;
 }
-
 
 /* Profile Container */
 div#profile-container {
@@ -475,33 +455,55 @@ div#profile-container {
   height: 100vh;
 }
 
+/* Info container */
 div#profile-info-container {
   border-bottom: 1px solid red;
 }
 
+/* Profile picture container */
 div#profile-picture-container {
-  display: inline-block;
   border: 1px solid red;
-  max-width: 150px;
-  max-height: 150px;
+  display: inline-block;
   margin: 10px;
+  max-height: 150px;
+  max-width: 150px;
+  min-height: 150px;
+  min-width: 150px;
 }
 
+/* User profile picture image */
 img#profile-picture-image {
   max-width: 150px;
   max-height: 150px;
 }
 
+/* User name */
 h1#profile-username-header {
   position: absolute;
   display: inline-block;
   top: 50px;
 }
+
+/* User permission title */
 h3#profile-user-permissions {
   position: absolute;
   display: inline-block;
   top: 100px;
 }
+
+/* Edit profile button */
+button#profile-edit-button {
+  background-color: black;
+  border: 1px solid red;
+  cursor: pointer;
+  font-size: 1.1em;
+  margin: 10px;
+  padding: 5px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 
 /* FONTS */
 

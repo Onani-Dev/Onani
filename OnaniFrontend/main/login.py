@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:31:11
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-12 20:14:39
+# @Last Modified time: 2020-09-13 20:34:34
 
 from datetime import datetime, timedelta
 
@@ -41,8 +41,10 @@ def user_loader(username):
 
 @main.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(f"/users/{current_user.id}")
     if request.method == "GET":
-        return render_template("/login.jinja2", current_user=current_user)
+        return render_template("/login.jinja2")
     else:
         if request.form["username"] == "" and request.form["password"] == "":
             flash("Enter something!")
@@ -65,13 +67,13 @@ def login():
                     user_ban = current_user.get_ban()
                     if user_ban.has_expired:
                         current_user.unban()
-                        return redirect("/")
+                        return redirect(f"/users/{current_user.id}")
                     logout_user()
                     flash(
                         f"This account has been banned.\nReason: {user_ban.reason}\nExpires: {humanize.naturaltime(datetime.utcnow().replace(tzinfo=tz.tzutc()) - user_ban.expires.astimezone(tz.tzlocal()))} ({user_ban.expires.strftime('%d/%m/%Y %H:%M:%S')} UTC)"
                     )
                     return redirect("/login")
-                return redirect("/")
+                return redirect(f"/users/{current_user.id}")
             flash("This account has been deleted.")
             return redirect("/login")
         flash("Invalid Password.")
@@ -80,8 +82,10 @@ def login():
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        return redirect(f"/users/{current_user.id}")
     if request.method == "GET":
-        return render_template("/register.jinja2", current_user=current_user)
+        return render_template("/register.jinja2")
     else:
         if " " in request.form["username"]:
             flash("Usernames cannot have whitespace.")

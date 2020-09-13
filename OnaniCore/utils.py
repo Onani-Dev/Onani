@@ -2,10 +2,10 @@
 # @Author: Blakeando
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 14:15:16
+# @Last Modified time: 2020-09-14 02:50:29
 import html
 import logging
-
+import regex
 from .controllers.logger import EventLogger
 
 
@@ -31,3 +31,18 @@ def html_escape(string: str):
         str: The escaped string
     """
     return html.escape(string)
+
+
+def custom_emoji(string: str):
+    print(string)
+    emoji_table = {
+        # "\ud808\udc31": """<img src="/svg/don.svg" class='emoji'></img>""",
+        "\ufdfd": """<img src="/svg/desuwa.svg" class='emoji'></img>""",
+        ":desuwa:": """<img src="/svg/desuwa.svg" class='emoji'></img>""",
+        ":don:": """<img src="/svg/don.svg" class='emoji'></img>""",
+        ":katsu": """<img src="/svg/katsu.svg" class='emoji'></img>""",
+    }
+    for emoji in emoji_table:
+        print(emoji)
+        string.replace(emoji, emoji_table[emoji])
+    return string

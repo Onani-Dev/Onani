@@ -11,7 +11,8 @@
   {% endblock %}
   <!-- STYLES -->
   <link href="/css/onani.style.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/v4-shims.css">
   <link href="https://fonts.googleapis.com/css2?family=Jost&display=swap" rel="stylesheet">
   {% block styles %}
   {% endblock %}
@@ -20,13 +21,14 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
     integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script> -->
   {% block scripts %}
   {% endblock %}
 </head>
 
-<body>
+<body {% block bodymodifier %}{% endblock %}>
   <!-- Navbar/header -->
-  <header class="navbar">
+  <header class="navbar" {% block headermodifier %}{% endblock %}>
     <!-- logo -->
     <div id="logo" onclick="location.href='/'">Onani</div>
     <!-- Navbar links -->
@@ -42,8 +44,15 @@
     </div>
     <!-- User Profile Picture -->
     {% if current_user.is_authenticated %}
-    <div id="user-pfp-container" onclick="location.href='/users/{{ current_user.id }}'">
-      <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
+    <div id="user-pfp-container">
+      <div class="dropdown">
+        <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
+        <div class="dropdown-content">
+          <a href="/users/{{ current_user.id }}">Profile</a>
+          <a onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}">Logout</a>
+        </div>
+      </div>
+
     </div>
     {% else %}
     <div id="login-register-buttons">

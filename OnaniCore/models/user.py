@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-11 00:57:07
+# @Last Modified time: 2020-09-14 01:03:03
 
 import logging
 from datetime import datetime, timedelta
@@ -23,13 +23,18 @@ class UserSettings(object):
     """
 
     def __init__(self, **kwargs):
-        self.__dict__.update({"profile_pic": "/image/default.png", "bio": None})
+        self.__dict__.update(
+            {"profile_pic": "/image/default.png", "bio": None, "tag_blacklist": []}
+        )
         self.__dict__.update(kwargs)
 
     def update(self, **kwargs) -> None:
         self.__dict__.update(kwargs)
 
     def to_dict(self) -> dict:
+        return self.__dict__
+
+    def __repr__(self):
         return self.__dict__
 
 
