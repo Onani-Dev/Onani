@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-09-10 02:40:26
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-14 04:31:22
+ * @Last Modified time: 2020-09-14 17:02:45
  */
 'use strict';
 let currentRoom = "general";
@@ -37,6 +37,9 @@ function ScrollChat() {
 }
 
 function AddChatMessage(content) {
+  if (messageArea.childElementCount >= 150) {
+    messageArea.removeChild(messageArea.childNodes[0]);
+  }
   var recievedMessage = document.createElement("li");
   recievedMessage.innerHTML = content;
   messageArea.appendChild(recievedMessage);
@@ -50,7 +53,6 @@ function init() {
 
   let connectMessage = document.createElement("li");
   connectMessage.innerHTML = "<b>Connecting...</b>";
-  console.log("Connecting...");
   messageArea.appendChild(connectMessage);
   document.getElementById("chat-box-send").addEventListener("click", function () { SendMessage(); })
   inputArea.addEventListener("keypress", function (e) {
@@ -104,7 +106,7 @@ function init() {
 
   socket.on('message', function (message) {
     let msg = message.message.replace(customEmotes, (current) => {
-      return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji'></img>`
+      return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji' draggable='false' alt='${current}'></img>`
     });
     AddChatMessage(`<a style="text-decoration:none;cursor:pointer;" title="Double click to view profile." ondblclick="location.href='/users/${message.user_id}'"><b>${message.user}:</b></a> ${msg}`);
   });

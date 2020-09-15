@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:31:11
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-13 20:34:34
+# @Last Modified time: 2020-09-14 18:40:01
 
 from datetime import datetime, timedelta
 
@@ -38,6 +38,15 @@ def user_loader(username):
         return
     return user if not user.is_banned else None
 
+@login_manager.request_loader
+def request_loader(request):
+    api_key = request.headers.get("Authorization")
+    if api_key:
+        user = onaniDB.get_user(api_key=api_key)
+        if user is None:
+            return
+        return user
+    return
 
 @main.route("/login", methods=["GET", "POST"])
 def login():

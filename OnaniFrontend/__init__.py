@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-12 21:11:38
+# @Last Modified time: 2020-09-14 18:42:32
 
 import os
 
@@ -20,9 +20,10 @@ def create_app():
     app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
     app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-    from .main import main as main_blueprint
+    from .main import main as main_blueprint, main_api
 
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(main_api, url_prefix="/api")
 
     socketio.init_app(app)
     login_manager.init_app(app)

@@ -2,13 +2,10 @@
 {% block title %}{{ user.username }} - {% endblock %}
 
 {% block bodymodifier %}
-class="profile";
+class="profile"
 {% endblock %}
 {% block headermodifier %}
 style="right: -390px;"
-{% endblock %}
-{% block scripts %}
-<script src="/javascript/edit-profile.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -21,19 +18,104 @@ style="right: -390px;"
     <div id="profile-picture-container">
       <img src="{{ user.settings.profile_pic }}" id="profile-picture-image"></a>
     </div>
-    <h1 id="profile-username-header" class="">{{ user.username }}</h1>
+    <h1 id="profile-username-header">{{ user.username }}</h1>
     <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
-    {% if current_user.id == user.id %}
-    <button id="profile-edit-button">Edit Profile</button>
-    {% endif %}
     <i class="fab fa-patreon fa-2x"></i>
     <i class="fab fa-twitter fa-2x"></i>
     <i class="fab fa-github fa-2x"></i>
     <i class="fab fa-deviantart fa-2x"></i>
     <i class="fab fa-bitcoin fa-2x"></i>
     <i class="fab fa-paypal fa-2x"></i>
-
-
   </div>
+  <div id="profile-content-container">
+    <div class="profile-tab-bar">
+      <button class="profile-tab-link" onclick="changeTab(event, 'bio')" id="defaultOpen">Bio</button>
+      <button class="profile-tab-link" onclick="changeTab(event, 'posts')">Posts</button>
+      {% if current_user.id == user.id %}
+      <button class="profile-tab-link" onclick="changeTab(event, 'settings')">Settings</button>
+      {% endif %}
+    </div>
+    <div id="bio" class="profile-tab-content">
+      <p id="profile-bio-textarea">
+        {% if user.settings.bio is not none %}
+        {{ user.settings.bio }}
+        {% else %}
+        This user does not have a Bio.
+        {% endif %}</p>
+    </div>
+    <div id="posts" class="profile-tab-content">
+      <p>Posts will go in here</p>
+    </div>
+    {% if current_user.id == user.id %}
+    <div id="settings" class="profile-tab-content">
+      <form action="/edit_profile" method="post">
+        <input type="hidden" name="settings-type" value="account">
+        <h2 style="padding: 15px;">Account settings</h2>
+
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-name">Change Username</label>
+            </div>
+            <div class="column">
+              <input type="text" name="settings-name" id="profile-settings-name" value="{{ user.username }}">
+            </div>
+          </div>
+        </div>
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-current-password">Current password</label>
+              <label for="settings-password">New Password</label>
+              <label for="settings-password-confirm">Confirm password</label>
+            </div>
+            <div class="column">
+              <input type="password" name="settings-current-password" id="profile-settings-current-password">
+              <input type="password" name="settings-password" id="profile-settings-password">
+              <input type="password" name="settings-password-confirm" id="profile-settings-password-confirm">
+            </div>
+          </div>
+        </div>
+        <div class="settings-input-group">
+          <input type="submit" value="Save Changes" class="profile-settings-submit">
+        </div>
+      </form>
+
+      <form action="/edit_profile" method="post">
+        <input type="hidden" name="settings-type" value="profile">
+
+        <h2 style="padding: 15px;">Profile settings</h2>
+
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-profile-picture">Profile Picture</label>
+            </div>
+            <div class="column">
+              <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture">
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-bio">Bio</label>
+            </div>
+            <div class="column">
+              <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  <script src="/javascript/profile.min.js"></script>
 </div>
+<script>
+  twemoji.parse(document.getElementById("profile-username-header"));
+  twemoji.parse(document.getElementById("profile-bio-textarea"));
+</script>
 {% endblock %}
