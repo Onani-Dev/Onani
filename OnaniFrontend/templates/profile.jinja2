@@ -15,11 +15,15 @@ style="right: -390px;"
 {% include "elements/chat_and_news.jinja2" %}
 <div id="profile-container">
   <div id="profile-info-container">
+    <!-- PFP -->
     <div id="profile-picture-container">
       <img src="{{ user.settings.profile_pic }}" id="profile-picture-image"></a>
     </div>
+    <!-- Username -->
     <h1 id="profile-username-header">{{ user.username }}</h1>
+    <!-- Permission value -->
     <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
+    <!-- User Socials -->
     <i class="fab fa-patreon fa-2x"></i>
     <i class="fab fa-twitter fa-2x"></i>
     <i class="fab fa-github fa-2x"></i>
@@ -27,41 +31,41 @@ style="right: -390px;"
     <i class="fab fa-bitcoin fa-2x"></i>
     <i class="fab fa-paypal fa-2x"></i>
   </div>
+  <!-- Profile content container -->
   <div id="profile-content-container">
     <div class="profile-tab-bar">
-      <button class="profile-tab-link" onclick="changeTab(event, 'bio')" id="defaultOpen">Bio</button>
-      <button class="profile-tab-link" onclick="changeTab(event, 'posts')">Posts</button>
+      <button class="profile-tab-link" onclick="changeTab(event, 'bio-tab')" id="bio">Bio</button>
+      <button class="profile-tab-link" onclick="changeTab(event, 'posts-tab')" id="posts">Posts</button>
       {% if current_user.id == user.id %}
-      <button class="profile-tab-link" onclick="changeTab(event, 'settings')">Settings</button>
+      <button class="profile-tab-link" onclick="changeTab(event, 'settings-tab')" id="settings">Settings</button>
       {% endif %}
     </div>
-    <div id="bio" class="profile-tab-content">
-      <p id="profile-bio-textarea">
-        {% if user.settings.bio is not none %}
-        {{ user.settings.bio }}
-        {% else %}
-        This user does not have a Bio.
-        {% endif %}</p>
+    <div id="bio-tab" class="profile-tab-content">
+      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}
+        This user does not have a Bio.{% endif %}</p>
     </div>
-    <div id="posts" class="profile-tab-content">
+    <div id="posts-tab" class="profile-tab-content">
       <p>Posts will go in here</p>
     </div>
     {% if current_user.id == user.id %}
-    <div id="settings" class="profile-tab-content">
-      <form action="/edit_profile" method="post">
-        <input type="hidden" name="settings-type" value="account">
+    <div id="settings-tab" class="profile-tab-content">
+      <!-- Account settings -->
+      <form action="/edit_profile" method="post" id="settings-account">
+        <!-- <input type="hidden" name="settings-type" value="account"> -->
         <h2 style="padding: 15px;">Account settings</h2>
-
+        <!-- Username Settings -->
         <div class="settings-input-group">
           <div class="row">
             <div class="column">
               <label for="settings-name">Change Username</label>
             </div>
             <div class="column">
-              <input type="text" name="settings-name" id="profile-settings-name" value="{{ user.username }}">
+              <input type="text" placeholder="New Username" name="settings-name" id="profile-settings-name"
+                value="{{ user.username }}">
             </div>
           </div>
         </div>
+        <!-- Password settings -->
         <div class="settings-input-group">
           <div class="row">
             <div class="column">
@@ -70,22 +74,26 @@ style="right: -390px;"
               <label for="settings-password-confirm">Confirm password</label>
             </div>
             <div class="column">
-              <input type="password" name="settings-current-password" id="profile-settings-current-password">
-              <input type="password" name="settings-password" id="profile-settings-password">
-              <input type="password" name="settings-password-confirm" id="profile-settings-password-confirm">
+              <input type="password" placeholder="Current Password" name="settings-current-password"
+                id="profile-settings-current-password">
+              <input type="password" placeholder="New Password" name="settings-password" id="profile-settings-password">
+              <input type="password" placeholder="Confrim New Password" name="settings-password-confirm"
+                id="profile-settings-password-confirm">
             </div>
           </div>
         </div>
+        <!-- Save Button For account -->
         <div class="settings-input-group">
           <input type="submit" value="Save Changes" class="profile-settings-submit">
         </div>
       </form>
 
-      <form action="/edit_profile" method="post">
-        <input type="hidden" name="settings-type" value="profile">
-
+      <!-- Profile settings -->
+      <form action="/edit_profile" method="post" id="settings-profile">
+        <!-- <input type="hidden" name="settings-type" value="profile"> -->
         <h2 style="padding: 15px;">Profile settings</h2>
 
+        <!-- Profile Picture Settings -->
         <div class="settings-input-group">
           <div class="row">
             <div class="column">
@@ -97,17 +105,22 @@ style="right: -390px;"
           </div>
         </div>
 
+        <!-- Bio Settings -->
         <div class="settings-input-group">
           <div class="row">
             <div class="column">
               <label for="settings-bio">Bio</label>
             </div>
             <div class="column">
-              <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10"></textarea>
+              <textarea name="settings-bio" id="profile-settings-bio" cols="30"
+                rows="10">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}{% endif %}</textarea>
             </div>
           </div>
         </div>
-
+        <!-- Save Button For profile -->
+        <div class="settings-input-group">
+          <input type="submit" value="Save Changes" class="profile-settings-submit">
+        </div>
       </form>
     </div>
     {% endif %}

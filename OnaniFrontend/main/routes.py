@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-14 21:27:47
+# @Last Modified time: 2020-09-15 16:57:25
 
 from flask import (
     abort,
@@ -54,7 +54,7 @@ def users(user_id=None):
     return "Sorry nothing"
 
 
-@main.route("/edit_profile")
+@main.route("/edit_profile", methods=["POST"])
 @login_required
 def edit_profile():
     return render_template("/edit_profile.jinja2")

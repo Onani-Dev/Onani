@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-15 09:57:44
+ * @Last Modified time: 2020-09-15 16:54:41
 */
 
 
@@ -541,6 +541,11 @@ div.profile-tab-content {
   display: none;
   min-height: 100%;
   padding: 6px 12px;
+  animation: fadein 0.5s;
+}
+
+p#profile-bio-textarea {
+  white-space: pre-wrap;
 }
 
 div.settings-input-group {
@@ -550,27 +555,37 @@ div.settings-input-group {
 
 div.settings-input-group input {
   display: block;
-  text-align: start;
   margin-bottom: 5px;
+  text-align: start;
 }
 
 div.settings-input-group label {
   display: block;
-  padding: 5px;
   margin-bottom: 5px;
+  padding: 5px;
 }
 
 div.settings-input-group input[type=text], 
 div.settings-input-group input[type=password],
 div.settings-input-group input[type=file] {
   padding: 5px;
-  width: 100%;
+  width: 50%;
 }
 
 input.profile-settings-submit {
-  padding: 8px;
-  float: inline-end;
   cursor: pointer;
+  float: inline-end;
+  padding: 8px;
+}
+
+textarea#profile-settings-bio {
+  background-color: black;
+  border: 1px solid red;
+  color: red;
+  max-width: 100%;
+  padding: 5px;
+  white-space: pre-wrap;
+  width: 100%;
 }
 
 .column {
@@ -584,9 +599,7 @@ input.profile-settings-submit {
   clear: both;
 }
 
-/* p#profile-bio-textarea {
-  white-space: break-spaces;
-} */
+
 
 /* FONTS */
 
