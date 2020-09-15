@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-15 16:54:41
+ * @Last Modified time: 2020-09-16 01:11:31
 */
 
 
@@ -275,15 +275,6 @@ div#chat-message-area li {
 div#chat-message-area li p {
   display: inline-block;
   color: rgb(219, 92, 92);
-}
-
-/* Code blocks */
-div#chat-message-area li p code {
-  border: 1px solid#ff000056;
-  background-color: #ff00001e;
-  color: rgb(219, 92, 92);
-  padding: 0px 5px 0px 5px;
-  font-family: 'Consolas';
 }
 
 /* Link */
@@ -574,7 +565,6 @@ div.settings-input-group input[type=file] {
 
 input.profile-settings-submit {
   cursor: pointer;
-  float: inline-end;
   padding: 8px;
 }
 
@@ -588,6 +578,22 @@ textarea#profile-settings-bio {
   width: 100%;
 }
 
+#upload-image {
+  display: none;
+  float: left;
+  height: 250px;
+  padding-bottom: 50px;
+  width: 100%;
+}
+
+#upload-image.ready{
+  display: block;
+}
+
+input.cr-slider {
+  background-color: #1d1d1d;
+}
+
 .column {
   float: left;
   width: 50%;
@@ -599,6 +605,14 @@ textarea#profile-settings-bio {
   clear: both;
 }
 
+/* Code blocks */
+code {
+  border: 1px solid#ff000056;
+  background-color: #ff00001e;
+  color: rgb(219, 92, 92);
+  padding: 0px 5px 0px 5px;
+  font-family: 'Consolas';
+}
 
 
 /* FONTS */

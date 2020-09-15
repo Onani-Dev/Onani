@@ -50,9 +50,9 @@ style="right: -390px;"
     {% if current_user.id == user.id %}
     <div id="settings-tab" class="profile-tab-content">
       <!-- Account settings -->
-      <form action="/edit_profile" method="post" id="settings-account">
-        <!-- <input type="hidden" name="settings-type" value="account"> -->
+      <form id="settings-account">
         <h2 style="padding: 15px;">Account settings</h2>
+
         <!-- Username Settings -->
         <div class="settings-input-group">
           <div class="row">
@@ -84,13 +84,12 @@ style="right: -390px;"
         </div>
         <!-- Save Button For account -->
         <div class="settings-input-group">
-          <input type="submit" value="Save Changes" class="profile-settings-submit">
+          <input type="button" value="Save Changes" class="profile-settings-submit">
         </div>
       </form>
 
       <!-- Profile settings -->
-      <form action="/edit_profile" method="post" id="settings-profile">
-        <!-- <input type="hidden" name="settings-type" value="profile"> -->
+      <form id="settings-profile">
         <h2 style="padding: 15px;">Profile settings</h2>
 
         <!-- Profile Picture Settings -->
@@ -100,7 +99,10 @@ style="right: -390px;"
               <label for="settings-profile-picture">Profile Picture</label>
             </div>
             <div class="column">
-              <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture">
+              <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture"
+                accept="image/png, image/jpeg">
+              <!-- Croppie container -->
+              <div id="upload-image"></div>
             </div>
           </div>
         </div>
@@ -119,13 +121,14 @@ style="right: -390px;"
         </div>
         <!-- Save Button For profile -->
         <div class="settings-input-group">
-          <input type="submit" value="Save Changes" class="profile-settings-submit">
+          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveAccSettings()">
         </div>
       </form>
     </div>
     {% endif %}
   </div>
   <script src="/javascript/profile.min.js"></script>
+  <script src="/javascript/edit-profile.min.js"></script>
 </div>
 <script>
   twemoji.parse(document.getElementById("profile-username-header"));

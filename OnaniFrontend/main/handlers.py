@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:10:42
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-14 19:31:26
+# @Last Modified time: 2020-09-15 19:28:56
 
 from flask import flash, jsonify, redirect, render_template
 from werkzeug.exceptions import HTTPException
@@ -16,9 +16,11 @@ def error401(e):
     return redirect("/login")
 
 
+@main.errorhandler(400)
 @main.errorhandler(404)
 @main.errorhandler(405)
-def error4xx(e):
+@main.errorhandler(500)
+def html_error_handler(e):
     return str(e)
 
 
@@ -27,4 +29,5 @@ def error_handler(e):
     code = 500
     if isinstance(e, HTTPException):
         code = e.code
-    return jsonify(error=str(e)), code
+    return jsonify({"ok": False, "error": str(e)}), code
+
