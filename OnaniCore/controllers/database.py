@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 15:28:13
+# @Last Modified time: 2020-09-16 21:22:58
 
 import logging
 import os
@@ -18,7 +18,7 @@ import pymongo
 from dateutil import tz
 from passlib.hash import argon2
 
-from ..exceptions import OnaniDatabaseException
+from ..exceptions import OnaniDatabaseException, OnaniAuthenticationError
 from ..models import (
     Ban,
     Post,
@@ -273,6 +273,7 @@ class DatabaseController:
         email: str = None,
         settings: dict = None,
         permissions: UserPermissions = None,
+        password: str = None,
     ) -> None:
         """```raw
         Modify a User object
@@ -320,6 +321,12 @@ class DatabaseController:
                 {"_id": user.id}, {"$set": {"permissions": permissions.value}}
             )
             user.permissions = permissions
+
+        # Edit password if present
+        if password is not None:
+            pass_hash = argon2.using(rounds=6).hash(password)
+            self.users.update_one({"_id": user.id}, {"$set": {"pass_hash": pass_hash}})
+            user._pass_hash = pass_hash
 
     def regen_user_api_key(self, user: User) -> None:
         """```raw

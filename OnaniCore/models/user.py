@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-16 00:33:54
+# @Last Modified time: 2020-09-16 21:27:15
 
 import logging
 from datetime import datetime, timedelta
@@ -12,6 +12,7 @@ from dateutil import tz
 from flask_login import UserMixin
 from passlib.hash import argon2
 
+from ..exceptions import OnaniAuthenticationError
 from ..utils import setup_logger
 
 log = setup_logger(__name__)
@@ -123,14 +124,12 @@ class User(object):
         self._db.modify_user(self, username=new_username)
 
     def edit_email(self, new_email: str) -> None:
-        # TODO #29 edit email
-        raise NotImplementedError
+        self._db.modify_user(self, email=new_email)
 
-    def add_favourite(self, post) -> None:
-        self._db.add_user_favourite(self, post)
-
-    def remove_favourite(self, post) -> None:
-        self._db.remove_user_favourite(self, post)
+    def edit_password(self, old_password: str, new_password: str):
+        if not self.try_auth(old_password):
+            raise OnaniAuthenticationError("Incorrect Password.")
+        self._db.modify_user(self, password=new_password)
 
     def edit_permissions(self, new_permissions: UserPermissions) -> None:
         self._db.modify_user(self, permissions=new_permissions)
@@ -140,6 +139,16 @@ class User(object):
 
     def regen_api_key(self) -> None:
         self._db.regen_user_api_key(self)
+
+    def add_favourite(self, post) -> None:
+        self._db.add_user_favourite(self, post)
+
+    def remove_favourite(self, post) -> None:
+        self._db.remove_user_favourite(self, post)
+
+    def try_auth(self, password: str):
+        auth = argon2.verify(password, self._pass_hash)
+        return auth
 
     def authenticate(self, password: str) -> bool:
         auth = argon2.verify(password, self._pass_hash)
