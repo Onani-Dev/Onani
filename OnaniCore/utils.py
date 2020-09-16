@@ -2,10 +2,13 @@
 # @Author: Blakeando
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-14 02:50:29
+# @Last Modified time: 2020-09-16 17:29:44
 import html
 import logging
+import string
+
 import regex
+
 from .controllers.logger import EventLogger
 
 
@@ -33,16 +36,34 @@ def html_escape(string: str):
     return html.escape(string)
 
 
-def custom_emoji(string: str):
-    print(string)
-    emoji_table = {
-        # "\ud808\udc31": """<img src="/svg/don.svg" class='emoji'></img>""",
-        "\ufdfd": """<img src="/svg/desuwa.svg" class='emoji'></img>""",
-        ":desuwa:": """<img src="/svg/desuwa.svg" class='emoji'></img>""",
-        ":don:": """<img src="/svg/don.svg" class='emoji'></img>""",
-        ":katsu": """<img src="/svg/katsu.svg" class='emoji'></img>""",
-    }
-    for emoji in emoji_table:
-        print(emoji)
-        string.replace(emoji, emoji_table[emoji])
-    return string
+def check_is_safe_username(username: str) -> bool:
+    """```raw
+    Check if username is legal
+
+    Args:
+        username (str): Username to check
+
+    Returns:
+        bool: True if safe False if not
+    """
+    banned_chars = "!\"#$%&'()*+,/:;<=>?@[\\]^`{|}~ \t\n\r\x0b\x0c"
+    for char in username:
+        if char in banned_chars:
+            return False
+    return True
+
+
+def check_if_safe_email(email: str) -> bool:
+    """```raw
+    Check if email is safe
+
+    Args:
+        email (str): Email to check
+
+    Returns:
+        bool: True if safe False if not
+    """
+    re = r"""(?:[a-z0-9!#$%&'+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"""
+    if regex.match(re, email):
+        return True
+    return False

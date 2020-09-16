@@ -2,14 +2,19 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-16 00:58:55
-import time
+# @Last Modified time: 2020-09-16 14:19:42
+import hashlib
 import os
+import time
 import uuid
 from urllib.request import urlopen
-from flask import abort, redirect, request, jsonify
+
+import pybase64
+from flask import abort, jsonify, redirect, request
 from flask_login import current_user, login_required
+
 from OnaniCore import *
+
 from . import main_api
 
 
@@ -45,11 +50,9 @@ def edit_profile():
                 data = response.read()
         except ValueError:
             abort(400)
-        if not os.path.isdir("./OnaniFrontend/static/user_data/avatars/"):
-            os.makedirs("./OnaniFrontend/static/user_data/avatars/")
-        avatar_filename = (
-            f"./OnaniFrontend/static/user_data/avatars/{str(uuid.uuid4())}.png"
-        )
+        if not os.path.isdir("./OnaniFrontend/static/data/avatars/"):
+            os.makedirs("./OnaniFrontend/static/data/avatars/")
+        avatar_filename = f"./OnaniFrontend/static/data/avatars/{hashlib.md5(str(current_user.id).encode()).hexdigest()}.png"
         with open(avatar_filename, "wb") as f:
             f.write(data)
         settings["profile_pic"] = avatar_filename.replace("./OnaniFrontend/static", "")
@@ -63,4 +66,3 @@ def edit_profile():
         jsonify({"ok": True}),
         200,
     )
-

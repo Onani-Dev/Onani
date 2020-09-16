@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-16 00:44:14
+ * @Last Modified time: 2020-09-16 14:05:44
  */
 'use strict';
 
@@ -33,7 +33,7 @@ $uploadCrop = $('#upload-image').croppie({
 
 $('#profile-settings-profile-picture').on('change', function () { readFile(this); });
 
-function SaveAccSettings() {
+function SaveProfileSettings() {
   let base64Img;
 
   $uploadCrop.croppie('result', {

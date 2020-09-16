@@ -15,11 +15,28 @@
   <!-- Form -->
   <form action="/register" method="POST">
     <input autocapitalize="off" id="username" name="username" placeholder="Username" type="text">
-    <input autocapitalize="off" id="email" name="email" placeholder="Email (Optional)" type="text">
+    <input autocapitalize="off" id="email" name="email" placeholder="Email (Optional)" type="email">
     <input autocomplete="off" id="password" name="password" placeholder="Password" type="password">
     <input autocomplete="off" id="confirm-password" name="confirm-password" placeholder="Confirm Password"
       type="password">
     <input id="submit" type="submit" value="Register">
   </form>
+  <script>
+    const password = document.getElementById("password"),
+      confirmPassword = document.getElementById("confirm-password"),
+      flashMessages = document.getElementsByClassName("flash-message");
+    function validatePassword() {
+      if (password.value != confirmPassword.value) {
+        confirmPassword.setCustomValidity("Password doesn't match!");
+      } else {
+        confirmPassword.setCustomValidity('');
+      }
+    }
+    password.onchange = validatePassword;
+    confirmPassword.onkeyup = validatePassword;
+    for (var i = 0; i < flashMessages.length; i++) {
+      twemoji.parse(flashMessages[i]);
+    }
+  </script>
 </div>
 {% endblock %}
