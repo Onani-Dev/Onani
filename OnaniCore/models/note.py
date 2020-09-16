@@ -2,11 +2,11 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 02:38:24
+# @Last Modified time: 2020-09-03 19:20:13
 
-import logging
+from ..utils import setup_logger
 
-log = logging.getLogger(__name__)
+log = setup_logger(__name__)
 
 
 class Note(object):

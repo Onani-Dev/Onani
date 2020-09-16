@@ -1,0 +1,22 @@
+{% extends "base.jinja2" %}
+{% block title %}Login - {% endblock %}
+
+{% block content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<div class="flash-message">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+<!-- Login box -->
+<div class="login-box">
+  <h1 class="login-bloody-header">Login</h1>
+  <!-- Form -->
+  <form action="/login" method="POST">
+    <input autocapitalize="off" id="username" name="username" placeholder="Username" type="text">
+    <input autocomplete="off" id="password" name="password" placeholder="Password" type="password">
+    <input id="submit" type="submit" value="Login">
+  </form>
+</div>
+{% endblock %}

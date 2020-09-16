@@ -4,6 +4,8 @@
 
 # Tutorial for Onani setup (Subject to change)
 
+Note that this could probably be run on Windows (Using waitress) or another Linux distro, however I do not care.
+
 ## Setup MongoDB (Ubuntu 20.04 LTS)
 1. Import the MongoDB public GPG Key: `wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -`
 
@@ -21,18 +23,18 @@
 1. Enable MongoDB startup on boot: `sudo systemctl enable mongod` (Optional, But reccommended)
 
 ## Setup Virtualenv
-1. `sudo pip install virtualenv` (If not already installed)
+1. `pip install virtualenv` (If not already installed)
 
 1. `virtualenv -p python3 env` (Only do once.)
 
-1. `. env/bin/activate`
+1. `source env/bin/activate`
 
-You should only need to use the `. env/bin/activate` command once you have done step 1 and 2.
+You should only need to use the `source env/bin/activate` command once you have done step 1 and 2.
 
 ## Setup Gunicorn
 1. Install Onani dependancies: `pip install -r requirements.txt`
 
-1. Start Gunicorn: `gunicorn -k flask_sockets.worker -w 8 app:app`
+1. Start Gunicorn: `gunicorn -w 1 --worker-class eventlet onani:app`
 
 ## Setup nginx
 TODO #12

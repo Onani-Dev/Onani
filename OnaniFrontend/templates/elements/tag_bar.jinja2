@@ -1,0 +1,8 @@
+<div id="left-pannel">
+  <h2>Tags</h2>
+  {% for tag in tags %}
+  <li><a href="/posts?tags={{ tag.string }}"
+      class="tag-list-item {{ tag.type.string.lower() }}">{{ tag.string[:20] }}{{'...' if tag.string|length > 20 else ''}}
+      {{ tag.post_count }}</a></li>
+  {% endfor %}
+</div>

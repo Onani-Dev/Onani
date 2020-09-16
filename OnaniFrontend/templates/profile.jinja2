@@ -1,0 +1,137 @@
+{% extends "base.jinja2" %}
+{% block title %}{{ user.username }} - {% endblock %}
+
+{% block bodymodifier %}
+class="profile"
+{% endblock %}
+{% block headermodifier %}
+style="right: -390px;"
+{% endblock %}
+
+{% block content %}
+<!-- Left pannel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+<!-- News and chat -->
+{% include "elements/chat_and_news.jinja2" %}
+<div id="profile-container">
+  <div id="profile-info-container">
+    <!-- PFP -->
+    <div id="profile-picture-container">
+      <img src="{{ user.settings.profile_pic }}" id="profile-picture-image"></a>
+    </div>
+    <!-- Username -->
+    <h1 id="profile-username-header">{{ user.username }}</h1>
+    <!-- Permission value -->
+    <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
+    <!-- User Socials -->
+    <i class="fab fa-patreon fa-2x"></i>
+    <i class="fab fa-twitter fa-2x"></i>
+    <i class="fab fa-github fa-2x"></i>
+    <i class="fab fa-deviantart fa-2x"></i>
+    <i class="fab fa-bitcoin fa-2x"></i>
+    <i class="fab fa-paypal fa-2x"></i>
+  </div>
+  <!-- Profile content container -->
+  <div id="profile-content-container">
+    <div class="profile-tab-bar">
+      <button class="profile-tab-link" onclick="changeTab(event, 'bio-tab')" id="bio">Bio</button>
+      <button class="profile-tab-link" onclick="changeTab(event, 'posts-tab')" id="posts">Posts</button>
+      {% if current_user.id == user.id %}
+      <button class="profile-tab-link" onclick="changeTab(event, 'settings-tab')" id="settings">Settings</button>
+      {% endif %}
+    </div>
+    <div id="bio-tab" class="profile-tab-content">
+      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}
+        This user does not have a Bio.{% endif %}</p>
+    </div>
+    <div id="posts-tab" class="profile-tab-content">
+      <p>Posts will go in here</p>
+    </div>
+    {% if current_user.id == user.id %}
+    <div id="settings-tab" class="profile-tab-content">
+      <!-- Account settings -->
+      <form id="settings-account">
+        <h2 style="padding: 15px;">Account settings</h2>
+
+        <!-- Username Settings -->
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-name">Change Username</label>
+            </div>
+            <div class="column">
+              <input type="text" placeholder="New Username" name="settings-name" id="profile-settings-name"
+                value="{{ user.username }}">
+            </div>
+          </div>
+        </div>
+        <!-- Password settings -->
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-current-password">Current password</label>
+              <label for="settings-password">New Password</label>
+              <label for="settings-password-confirm">Confirm password</label>
+            </div>
+            <div class="column">
+              <input type="password" placeholder="Current Password" name="settings-current-password"
+                id="profile-settings-current-password">
+              <input type="password" placeholder="New Password" name="settings-password" id="profile-settings-password">
+              <input type="password" placeholder="Confrim New Password" name="settings-password-confirm"
+                id="profile-settings-password-confirm">
+            </div>
+          </div>
+        </div>
+        <!-- Save Button For account -->
+        <div class="settings-input-group">
+          <input type="button" value="Save Changes" class="profile-settings-submit">
+        </div>
+      </form>
+
+      <!-- Profile settings -->
+      <form id="settings-profile">
+        <h2 style="padding: 15px;">Profile settings</h2>
+
+        <!-- Profile Picture Settings -->
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-profile-picture">Profile Picture</label>
+            </div>
+            <div class="column">
+              <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture"
+                accept="image/png, image/jpeg">
+              <!-- Croppie container -->
+              <div id="upload-image"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bio Settings -->
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-bio">Bio</label>
+            </div>
+            <div class="column">
+              <textarea name="settings-bio" id="profile-settings-bio" cols="30"
+                rows="10">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}{% endif %}</textarea>
+            </div>
+          </div>
+        </div>
+        <!-- Save Button For profile -->
+        <div class="settings-input-group">
+          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveAccSettings()">
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  <script src="/javascript/profile.min.js"></script>
+  <script src="/javascript/edit-profile.min.js"></script>
+</div>
+<script>
+  twemoji.parse(document.getElementById("profile-username-header"));
+  twemoji.parse(document.getElementById("profile-bio-textarea"));
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-18 16:41:43
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-25 22:34:54
+# @Last Modified time: 2020-09-09 03:10:07
 import datetime
 import random
 import string
@@ -19,7 +19,7 @@ class TestUser(unittest.TestCase):
     def test_creation(self):
         # Test if trying to create a user without a password raises an exception
         with self.assertRaises(
-            ValueError,
+            OnaniDatabaseException,
             msg="Creating a user with no password did not raise an exception",
         ):
             self.onaniDB.add_user()
@@ -29,7 +29,8 @@ class TestUser(unittest.TestCase):
 
         # Test if trying to create a duplicate raises an exception
         with self.assertRaises(
-            ValueError, msg="Creating a duplicate user did not raise an exception."
+            OnaniDatabaseException,
+            msg="Creating a duplicate user did not raise an exception.",
         ):
             self.onaniDB.add_user(username=user.username, password="test")
 
@@ -44,12 +45,14 @@ class TestUser(unittest.TestCase):
             0,
             msg="User did not have the banned permission value",
         )
+        self.assertTrue(user.is_banned, msg="User is_banned was not True.")
         user.unban()
         self.assertEqual(
             user.permissions.value,
             1,
             msg="User did not have the member permissions value",
         )
+        user.ban("Automated Test", datetime.timedelta(days=243090))
 
     def test_settings(self):
         # Create a user
@@ -58,8 +61,8 @@ class TestUser(unittest.TestCase):
         # Check the settings
         self.assertEquals(
             user.settings.profile_pic,
-            None,
-            msg="User settings profile_pic was not set to None.",
+            "/image/default.png",
+            msg="User settings profile_pic was not set to Default.png.",
         )
         self.assertEquals(
             user.settings.bio, None, msg="User settings bio was not set to None."
@@ -115,6 +118,14 @@ class TestUser(unittest.TestCase):
 
         # Test if changed
         self.assertNotEqual(user.api_key, original_key, msg="Api key did not change.")
+
+    def test_authenticate(self):
+        # Create a user
+        user = self.onaniDB.add_user(password="test")
+
+        self.assertTrue(
+            user.authenticate("test"), msg="Authentication did not return True."
+        )
 
 
 if __name__ == "__main__":

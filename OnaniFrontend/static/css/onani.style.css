@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-08-24 00:14:51
+ * @Last Modified time: 2020-09-16 01:11:31
 */
 
 
@@ -10,19 +10,46 @@
 * {
   -webkit-font-smoothing: subpixel-antialiased;
   backface-visibility: hidden;
-  color: rgb(255, 0, 0);
-  font-family: "MADEEvolveSans";
+  color: red;
+  font-family: 'Jost', sans-serif;
   margin: 0;
   padding: 0;
   transform: translateZ(0);
-  font-weight: bold;
+  z-index: 1;
+}
+
+html {
+  background-color: black;
 }
 
 /* Body */
-body, html {
+body {
+  /* margin-right: 390px; */
   background-color: black;
-  height: 100vh;
-  width: 100vw;
+  margin-left: 215px;
+  margin-right: 215px;
+  margin-top: 65px;
+  min-height: calc(100vh - 65px);
+  overflow-x: hidden; 
+}
+
+/* Profile body */
+body.profile {
+  background-color: black;
+  margin-left: 215px;
+  margin-right: 390px;
+  margin-top: 65px;
+  min-height: calc(100vh - 65px);
+  overflow-x: hidden; 
+}
+
+/* Input elements */
+input {
+  background-color: black;
+  text-decoration: none;
+  text-align: center;
+  border: 2px solid red;
+  border-radius: 4px;
 }
 
 /* Navbar logo */
@@ -35,7 +62,6 @@ body, html {
   padding: 14px 16px;
   text-align: center;
   text-decoration: none;
-  transition: transform 0.3s ease;
   user-select: none;
   vertical-align: middle;
   font-weight: normal;
@@ -44,30 +70,27 @@ body, html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-#logo:hover {
-  transform: scale(1.1);
-}
 
 /* Navigation bar */
-div.navbar {
+header.navbar {
   align-items: flex-start;
   display: flex;
   height: 65px;
   justify-content: left;
+  left: -215px;
   margin-bottom: 70px;
   max-height: 65px;
   outline-offset: -1px;
   outline: 1px solid red;
-  overflow: hidden;
   position: absolute;
+  right: -215px;
   text-align: left;
-  top: 0;
-  width: 100%;
-  z-index: 666;
+  top: -65px;
+  z-index: 666; /* fuck you css */
 }
 
 /* Links in the Navigation bar */
-div.navbar a {
+header.navbar a {
   align-self: center;
   color: red;
   display: inline-flex;
@@ -89,38 +112,6 @@ div.dropdown {
   vertical-align: middle;
 }
 
-/* Dropdown button */
-div.dropdown button.dropbtn {
-  background-color: black;
-  border: none;
-  color: red;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 0;
-  outline: none;
-  padding: 14px 16px;
-}
-
-/* Dropdown content */
-div.dropdown-content {
-  background-color: black;
-  border: 1px solid red;
-  box-shadow: 0px 8px 16px 0px rgba(253, 0, 0, 0.2);
-  display: none;
-  min-width: 15%;
-  position: absolute;
-  z-index: 1;
-}
-
-/* Links inside the dropdown */
-div.dropdown-content a {
-  color: red;
-  display: block;
-  float: none;
-  padding: 12px 16px;
-  text-align: left;
-  text-decoration: none;
-}
 
 /* Search box container */
 div#search-box {
@@ -130,8 +121,8 @@ div#search-box {
   margin-left: 15px;
   outline: 1px solid red;
   padding: 11px 16px 11px 6px;
-  vertical-align: middle;
   width: min-content;
+  height: 20px;
 }
 
 /* The search form */
@@ -145,6 +136,7 @@ img#search-icon {
   transition: all 0.5s ease;
   width: 20px;
 }
+
 img#search-icon:hover {
   transform: scale(1.1);
 }
@@ -161,25 +153,10 @@ input#search-input {
   width: 215px;
 }
 
-/* Add a grey background color to dropdown links on hover */
-div.dropdown-content a:hover {
-  background-color: #252525;
-}
-
-/* Show the dropdown menu on hover */
-div.dropdown:hover div.dropdown-content {
-  display: block;
-}
-
-/* Add a red background color to navbar links on hover */
-div.navbar a:hover, div.dropdown:hover button.dropbtn {
-  background-color: #252525;
-}
-
 /* Tags bar */
 div#left-pannel {
-  left: 0;
-  margin-top: 120px;
+  left: -215px;
+  margin-top: 30px;
   padding-left: 25px;
   position: absolute;
 }
@@ -187,29 +164,456 @@ div#left-pannel {
 /* User pfp */
 div#user-pfp-container {
   align-self: center;
+  cursor: pointer;
   display: inline-flex;
   margin-left: auto;
   margin-right: 15px;
   max-height: 50px;
   max-width: 50px;
   outline: 1px solid red;
-  vertical-align: middle;
-  cursor: pointer;
 }
+
 img#user-pfp {
   max-width: 50px;
   object-fit: contain;
 }
 
+div.dropdown-content {
+  background-color: black;
+  opacity: 100%;
+  border: 1px solid red;
+  box-shadow: 0px 8px 16px 0px rgba(253, 0, 0, 0.2);
+  display: none;
+  min-width: 50px;
+  overflow: visible;
+  position: absolute;
+  right: 0;
+  top: 51px;
+  z-index: 5;
+}
+
+div.dropdown-content a {
+  color: red;
+  background-color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  z-index: 5;
+}
+
+div.dropdown-content a:hover {
+  background-color: #252525;
+}
+
+div.dropdown:hover div.dropdown-content {
+  display: block;
+}
+
+header.navbar a:hover, div.dropdown:hover button.dropbtn {
+  background-color: #252525;
+}
+
+/* News and chat */
+div#right-pannel {
+  right: 0;
+  margin-top: 30px;
+  padding-right: 25px;
+  right: -390px;
+  position: absolute;
+}
+
+/* News box */
+div#news-container {
+  width: 350px;
+  height: 100px;
+  border: 1px solid red;
+  overflow-y: scroll;
+}
+
+/* News box items */
+div#news-container li {
+  padding: 3px;
+  font-size: 1.2em;
+  list-style-type: none;
+}
+
+/* News box links */
+div#news-container li a {
+  text-decoration: none;
+}
+
+/* Chatbox container */
+div#chatbox {
+  padding-top: 50px;
+}
+
+/* Chat box */
+div#chat-container {
+  border: 1px solid red;
+  height: 300px;
+  width: 350px;
+}
+
+/* Message area */
+div#chat-message-area {
+  height: 265px;
+  overflow-y: scroll;
+  width: 100%;
+  word-break: break-all;
+}
+
+/* Message area item aka message */
+div#chat-message-area li {
+  color: rgb(219, 92, 92);
+  padding: 5px;
+  font-size: 1em;
+  list-style-type: none;
+  vertical-align: middle;
+}
+
+/* Markdown shit */
+div#chat-message-area li p {
+  display: inline-block;
+  color: rgb(219, 92, 92);
+}
+
+/* Link */
+div#chat-message-area li p a {
+  background-color: #ff00001e;
+  color: rgb(219, 92, 92);
+}
+
+
+/* The message input box */
+div#chat-message-input-container {
+  display: flex;
+  border-top: 1px solid red;
+  height: 35px;
+  width: 100%;
+}
+
+/* The place where you enter text */
+input#chat-box-textarea {
+  border: 0px solid red;
+  display: inline-flex;
+  font-size: 16px;
+  padding: 0 15px 0 15px;
+  text-align: start;
+  vertical-align: middle;
+  width: 82.5%;
+  height: 95%;
+  z-index: 0;
+}
+
+/* The send button */
+i#chat-box-send {
+  align-self:center;
+  cursor: pointer;
+}
+
+/* Twemoji emojis */
+img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 .05em 0 .1em;
+  vertical-align: -0.1em;
+}
+
+/* Login/register button group */
+div#login-register-buttons {
+  align-self: center;
+  cursor: pointer;
+  display: inline-flex;
+  margin-left: auto;
+  margin-right: 15px;
+}
+
+/* Login/register button */
+a#login-user-button, 
+a#register-user-button {
+  cursor: pointer;
+}
 
 /* Tag list items */
 div#left-pannel li{
   list-style-type: none;
-  font-size: larger;
 }
+
 a.tag-list-item {
   text-decoration: none;
 }
+
+/* Colours */
+.banned {
+  color: #ff00001a;
+  cursor: not-allowed;
+}
+
+.general {
+  color: #d61212;
+}
+
+.artist {
+  color: #3c790a;
+}
+
+.character {
+  color: #00fafa;
+}
+
+.copyright {
+  color: #490b9b;
+}
+
+.meta {
+  color: #757575
+}
+
+/* Login box */
+div.login-box {
+  border: 3px solid red;
+  background-color: black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -65px;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-sizing: content-box;
+  display: flex;
+  padding: 80px 80px 20px 80px;
+}
+
+/* Login Bloody H1 */
+h1.login-bloody-header {
+  flex-direction: column;
+  font-family:'Bloody';
+  font-size: 2.5em;
+  justify-content: space-evenly;
+  left: 25%;
+  margin-top: 30px;
+  position: absolute;
+  right: 25%;
+  top: 0;
+  user-select: none;
+  background: -webkit-linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(255, 0, 0, 1) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Input boxes */
+input#username, 
+input#password,
+input#email,
+input#confirm-password {
+  display: flex;
+  font-size: medium;
+  margin: 5px;
+  padding: 5px 10px 5px 10px;
+  text-align: center;
+  width: 210px;
+}
+
+/* Submit button */
+input#submit {
+  cursor: pointer;
+  display: inline-flex;
+  margin: 5px;
+  padding: 5px 10px 5px 10px;
+}
+
+/* Flask flash message */
+div.flash-message {
+  animation: fadein 0.5s;
+  font-size: 1.7em;
+  left: 0;
+  margin-top: 10vh;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  white-space: pre;
+}
+
+/* Profile Container */
+div#profile-container {
+  border: 1px solid red;
+  margin-top: 30px;
+  position: absolute;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Info container */
+div#profile-info-container {
+  border-bottom: 1px solid red;
+  height: 175px;
+}
+
+/* Profile picture container */
+div#profile-picture-container {
+  border: 1px solid red;
+  display: inline-block;
+  margin: 10px;
+  max-height: 150px;
+  max-width: 150px;
+  min-height: 150px;
+  min-width: 150px;
+}
+
+/* User profile picture image */
+img#profile-picture-image {
+  max-width: 150px;
+  max-height: 150px;
+}
+
+/* User name */
+h1#profile-username-header {
+  position: absolute;
+  display: inline-block;
+  top: 50px;
+}
+
+/* User permission title */
+h3#profile-user-permissions {
+  position: absolute;
+  display: inline-block;
+  top: 100px;
+}
+
+/* Edit profile button */
+button#profile-edit-button {
+  background-color: black;
+  border: 1px solid red;
+  cursor: pointer;
+  font-size: 1.1em;
+  margin: 10px;
+  padding: 5px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+
+/* Profile Tabs */
+div.profile-tab-bar {
+  background-color: black;
+  border: 1px solid red;
+  overflow: hidden;
+}
+
+/* Tab buttons */
+div.profile-tab-bar button {
+  background-color: inherit;
+  border: none;
+  cursor: pointer;
+  float: left;
+  outline: none;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+/* Tab button hover */
+div.profile-tab-bar button:hover {
+  background-color: #252525;
+}
+
+/* Active colour for tab buttons */
+div.profile-tab-bar button.active {
+  background-color: #1d1d1d;
+}
+
+/* Tab content */
+div.profile-tab-content {
+  /* border: 1px solid red; */
+  border-top: none;
+  display: none;
+  min-height: 100%;
+  padding: 6px 12px;
+  animation: fadein 0.5s;
+}
+
+p#profile-bio-textarea {
+  white-space: pre-wrap;
+}
+
+div.settings-input-group {
+  border-top: 1px solid red;
+  padding: 15px;
+}
+
+div.settings-input-group input {
+  display: block;
+  margin-bottom: 5px;
+  text-align: start;
+}
+
+div.settings-input-group label {
+  display: block;
+  margin-bottom: 5px;
+  padding: 5px;
+}
+
+div.settings-input-group input[type=text], 
+div.settings-input-group input[type=password],
+div.settings-input-group input[type=file] {
+  padding: 5px;
+  width: 50%;
+}
+
+input.profile-settings-submit {
+  cursor: pointer;
+  padding: 8px;
+}
+
+textarea#profile-settings-bio {
+  background-color: black;
+  border: 1px solid red;
+  color: red;
+  max-width: 100%;
+  padding: 5px;
+  white-space: pre-wrap;
+  width: 100%;
+}
+
+#upload-image {
+  display: none;
+  float: left;
+  height: 250px;
+  padding-bottom: 50px;
+  width: 100%;
+}
+
+#upload-image.ready{
+  display: block;
+}
+
+input.cr-slider {
+  background-color: #1d1d1d;
+}
+
+.column {
+  float: left;
+  width: 50%;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Code blocks */
+code {
+  border: 1px solid#ff000056;
+  background-color: #ff00001e;
+  color: rgb(219, 92, 92);
+  padding: 0px 5px 0px 5px;
+  font-family: 'Consolas';
+}
+
 
 /* FONTS */
 
@@ -251,6 +655,12 @@ a.tag-list-item {
   10%, 30%, 50%, 70%, 90% {transform: translateY(3px);} 
 }
 
+/* Fade-in animation */
+@keyframes fadein {
+  from {opacity: 0}
+  to {opacity: 1}
+}
+
 /* EXTRAS */
 input::-webkit-input-placeholder{
   color:red;
@@ -265,7 +675,7 @@ textarea:focus, input:focus{
 }
 
 ::-webkit-scrollbar-thumb {
-    width: 1px;
+    width: 5px;
     background-color: red;
 }
 
@@ -275,8 +685,8 @@ textarea:focus, input:focus{
 }
 
 ::-webkit-scrollbar {
-    width: 1px;
-    height: 1px;
+    width: 5px;
+    height: 5px;
     background-color: black;
     transition: ease;
 }

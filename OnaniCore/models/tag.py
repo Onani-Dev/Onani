@@ -2,14 +2,16 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-22 14:19:45
+# @Last Modified time: 2020-09-06 19:59:58
 
 import logging
 from json import dumps
 
 from aenum import Enum, MultiValue
 
-log = logging.getLogger(__name__)
+from ..utils import setup_logger
+
+log = setup_logger(__name__)
 
 
 class TagType(Enum):
@@ -39,10 +41,12 @@ class Tag(object):
 
     __slots__ = (
         "_db",
-        "string",
-        "type",
         "aliases",
         "description",
+        "popularity",
+        "post_count",
+        "string",
+        "type",
     )
 
     def __init__(
@@ -52,12 +56,16 @@ class Tag(object):
         tag_type: TagType,
         aliases: list = list(),
         description: str = None,
+        post_count: int = 0,
+        popularity: float = 0.0,
     ):
         self._db = db
         self.string = tag_string
         self.type = tag_type
         self.aliases = aliases
         self.description = description
+        self.post_count = post_count
+        self.popularity = popularity
 
     def edit_name(self, new_name: str) -> None:
         self._db.modify_tag(self, tag_string=new_name)
@@ -79,6 +87,12 @@ class Tag(object):
 
     def remove_alias(self, alias: str) -> None:
         self._db.remove_tag_alias(self, alias)
+
+    def modify_post_count(self, amount: int = 1) -> None:
+        self._db.modify_tag(self, post_count=amount)
+
+    def modify_popularity(self, amount: float = 0.001) -> None:
+        self._db.modify_tag(self, popularity=amount)
 
     def __str__(self):
         return self.string
