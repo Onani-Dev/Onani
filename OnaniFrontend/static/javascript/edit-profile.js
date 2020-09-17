@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-16 14:05:44
+ * @Last Modified time: 2020-09-17 14:22:17
  */
 'use strict';
 
@@ -33,6 +33,11 @@ $uploadCrop = $('#upload-image').croppie({
 
 $('#profile-settings-profile-picture').on('change', function () { readFile(this); });
 
+function SaveAccountSettings() {
+
+}
+
+
 function SaveProfileSettings() {
   let base64Img;
 
@@ -55,8 +60,6 @@ function SaveProfileSettings() {
       })
     }).then(function (response) {
       if (response.ok) {
-        window.location.hash = "#settings";
-        profilePicSelect.value = "";
         location.reload();
       }
     })
