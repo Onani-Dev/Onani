@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-14 18:42:32
+# @Last Modified time: 2020-09-17 18:10:45
 
 import os
 
@@ -14,7 +14,7 @@ socketio = SocketIO()
 login_manager = LoginManager()
 
 
-def create_app():
+def init_app():
     app = Flask(__name__, static_url_path="")
     # Temporary secret key; Change to config generated one
     app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"

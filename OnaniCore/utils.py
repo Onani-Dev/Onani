@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-16 17:29:44
+# @Last Modified time: 2020-09-17 22:18:32
 import html
 import logging
 import string
@@ -67,3 +67,13 @@ def check_if_safe_email(email: str) -> bool:
     if regex.match(re, email):
         return True
     return False
+
+
+def check_if_legal_password(password: str):
+    if len(password) < 4:
+        return False
+    for char in password:
+        if char in string.whitespace:
+            return False
+
+    return True

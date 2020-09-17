@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-17 15:10:05
+# @Last Modified time: 2020-09-17 21:25:28
 
 import logging
 from datetime import datetime, timedelta
@@ -173,6 +173,8 @@ class User(object):
         self._db.remove_user_favourite(self, post)
 
     def try_auth(self, password: str):
+        if password is None:
+            return False
         auth = argon2.verify(password, self._pass_hash)
         return auth
 
@@ -195,7 +197,11 @@ class User(object):
         return self._ban
 
     def has_permissions(self, permissions: UserPermissions) -> bool:
-        return self.permissions >= permissions
+        return (
+            self.permissions >= permissions
+            if permissions != UserPermissions.BANNED
+            else False
+        )
 
     @property
     def is_banned(self):
@@ -214,7 +220,7 @@ class User(object):
         return False
 
     def get_id(self):
-        return self.username
+        return self.id
 
     def __eq__(self, other):
         if isinstance(other, User):

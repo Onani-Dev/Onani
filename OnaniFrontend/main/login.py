@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:31:11
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-16 17:32:57
+# @Last Modified time: 2020-09-17 21:27:42
 
 from datetime import datetime, timedelta
 
@@ -31,9 +31,9 @@ from . import main, onaniDB
 
 
 @login_manager.user_loader
-def user_loader(username):
+def user_loader(user_id):
     try:
-        user = onaniDB.get_user(username=username)
+        user = onaniDB.get_user(id=user_id)
     except OnaniDatabaseException:
         return
     return user if not user.is_banned else None

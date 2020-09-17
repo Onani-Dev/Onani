@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-16 21:22:58
+# @Last Modified time: 2020-09-17 22:46:24
 
 import logging
 import os
@@ -146,7 +146,9 @@ class DatabaseController:
             username = self._random_username()
 
         # Check if Username is already taken.
-        user = self.users.find_one({"username": re.compile(username, re.IGNORECASE)})
+        user = self.users.find_one(
+            {"username": re.compile(fr"\b{username}\b", re.IGNORECASE)}
+        )
         if user is not None:
             # We can't use this username.
             raise OnaniDatabaseException("Username is taken.")
@@ -215,7 +217,7 @@ class DatabaseController:
         elif username is not None:
             # Check for user with Username
             user = self.users.find_one(
-                {"username": re.compile(username, re.IGNORECASE)}
+                {"username": re.compile(fr"\b{username}\b", re.IGNORECASE)}
             )
             if user is None:
                 raise OnaniDatabaseException(
@@ -291,7 +293,7 @@ class DatabaseController:
         # Edit username if present
         if username is not None:
             existing_user = self.users.find_one(
-                {"username": re.compile(username, re.IGNORECASE)}
+                {"username": re.compile(fr"\b{username}\b", re.IGNORECASE)}
             )
             if existing_user is not None:
                 # We can't use this username.
@@ -506,7 +508,9 @@ class DatabaseController:
         """
         tag_string = self._parse_tag(tag_string)
 
-        tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
+        tag = self.tags.find_one(
+            {"string": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+        )
         if tag is not None:
             # What the OnaniDatabaseException says :)
             raise OnaniDatabaseException("A tag with this name already exists.")
@@ -558,9 +562,13 @@ class DatabaseController:
         Returns:
             Tag: The found tag
         """
-        tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
+        tag = self.tags.find_one(
+            {"string": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+        )
         if tag is None:
-            tag = self.tags.find_one({"aliases": re.compile(tag_string, re.IGNORECASE)})
+            tag = self.tags.find_one(
+                {"aliases": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+            )
             if tag is None:
                 raise OnaniDatabaseException(
                     f'No tag mathching the name "{tag_string}" could be found.'

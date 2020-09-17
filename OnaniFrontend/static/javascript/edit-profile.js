@@ -2,12 +2,18 @@
  * @Author: Blakeando
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-17 14:22:17
+ * @Last Modified time: 2020-09-17 22:02:20
  */
 'use strict';
 
-const settingsBio = document.getElementById("profile-settings-bio");
-const profilePicSelect = document.getElementById("profile-settings-profile-picture");
+const curPassword = document.getElementById("profile-settings-current-password"),
+  editEmail = document.getElementById("profile-settings-email"),
+  editUsername = document.getElementById("profile-settings-name"),
+  newConfirmPass = document.getElementById("profile-settings-password-confirm"),
+  newPassword = document.getElementById("profile-settings-password"),
+  profilePicSelect = document.getElementById("profile-settings-profile-picture"),
+  settingsBio = document.getElementById("profile-settings-bio");
+
 let $uploadCrop;
 
 function readFile(input) {
@@ -34,7 +40,27 @@ $uploadCrop = $('#upload-image').croppie({
 $('#profile-settings-profile-picture').on('change', function () { readFile(this); });
 
 function SaveAccountSettings() {
-
+  fetch("/api/profile/edit", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: editUsername.value,
+      email: editEmail.value,
+      current_password: curPassword.value,
+      new_password: newPassword.value,
+      confirm_password: newConfirmPass.value,
+    })
+  }).then(response => {
+    response.json().then(json => {
+      if (json.ok) {
+        location.reload();
+      } else {
+        alert(json.error);
+      }
+    })
+  })
 }
 
 
@@ -58,10 +84,14 @@ function SaveProfileSettings() {
         bio: settingsBio.value,
         avatar: base64Img
       })
-    }).then(function (response) {
-      if (response.ok) {
-        location.reload();
-      }
+    }).then(response => {
+      response.json().then(json => {
+        if (json.ok) {
+          location.reload();
+        } else {
+          alert(json.error);
+        }
+      })
     })
   });
 }
