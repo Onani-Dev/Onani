@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-16 21:27:15
+# @Last Modified time: 2020-09-17 15:10:05
 
 import logging
 from datetime import datetime, timedelta
@@ -25,7 +25,19 @@ class UserSettings(object):
 
     def __init__(self, **kwargs):
         self.__dict__.update(
-            {"profile_pic": "/image/default.png", "bio": None, "tag_blacklist": []}
+            {
+                "profile_pic": "/image/default.png",
+                "bio": None,
+                "tag_blacklist": [],
+                "platforms": {
+                    "twitter": None,
+                    "pixiv": None,
+                    "deviantart": None,
+                    "patreon": None,
+                    "github": None,
+                    "paypal": None,
+                },
+            }
         )
         self.__dict__.update(kwargs)
 
@@ -59,6 +71,21 @@ class UserPermissions(Enum):
     def __int__(self):
         return self.value
 
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __lt__(self, other):
+        return self.value < other.value
+
+    def __ge__(self, other):
+        return self.value >= other.value
+
+    def __le__(self, other):
+        return self.value <= other.value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
 
 class User(object):
     """
@@ -79,7 +106,6 @@ class User(object):
         "permissions",
         "settings",
         "username",
-        "connected_to",
     )
 
     def __init__(
@@ -167,6 +193,9 @@ class User(object):
         else:
             self._ban = None
         return self._ban
+
+    def has_permissions(self, permissions: UserPermissions) -> bool:
+        return self.permissions >= permissions
 
     @property
     def is_banned(self):

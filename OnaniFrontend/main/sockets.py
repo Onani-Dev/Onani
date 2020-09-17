@@ -2,11 +2,12 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:21:03
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-16 16:25:09
+# @Last Modified time: 2020-09-17 15:53:47
 
 import functools
 
 import emoji
+from flask import request
 from flask_login import current_user
 from flask_socketio import disconnect, emit, join_room, leave_room, send
 
@@ -14,6 +15,8 @@ from OnaniCore import html_escape
 
 from .. import socketio
 from . import main
+
+rate_limits = dict()
 
 
 def authenticated_only(f):
@@ -25,6 +28,17 @@ def authenticated_only(f):
             return f(*args, **kwargs)
 
     return wrapped
+
+
+# def rate_limited(f):
+#     @functools.wraps(f)
+#     def wrapped(*args, **kwargs):
+#         if not current_user.is_authenticated:
+#             disconnect()
+#         else:
+#             return f(*args, **kwargs)
+
+#     return wrapped
 
 
 @socketio.on("message", namespace="/chat")
@@ -68,8 +82,8 @@ def on_join(data):
 def on_leave(data):
     room = data["room"]
     leave_room(room)
-    # if room == "general":
-    #     return  # Save spamming general
+    if room == "general":
+        return  # Save spamming general with leaves
     emit(
         "disconnection",
         {"data": f"{current_user.username} has left {html_escape(room)}."},

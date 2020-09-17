@@ -53,18 +53,20 @@ style="right: -390px;"
       <form id="settings-account">
         <h2 style="padding: 15px;">Account settings</h2>
 
-        <!-- Username Settings -->
+        <!-- User Info Settings -->
         <div class="settings-input-group">
           <div class="row">
             <div class="column">
               <label for="settings-name">Change Username</label>
+              <label for="settings-email">Change Email</label>
             </div>
             <div class="column">
-              <input type="text" placeholder="New Username" name="settings-name" id="profile-settings-name"
-                value="{{ user.username }}">
+              <input type="text" placeholder="{{ user.username }}" name="settings-name" id="profile-settings-name">
+              <input type="email" placeholder="{{ user.email }}" name="settings-email" id="profile-settings-email">
             </div>
           </div>
         </div>
+
         <!-- Password settings -->
         <div class="settings-input-group">
           <div class="row">

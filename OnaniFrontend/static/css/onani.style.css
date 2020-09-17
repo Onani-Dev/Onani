@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-16 01:11:31
+ * @Last Modified time: 2020-09-17 15:14:37
 */
 
 
@@ -48,8 +48,12 @@ input {
   background-color: black;
   text-decoration: none;
   text-align: center;
-  border: 2px solid red;
-  border-radius: 4px;
+  border: 1px solid red;
+  border-radius: 0;
+}
+
+input[type=button]:hover {
+  background-color: #252525;
 }
 
 /* Navbar logo */
@@ -557,6 +561,7 @@ div.settings-input-group label {
 }
 
 div.settings-input-group input[type=text], 
+div.settings-input-group input[type=email],
 div.settings-input-group input[type=password],
 div.settings-input-group input[type=file] {
   padding: 5px;
