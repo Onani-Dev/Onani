@@ -48,7 +48,8 @@
     {% if current_user.is_authenticated %}
     <div id="user-pfp-container">
       <div class="dropdown">
-        <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
+        <img id="user-pfp" src="{{ current_user.settings.profile_pic }}?t={{ time.time()|int }}"
+          alt="{{ current_user.username }}">
         <div class="dropdown-content">
           <a href="/users/{{ current_user.id }}">Profile</a>
           <a onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}">Logout</a>

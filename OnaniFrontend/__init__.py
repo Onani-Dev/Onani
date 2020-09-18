@@ -2,9 +2,11 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-17 18:10:45
+# @Last Modified time: 2020-09-18 21:05:32
 
+import datetime
 import os
+import time
 
 from flask import Flask
 from flask_login import LoginManager
@@ -19,6 +21,8 @@ def init_app():
     # Temporary secret key; Change to config generated one
     app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
     app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+    app.jinja_env.globals.update(datetime=datetime, time=time)
 
     from .main import main as main_blueprint, main_api
 
