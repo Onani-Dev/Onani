@@ -2,21 +2,19 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 14:21:03
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-17 15:53:47
+# @Last Modified time: 2020-09-19 11:53:15
 
 import functools
 
 import emoji
-from flask import request
 from flask_login import current_user
-from flask_socketio import disconnect, emit, join_room, leave_room, send
+from flask_socketio import disconnect, emit, join_room, leave_room
 
 from OnaniCore import html_escape
 
 from .. import socketio
-from . import main
 
-rate_limits = dict()
+# TODO #31 Better chat system
 
 
 def authenticated_only(f):
@@ -28,17 +26,6 @@ def authenticated_only(f):
             return f(*args, **kwargs)
 
     return wrapped
-
-
-# def rate_limited(f):
-#     @functools.wraps(f)
-#     def wrapped(*args, **kwargs):
-#         if not current_user.is_authenticated:
-#             disconnect()
-#         else:
-#             return f(*args, **kwargs)
-
-#     return wrapped
 
 
 @socketio.on("message", namespace="/chat")

@@ -41,8 +41,7 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}
-        This user does not have a Bio.{% endif %}</p>
+      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}This user does not have a Bio.{% endif %}</p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
       <p>Posts will go in here</p>

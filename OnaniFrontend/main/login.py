@@ -25,7 +25,7 @@ from flask_login import (
 )
 
 from OnaniCore import *
-from OnaniCore.utils import check_if_safe_email, check_is_safe_username
+from OnaniCore.utils import is_safe_email, is_safe_username
 from .. import login_manager
 from . import main, onaniDB
 
@@ -133,13 +133,13 @@ def register():
             return redirect("/register")
 
         # Check username for illegal chars
-        if not check_is_safe_username(request.form["username"]):
+        if not is_safe_username(request.form["username"]):
             flash("Username has illegal characters.")
             return redirect("/register")
 
         # Check if email is valid
         if request.form["email"] != "":
-            if not check_if_safe_email(request.form["email"]):
+            if not is_safe_email(request.form["email"]):
                 flash("Email was invalid.")
                 return redirect("/register")
 

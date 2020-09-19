@@ -2,23 +2,21 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-17 22:16:13
+# @Last Modified time: 2020-09-19 11:39:01
 import hashlib
 import os
-import time
-import uuid
 from urllib.request import urlopen
 
-import pybase64
-from flask import abort, jsonify, redirect, request
+from flask import abort, jsonify, request
 from flask_login import current_user, login_required
 
 from OnaniCore import *
 from OnaniCore.utils import (
-    check_if_safe_email,
-    check_is_safe_username,
-    check_if_legal_password,
+    is_legal_password,
+    is_safe_email,
+    is_safe_username,
 )
+
 from . import main_api
 
 
@@ -31,12 +29,12 @@ def edit_profile():
     settings = dict()
     print(request.json)
     if request.json.get("username"):
-        if not check_is_safe_username(request.json["username"]):
+        if not is_safe_username(request.json["username"]):
             raise OnaniApiError("Username has illegal characters.")
         current_user.edit_username(html_escape(request.json["username"]))
 
     if request.json.get("email"):
-        if not check_if_safe_email(request.json["email"]):
+        if not is_safe_email(request.json["email"]):
             raise OnaniApiError("Invalid Email.")
         current_user.edit_email(html_escape(request.json["email"]))
 
@@ -44,7 +42,7 @@ def edit_profile():
         if request.json.get("new_password") != request.json.get("confirm_password"):
             raise OnaniApiError("Passwords did not match")
 
-        if not check_if_legal_password(request.json.get("new_password")):
+        if not is_legal_password(request.json.get("new_password")):
             raise OnaniApiError("Password had illegal characters")
 
         try:

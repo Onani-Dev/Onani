@@ -36,7 +36,7 @@ def html_escape(string: str):
     return html.escape(string)
 
 
-def check_is_safe_username(username: str) -> bool:
+def is_safe_username(username: str) -> bool:
     """```raw
     Check if username is legal
 
@@ -53,7 +53,7 @@ def check_is_safe_username(username: str) -> bool:
     return True
 
 
-def check_if_safe_email(email: str) -> bool:
+def is_safe_email(email: str) -> bool:
     """```raw
     Check if email is safe
 
@@ -69,7 +69,7 @@ def check_if_safe_email(email: str) -> bool:
     return False
 
 
-def check_if_legal_password(password: str):
+def is_legal_password(password: str):
     if len(password) < 4:
         return False
     for char in password:
