@@ -24,12 +24,29 @@ style="right: -390px;"
     <!-- Permission value -->
     <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
     <!-- User Socials -->
-    <i class="fab fa-patreon fa-2x"></i>
+    <!-- <i class="fab fa-patreon fa-2x"></i>
     <i class="fab fa-twitter fa-2x"></i>
     <i class="fab fa-github fa-2x"></i>
     <i class="fab fa-deviantart fa-2x"></i>
     <i class="fab fa-bitcoin fa-2x"></i>
-    <i class="fab fa-paypal fa-2x"></i>
+    <i class="fab fa-paypal fa-2x"></i> -->
+    <!-- <i class="fa fa-discord fa-2x"></i> -->
+    {{ user.settings.platforms }}
+    {% if user.settings.platforms.twitter %}
+    <a href="{{ user.settings.platforms.twitter }}"><i class="fab fa-twitter fa-2x"></i></a>
+    {% if user.settings.platforms.patreon %}
+    <a href="{{ user.settings.platforms.patreon }}"><i class="fab fa-patreon fa-2x"></i></a>
+    {% if user.settings.platforms.deviantart %}
+    <a href="{{ user.settings.platforms.deviantart }}"><i class="fab fa-deviantart fa-2x"></i></a>
+    {% if user.settings.platforms.discord %}
+    <a href="{{ user.settings.platforms.discord }}"><i class="fa fa-discord fa-2x"></i></a>
+    {% if user.settings.platforms.twitter %}
+    <a href="{{ user.settings.platforms.twitter }}"><i class="fab fa-twitter fa-2x"></i></a>
+    {% if user.settings.platforms.twitter %}
+    <a href="{{ user.settings.platforms.twitter }}"><i class="fab fa-twitter fa-2x"></i></a>
+    {% endif %}
+
+
   </div>
   <!-- Profile content container -->
   <div id="profile-content-container">
@@ -41,7 +58,8 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}This user does not have a Bio.{% endif %}</p>
+      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}This user does
+        not have a Bio.{% endif %}</p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
       <p>Posts will go in here</p>

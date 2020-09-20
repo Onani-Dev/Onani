@@ -2,20 +2,64 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-17 21:25:28
+# @Last Modified time: 2020-09-20 01:10:47
 
-import logging
 from datetime import datetime, timedelta
 
 from aenum import Enum, MultiValue
 from dateutil import tz
-from flask_login import UserMixin
 from passlib.hash import argon2
 
 from ..exceptions import OnaniAuthenticationError
 from ..utils import setup_logger
 
 log = setup_logger(__name__)
+
+
+class UserPlatforms(object):
+    """
+    User Platforms (Socials)
+    """
+
+    __slots__ = (
+        "twitter",
+        "pixiv",
+        "deviantart",
+        "patreon",
+        "github",
+        "paypal",
+        "discord",
+    )
+
+    def __init__(
+        self,
+        twitter: str = None,
+        pixiv: str = None,
+        deviantart: str = None,
+        patreon: str = None,
+        github: str = None,
+        paypal: str = None,
+        discord: str = None,
+    ):
+        self.twitter = twitter
+        self.pixiv = pixiv
+        self.deviantart = deviantart
+        self.patreon = patreon
+        self.github = github
+        self.paypal = paypal
+        self.discord = discord
+
+    def to_dict(self) -> dict:
+        return {x: getattr(self, x) for x in self.__slots__}
+
+    def __repr__(self):
+        return self.to_dict()
+
+    def set_value(self, key: str, value: str) -> None:
+        if not key in self.__slots__:
+            raise KeyError("Key does not exist.")
+
+        setattr(self, key, value)
 
 
 class UserSettings(object):
@@ -29,14 +73,7 @@ class UserSettings(object):
                 "profile_pic": "/image/default.png",
                 "bio": None,
                 "tag_blacklist": [],
-                "platforms": {
-                    "twitter": None,
-                    "pixiv": None,
-                    "deviantart": None,
-                    "patreon": None,
-                    "github": None,
-                    "paypal": None,
-                },
+                "platforms": UserPlatforms(),
             }
         )
         self.__dict__.update(kwargs)
