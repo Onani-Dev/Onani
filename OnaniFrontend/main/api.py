@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-19 11:39:01
+# @Last Modified time: 2020-09-21 18:55:50
 import hashlib
 import os
 from urllib.request import urlopen
@@ -27,7 +27,7 @@ def edit_profile():
         abort(400)
 
     settings = dict()
-    print(request.json)
+
     if request.json.get("username"):
         if not is_safe_username(request.json["username"]):
             raise OnaniApiError("Username has illegal characters.")
@@ -43,7 +43,7 @@ def edit_profile():
             raise OnaniApiError("Passwords did not match")
 
         if not is_legal_password(request.json.get("new_password")):
-            raise OnaniApiError("Password had illegal characters")
+            raise OnaniApiError("Password has illegal characters")
 
         try:
             current_user.edit_password(
@@ -72,7 +72,8 @@ def edit_profile():
         if request.json["bio"] != current_user.settings.bio:
             settings["bio"] = html_escape(request.json["bio"])
 
-    current_user.edit_settings(**settings)
+    if len(settings) > 0:
+        current_user.edit_settings(**settings)
 
     return (
         jsonify({"ok": True}),

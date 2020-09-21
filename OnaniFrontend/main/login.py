@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-09-12 13:31:11
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-17 21:27:42
+# @Last Modified time: 2020-09-21 19:18:40
 
 from datetime import datetime, timedelta
 
@@ -125,9 +125,9 @@ def register():
         return render_template("/register.jinja2")
     else:
         if (
-            request.form["username"] == ""
-            and request.form["password"] == ""
-            and request.form["confirm-password"] == ""
+            not request.form["username"]
+            and not request.form["password"]
+            and not request.form["confirm-password"]
         ):
             flash("🤨")
             return redirect("/register")
@@ -138,13 +138,13 @@ def register():
             return redirect("/register")
 
         # Check if email is valid
-        if request.form["email"] != "":
+        if request.form["email"]:
             if not is_safe_email(request.form["email"]):
                 flash("Email was invalid.")
                 return redirect("/register")
 
         # Check password
-        if request.form["password"] == "":
+        if not request.form["password"]:
             flash("No password was entered.")
             return redirect("/register")
 

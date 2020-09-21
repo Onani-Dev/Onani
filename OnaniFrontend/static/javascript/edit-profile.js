@@ -2,7 +2,7 @@
  * @Author: Blakeando
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-17 22:02:20
+ * @Last Modified time: 2020-09-21 18:52:11
  */
 'use strict';
 
@@ -12,7 +12,9 @@ const curPassword = document.getElementById("profile-settings-current-password")
   newConfirmPass = document.getElementById("profile-settings-password-confirm"),
   newPassword = document.getElementById("profile-settings-password"),
   profilePicSelect = document.getElementById("profile-settings-profile-picture"),
-  settingsBio = document.getElementById("profile-settings-bio");
+  settingsBio = document.getElementById("profile-settings-bio"),
+  formAccountSettings = document.getElementById("settings-account"),
+  formProfileSettings = document.getElementById("settings-profile");
 
 let $uploadCrop;
 
@@ -55,6 +57,7 @@ function SaveAccountSettings() {
   }).then(response => {
     response.json().then(json => {
       if (json.ok) {
+        formAccountSettings.reset();
         location.reload();
       } else {
         alert(json.error);
@@ -87,6 +90,7 @@ function SaveProfileSettings() {
     }).then(response => {
       response.json().then(json => {
         if (json.ok) {
+          formProfileSettings.reset();
           location.reload();
         } else {
           alert(json.error);

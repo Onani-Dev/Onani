@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-20 01:10:47
+# @Last Modified time: 2020-09-21 19:31:40
 
 from datetime import datetime, timedelta
 
@@ -22,32 +22,32 @@ class UserPlatforms(object):
     """
 
     __slots__ = (
-        "twitter",
-        "pixiv",
         "deviantart",
-        "patreon",
-        "github",
-        "paypal",
         "discord",
+        "github",
+        "patreon",
+        "paypal",
+        "pixiv",
+        "twitter",
     )
 
     def __init__(
         self,
-        twitter: str = None,
-        pixiv: str = None,
         deviantart: str = None,
-        patreon: str = None,
-        github: str = None,
-        paypal: str = None,
         discord: str = None,
+        github: str = None,
+        patreon: str = None,
+        paypal: str = None,
+        pixiv: str = None,
+        twitter: str = None,
     ):
-        self.twitter = twitter
-        self.pixiv = pixiv
         self.deviantart = deviantart
-        self.patreon = patreon
-        self.github = github
-        self.paypal = paypal
         self.discord = discord
+        self.github = github
+        self.patreon = patreon
+        self.paypal = paypal
+        self.pixiv = pixiv
+        self.twitter = twitter
 
     def to_dict(self) -> dict:
         return {x: getattr(self, x) for x in self.__slots__}
@@ -82,7 +82,9 @@ class UserSettings(object):
         self.__dict__.update(kwargs)
 
     def to_dict(self) -> dict:
-        return self.__dict__
+        _dict = dict(self.__dict__)
+        _dict["platforms"] = self.platforms.to_dict()
+        return _dict
 
     def __repr__(self):
         return self.__dict__

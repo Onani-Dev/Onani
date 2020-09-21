@@ -31,9 +31,11 @@ style="right: -390px;"
     <i class="fab fa-bitcoin fa-2x"></i>
     <i class="fab fa-paypal fa-2x"></i> -->
     <!-- <i class="fa fa-discord fa-2x"></i> -->
-    {{ user.settings.platforms }}
     {% if user.settings.platforms.twitter %}
     <a href="{{ user.settings.platforms.twitter }}"><i class="fab fa-twitter fa-2x"></i></a>
+    {% endif %}
+    {% if user.settings.platforms.pixiv %}
+    <a href="{{ user.settings.platforms.pixiv }}"><i class="fab fa-twitter fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.patreon %}
     <a href="{{ user.settings.platforms.patreon }}"><i class="fab fa-patreon fa-2x"></i></a>
