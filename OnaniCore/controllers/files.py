@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-08-15 23:31:53
-# @Last Modified by:   Blakeando
+# @Last Modified by:   kapsikkum
 # @Last Modified time: 2020-08-20 14:07:29
 
 import hashlib

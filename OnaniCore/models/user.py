@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-22 10:23:14
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-09-22 21:36:48
 
 from datetime import datetime, timedelta
 
@@ -54,6 +54,12 @@ class UserPlatforms(object):
 
     def __repr__(self):
         return self.to_dict()
+
+    def set_values(self, **kwargs) -> None:
+        for key in kwargs:
+            if not key in self.__slots__:
+                raise KeyError("Key does not exist.")
+            setattr(self, key, kwargs[key])
 
     def set_value(self, key: str, value: str) -> None:
         if not key in self.__slots__:

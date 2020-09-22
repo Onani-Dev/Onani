@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-08-12 15:52:57
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 14:12:11
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-09-22 12:59:10
 
-import logging
 import platform
-import sys
 from collections import namedtuple
 
 import requests
