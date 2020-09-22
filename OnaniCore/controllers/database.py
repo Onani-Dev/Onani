@@ -2,33 +2,30 @@
 # @Author: Blakeando
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-17 22:46:24
+# @Last Modified time: 2020-09-22 10:25:50
 
-import logging
-import os
 import random
 import re
 import secrets
 import string
 from datetime import datetime, timedelta
-from timeit import timeit
-from typing import Dict, List, Tuple
+from typing import List
 
 import pymongo
 from dateutil import tz
 from passlib.hash import argon2
 
-from ..exceptions import OnaniDatabaseException, OnaniAuthenticationError
+from ..exceptions import OnaniAuthenticationError, OnaniDatabaseException
 from ..models import (
     Ban,
     Post,
     PostData,
     PostFile,
-    PostRating,
     Tag,
     TagType,
     User,
     UserPermissions,
+    UserPlatforms,
     UserSettings,
 )
 from ..utils import setup_logger
@@ -251,6 +248,12 @@ class DatabaseController:
         else:
             raise OnaniDatabaseException(
                 "One of: id, username, api_key must be supplied."
+            )
+
+        # Make platforms object
+        if user.get("settings"):
+            user["settings"]["platforms"] = UserPlatforms(
+                **user["settings"]["platforms"]
             )
 
         # Return our user

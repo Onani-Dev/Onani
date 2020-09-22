@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-21 19:31:40
+# @Last Modified time: 2020-09-22 10:23:14
 
 from datetime import datetime, timedelta
 
@@ -87,7 +87,7 @@ class UserSettings(object):
         return _dict
 
     def __repr__(self):
-        return self.__dict__
+        return self.to_dict()
 
 
 class UserPermissions(Enum):
