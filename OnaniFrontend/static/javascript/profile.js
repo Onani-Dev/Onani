@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-17 21:37:53
+ * @Last Modified time: 2020-09-23 16:29:32
  */
 'use strict';
 const tabcontent = document.getElementsByClassName("profile-tab-content");
@@ -31,4 +31,16 @@ function changeTab(evt, tabName) {
 
   document.getElementById(tabName).style.display = "block";
   evt.currentTarget.className += " active";
-} 
+}
+
+function CopyText(text) {
+  const listener = function (ev) {
+    ev.preventDefault();
+    ev.clipboardData.setData('text/html', text);
+    ev.clipboardData.setData('text/plain', text);
+  };
+  document.addEventListener('copy', listener);
+  document.execCommand('copy');
+  document.removeEventListener('copy', listener);
+  alert("Copied to clipboard!");
+}

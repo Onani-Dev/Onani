@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-21 18:55:50
+# @Last Modified time: 2020-09-23 12:11:01
 import hashlib
 import os
 from urllib.request import urlopen
@@ -71,6 +71,12 @@ def edit_profile():
     if request.json.get("bio"):
         if request.json["bio"] != current_user.settings.bio:
             settings["bio"] = html_escape(request.json["bio"])
+
+    if request.json.get("platforms"):
+        platforms = request.json["platforms"]
+        for p in list(platforms):
+            platforms[p] = html_escape(platforms[p])
+        current_user.edit_platforms(**platforms)
 
     if len(settings) > 0:
         current_user.edit_settings(**settings)

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-22 22:58:50
+# @Last Modified time: 2020-09-23 16:07:12
 
 import random
 import re
@@ -278,6 +278,7 @@ class DatabaseController:
         email: str = None,
         settings: dict = None,
         permissions: UserPermissions = None,
+        platforms: UserPlatforms = None,
         password: str = None,
     ) -> None:
         """```raw
@@ -316,6 +317,13 @@ class DatabaseController:
         # Edit settings if present
         if settings is not None:
             user.settings.update(**settings)
+            self.users.update_one(
+                {"_id": user.id}, {"$set": {"settings": user.settings.to_dict()}}
+            )
+
+        # Edit platforms if present
+        if platforms is not None:
+            user.settings.platforms.set_values(**platforms)
             self.users.update_one(
                 {"_id": user.id}, {"$set": {"settings": user.settings.to_dict()}}
             )

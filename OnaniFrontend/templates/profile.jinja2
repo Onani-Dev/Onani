@@ -23,28 +23,22 @@ style="right: -390px;"
     <h1 id="profile-username-header">{{ user.username }}</h1>
     <!-- Permission value -->
     <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
-    <!-- User Socials -->
-    <!-- <i class="fab fa-patreon fa-2x"></i>
-    <i class="fab fa-twitter fa-2x"></i>
-    <i class="fab fa-github fa-2x"></i>
-    <i class="fab fa-deviantart fa-2x"></i>
-    <i class="fab fa-bitcoin fa-2x"></i>
-    <i class="fab fa-paypal fa-2x"></i> -->
-    <!-- <i class="fa fa-discord fa-2x"></i> -->
+    <!-- User Platforms -->
     {% if user.settings.platforms.twitter %}
     <a href="{{ user.settings.platforms.twitter }}"><i class="fab fa-twitter fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.pixiv %}
-    <a href="{{ user.settings.platforms.pixiv }}">Pixiv Placeholder</a>
+    <a href="{{ user.settings.platforms.pixiv }}"><i class="icon-pixiv fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.patreon %}
-    <a href="{{ user.settings.platforms.patreon }}"><i class="fab fa-patreon fa-2x"></i></a>
+    <a href="{{ user.settings.platforms.patreon }}"><i class="fa fa-patreon fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.deviantart %}
     <a href="{{ user.settings.platforms.deviantart }}"><i class="fab fa-deviantart fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.discord %}
-    <a href="{{ user.settings.platforms.discord }}"><i class="fa fa-discord fa-2x"></i></a>
+    <a onclick="CopyText('{{ user.settings.platforms.discord }}')" style="cursor: pointer;"><i
+        class="fa fa-discord fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.paypal %}
     <a href="{{ user.settings.platforms.paypal }}"><i class="fab fa-paypal fa-2x"></i></a>
@@ -52,8 +46,6 @@ style="right: -390px;"
     {% if user.settings.platforms.github %}
     <a href="{{ user.settings.platforms.github }}"><i class="fab fa-github fa-2x"></i></a>
     {% endif %}
-
-
   </div>
   <!-- Profile content container -->
   <div id="profile-content-container">
@@ -65,8 +57,9 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}This user does
-        not have a Bio.{% endif %}</p>
+      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}Sorry nothing
+        {% endif %}
+      </p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
       <p>Posts will go in here</p>
@@ -148,6 +141,53 @@ style="right: -390px;"
         <!-- Save Button For profile -->
         <div class="settings-input-group">
           <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveProfileSettings()">
+        </div>
+      </form>
+
+      <!-- Platform settings -->
+      <form id="settings-platforms">
+        <h2 style="padding: 15px;">Platform settings</h2>
+
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-twitter">Twitter</label>
+              <label for="settings-pixiv">Pixiv</label>
+              <label for="settings-patreon">Patreon</label>
+              <label for="settings-deviantart">DeviantArt</label>
+              <label for="settings-discord">Discord</label>
+              <label for="settings-github" style="display: none;">GitHub</label>
+            </div>
+            <div class="column">
+              <input type="text" name="settings-twitter" id="settings-twitter"
+                value="{% if user.settings.platforms.twitter is not none %}{{ user.settings.platforms.twitter }}{% else %}{% endif %}"
+                placeholder="Twitter Profile Link">
+
+              <input type="text" name="settings-pixiv" id="settings-pixiv"
+                value="{% if user.settings.platforms.pixiv is not none %}{{ user.settings.platforms.pixiv }}{% else %}{% endif %}"
+                placeholder="Pixiv Profile Link">
+
+              <input type="text" name="settings-patreon" id="settings-patreon"
+                value="{% if user.settings.platforms.patreon is not none %}{{ user.settings.platforms.patreon }}{% else %}{% endif %}"
+                placeholder="Patreon Profile Link">
+
+              <input type="text" name="settings-deviantart" id="settings-deviantart"
+                value="{% if user.settings.platforms.deviantart is not none %}{{ user.settings.platforms.deviantart }}{% else %}{% endif %}"
+                placeholder="DeviantArt Profile Link">
+
+              <input type="text" name="settings-discord" id="settings-discord"
+                value="{% if user.settings.platforms.discord is not none %}{{ user.settings.platforms.discord }}{% else %}{% endif %}"
+                placeholder="Discord Username#Discriminator">
+
+              <input type="text" name="settings-github" id="settings-github"
+                value="{% if user.settings.platforms.github is not none %}{{ user.settings.platforms.github }}{% else %}{% endif %}"
+                placeholder="Github Profile Link" style="display: none;">
+            </div>
+          </div>
+        </div>
+        <!-- Save Button For Platforms -->
+        <div class="settings-input-group">
+          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SavePlatformSettings()">
         </div>
       </form>
     </div>

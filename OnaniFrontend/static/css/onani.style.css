@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-18 20:51:42
+ * @Last Modified time: 2020-09-24 01:29:22
 */
 
 
@@ -22,6 +22,11 @@
 
 html {
   background-color: black;
+}
+
+/* Remove text decoration from 'a' elements */
+a {
+  text-decoration: none;
 }
 
 /* Body */
@@ -582,7 +587,7 @@ div.settings-input-group input {
 
 div.settings-input-group label {
   display: block;
-  margin-bottom: 5px;
+  /* margin-bottom: 5px; */
   padding: 5px;
 }
 
@@ -634,6 +639,11 @@ input.cr-slider {
   content: "";
   display: table;
   clear: both;
+}
+
+div#profile-info-container i {
+  display: inline-block;
+  padding: 5px;
 }
 
 /* Code blocks */

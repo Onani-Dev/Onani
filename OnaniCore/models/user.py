@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-22 21:36:48
+# @Last Modified time: 2020-09-23 11:30:36
 
 from datetime import datetime, timedelta
 
@@ -207,6 +207,9 @@ class User(object):
 
     def edit_settings(self, **kwargs) -> None:
         self._db.modify_user(self, settings=kwargs)
+
+    def edit_platforms(self, **kwargs) -> None:
+        self._db.modify_user(self, platforms=kwargs)
 
     def regen_api_key(self) -> None:
         self._db.regen_user_api_key(self)
