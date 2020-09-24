@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-18 16:41:43
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-09 03:10:07
+# @Last Modified time: 2020-09-25 00:52:56
 import datetime
 import random
 import string
@@ -60,9 +60,9 @@ class TestUser(unittest.TestCase):
 
         # Check the settings
         self.assertEquals(
-            user.settings.profile_pic,
+            user.settings.avatar.full_path,
             "/image/default.png",
-            msg="User settings profile_pic was not set to Default.png.",
+            msg="User settings avatar was not set to Default.png.",
         )
         self.assertEquals(
             user.settings.bio, None, msg="User settings bio was not set to None."
@@ -70,12 +70,13 @@ class TestUser(unittest.TestCase):
 
         # Change the settings
         user.edit_settings(
-            bio="User created with an automated test.", profile_pic="/image/looking.png"
+            bio="User created with an automated test.",
+            avatar=File("looking.png", "/image/"),
         )
         self.assertEquals(
-            user.settings.profile_pic,
+            user.settings.avatar.full_path,
             "/image/looking.png",
-            msg="User settings profile_pic was not set to the edited value.",
+            msg="User settings avatar was not set to the edited value.",
         )
         self.assertEquals(
             user.settings.bio,

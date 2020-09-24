@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 15:52:57
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-22 12:59:10
+# @Last Modified time: 2020-09-24 20:37:30
 
 import platform
 from collections import namedtuple
@@ -23,6 +23,7 @@ from .controllers.database import DatabaseController
 from .controllers.scrapers import DanBooruScraper, Scraper
 from .exceptions import *
 from .models import (
+    File,
     Post,
     PostData,
     PostFile,

@@ -2,23 +2,29 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 13:45:29
+# @Last Modified time: 2020-09-25 00:49:04
 import hashlib
 import os
+from datetime import datetime
 from urllib.request import urlopen
 
 from flask import abort, jsonify, request
-from flask import json
 from flask_login import current_user, login_required
-
 from OnaniCore import *
+from OnaniCore import __version__
 from OnaniCore.utils import (
     is_legal_password,
     is_safe_email,
     is_safe_username,
+    make_api_response,
 )
 
 from . import main_api, onaniDB
+
+
+@main_api.route("/", methods=["GET"])
+def api_index():
+    return jsonify({"version": __version__})
 
 
 @main_api.route("/users/<user_id>", methods=["GET"])
@@ -34,13 +40,17 @@ def view_profile(user_id):
     except OnaniDatabaseException:
         raise OnaniApiError("User was not found.", 404)
 
-    return jsonify(
+    return make_api_response(
         {
             "id": user.id,
             "username": user.username,
-            "created_at": user.created_at,
+            "created_at": datetime.timestamp(user.created_at),
             "permissions": user.permissions.value,
-            "settings": user.settings.to_dict(),
+            "profile": {
+                "avatar": user.settings.avatar.to_dict(),
+                "bio": user.settings.bio,
+                "platforms": user.settings.platforms.to_dict(),
+            },
         }
     )
 
@@ -84,14 +94,8 @@ def edit_profile():
         except ValueError:
             abort(400)
 
-        if not os.path.isdir("./OnaniFrontend/static/data/avatars/"):
-            os.makedirs("./OnaniFrontend/static/data/avatars/")
-        avatar_filename = f"./OnaniFrontend/static/data/avatars/{hashlib.md5(str(current_user.id).encode()).hexdigest()}.png"
-
-        with open(avatar_filename, "wb") as f:
-            f.write(data)
-
-        settings["profile_pic"] = avatar_filename.replace("./OnaniFrontend/static", "")
+        avatar_file = onaniDB.file_controller.save_avatar(data)
+        settings["avatar"] = avatar_file
 
     if request.json.get("bio"):
         if request.json["bio"] != current_user.settings.bio:

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 13:52:49
+# @Last Modified time: 2020-09-25 00:51:05
 
 from datetime import datetime, timedelta
 
@@ -12,6 +12,7 @@ from passlib.hash import argon2
 
 from ..exceptions import OnaniAuthenticationError
 from ..utils import setup_logger
+from .file import File
 
 log = setup_logger(__name__)
 
@@ -76,7 +77,13 @@ class UserSettings(object):
     def __init__(self, **kwargs):
         self.__dict__.update(
             {
-                "profile_pic": "/image/default.png",
+                "avatar": File(
+                    "default.png",
+                    "/image/",
+                    "22230440e7724ceb91804c4fd9e29a53",
+                    150,
+                    150,
+                ),
                 "bio": None,
                 "tag_blacklist": ["gore", "scat"],
                 "platforms": UserPlatforms(),
@@ -88,8 +95,10 @@ class UserSettings(object):
         self.__dict__.update(kwargs)
 
     def to_dict(self) -> dict:
+        print(self.avatar)
         _dict = dict(self.__dict__)
         _dict["platforms"] = self.platforms.to_dict()
+        _dict["avatar"] = self.avatar.to_dict()
         return _dict
 
     def __repr__(self):

@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 13:28:19
+# @Last Modified time: 2020-09-25 00:44:55
 
+from OnaniCore.models.file import File
 import random
 import re
 import secrets
@@ -29,6 +30,7 @@ from ..models import (
     UserSettings,
 )
 from ..utils import setup_logger
+from .files import FileController
 
 log = setup_logger(__name__)
 
@@ -38,7 +40,16 @@ class DatabaseController:
     Controller for the Onani Database
     """
 
-    __slots__ = ("client", "db", "posts", "tags", "users", "collections", "bans")
+    __slots__ = (
+        "bans",
+        "client",
+        "collections",
+        "db",
+        "file_controller",
+        "posts",
+        "tags",
+        "users",
+    )
 
     def __init__(self, mongo_uri: str = "mongodb://localhost:27017/"):
         # Connect to the mongoDB instance
@@ -54,6 +65,9 @@ class DatabaseController:
         self.tags.create_index("string")
         self.tags.create_index("aliases")
         self.users.create_index("username")
+
+        # Create a file controller for this DatabaseController Instance
+        self.file_controller = FileController()
 
     ## POSTS
     def add_post(self, filedata: PostFile, tags: List[Tag], data: PostData) -> Post:
@@ -255,6 +269,8 @@ class DatabaseController:
             user["settings"]["platforms"] = UserPlatforms(
                 **user["settings"]["platforms"]
             )
+            del user["settings"]["avatar"]["full_path"]
+            user["settings"]["avatar"] = File(**user["settings"]["avatar"])
 
         # Return our user
         return User(

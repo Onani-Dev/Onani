@@ -2,11 +2,16 @@
 # @Author: kapsikkum
 # @Date:   2020-08-15 23:31:53
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-08-20 14:07:29
+# @Last Modified time: 2020-09-25 00:48:44
 
 import hashlib
+import io
 import os
-from io import BytesIO
+
+from flask_login import current_user
+from PIL import Image
+
+from ..models import File
 
 
 class DownloadController(object):
@@ -15,25 +20,42 @@ class DownloadController(object):
 
 class FileController(object):
     """
-    File Controller for Onani (Might be temporary idk will need to make one for amazon s3 or something)
+    File Controller for Onani
     """
 
-    __slots__ = ("location", "DLController")
+    __slots__ = ("avatar_directory", "post_directory")
 
-    def __init__(self, location: str):
-        if not os.path.isdir(location):
-            raise ValueError("Path does not exist.")
-        self.location = location
+    def __init__(
+        self,
+        avatar_directory: str = "./OnaniFrontend/static/data/avatars/",
+        post_directory: str = "./OnaniFrontend/static/data/posts/",
+    ):
+        self.avatar_directory = avatar_directory
+        self.post_directory = post_directory
 
-    def save_file(self, filebytes: bytes, filename: str = None):
-        # TODO #15
-        with open(f"{location}/{filename}", "wb") as f:
-			f.write(filebytes)
+        if not os.path.isdir(avatar_directory):
+            os.makedirs(avatar_directory)
+        if not os.path.isdir(post_directory):
+            os.makedirs(post_directory)
 
-    # INTERNAL FUNCTIONS
-    def _get_md5(self, file: BytesIO):
-        hash_md5 = hashlib.md5()
-        with file as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        return hash_md5.hexdigest()
+    def save_avatar(self, filebytes: bytes) -> File:
+        filename = f"{hashlib.md5(str(current_user.id).encode()).hexdigest()}.png"
+        avatar_md5 = hashlib.md5(filebytes).hexdigest()
+
+        im = Image.open(io.BytesIO(filebytes))
+        width, height = im.size
+
+        with open(f"{self.avatar_directory}{filename}", "wb") as f:
+            f.write(filebytes)
+
+        return File(
+            filename,
+            self.avatar_directory.replace("./OnaniFrontend/static", ""),
+            avatar_md5,
+            width,
+            height,
+        )
+
+    # # INTERNAL FUNCTIONS
+    # def _get_md5(self, file_bytes: bytes) -> str:
+    #     return hashlib.md5(file_bytes).hexdigest()

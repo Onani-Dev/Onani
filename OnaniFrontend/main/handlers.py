@@ -2,11 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:10:42
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 15:05:51
+# @Last Modified time: 2020-09-24 21:39:27
 
-from flask import flash, jsonify, redirect, render_template, request
-from werkzeug.exceptions import HTTPException
+from flask import flash, redirect, render_template, request
 from OnaniCore import *
+from OnaniCore.utils import make_api_response
+from werkzeug.exceptions import HTTPException
+
 from . import main
 
 
@@ -16,7 +18,7 @@ def error_handler(e):
         code = 500
         if isinstance(e, HTTPException) or isinstance(e, OnaniApiError):
             code = e.code
-        return jsonify({"ok": False, "error": str(e)}), code
+        return make_api_response(error=str(e), code=code)
 
     if isinstance(e, HTTPException):
         if e.code == 401:

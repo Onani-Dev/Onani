@@ -2,12 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-17 22:18:32
+# @Last Modified time: 2020-09-24 21:38:01
 import html
 import logging
 import string
 
 import regex
+from flask import Response
+from ujson import dumps
 
 from .controllers.logger import EventLogger
 
@@ -15,7 +17,7 @@ from .controllers.logger import EventLogger
 def setup_logger(
     name, mongo_uri="mongodb://localhost:27017/", level: int = logging.INFO
 ) -> logging.Logger:
-    logdb = EventLogger("mongodb://localhost:27017/")
+    logdb = EventLogger(mongo_uri)
     logdb.setLevel(level)
     log = logging.getLogger(name)
     log.addHandler(logdb)
@@ -77,3 +79,12 @@ def is_legal_password(password: str):
             return False
 
     return True
+
+
+def make_api_response(data: dict = dict(), error: str = None, code: int = 200):
+    ok = True
+    if code in range(400, 600):
+        ok = False
+    data["ok"] = ok
+    data["error"] = error
+    return Response(dumps(data), mimetype="application/json"), code
