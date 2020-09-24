@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 00:51:05
+# @Last Modified time: 2020-09-25 00:59:41
 
 from datetime import datetime, timedelta
 
@@ -27,7 +27,7 @@ class UserPlatforms(object):
         "discord",
         "github",
         "patreon",
-        "paypal",
+        # "paypal",
         "pixiv",
         "twitter",
     )
@@ -38,7 +38,7 @@ class UserPlatforms(object):
         discord: str = None,
         github: str = None,
         patreon: str = None,
-        paypal: str = None,
+        # paypal: str = None,
         pixiv: str = None,
         twitter: str = None,
     ):
@@ -46,7 +46,7 @@ class UserPlatforms(object):
         self.discord = discord
         self.github = github
         self.patreon = patreon
-        self.paypal = paypal
+        # self.paypal = paypal
         self.pixiv = pixiv
         self.twitter = twitter
 

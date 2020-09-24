@@ -49,7 +49,8 @@
     {% if current_user.is_authenticated %}
     <div id="user-pfp-container">
       <div class="dropdown">
-        <img id="user-pfp" src="{{ current_user.settings.avatar }}?t={{ time.time()|int }}"
+        <img id="user-pfp"
+          src="{{ current_user.settings.avatar.full_path }}?hash={{ current_user.settings.avatar.hash }}"
           alt="{{ current_user.username }}">
         <div class="dropdown-content">
           <a href="/users/{{ current_user.id }}">Profile</a>

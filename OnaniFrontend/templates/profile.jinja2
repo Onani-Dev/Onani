@@ -17,7 +17,8 @@ style="right: -390px;"
   <div id="profile-info-container">
     <!-- PFP -->
     <div id="profile-picture-container">
-      <img src="{{ user.settings.avatar }}?t={{ time.time()|int }}" id="profile-picture-image"></a>
+      <img src="{{ user.settings.avatar.full_path }}?hash={{ user.settings.avatar.hash }}"
+        id="profile-picture-image"></a>
     </div>
     <!-- Username -->
     <h1 id="profile-username-header">{{ user.username }}</h1>
