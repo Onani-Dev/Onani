@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-24 01:29:22
+ * @Last Modified time: 2020-09-24 13:59:26
 */
 
 
@@ -596,7 +596,7 @@ div.settings-input-group input[type=email],
 div.settings-input-group input[type=password],
 div.settings-input-group input[type=file] {
   padding: 5px;
-  width: 50%;
+  width: 100%;
 }
 
 input.profile-settings-submit {

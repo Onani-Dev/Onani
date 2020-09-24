@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-24 02:29:56
+ * @Last Modified time: 2020-09-24 14:37:50
  */
 'use strict';
 
@@ -105,91 +105,51 @@ function SaveProfileSettings() {
 }
 
 function SavePlatformSettings() {
-  // let success = true;
+  let success = true;
+  let elements = [deviantartProfile, discordProfile, githubProfile, patreonProfile, pixivProfile, twitterProfile];
 
-  // if (success) {
-  fetch("/api/profile/edit", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      platforms: {
-        deviantart: deviantartProfile.value,
-        discord: discordProfile.value,
-        github: githubProfile.value,
-        patreon: patreonProfile.value,
-        pixiv: pixivProfile.value,
-        twitter: twitterProfile.value,
-      }
+  for (let el in elements) {
+    el = elements[el];
+    if (!el.checkValidity()) {
+      success = false;
+      alert(`${el.name} is invalid.`);
+      break;
+    }
+  }
+
+  if (success) {
+    fetch("/api/profile/edit", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        platforms: {
+          deviantart: deviantartProfile.value,
+          discord: discordProfile.value,
+          github: githubProfile.value,
+          patreon: patreonProfile.value,
+          pixiv: pixivProfile.value,
+          twitter: twitterProfile.value,
+        }
+      })
+    }).then(response => {
+      response.json().then(json => {
+        if (json.ok) {
+          formPlatformSettings.reset();
+          location.reload();
+        } else {
+          alert(json.error);
+        }
+      })
     })
-  }).then(response => {
-    response.json().then(json => {
-      if (json.ok) {
-        formPlatformSettings.reset();
-        location.reload();
-      } else {
-        alert(json.error);
-      }
-    })
-  })
-  // }
+  }
 }
 
 $('#profile-settings-profile-picture').on('change', function () { readFile(this); });
 
-twitterProfile.onkeyup = function () {
-  if (/\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g.test(twitterProfile.value) || twitterProfile.value == "") {
-    twitterProfile.setCustomValidity("");
-  } else {
-    twitterProfile.setCustomValidity("This is not a twitter profile link!");
-    twitterProfile.reportValidity();
-  }
-}
-
-pixivProfile.onkeyup = function () {
-  if (/\b((http[s]?:\/\/)?(www\.)?pixiv\.net\/[A-z]{1,}\/users\/[\d]{1,})\b/g.test(pixivProfile.value) || pixivProfile.value == "") {
-    pixivProfile.setCustomValidity("");
-  } else {
-    pixivProfile.setCustomValidity("This is not a Pixiv profile link!");
-    pixivProfile.reportValidity();
-  }
-}
-
-patreonProfile.onkeyup = function () {
-  if (/\b((http[s]?:\/\/)?(www\.)patreon\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g.test(patreonProfile.value) || patreonProfile.value == "") {
-    patreonProfile.setCustomValidity("");
-  } else {
-    patreonProfile.setCustomValidity("This is not a Patreon page link!");
-    patreonProfile.reportValidity();
-  }
-}
-
-deviantartProfile.onkeyup = function () {
-  if (/\b((http[s]?:\/\/)?(www\.)deviantart\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g.test(deviantartProfile.value) || deviantartProfile.value == "") {
-    deviantartProfile.setCustomValidity("");
-  } else {
-    deviantartProfile.setCustomValidity("This is not a DeviantArt profile link!");
-    deviantartProfile.reportValidity();
-  }
-}
-
-discordProfile.onkeyup = function () {
-  if (/\b([\w\d]{1,32}#[\d]{4,})\b/g.test(discordProfile.value) || discordProfile.value == "") {
-    discordProfile.setCustomValidity("");
-  } else {
-    discordProfile.setCustomValidity("This is not a valid discord username#tag!");
-    discordProfile.reportValidity();
-  }
-}
-
-
-// function validatePassword() {
-//   if (password.value != confirmPassword.value) {
-
-//   } else {
-//     confirmPassword.setCustomValidity('');
-//   }
-// }
-// password.onchange = validatePassword;
-// confirmPassword.onkeyup = validatePassword;
+// const twitterRegex = /\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g,
+//   pixivRegex = /\b((http[s]?:\/\/)?(www\.)?pixiv\.net\/[A-z]{1,}\/users\/[\d]{1,})\b/g,
+//   patreonRegex = /\b((http[s]?:\/\/)?(www\.)?patreon\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g,
+//   deviantartRegex = /\b((http[s]?:\/\/)?(www\.)?deviantart\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g,
+//   discordRegex = /\b([\w\d]{1,32}#[\d]{4,})\b/g;

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-23 11:30:36
+# @Last Modified time: 2020-09-24 13:52:49
 
 from datetime import datetime, timedelta
 
@@ -78,7 +78,7 @@ class UserSettings(object):
             {
                 "profile_pic": "/image/default.png",
                 "bio": None,
-                "tag_blacklist": [],
+                "tag_blacklist": ["gore", "scat"],
                 "platforms": UserPlatforms(),
             }
         )

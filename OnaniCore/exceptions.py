@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-15 17:19:32
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-17 20:31:23
+# @Last Modified time: 2020-09-24 13:36:40
 
 from .utils import setup_logger
 
@@ -33,7 +33,7 @@ class OnaniAuthenticationError(Exception):
 class OnaniApiError(Exception):
     def __init__(self, msg="", code=400):
         self.msg = msg
-        self.code = 400
+        self.code = code
 
     def __str__(self):
         return self.msg

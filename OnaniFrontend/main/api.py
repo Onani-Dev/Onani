@@ -2,12 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-23 12:11:01
+# @Last Modified time: 2020-09-24 13:45:29
 import hashlib
 import os
 from urllib.request import urlopen
 
 from flask import abort, jsonify, request
+from flask import json
 from flask_login import current_user, login_required
 
 from OnaniCore import *
@@ -17,7 +18,31 @@ from OnaniCore.utils import (
     is_safe_username,
 )
 
-from . import main_api
+from . import main_api, onaniDB
+
+
+@main_api.route("/users/<user_id>", methods=["GET"])
+@login_required
+def view_profile(user_id):
+    if not user_id.isdigit():
+        raise OnaniApiError("Invalid User ID.")
+
+    user_id = int(user_id)
+
+    try:
+        user = onaniDB.get_user(id=user_id)
+    except OnaniDatabaseException:
+        raise OnaniApiError("User was not found.", 404)
+
+    return jsonify(
+        {
+            "id": user.id,
+            "username": user.username,
+            "created_at": user.created_at,
+            "permissions": user.permissions.value,
+            "settings": user.settings.to_dict(),
+        }
+    )
 
 
 @main_api.route("/profile/edit", methods=["POST"])

@@ -25,26 +25,26 @@ style="right: -390px;"
     <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
     <!-- User Platforms -->
     {% if user.settings.platforms.twitter %}
-    <a href="{{ user.settings.platforms.twitter }}"><i class="fab fa-twitter fa-2x"></i></a>
+    <a href="{{ user.settings.platforms.twitter }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.pixiv %}
-    <a href="{{ user.settings.platforms.pixiv }}"><i class="icon-pixiv fa-2x"></i></a>
+    <a href="{{ user.settings.platforms.pixiv }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.patreon %}
-    <a href="{{ user.settings.platforms.patreon }}"><i class="fa fa-patreon fa-2x"></i></a>
+    <a href="{{ user.settings.platforms.patreon }}" target="_blank"><i class="fa fa-patreon fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.deviantart %}
-    <a href="{{ user.settings.platforms.deviantart }}"><i class="fab fa-deviantart fa-2x"></i></a>
+    <a href="{{ user.settings.platforms.deviantart }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.discord %}
     <a onclick="CopyText('{{ user.settings.platforms.discord }}')" style="cursor: pointer;"><i
         class="fa fa-discord fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.paypal %}
-    <a href="{{ user.settings.platforms.paypal }}"><i class="fab fa-paypal fa-2x"></i></a>
+    <a href="{{ user.settings.platforms.paypal }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
     {% endif %}
     {% if user.settings.platforms.github %}
-    <a href="{{ user.settings.platforms.github }}"><i class="fab fa-github fa-2x"></i></a>
+    <a href="{{ user.settings.platforms.github }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
     {% endif %}
   </div>
   <!-- Profile content container -->
@@ -159,27 +159,36 @@ style="right: -390px;"
               <label for="settings-github" style="display: none;">GitHub</label>
             </div>
             <div class="column">
-              <input type="text" name="settings-twitter" id="settings-twitter"
+              <input type="text" name="Twitter profile" id="settings-twitter"
                 value="{% if user.settings.platforms.twitter is not none %}{{ user.settings.platforms.twitter }}{% else %}{% endif %}"
-                placeholder="Twitter Profile Link">
+                placeholder="Twitter Profile Link"
+                pattern="\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
+                onkeyup="this.reportValidity();">
 
-              <input type="text" name="settings-pixiv" id="settings-pixiv"
+              <input type="text" name="Pixiv profile" id="settings-pixiv"
                 value="{% if user.settings.platforms.pixiv is not none %}{{ user.settings.platforms.pixiv }}{% else %}{% endif %}"
-                placeholder="Pixiv Profile Link">
+                placeholder="Pixiv Profile Link"
+                pattern="\b((http[s]?:\/\/)?(www\.)?pixiv\.net\/[A-z]{1,}\/users\/[\d]{1,})\b"
+                onkeyup="this.reportValidity();">
 
-              <input type="text" name="settings-patreon" id="settings-patreon"
+              <input type="text" name="Patreon Profile" id="settings-patreon"
                 value="{% if user.settings.platforms.patreon is not none %}{{ user.settings.platforms.patreon }}{% else %}{% endif %}"
-                placeholder="Patreon Profile Link">
+                placeholder="Patreon Profile Link"
+                pattern="\b((http[s]?:\/\/)?(www\.)?patreon\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
+                onkeyup="this.reportValidity();">
 
-              <input type="text" name="settings-deviantart" id="settings-deviantart"
+              <input type="text" name="DeviantArt Profile" id="settings-deviantart"
                 value="{% if user.settings.platforms.deviantart is not none %}{{ user.settings.platforms.deviantart }}{% else %}{% endif %}"
-                placeholder="DeviantArt Profile Link">
+                placeholder="DeviantArt Profile Link"
+                pattern="\b((http[s]?:\/\/)?(www\.)?deviantart\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
+                onkeyup="this.reportValidity();">
 
-              <input type="text" name="settings-discord" id="settings-discord"
+              <input type="text" name="Discord Username#Discriminator" id="settings-discord"
                 value="{% if user.settings.platforms.discord is not none %}{{ user.settings.platforms.discord }}{% else %}{% endif %}"
-                placeholder="Discord Username#Discriminator">
+                placeholder="Discord Username#Discriminator" pattern="\b([\w\d]{1,32}#[\d]{4,})\b"
+                onkeyup="this.reportValidity();">
 
-              <input type="text" name="settings-github" id="settings-github"
+              <input type="text" name="Github Profile" id="settings-github"
                 value="{% if user.settings.platforms.github is not none %}{{ user.settings.platforms.github }}{% else %}{% endif %}"
                 placeholder="Github Profile Link" style="display: none;">
             </div>

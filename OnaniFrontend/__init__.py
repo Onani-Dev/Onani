@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-18 21:05:32
+# @Last Modified time: 2020-09-24 13:39:11
 
 import datetime
 import os
@@ -21,6 +21,7 @@ def init_app():
     # Temporary secret key; Change to config generated one
     app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
     app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.config["JSON_SORT_KEYS"] = False
 
     app.jinja_env.globals.update(datetime=datetime, time=time)
 
