@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-21 17:08:04
+# @Last Modified time: 2020-09-25 13:09:19
 
 from flask import (
     abort,
@@ -31,21 +31,25 @@ def posts():
 @main.route("/collections/")
 @main.route("/collections/<collection_id>")
 def collections():
-    return "Sorry nothing"
+    return render_template(
+        "/index.jinja2", tags=onaniDB.get_tags(limit=25, sort="post_count"),
+    )
 
 
 @main.route("/users/")
 @main.route("/users/<user_id>")
 @login_required
 def users(user_id=None):
+    print(current_user.settings.avatar)
     if user_id is not None:
-        if user_id == current_user.id:
-            return current_user.username
-        try:
-            user_id = int(user_id)
-            user = onaniDB.get_user(id=user_id)
-        except:
-            abort(404)
+        if int(user_id) == current_user.id:
+            user = current_user
+        else:
+            try:
+                user_id = int(user_id)
+                user = onaniDB.get_user(id=user_id)
+            except:
+                abort(404)
         return render_template(
             "/profile.jinja2",
             user=user,
@@ -57,7 +61,9 @@ def users(user_id=None):
 @main.route("/upload/")
 @login_required
 def upload():
-    return "Sorry nothing"
+    return render_template(
+        "/index.jinja2", tags=onaniDB.get_tags(limit=25, sort="post_count"),
+    )
 
 
 # Easter eggs

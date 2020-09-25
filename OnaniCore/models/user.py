@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 00:59:41
+# @Last Modified time: 2020-09-25 14:05:58
 
 from datetime import datetime, timedelta
 
@@ -27,7 +27,6 @@ class UserPlatforms(object):
         "discord",
         "github",
         "patreon",
-        # "paypal",
         "pixiv",
         "twitter",
     )
@@ -38,7 +37,6 @@ class UserPlatforms(object):
         discord: str = None,
         github: str = None,
         patreon: str = None,
-        # paypal: str = None,
         pixiv: str = None,
         twitter: str = None,
     ):
@@ -46,7 +44,6 @@ class UserPlatforms(object):
         self.discord = discord
         self.github = github
         self.patreon = patreon
-        # self.paypal = paypal
         self.pixiv = pixiv
         self.twitter = twitter
 
@@ -81,8 +78,9 @@ class UserSettings(object):
                     "default.png",
                     "/image/",
                     "22230440e7724ceb91804c4fd9e29a53",
-                    150,
-                    150,
+                    800,
+                    800,
+                    19476,
                 ),
                 "bio": None,
                 "tag_blacklist": ["gore", "scat"],

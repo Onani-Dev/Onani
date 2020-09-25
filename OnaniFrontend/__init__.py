@@ -2,11 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 16:43:18
+# @Last Modified time: 2020-09-25 14:07:09
 
 import datetime
 import time
 
+import emoji
 from flask import Flask
 from flask_login import LoginManager
 from flask_socketio import SocketIO
@@ -22,9 +23,10 @@ def init_app():
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.config["JSON_SORT_KEYS"] = False
 
-    app.jinja_env.globals.update(datetime=datetime, time=time)
+    app.jinja_env.globals.update(datetime=datetime, time=time, emoji=emoji)
 
-    from .main import main as main_blueprint, main_api
+    from .main import main as main_blueprint
+    from .main import main_api
 
     app.register_blueprint(main_blueprint)
     app.register_blueprint(main_api, url_prefix="/api")
