@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 00:49:04
+# @Last Modified time: 2020-09-25 18:09:42
 import hashlib
 import os
 from datetime import datetime
@@ -24,7 +24,7 @@ from . import main_api, onaniDB
 
 @main_api.route("/", methods=["GET"])
 def api_index():
-    return jsonify({"version": __version__})
+    return make_api_response({"version": __version__})
 
 
 @main_api.route("/users/<user_id>", methods=["GET"])
@@ -94,7 +94,11 @@ def edit_profile():
         except ValueError:
             abort(400)
 
-        avatar_file = onaniDB.file_controller.save_avatar(data)
+        try:
+            avatar_file = onaniDB.file_controller.save_avatar(data)
+        except ValueError:
+            raise OnaniApiError("Image was not square, Width and height did not match.")
+
         settings["avatar"] = avatar_file
 
     if request.json.get("bio"):
@@ -110,7 +114,4 @@ def edit_profile():
     if len(settings) > 0:
         current_user.edit_settings(**settings)
 
-    return (
-        jsonify({"ok": True}),
-        200,
-    )
+    return make_api_response()

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-15 23:31:53
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 13:37:39
+# @Last Modified time: 2020-09-25 18:08:31
 
 import hashlib
 import io
@@ -47,6 +47,9 @@ class FileController(object):
         filename = f"{hashlib.md5(str(current_user.id).encode()).hexdigest()}.png"
 
         avatar_md5, filesize, width, height = self._get_file_data(file_data)
+
+        if width != height:
+            raise ValueError("Width and height does not match")
 
         with open(f"{self.avatar_directory}{filename}", "wb") as f:
             f.write(file_data)

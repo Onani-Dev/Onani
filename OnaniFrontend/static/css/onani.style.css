@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-24 13:59:26
+ * @Last Modified time: 2020-09-25 17:19:31
 */
 
 
@@ -12,6 +12,7 @@
   backface-visibility: hidden;
   color: red;
   font-family: 'Jost', sans-serif;
+  font-weight: 100;
   margin: 0;
   padding: 0;
   scrollbar-color: red black;

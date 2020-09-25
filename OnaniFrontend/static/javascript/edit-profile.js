@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-24 14:37:50
+ * @Last Modified time: 2020-09-25 17:13:31
  */
 'use strict';
 
@@ -40,10 +40,10 @@ function readFile(input) {
 
 $uploadCrop = $('#upload-image').croppie({
   viewport: {
-    width: 200,
-    height: 200,
-    type: 'square'
-  }
+    width: 220,
+    height: 220,
+    type: "square"
+  },
 });
 
 function SaveAccountSettings() {
