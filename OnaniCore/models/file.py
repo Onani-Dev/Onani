@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-24 20:29:37
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 12:57:42
+# @Last Modified time: 2020-09-27 14:35:14
 
 
 class File(object):
@@ -11,19 +11,21 @@ class File(object):
     """
 
     __slots__ = (
-        "filename",
         "directory",
+        "filename",
+        "filesize",
         "full_path",
         "hash",
-        "width",
         "height",
-        "filesize",
+        "thumbnail",
+        "width",
     )
 
     def __init__(
         self,
-        filename: str = None,
-        directory: str = None,
+        filename: str = "default.png",
+        directory: str = "/data/image/",
+        thumbnail: str = None,
         hash: str = None,
         width: int = None,
         height: int = None,
@@ -31,6 +33,7 @@ class File(object):
     ) -> None:
         self.directory = directory
         self.filename = filename
+        self.thumbnail = thumbnail
         self.full_path = directory + filename
         self.hash = hash
         self.width = width

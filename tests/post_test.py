@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-31 14:50:54
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-08-31 14:56:10
+# @Last Modified time: 2020-09-27 14:34:28
 import unittest
 
 from OnaniCore import *
@@ -14,9 +14,7 @@ class TestPost(unittest.TestCase):
         self.onaniDB = DatabaseController("mongodb://localhost:27017/")
 
     def test_creation(self):
-        post = self.onaniDB.add_post(
-            PostFile(None, None, None), [], PostData(self.onaniDB)
-        )
+        post = self.onaniDB.add_post(File(), [], PostData(self.onaniDB))
         self.assertIsInstance(post, Post, msg="Creation did not return a post object.")
 
 

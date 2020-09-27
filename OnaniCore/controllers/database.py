@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 00:44:55
+# @Last Modified time: 2020-09-27 14:50:43
 
 from OnaniCore.models.file import File
 import random
@@ -116,10 +116,14 @@ class DatabaseController:
 
         # Return post
         return Post(
-            self, post.get("_id"), post.get("file"), post.get("tags"), post.get("data"),
+            db=self,
+            post_id=post.get("_id"),
+            file_data=post.get("file"),
+            tags=post.get("tags"),
+            data=post.get("data"),
         )
 
-    def modify_post_file(self, file: PostFile):
+    def modify_post(self, post: Post, post_data: dict = None, tags: list = None):
         pass
 
     ## USERS
@@ -274,17 +278,17 @@ class DatabaseController:
 
         # Return our user
         return User(
-            self,
-            user.get("_id"),
-            user.get("username"),
-            user.get("email"),
-            UserPermissions(user.get("permissions")),
-            user.get("favourites") or list(),
-            UserSettings(**user.get("settings")),
-            user.get("api_key"),
-            user.get("created_at"),
-            user.get("is_active"),
-            user.get("pass_hash"),
+            db=self,
+            id=user.get("_id"),
+            username=user.get("username"),
+            email=user.get("email"),
+            permissions=UserPermissions(user.get("permissions")),
+            favourites=user.get("favourites") or list(),
+            settings=UserSettings(**user.get("settings")),
+            api_key=user.get("api_key"),
+            created_at=user.get("created_at"),
+            is_active=user.get("is_active"),
+            pass_hash=user.get("pass_hash"),
         )
 
     def modify_user(
@@ -544,6 +548,7 @@ class DatabaseController:
 
         # Create dict and insert
         tag_data = {
+            "_id": self.tags.count_documents({}) + 1,
             "string": tag_string,
             "type": tag_type.value,
             "aliases": aliases,
@@ -555,7 +560,7 @@ class DatabaseController:
         log.debug(
             f"Tag \"{tag_data.get('string')}\" inserted into Database with _id \"{insert.inserted_id}\""
         )
-        return self.get_tag(tag_data.get("string"))
+        return self.get_tag(tag_id=insert.inserted_id)
 
     def add_tag_alias(self, tag: Tag, alias: str) -> None:
         """```raw
@@ -568,7 +573,7 @@ class DatabaseController:
         # add an alias to a tag
         alias = self._parse_tag(alias)
         update = self.tags.update_one(
-            {"string": tag.string}, {"$addToSet": {"aliases": alias}}
+            {"_id": tag.id}, {"$addToSet": {"aliases": alias}}
         )
         if update.modified_count > 0:
             tag.aliases.append(alias)
@@ -576,41 +581,63 @@ class DatabaseController:
         else:
             log.debug("Alias was not added as it already exists.")
 
-    def get_tag(self, tag_string: str) -> Tag:
+    def get_tag(self, tag_id: int = None, tag_string: str = None) -> Tag:
         """```raw
-        Find a tag in the database with the provided name
+        Find a tag in the database with the provided name or ID
 
         Args:
-            tag_string (str): The string of the tag or alias to look for
+            tag_id (int, optional): The ID of the tag to look for. Defaults to None.
+            tag_string (str, optional): The string of the tag or alias to look for. Defaults to None.
 
         Raises:
+            ValueError: Nothing was supplied
             OnaniDatabaseException: No match found
 
         Returns:
             Tag: The found tag
         """
-        tag = self.tags.find_one(
-            {"string": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
-        )
-        if tag is None:
-            tag = self.tags.find_one(
-                {"aliases": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
-            )
-            if tag is None:
+        # Check if Tag ID is present
+        if tag_id:
+            # Find em
+            tag = self.tags.find_one({"_id": tag_id})
+            if not tag:
                 raise OnaniDatabaseException(
-                    f'No tag mathching the name "{tag_string}" could be found.'
+                    f"No tag mathching the ID {tag_id} could be found."
                 )
-        log.debug(f'Tag found with name "{tag_string}"')
+            log.debug(f'Tag found with ID "{tag_id}"')
+
+        # Check with tag string
+        elif tag_string:
+            tag = self.tags.find_one(
+                {"string": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+            )
+            if not tag:
+                # Maybe an alias?
+                tag = self.tags.find_one(
+                    {"aliases": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+                )
+                if not tag:
+                    # Not an alias. Doesn't exist
+                    raise OnaniDatabaseException(
+                        f'No tag mathching the name "{tag_string}" could be found.'
+                    )
+            log.debug(f'Tag found with name "{tag_string}"')
+
+        # Nothing.
+        else:
+            # You are a loser
+            raise ValueError("No argument was supplied.")
 
         # return our tag
         return Tag(
-            self,
-            tag.get("string"),
-            TagType(tag.get("type")),
-            tag.get("aliases"),
-            tag.get("description"),
-            tag.get("post_count"),
-            tag.get("popularity"),
+            db=self,
+            id=tag.get("_id"),
+            tag_string=tag.get("string"),
+            tag_type=TagType(tag.get("type")),
+            aliases=tag.get("aliases"),
+            description=tag.get("description"),
+            post_count=tag.get("post_count"),
+            popularity=tag.get("popularity"),
         )
 
     def get_tags(
@@ -620,6 +647,7 @@ class DatabaseController:
         sort: str = "_id",
         sort_direction: int = pymongo.DESCENDING,
         tag_strings: list = None,
+        tag_ids: list = None,
     ) -> List[Tag]:
         """```raw
         Find tags in the database with the provided regex or list of tag strings
@@ -630,19 +658,26 @@ class DatabaseController:
             sort (str, optional): The order to sort the tags by. Defaults to "_id".
             sort_direction (int, optional): The Direction to sort. Defaults to pymongo.DESCENDING.
             tag_strings (list, optional): l. Defaults to None.
+            tag_ids (list, optional): The tag IDs to find. Defaults to None.
 
         Returns:
             List[Tag]: List of Tag found tag objects
         """
+
+        # Check if list of tag IDs is present
+        if tag_ids:
+            # Find the tags with supplied IDs
+            found_tags = list(self.tags.find({"_id": {"$in": tag_ids}}))
+
         # Check if list of tag strings is present ( Limit ingored )
-        if tag_strings is not None:
+        elif tag_strings:
             # get all the tag strings.
             found_tags = list(self.tags.find({"string": {"$in": tag_strings}}))
             found_tags.extend(list(self.tags.find({"aliases": {"$in": tag_strings}})))
 
         else:
             # get tags with regex
-            if tag_regex is None:
+            if not tag_regex:
                 # Find all
                 found_tags = list(
                     self.tags.find().limit(limit).sort(sort, sort_direction)
@@ -654,6 +689,7 @@ class DatabaseController:
                     .limit(limit)
                     .sort(sort, sort_direction)
                 )
+                # Extend with aliases
                 found_tags.extend(
                     list(
                         self.tags.find(
@@ -667,13 +703,14 @@ class DatabaseController:
         # return a list of Tag objects
         return [
             Tag(
-                self,
-                x.get("string"),
-                TagType(x.get("type")),
-                x.get("aliases"),
-                x.get("description"),
-                x.get("post_count"),
-                x.get("popularity"),
+                db=self,
+                id=x.get("_id"),
+                tag_string=x.get("string"),
+                tag_type=TagType(x.get("type")),
+                aliases=x.get("aliases"),
+                description=x.get("description"),
+                post_count=x.get("post_count"),
+                popularity=x.get("popularity"),
             )
             for x in found_tags
         ]
@@ -686,9 +723,7 @@ class DatabaseController:
             tag (Tag): The tag to remove it from
             alias (str): The alias to remove
         """
-        update = self.tags.update_one(
-            {"string": tag.string}, {"$pull": {"aliases": alias}}
-        )
+        update = self.tags.update_one({"_id": tag.id}, {"$pull": {"aliases": alias}})
         if update.modified_count > 0:
             tag.aliases.remove(alias)
             log.debug(f'Alias removed for tag "{tag.string}"')
@@ -719,7 +754,7 @@ class DatabaseController:
         if tag_string is not None:
             tag_string = self._parse_tag(tag_string)
             self.tags.update_one(
-                {"string": tag.string}, {"$set": {"string": tag_string}},
+                {"_id": tag.id}, {"$set": {"string": tag_string}},
             )
             tag.string = tag_string
             log.debug(f'Tag name changed to "{tag.string}"')
@@ -727,7 +762,7 @@ class DatabaseController:
         # update type if present
         if tag_type is not None:
             self.tags.update_one(
-                {"string": tag.string}, {"$set": {"type": tag_type.value}},
+                {"_id": tag.id}, {"$set": {"type": tag_type.value}},
             )
             tag.type = tag_type
             log.debug(f'Type changed to "{tag_type.string}" for tag "{tag.string}"')
@@ -735,7 +770,7 @@ class DatabaseController:
         # update description if present
         if description is not None:
             self.tags.update_one(
-                {"string": tag.string}, {"$set": {"description": description}},
+                {"_id": tag.id}, {"$set": {"description": description}},
             )
             tag.description = description
             log.debug(f'Description changed for tag "{tag.string}"')
@@ -744,7 +779,7 @@ class DatabaseController:
         if post_count is not None:
             tag.post_count += post_count
             self.tags.update_one(
-                {"string": tag.string}, {"$set": {"post_count": tag.post_count}},
+                {"_id": tag.id}, {"$set": {"post_count": tag.post_count}},
             )
             log.debug(
                 f'Post count changed to value {tag.post_count} for tag "{tag.string}"'
@@ -754,7 +789,7 @@ class DatabaseController:
         if popularity is not None:
             tag.popularity += popularity
             self.tags.update_one(
-                {"string": tag.string}, {"$set": {"popularity": tag.popularity}},
+                {"_id": tag.id}, {"$set": {"popularity": tag.popularity}},
             )
             log.debug(
                 f'Popularity changed to value {tag.popularity} for tag "{tag.string}"'

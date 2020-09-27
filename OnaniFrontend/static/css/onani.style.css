@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-25 17:19:31
+ * @Last Modified time: 2020-09-26 18:16:01
 */
 
 
@@ -137,11 +137,14 @@ div.dropdown {
   color: red;
   display: inline-flex;
   font-size: 16px;
+  max-height: 50px;
+  max-width: 50px;
+  min-height: 50px;
+  min-width: 50px;
   text-align: center;
   text-decoration: none;
   vertical-align: middle;
 }
-
 
 /* Search box container */
 div#search-box {

@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 21:38:01
+# @Last Modified time: 2020-09-26 18:26:41
 import html
 import logging
 import string
+from typing import Tuple
 
 import regex
 from flask import Response
@@ -25,7 +26,7 @@ def setup_logger(
     return log
 
 
-def html_escape(string: str):
+def html_escape(string: str) -> str:
     """```raw
     Escape HTML to prevent XSS attacks
 
@@ -71,7 +72,7 @@ def is_safe_email(email: str) -> bool:
     return False
 
 
-def is_legal_password(password: str):
+def is_legal_password(password: str) -> bool:
     if len(password) < 4:
         return False
     for char in password:
@@ -81,7 +82,9 @@ def is_legal_password(password: str):
     return True
 
 
-def make_api_response(data: dict = dict(), error: str = None, code: int = 200):
+def make_api_response(
+    data: dict = dict(), error: str = None, code: int = 200
+) -> Tuple[Response, int]:
     ok = True
     if code in range(400, 600):
         ok = False

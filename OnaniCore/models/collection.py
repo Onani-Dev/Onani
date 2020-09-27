@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-22 01:03:56
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-09 13:01:52
+# @Last Modified time: 2020-09-27 12:38:40
 
 from datetime import datetime
 from typing import List
@@ -67,7 +67,7 @@ class Collection(object):
         self.status = status
         self.created_at = created_at.replace(tzinfo=tz.tzutc())
         self.creator = creator
-        self.rating
+        self.rating = rating
 
     def add_post(self, post: Post, index: int = None):
         if index is not None:

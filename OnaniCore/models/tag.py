@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-22 12:58:54
+# @Last Modified time: 2020-09-27 13:55:47
 
 from json import dumps
 
@@ -40,6 +40,7 @@ class Tag(object):
 
     __slots__ = (
         "_db",
+        "id",
         "aliases",
         "description",
         "popularity",
@@ -51,6 +52,7 @@ class Tag(object):
     def __init__(
         self,
         db,
+        id: int,
         tag_string: str,
         tag_type: TagType,
         aliases: list = list(),
@@ -59,6 +61,7 @@ class Tag(object):
         popularity: float = 0.0,
     ):
         self._db = db
+        self.id = id
         self.string = tag_string
         self.type = tag_type
         self.aliases = aliases

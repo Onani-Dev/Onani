@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-15 23:31:53
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 18:08:31
+# @Last Modified time: 2020-09-27 12:30:32
 
 import hashlib
 import io
@@ -55,12 +55,13 @@ class FileController(object):
             f.write(file_data)
 
         return File(
-            filename,
-            self.avatar_directory.replace("./OnaniFrontend/static", ""),
-            avatar_md5,
-            width,
-            height,
-            filesize,
+            filename=filename,
+            directory=self.avatar_directory.replace("./OnaniFrontend/static", ""),
+            thumbnail=None,
+            hash=avatar_md5,
+            width=width,
+            height=height,
+            filesize=filesize,
         )
 
     # INTERNAL FUNCTIONS

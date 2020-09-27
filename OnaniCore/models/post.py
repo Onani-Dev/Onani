@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-22 12:58:45
+# @Last Modified time: 2020-09-27 21:29:53
 
 from datetime import datetime
 from typing import List
@@ -10,8 +10,9 @@ from typing import List
 from aenum import Enum, MultiValue
 from dateutil import tz
 
-from ..utils import setup_logger
+from ..utils import html_escape, setup_logger
 from .commentary import Commentary
+from .file import File
 from .note import Note
 from .tag import Tag, TagType
 from .user import User
@@ -79,56 +80,131 @@ class PostData(object):
 
     __slots__ = (
         "_db",
-        "md5",
-        "uploaded_at",
-        "source",
-        "rating",
-        "status",
-        "uploader",
-        "height",
-        "width",
-        "filesize",
-        "score",
-        "favourites",
-        "commentary",
-        "notes",
+        "_uploaded_at",
+        "_source",
+        "_rating",
+        "_status",
+        "_uploader",
+        "_score",
+        "_favourites",
+        "_commentary",
+        "_notes",
     )
 
     def __init__(
         self,
         db,
-        md5: str = None,
         uploaded_at: datetime = datetime.utcnow(),
         source: str = None,
         rating: PostRating = PostRating.YELLOW,
         status: PostStatus = PostStatus.PENDING,
         uploader: User = None,
-        height: int = 0,
-        width: int = 0,
-        filesize: int = 0,
-        score: int = 0,
+        score: dict = {"likers": [], "dislikers": []},
         favourites: int = 0,
         commentary: Commentary = None,
         notes: List[Note] = list(),
     ):
         self._db = db
-        self.md5 = md5
-        self.uploaded_at = uploaded_at.replace(tzinfo=tz.tzutc())
-        self.source = source
-        self.rating = rating
-        self.status = status
-        self.uploader = uploader
-        self.height = height
-        self.width = width
-        self.filesize = filesize
-        self.score = score
-        self.favourites = favourites
-        self.commentary = commentary
-        self.notes = notes
+        self._uploaded_at = uploaded_at.replace(tzinfo=tz.tzutc())
+        self._source = source
+        self._rating = rating
+        self._status = status
+        self._uploader = uploader
+        self._score = score
+        self._favourites = favourites
+        self._commentary = commentary
+        self._notes = notes
+
+    # UPLOADED AT
+    @property
+    def uploaded_at(self) -> datetime:
+        return self._uploaded_at
+
+    @uploaded_at.setter
+    def uploaded_at(self, value: datetime) -> datetime:
+        # database stuff blah blah
+        self._uploaded_at = value.replace(tzinfo=tz.tzutc())
+        return self._uploaded_at
+
+    # SOURCE
+    @property
+    def source(self) -> str:
+        return self._source
+
+    @source.setter
+    def source(self, value: str) -> str:
+        # database stuff blah blah
+        self._source = html_escape(value)
+
+    # RATING
+    @property
+    def rating(self) -> int:
+        return self._rating
+
+    @rating.setter
+    def rating(self, value: PostRating) -> None:
+        # DATAAAAAAAAAAAAAAAAAAAAAAAAAA
+        self._rating = value
+
+    # STATUS
+    @property
+    def status(self) -> PostStatus:
+        return self._status
+
+    @status.setter
+    def status(self, value: PostStatus):
+        # Database shit
+        self._status = value
+
+    # UPLOADER
+    @property
+    def uploader(self) -> User:
+        return self._uploader
+
+    @uploader.setter
+    def uploader(self, value: User) -> None:
+        # :pensive:
+        self._uploader = value
+
+    # SCORE
+    @property
+    def score(self) -> int:
+        return self._score
+
+    @score.setter
+    def score(self, value: int):
+        self._score = value
+
+    # FAVOURITES
+    @property
+    def favourites(self) -> int:
+        return self._favourites
+
+    @favourites.setter
+    def favourites(self, value: int) -> None:
+        self._favourites = value
+
+    # Commentary
+    @property
+    def commentary(self) -> Commentary:
+        return self._commentary
+
+    @commentary.setter
+    def commentary(self, value: Commentary) -> None:
+        self._commentary = value
+
+    # NOTES
+    @property
+    def notes(self) -> Note:
+        return self._notes
+
+    @notes.setter
+    def notes(self, value: Note) -> None:
+        self._notes = value
 
     def to_dict(self) -> dict:
         d = dict()
-        for x in self.__slots__:
+        for x in [p for p in dir(self) if isinstance(getattr(self, p), property)]:
             if isinstance(getattr(self, x), (User, Commentary, Note)):
                 # object is able to be turned into a dict
                 d[x] = getattr(self, x).to_dict()
@@ -141,7 +217,7 @@ class PostData(object):
         return d
 
     def __repr__(self):
-        return f"<PostData(md5='{self.md5}', uploader='{self.uploader}')>"
+        return f"<PostData(status='{self.status}', uploader='{self.uploader}')>"
 
 
 class Post(object):
@@ -154,10 +230,14 @@ class Post(object):
     def __init__(self, db, post_id: int, file_data: dict, tags: list, data: dict):
         self._db = db
         self.id = post_id
-        self.file = PostFile(
-            file_data.get("filename"),
-            file_data.get("directory"),
-            file_data.get("thumbnail"),
+        self.file = File(
+            filename=file_data.get("filename"),
+            directory=file_data.get("directory"),
+            thumbnail=file_data.get("thumbnail"),
+            hash=file_data.get("hash"),
+            width=file_data.get("width"),
+            height=file_data.get("height"),
+            filesize=file_data.get("filesize"),
         )
         self.data = PostData(self._db, **data)
         self.tags = [

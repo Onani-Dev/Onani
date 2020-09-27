@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 13:09:19
+# @Last Modified time: 2020-09-26 23:31:03
 
 from flask import (
     abort,
@@ -40,7 +40,6 @@ def collections():
 @main.route("/users/<user_id>")
 @login_required
 def users(user_id=None):
-    print(current_user.settings.avatar)
     if user_id is not None:
         if int(user_id) == current_user.id:
             user = current_user

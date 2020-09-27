@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 14:05:58
+# @Last Modified time: 2020-09-26 23:31:05
 
 from datetime import datetime, timedelta
 
@@ -93,7 +93,6 @@ class UserSettings(object):
         self.__dict__.update(kwargs)
 
     def to_dict(self) -> dict:
-        print(self.avatar)
         _dict = dict(self.__dict__)
         _dict["platforms"] = self.platforms.to_dict()
         _dict["avatar"] = self.avatar.to_dict()

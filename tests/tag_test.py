@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-25 22:29:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-09 03:11:06
+# @Last Modified time: 2020-09-27 14:28:24
 import datetime
 import random
 import string
@@ -121,8 +121,8 @@ class TestTag(unittest.TestCase):
         tag.add_alias(alias)
 
         # Discover the tags
-        test1 = self.onaniDB.get_tag(alias)
-        test2 = self.onaniDB.get_tag(tag.string)
+        test1 = self.onaniDB.get_tag(tag_string=alias)
+        test2 = self.onaniDB.get_tag(tag_string=tag.string)
         self.assertIsNotNone(test1)
         self.assertEquals(test1.aliases[0], alias)
         self.assertIsNotNone(test2)

@@ -205,7 +205,11 @@ style="right: -390px;"
   <script src="/javascript/edit-profile.min.js"></script>
 </div>
 <script>
+  let bioText = document.getElementById("profile-bio-textarea");
   twemoji.parse(document.getElementById("profile-username-header"));
-  twemoji.parse(document.getElementById("profile-bio-textarea"));
+  twemoji.parse(bioText);
+  bioText.innerHTML = bioText.innerHTML.replace(customEmotes, (current) => {
+    return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji' draggable='false' alt='${current}'></img>`
+  });
 </script>
 {% endblock %}
