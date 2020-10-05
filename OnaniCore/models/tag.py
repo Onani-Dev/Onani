@@ -2,15 +2,32 @@
 # @Author: kapsikkum
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-27 13:55:47
+# @Last Modified time: 2020-10-05 19:48:45
 
+from collections import Iterable
 from json import dumps
+from typing import Union
 
 from aenum import Enum, MultiValue
 
-from ..utils import setup_logger
+from ..utils import *
 
 log = setup_logger(__name__)
+
+
+class AliasList(list):
+    """
+    Subclassed list object for tag aliases
+    """
+
+    def __init__(self, *args):
+        list.__init__(self, parse_tags(list(args)))
+
+    def append(self, value) -> None:
+        list.append(self, parse_tag(value))
+
+    def extend(self, values: Iterable) -> None:
+        list.extend(self, parse_tags(values))
 
 
 class TagType(Enum):
@@ -39,14 +56,14 @@ class Tag(object):
     """
 
     __slots__ = (
+        "_aliases",
         "_db",
-        "id",
-        "aliases",
-        "description",
-        "popularity",
-        "post_count",
-        "string",
-        "type",
+        "_description",
+        "_id",
+        "_name",
+        "_popularity",
+        "_post_count",
+        "_type",
     )
 
     def __init__(
@@ -55,49 +72,184 @@ class Tag(object):
         id: int,
         tag_string: str,
         tag_type: TagType,
-        aliases: list = list(),
+        aliases: AliasList = AliasList(),
         description: str = None,
         post_count: int = 0,
         popularity: float = 0.0,
     ):
         self._db = db
-        self.id = id
-        self.string = tag_string
-        self.type = tag_type
-        self.aliases = aliases
-        self.description = description
-        self.post_count = post_count
-        self.popularity = popularity
+        self._id = id
+        self._name = tag_string
+        self._type = tag_type
+        self._aliases = aliases
+        self._description = description
+        self._post_count = post_count
+        self._popularity = popularity
 
-    def edit_name(self, new_name: str) -> None:
-        self._db.modify_tag(self, tag_string=new_name)
+    # ID (Readonly)
+    @property
+    def id(self) -> int:
+        return self._id
 
-    def edit_type(self, new_type: TagType) -> None:
-        self._db.modify_tag(self, tag_type=new_type)
+    # NAME
+    @property
+    def name(self) -> str:
+        return self._name
 
+    @name.setter
+    def name(self, value: str) -> None:
+        # Check the type
+        if not isinstance(value, str):
+            # Wrong type!
+            raise TypeError("Wrong object type for name.")
+
+        # Parse the string
+        tag_string = parse_tag(value)
+
+        # Update document in mongodb
+        self._db.tags.update_one(
+            {"_id": self.id}, {"$set": {"string": tag_string}},
+        )
+
+        # Log to db
+        log.info(f'Tag {self.name}: name changed to "{tag_string}"')
+
+        # Set class name to updated name
+        self._name = tag_string
+
+    # TYPE
+    @property
+    def type(self) -> TagType:
+        return self._type
+
+    @type.setter
+    def type(self, value: TagType) -> None:
+        # Check type
+        if not isinstance(value, TagType):
+            # Wrong
+            raise TypeError("Wrong object type for type.")
+
+        # Update mongo doc
+        self._db.tags.update_one(
+            {"_id": self.id}, {"$set": {"type": value.value}},
+        )
+
+        # Log
+        log.info(f'Tag {self.name}: Type changed from "{self.type}" to "{value}"')
+
+        # Update class value
+        self._type = value
+
+    # ALIASES
+    @property
+    def aliases(self) -> list:
+        return self._aliases
+
+    # DESCRIPTION
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @description.setter
+    def description(self, value: str) -> None:
+        # Check the type
+        if not isinstance(value, str):
+            # Wrong type!
+            raise TypeError("Wrong object type for description.")
+
+        # Update document in mongodb
+        self._db.tags.update_one(
+            {"_id": self.id}, {"$set": {"description": value}},
+        )
+
+        # Log
+        log.info(
+            f'Tag {self.name}: Description changed from "{self.description}" to "{value}"'
+        )
+
+        # Update
+        self._description = value
+
+    # POST COUNT
+    @property
+    def post_count(self) -> int:
+        return self._post_count
+
+    @post_count.setter
+    def post_count(self, value: int) -> None:
+        # Check the type
+        if not isinstance(value, int):
+            # not int >:(
+            raise TypeError("Wrong object type for post_count.")
+
+        # Update doc
+        self._db.tags.update_one(
+            {"_id": self.id}, {"$set": {"post_count": value}},
+        )
+
+        # Log shit
+        log.info(
+            f'Tag {self.name}: Post Count changed from "{self.post_count}" to "{value}"'
+        )
+
+        # Update local
+        self._post_count = value
+
+    # POPULARITY
+    @property
+    def popularity(self) -> float:
+        return self._popularity
+
+    @popularity.setter
+    def popularity(self, value: Union[int, float]) -> None:
+        # Check the type
+        if not isinstance(value, (int, float)):
+            # not int or float
+            raise TypeError("Wrong object type for description.")
+
+        # Update
+        self._db.tags.update_one(
+            {"_id": self.id}, {"$set": {"popularity": value}},
+        )
+
+        # Log shit
+        log.info(
+            f'Tag {self.name}: Post Popularity changed from "{self.popularity}" to "{value}"'
+        )
+
+        # set local
+        self._popularity = value
+
+    # FUNCTIONS
     def ban(self) -> None:
-        self._db.modify_tag(self, tag_type=TagType.BANNED)
+        self.type = TagType.BANNED
 
     def unban(self, tag_type: TagType = TagType.GENERAL) -> None:
-        self._db.modify_tag(self, tag_type=tag_type)
-
-    def edit_description(self, description: str) -> None:
-        self._db.modify_tag(self, description=description)
+        self.type = tag_type
 
     def add_alias(self, alias: str) -> None:
-        self._db.add_tag_alias(self, alias)
+        alias = parse_tag(alias)
+        update = self._db.tags.update_one(
+            {"_id": self.id}, {"$addToSet": {"aliases": alias}}
+        )
+        if update.modified_count > 0:
+            self._aliases.append(alias)
+            log.debug(f'Alias added for tag "{self.name}"')
+        else:
+            log.debug("Alias was not added as it already exists.")
 
     def remove_alias(self, alias: str) -> None:
-        self._db.remove_tag_alias(self, alias)
+        update = self._db.tags.update_one(
+            {"_id": self.id}, {"$pull": {"aliases": alias}}
+        )
+        if update.modified_count > 0:
+            self._aliases.remove(alias)
+            log.debug(f'Alias removed for tag "{self.name}"')
+        else:
+            log.debug("Alias was not removed as it doesnt't exist.")
 
-    def modify_post_count(self, amount: int = 1) -> None:
-        self._db.modify_tag(self, post_count=amount)
+    def __str__(self) -> str:
+        return self.name
 
-    def modify_popularity(self, amount: float = 0.001) -> None:
-        self._db.modify_tag(self, popularity=amount)
-
-    def __str__(self):
-        return self.string
-
-    def __repr__(self):
-        return f"<Tag(string='{self.string}', type='{self.type}', aliases='{dumps(self.aliases)}')>"
+    def __repr__(self) -> str:
+        return f"<Tag(name='{self.name}', type='{self.type}', aliases='{dumps(self.aliases)}')>"

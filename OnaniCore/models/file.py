@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-24 20:29:37
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-27 14:35:14
+# @Last Modified time: 2020-09-29 17:44:53
 
 
 class File(object):
@@ -24,12 +24,12 @@ class File(object):
     def __init__(
         self,
         filename: str = "default.png",
-        directory: str = "/data/image/",
+        directory: str = "/image/",
         thumbnail: str = None,
-        hash: str = None,
-        width: int = None,
-        height: int = None,
-        filesize: int = None,
+        hash: str = "22230440e7724ceb91804c4fd9e29a53",
+        width: int = 800,
+        height: int = 800,
+        filesize: int = 19476,
     ) -> None:
         self.directory = directory
         self.filename = filename

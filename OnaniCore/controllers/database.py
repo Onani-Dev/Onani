@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-27 14:50:43
+# @Last Modified time: 2020-10-05 20:15:47
 
 from OnaniCore.models.file import File
 import random
@@ -123,7 +123,7 @@ class DatabaseController:
             data=post.get("data"),
         )
 
-    def modify_post(self, post: Post, post_data: dict = None, tags: list = None):
+    def edit_post(self, post: Post, post_data: dict = None, tags: list = None):
         pass
 
     ## USERS
@@ -291,7 +291,7 @@ class DatabaseController:
             pass_hash=user.get("pass_hash"),
         )
 
-    def modify_user(
+    def edit_user(
         self,
         user: User,
         username: str = None,
@@ -314,17 +314,6 @@ class DatabaseController:
         Raises:
             OnaniDatabaseException: Raised when modifying username, When the username already exists.
         """
-        # Edit username if present
-        if username is not None:
-            existing_user = self.users.find_one(
-                {"username": re.compile(fr"\b{username}\b", re.IGNORECASE)}
-            )
-            if existing_user is not None:
-                # We can't use this username.
-                raise OnaniDatabaseException("Username is taken.")
-            self.users.update_one({"_id": user.id}, {"$set": {"username": username}})
-            user.username = username
-
         # Edit email if present
         if email is not None:
             existing_user = self.users.find_one({"email": email})
@@ -332,7 +321,7 @@ class DatabaseController:
                 # We can't use this email.
                 raise OnaniDatabaseException("Email is in use.")
             self.users.update_one({"_id": user.id}, {"$set": {"email": email}})
-            user.email = email
+            user._email = email
 
         # Edit settings if present
         if settings is not None:
@@ -353,7 +342,7 @@ class DatabaseController:
             self.users.update_one(
                 {"_id": user.id}, {"$set": {"permissions": permissions.value}}
             )
-            user.permissions = permissions
+            user._permissions = permissions
 
         # Edit password if present
         if password is not None:
@@ -370,7 +359,7 @@ class DatabaseController:
         """
         api_key = self._create_api_key()
         self.users.update_one({"_id": user.id}, {"$set": {"api_key": api_key}})
-        user.api_key = api_key
+        user._api_key = api_key
 
     def add_user_favourite(self, user: User, post: Post) -> None:
         """```raw
@@ -562,25 +551,6 @@ class DatabaseController:
         )
         return self.get_tag(tag_id=insert.inserted_id)
 
-    def add_tag_alias(self, tag: Tag, alias: str) -> None:
-        """```raw
-        Add an alias for a tag
-
-        Args:
-            tag (Tag): The tag to add the alias to
-            alias (str): The alias string (Automatically stripped and whitespace replaced with _)
-        """
-        # add an alias to a tag
-        alias = self._parse_tag(alias)
-        update = self.tags.update_one(
-            {"_id": tag.id}, {"$addToSet": {"aliases": alias}}
-        )
-        if update.modified_count > 0:
-            tag.aliases.append(alias)
-            log.debug(f'Alias added for tag "{tag.string}"')
-        else:
-            log.debug("Alias was not added as it already exists.")
-
     def get_tag(self, tag_id: int = None, tag_string: str = None) -> Tag:
         """```raw
         Find a tag in the database with the provided name or ID
@@ -714,86 +684,6 @@ class DatabaseController:
             )
             for x in found_tags
         ]
-
-    def remove_tag_alias(self, tag: Tag, alias: str) -> None:
-        """```raw
-        Remove an alias from a tag
-
-        Args:
-            tag (Tag): The tag to remove it from
-            alias (str): The alias to remove
-        """
-        update = self.tags.update_one({"_id": tag.id}, {"$pull": {"aliases": alias}})
-        if update.modified_count > 0:
-            tag.aliases.remove(alias)
-            log.debug(f'Alias removed for tag "{tag.string}"')
-        else:
-            log.debug("Alias was not removed as it doesnt't exist.")
-
-    def modify_tag(
-        self,
-        tag: Tag,
-        tag_string: str = None,
-        tag_type: TagType = None,
-        description: str = None,
-        post_count: int = None,
-        popularity: float = None,
-    ) -> None:
-        """```raw
-        Modify a tag
-
-        Args:
-            tag (Tag): The tag to modify
-            tag_string (str, optional): The tag string to change to. Defaults to None.
-            tag_type (TagType, optional): The type of the tag. Defaults to None.
-            description (str, optional): The tag's description. Defaults to None.
-            post_count (int, optional): The tag's post count. Defaults to None.
-            popularity (float, optional): The tag's popularity. Defaults to None.
-        """
-        # Update string if present
-        if tag_string is not None:
-            tag_string = self._parse_tag(tag_string)
-            self.tags.update_one(
-                {"_id": tag.id}, {"$set": {"string": tag_string}},
-            )
-            tag.string = tag_string
-            log.debug(f'Tag name changed to "{tag.string}"')
-
-        # update type if present
-        if tag_type is not None:
-            self.tags.update_one(
-                {"_id": tag.id}, {"$set": {"type": tag_type.value}},
-            )
-            tag.type = tag_type
-            log.debug(f'Type changed to "{tag_type.string}" for tag "{tag.string}"')
-
-        # update description if present
-        if description is not None:
-            self.tags.update_one(
-                {"_id": tag.id}, {"$set": {"description": description}},
-            )
-            tag.description = description
-            log.debug(f'Description changed for tag "{tag.string}"')
-
-        # Update post count if present
-        if post_count is not None:
-            tag.post_count += post_count
-            self.tags.update_one(
-                {"_id": tag.id}, {"$set": {"post_count": tag.post_count}},
-            )
-            log.debug(
-                f'Post count changed to value {tag.post_count} for tag "{tag.string}"'
-            )
-
-        # Update popularity if present
-        if popularity is not None:
-            tag.popularity += popularity
-            self.tags.update_one(
-                {"_id": tag.id}, {"$set": {"popularity": tag.popularity}},
-            )
-            log.debug(
-                f'Popularity changed to value {tag.popularity} for tag "{tag.string}"'
-            )
 
     ## INTERNAL FUNCTIONS
 

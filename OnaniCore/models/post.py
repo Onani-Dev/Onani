@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-27 21:29:53
+# @Last Modified time: 2020-10-05 19:37:18
 
 from datetime import datetime
 from typing import List
@@ -78,42 +78,10 @@ class PostData(object):
     Data for Post objects
     """
 
-    __slots__ = (
-        "_db",
-        "_uploaded_at",
-        "_source",
-        "_rating",
-        "_status",
-        "_uploader",
-        "_score",
-        "_favourites",
-        "_commentary",
-        "_notes",
-    )
-
     def __init__(
-        self,
-        db,
-        uploaded_at: datetime = datetime.utcnow(),
-        source: str = None,
-        rating: PostRating = PostRating.YELLOW,
-        status: PostStatus = PostStatus.PENDING,
-        uploader: User = None,
-        score: dict = {"likers": [], "dislikers": []},
-        favourites: int = 0,
-        commentary: Commentary = None,
-        notes: List[Note] = list(),
+        self, db,
     ):
         self._db = db
-        self._uploaded_at = uploaded_at.replace(tzinfo=tz.tzutc())
-        self._source = source
-        self._rating = rating
-        self._status = status
-        self._uploader = uploader
-        self._score = score
-        self._favourites = favourites
-        self._commentary = commentary
-        self._notes = notes
 
     # UPLOADED AT
     @property
@@ -225,31 +193,118 @@ class Post(object):
     Onani Post Object
     """
 
-    __slots__ = ("_db", "id", "file", "tags", "data")
+    __slots__ = (
+        "_db",
+        "_id",
+        "_file",
+        "_tags",
+        "_uploaded_at",
+        "_source",
+        "_rating",
+        "_status",
+        "_uploader",
+        "_score",
+        "_favourites",
+        "_commentary",
+        "_notes",
+    )
 
-    def __init__(self, db, post_id: int, file_data: dict, tags: list, data: dict):
+    def __init__(
+        self,
+        db,
+        id: int,
+        file: dict,
+        tags: list,
+        uploaded_at: datetime = datetime.utcnow(),
+        source: str = None,
+        rating: PostRating = PostRating.YELLOW,
+        status: PostStatus = PostStatus.PENDING,
+        uploader: User = None,
+        score: dict = {"likers": [], "dislikers": []},
+        favourites: int = 0,
+        commentary: Commentary = None,
+        notes: List[Note] = list(),
+    ):
         self._db = db
-        self.id = post_id
-        self.file = File(
-            filename=file_data.get("filename"),
-            directory=file_data.get("directory"),
-            thumbnail=file_data.get("thumbnail"),
-            hash=file_data.get("hash"),
-            width=file_data.get("width"),
-            height=file_data.get("height"),
-            filesize=file_data.get("filesize"),
+        self._commentary = commentary
+        self._favourites = favourites
+        self._id = id
+        self._notes = notes
+        self._rating = rating
+        self._score = score
+        self._source = source
+        self._status = status
+        self._uploaded_at = uploaded_at.replace(tzinfo=tz.tzutc())
+        self._uploader = uploader
+        self._file = File(
+            filename=file.get("filename"),
+            directory=file.get("directory"),
+            thumbnail=file.get("thumbnail"),
+            hash=file.get("hash"),
+            width=file.get("width"),
+            height=file.get("height"),
+            filesize=file.get("filesize"),
         )
-        self.data = PostData(self._db, **data)
-        self.tags = [
+        self._tags = [
             Tag(
-                self._db,
-                x.get("string"),
-                TagType(x.get("type")),
-                x.get("aliases"),
-                x.get("description"),
+                db=self._db,
+                tag_string=x.get("string"),
+                tag_type=TagType(x.get("type", 1)),
+                aliases=x.get("aliases", list()),
+                description=x.get("description"),
+                post_count=x.get("post_count", 0),
+                popularity=x.get("popularity", 0.0),
             )
             for x in tags
         ]
+
+    @property
+    def commentary(self) -> Commentary:
+        return self._commentary
+
+    @property
+    def favourites(self) -> list:
+        return self._favourites
+
+    @property
+    def id(self) -> int:
+        return self._id
+
+    @property
+    def notes(self) -> List[Note]:
+        return self._notes
+
+    @property
+    def rating(self) -> PostRating:
+        return self._rating
+
+    @property
+    def score(self) -> dict:
+        return self._score
+
+    @property
+    def source(self) -> str:
+        return self._source
+
+    @property
+    def status(self) -> PostStatus:
+        return self._status
+
+    @property
+    def uploaded_at(self) -> datetime:
+        return self._uploaded_at
+
+    @property
+    def uploader(self) -> User:
+        return self._uploader
+
+    @property
+    def file(self) -> File:
+        return self._file
+
+    @property
+    def tags(self) -> List[Tag]:
+        return self._tags
 
     def add_tags(self, tags: List[Tag]):
         pass

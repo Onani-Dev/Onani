@@ -2,11 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-26 18:26:41
+# @Last Modified time: 2020-09-30 22:42:28
 import html
 import logging
+import random
+import secrets
 import string
-from typing import Tuple
+from typing import List, Tuple
 
 import regex
 from flask import Response
@@ -73,6 +75,15 @@ def is_safe_email(email: str) -> bool:
 
 
 def is_legal_password(password: str) -> bool:
+    """```raw
+    Check a password for legality
+
+    Args:
+        password (str): The password to check
+
+    Returns:
+        bool: if the password is legal or not
+    """
     if len(password) < 4:
         return False
     for char in password:
@@ -85,9 +96,64 @@ def is_legal_password(password: str) -> bool:
 def make_api_response(
     data: dict = dict(), error: str = None, code: int = 200
 ) -> Tuple[Response, int]:
+    """```raw
+    Make a response for the API
+
+    Args:
+        data (dict, optional): Python Dictionary to add to response. Defaults to dict().
+        error (str, optional): The error (If any). Defaults to None.
+        code (int, optional): The HTTP status code. Defaults to 200.
+
+    Returns:
+        Tuple[Response, int]: The Response and status code ready for flask
+    """
     ok = True
     if code in range(400, 600):
         ok = False
     data["ok"] = ok
     data["error"] = error
     return Response(dumps(data), mimetype="application/json"), code
+
+
+def parse_tag(tag: str) -> str:
+    """```raw
+    Parse a string to be a safe tag.
+
+    Args:
+        tag (str): The tag string to parse
+
+    Returns:
+        str: The safe tag
+    """
+    return html_escape(tag.strip().replace(" ", "_").lower())
+
+
+def parse_tags(tags: List[str]) -> List[str]:
+    """```raw
+    The same as parse_tag, but for lists of strings.
+
+    Args:
+        tags (List[str]): The list of tag strings
+
+    Returns:
+        List[str]: The parsed list of tag strings
+    """
+    tgs = set()
+    for tag in tags:
+        tgs.add(parse_tag(tag))
+    return list(tgs)
+
+
+def random_username() -> str:
+    return "User_" + "".join(
+        random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+        for _ in range(6)
+    )
+
+
+def create_api_key() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def sanitize(query: str) -> str:
+    return query.replace("function()", "")

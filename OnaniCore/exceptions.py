@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-15 17:19:32
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 13:36:40
+# @Last Modified time: 2020-10-05 19:57:10
 
 from .utils import setup_logger
 
@@ -16,7 +16,7 @@ class OnaniDatabaseException(Exception):
 
     def __init__(self, msg=""):
         self.msg = msg
-        log.error(msg)
+        log.debug(msg)
 
     def __str__(self):
         return self.msg
