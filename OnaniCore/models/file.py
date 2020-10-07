@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-24 20:29:37
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-29 17:44:53
+# @Last Modified time: 2020-10-07 21:34:30
 
 
 class File(object):
@@ -41,7 +41,7 @@ class File(object):
         self.filesize = filesize
 
     def to_dict(self) -> dict:
-        return {x: getattr(self, x) for x in self.__slots__}
+        return {x: getattr(self, x) for x in self.__slots__ if x != "full_path"}
 
     def __repr__(self) -> str:
         return str(self.to_dict())

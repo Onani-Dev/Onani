@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-25 18:09:42
+# @Last Modified time: 2020-10-07 21:59:13
 import hashlib
 import os
 from datetime import datetime
@@ -19,7 +19,7 @@ from OnaniCore.utils import (
     make_api_response,
 )
 
-from . import main_api, onaniDB
+from . import main, main_api, onaniDB
 
 
 @main_api.route("/", methods=["GET"])
@@ -66,12 +66,12 @@ def edit_profile():
     if request.json.get("username"):
         if not is_safe_username(request.json["username"]):
             raise OnaniApiError("Username has illegal characters.")
-        current_user.edit_username(html_escape(request.json["username"]))
+        current_user.username = html_escape(request.json["username"])
 
     if request.json.get("email"):
         if not is_safe_email(request.json["email"]):
             raise OnaniApiError("Invalid Email.")
-        current_user.edit_email(html_escape(request.json["email"]))
+        current_user.email = html_escape(request.json["email"])
 
     if request.json.get("new_password"):
         if request.json.get("new_password") != request.json.get("confirm_password"):
@@ -81,7 +81,7 @@ def edit_profile():
             raise OnaniApiError("Password has illegal characters")
 
         try:
-            current_user.edit_password(
+            current_user.change_password(
                 request.json.get("current_password"), request.json.get("new_password")
             )
         except OnaniAuthenticationError:

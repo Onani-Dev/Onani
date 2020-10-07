@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-05 20:15:47
+# @Last Modified time: 2020-10-07 22:00:22
 
 from OnaniCore.models.file import File
 import random
@@ -193,9 +193,13 @@ class DatabaseController:
 
         # insert the dict
         insert = self.users.insert_one(user_data)
-        log.debug(
-            f"""User \"{user_data.get("username")}\" inserted into Database with _id \"{insert.inserted_id}\""""
+
+        # Log to database
+        log.info(
+            f'User {user_data.get("username")} ({insert.inserted_id}): Account Created'
         )
+
+        # Return user object
         return self.get_user(id=insert.inserted_id)
 
     def get_user(
@@ -273,7 +277,6 @@ class DatabaseController:
             user["settings"]["platforms"] = UserPlatforms(
                 **user["settings"]["platforms"]
             )
-            del user["settings"]["avatar"]["full_path"]
             user["settings"]["avatar"] = File(**user["settings"]["avatar"])
 
         # Return our user
@@ -290,76 +293,6 @@ class DatabaseController:
             is_active=user.get("is_active"),
             pass_hash=user.get("pass_hash"),
         )
-
-    def edit_user(
-        self,
-        user: User,
-        username: str = None,
-        email: str = None,
-        settings: dict = None,
-        permissions: UserPermissions = None,
-        platforms: UserPlatforms = None,
-        password: str = None,
-    ) -> None:
-        """```raw
-        Modify a User object
-
-        Args:
-            user (User): The user to modify
-            username (str, optional): The username to change to. Defaults to None.
-            email (str, optional): The email to change to. Defaults to None.
-            settings (dict, optional): The settings to change. Defaults to None.
-            permissions (UserPermissions, optional): The UserPermissions to change to. Defaults to None.
-
-        Raises:
-            OnaniDatabaseException: Raised when modifying username, When the username already exists.
-        """
-        # Edit email if present
-        if email is not None:
-            existing_user = self.users.find_one({"email": email})
-            if existing_user is not None:
-                # We can't use this email.
-                raise OnaniDatabaseException("Email is in use.")
-            self.users.update_one({"_id": user.id}, {"$set": {"email": email}})
-            user._email = email
-
-        # Edit settings if present
-        if settings is not None:
-            user.settings.update(**settings)
-            self.users.update_one(
-                {"_id": user.id}, {"$set": {"settings": user.settings.to_dict()}}
-            )
-
-        # Edit platforms if present
-        if platforms is not None:
-            user.settings.platforms.set_values(**platforms)
-            self.users.update_one(
-                {"_id": user.id}, {"$set": {"settings": user.settings.to_dict()}}
-            )
-
-        # Edit permissions if present
-        if permissions is not None:
-            self.users.update_one(
-                {"_id": user.id}, {"$set": {"permissions": permissions.value}}
-            )
-            user._permissions = permissions
-
-        # Edit password if present
-        if password is not None:
-            pass_hash = argon2.using(rounds=6).hash(password)
-            self.users.update_one({"_id": user.id}, {"$set": {"pass_hash": pass_hash}})
-            user._pass_hash = pass_hash
-
-    def regen_user_api_key(self, user: User) -> None:
-        """```raw
-        Regen a user's API key
-
-        Args:
-            user (User): The user to regen the api key for
-        """
-        api_key = self._create_api_key()
-        self.users.update_one({"_id": user.id}, {"$set": {"api_key": api_key}})
-        user._api_key = api_key
 
     def add_user_favourite(self, user: User, post: Post) -> None:
         """```raw
@@ -440,9 +373,7 @@ class DatabaseController:
             {"username": user.username, "_id": user.id},
             {"$set": {"permissions": UserPermissions.BANNED.value}},
         )
-        log.info(
-            f"{user.username} (ID: {user.id}) has been banned with reason: {reason}."
-        )
+        log.info(f"User {user.username} ({user.id}): Banned with reason: {reason}.")
         user.permissions = UserPermissions.BANNED
 
     def remove_user_ban(self, user: User) -> None:

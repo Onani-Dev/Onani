@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-05 22:00:25
+# @Last Modified time: 2020-10-07 20:11:25
 
 import re
 from datetime import datetime, timedelta
@@ -13,10 +13,10 @@ from passlib.hash import argon2
 
 from ..exceptions import (
     OnaniAuthenticationError,
-    OnaniPermissionError,
     OnaniDatabaseException,
+    OnaniPermissionError,
 )
-from ..utils import setup_logger, is_safe_email
+from ..utils import create_api_key, is_safe_email, setup_logger
 from .file import File
 
 log = setup_logger(__name__)
@@ -266,7 +266,22 @@ class User(object):
 
     @permissions.setter
     def permissions(self, value: UserPermissions) -> None:
-        self._db.edit_user(self, permissions=value)
+        # Check typing
+        if not isinstance(value, UserPermissions):
+            raise ValueError("Value must be UserPermissions.")
+
+        # Set to database
+        self._db.users.update_one(
+            {"_id": self.id}, {"$set": {"permissions": value.value}}
+        )
+
+        # Add to log
+        log.info(
+            f'User {self.username} ({self.id}): User Permissions changed from "{self.permissions}" to "{value}"'
+        )
+
+        # set local
+        self._permissions = value
 
     # SETTINGS
     @property
@@ -327,18 +342,58 @@ class User(object):
         self._db.remove_user_ban(self)
 
     def change_password(self, old_password: str, new_password: str):
+        # Check if old password matches current
         if not self.try_auth(old_password):
             raise OnaniAuthenticationError("Incorrect Password.")
-        self._db.edit_user(self, password=new_password)
+
+        # Create the hash
+        pass_hash = argon2.using(rounds=6).hash(new_password)
+
+        # update user doc
+        self._db.users.update_one({"_id": self.id}, {"$set": {"pass_hash": pass_hash}})
+
+        # Update local
+        self._pass_hash = pass_hash
+
+        # log
+        log.info(f"User {self.username} ({self.id}): Password changed.")
 
     def edit_settings(self, **kwargs) -> None:
-        self._db.edit_user(self, settings=kwargs)
+        # Update local dict
+        self._settings.update(**kwargs)
+
+        # Edit dict in database
+        self._db.users.update_one(
+            {"_id": self.id}, {"$set": {"settings": self.settings.to_dict()}}
+        )
+
+        # log
+        log.info(f"User {self.username} ({self.id}): Settings changed.")
 
     def edit_platforms(self, **kwargs) -> None:
-        self._db.edit_user(self, platforms=kwargs)
+        # Update local values
+        self._settings.platforms.set_values(**kwargs)
+
+        # Update object in database
+        self._db.users.update_one(
+            {"_id": self.id}, {"$set": {"settings": self.settings.to_dict()}}
+        )
+
+        # log
+        log.info(f"User {self.username} ({self.id}): Platforms changed.")
 
     def regen_api_key(self) -> None:
-        self._db.regen_user_api_key(self)
+        # Create new key
+        api_key = create_api_key()
+
+        # Update in database
+        self._db.users.update_one({"_id": self.id}, {"$set": {"api_key": api_key}})
+
+        # Set local
+        self._api_key = api_key
+
+        # log
+        log.info(f"User {self.username} ({self.id}): API Key regenerated.")
 
     def authenticate(self, password: str) -> bool:
         if not password:
