@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-07 20:11:25
+# @Last Modified time: 2020-10-09 01:19:01
 
 import re
 from datetime import datetime, timedelta
@@ -56,7 +56,7 @@ class UserPlatforms(object):
         return {x: getattr(self, x) for x in self.__slots__}
 
     def __repr__(self):
-        return self.to_dict()
+        return str(self.to_dict())
 
     def set_values(self, **kwargs) -> None:
         for key in kwargs:
@@ -98,7 +98,7 @@ class UserSettings(object):
         return _dict
 
     def __repr__(self):
-        return self.to_dict()
+        return str(self.to_dict())
 
 
 class UserPermissions(Enum):
@@ -368,7 +368,7 @@ class User(object):
         )
 
         # log
-        log.info(f"User {self.username} ({self.id}): Settings changed.")
+        log.debug(f"User {self.username} ({self.id}): Settings changed.")
 
     def edit_platforms(self, **kwargs) -> None:
         # Update local values
@@ -380,7 +380,7 @@ class User(object):
         )
 
         # log
-        log.info(f"User {self.username} ({self.id}): Platforms changed.")
+        log.debug(f"User {self.username} ({self.id}): Platforms changed.")
 
     def regen_api_key(self) -> None:
         # Create new key

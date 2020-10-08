@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 15:52:57
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-24 20:37:30
+# @Last Modified time: 2020-10-09 01:07:34
 
 import platform
 from collections import namedtuple
@@ -26,7 +26,6 @@ from .models import (
     File,
     Post,
     PostData,
-    PostFile,
     PostRating,
     PostStatus,
     Tag,

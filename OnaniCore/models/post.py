@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-05 19:37:18
+# @Last Modified time: 2020-10-09 01:16:42
 
 from datetime import datetime
 from typing import List
@@ -50,142 +50,6 @@ class PostStatus(Enum):
 
     def __int__(self):
         return self.value
-
-
-class PostFile(object):
-    """
-    Post File object (May need to change slightly for AWS S3)
-    """
-
-    __slots__ = ("filename", "directory", "thumbnail")
-
-    def __init__(
-        self, filename: str = None, directory: str = None, thumbnail: str = None
-    ):
-        self.filename = filename
-        self.directory = directory
-        self.thumbnail = thumbnail
-
-    def to_dict(self) -> dict:
-        return {x: getattr(self, x) for x in self.__slots__}
-
-    def __repr__(self):
-        return f"<PostFile(directory='{self.directory}', filename='{self.filename}')>"
-
-
-class PostData(object):
-    """
-    Data for Post objects
-    """
-
-    def __init__(
-        self, db,
-    ):
-        self._db = db
-
-    # UPLOADED AT
-    @property
-    def uploaded_at(self) -> datetime:
-        return self._uploaded_at
-
-    @uploaded_at.setter
-    def uploaded_at(self, value: datetime) -> datetime:
-        # database stuff blah blah
-        self._uploaded_at = value.replace(tzinfo=tz.tzutc())
-        return self._uploaded_at
-
-    # SOURCE
-    @property
-    def source(self) -> str:
-        return self._source
-
-    @source.setter
-    def source(self, value: str) -> str:
-        # database stuff blah blah
-        self._source = html_escape(value)
-
-    # RATING
-    @property
-    def rating(self) -> int:
-        return self._rating
-
-    @rating.setter
-    def rating(self, value: PostRating) -> None:
-        # DATAAAAAAAAAAAAAAAAAAAAAAAAAA
-        self._rating = value
-
-    # STATUS
-    @property
-    def status(self) -> PostStatus:
-        return self._status
-
-    @status.setter
-    def status(self, value: PostStatus):
-        # Database shit
-        self._status = value
-
-    # UPLOADER
-    @property
-    def uploader(self) -> User:
-        return self._uploader
-
-    @uploader.setter
-    def uploader(self, value: User) -> None:
-        # :pensive:
-        self._uploader = value
-
-    # SCORE
-    @property
-    def score(self) -> int:
-        return self._score
-
-    @score.setter
-    def score(self, value: int):
-        self._score = value
-
-    # FAVOURITES
-    @property
-    def favourites(self) -> int:
-        return self._favourites
-
-    @favourites.setter
-    def favourites(self, value: int) -> None:
-        self._favourites = value
-
-    # Commentary
-    @property
-    def commentary(self) -> Commentary:
-        return self._commentary
-
-    @commentary.setter
-    def commentary(self, value: Commentary) -> None:
-        self._commentary = value
-
-    # NOTES
-    @property
-    def notes(self) -> Note:
-        return self._notes
-
-    @notes.setter
-    def notes(self, value: Note) -> None:
-        self._notes = value
-
-    def to_dict(self) -> dict:
-        d = dict()
-        for x in [p for p in dir(self) if isinstance(getattr(self, p), property)]:
-            if isinstance(getattr(self, x), (User, Commentary, Note)):
-                # object is able to be turned into a dict
-                d[x] = getattr(self, x).to_dict()
-            elif isinstance(getattr(self, x), (PostRating, PostStatus)):
-                # object is able to be turned into an int
-                d[x] = getattr(self, x).value
-            elif x != "_db":
-                # object is fine in raw form
-                d[x] = getattr(self, x)
-        return d
-
-    def __repr__(self):
-        return f"<PostData(status='{self.status}', uploader='{self.uploader}')>"
 
 
 class Post(object):
@@ -313,5 +177,21 @@ class Post(object):
         # add stuff for adding tags here
         pass
 
+    def to_dict(self) -> dict:
+        return {
+            "commentary": self.commentary.to_dict(),
+            "favourites": self.favourites,
+            "id": self.id,
+            "notes": [note.to_dict() for note in self.notes],
+            "rating": self.rating.value,
+            "score": self.score,
+            "source": self.source,
+            "status": self.status.value,
+            "uploaded_at": self.uploaded_at,
+            "uploader": self.uploader.id,
+            "file": self.file.to_dict(),
+            "tags": [tag.id for tag in self.tags],
+        }
+
     def __repr__(self):
-        return f"<Post(id={self.id}, file='{self.file}')>"
+        return f"<Post(id={self.id}, file='{self.file}' status='{self.status}', uploader='{self.uploader}')>"

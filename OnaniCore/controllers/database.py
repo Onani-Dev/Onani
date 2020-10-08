@@ -21,7 +21,6 @@ from ..models import (
     Ban,
     Post,
     PostData,
-    PostFile,
     Tag,
     TagType,
     User,
@@ -70,12 +69,12 @@ class DatabaseController:
         self.file_controller = FileController()
 
     ## POSTS
-    def add_post(self, filedata: PostFile, tags: List[Tag], data: PostData) -> Post:
+    def add_post(self, filedata: File, tags: List[Tag], data: PostData) -> Post:
         """```raw
         Add a post to the database
 
         Args:
-            filedata (PostFile): The Post File
+            filedata (File): The Post File
             tags (List[Tag]): The list of Tag objects for this post
             data (PostData): The post data
 
