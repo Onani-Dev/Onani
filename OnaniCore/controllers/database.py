@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-09 01:26:27
+# @Last Modified time: 2020-10-09 01:27:48
 
 from OnaniCore.models.file import File
 import random
@@ -68,62 +68,59 @@ class DatabaseController:
         # Create a file controller for this DatabaseController Instance
         self.file_controller = FileController()
 
-    ## POSTS
-    def add_post(self, filedata: File, tags: List[Tag], data: dict) -> Post:
-        """```raw
-        Add a post to the database
+    # ## POSTS
+    # def add_post(self, filedata: File, tags: List[Tag], data: dict) -> Post:
+    #     """```raw
+    #     Add a post to the database
 
-        Args:
-            filedata (File): The Post File
-            tags (List[Tag]): The list of Tag objects for this post
-            data (dict): The post data
+    #     Args:
+    #         filedata (File): The Post File
+    #         tags (List[Tag]): The list of Tag objects for this post
+    #         data (dict): The post data
 
-        Returns:
-            Post: The Post method
-        """
-        post_data = {
-            "_id": self.posts.count_documents({}) + 1,
-            "file": filedata.to_dict(),
-            "tags": tags,
-            "data": data,
-        }
-        insert = self.posts.insert_one(post_data)
-        log.debug(f"""Inserted post {insert.inserted_id}""")
+    #     Returns:
+    #         Post: The Post method
+    #     """
+    #     post_data = {
+    #         "_id": self.posts.count_documents({}) + 1,
+    #         "file": filedata.to_dict(),
+    #         "tags": tags,
+    #         "data": data,
+    #     }
+    #     insert = self.posts.insert_one(post_data)
+    #     log.debug(f"""Inserted post {insert.inserted_id}""")
 
-        # get post and return
-        return self.get_post(insert.inserted_id)
+    #     # get post and return
+    #     return self.get_post(insert.inserted_id)
 
-    def get_post(self, id: int) -> Post:
-        """```raw
-        Get a post from the database
+    # def get_post(self, id: int) -> Post:
+    #     """```raw
+    #     Get a post from the database
 
-        Args:
-            id (int): The posts ID
+    #     Args:
+    #         id (int): The posts ID
 
-        Raises:
-            OnaniDatabaseException: The ID was not found in the database
+    #     Raises:
+    #         OnaniDatabaseException: The ID was not found in the database
 
-        Returns:
-            Post: The found post
-        """
-        post = self.posts.find_one({"_id": id})
-        if post is None:
-            # no post found
-            raise OnaniDatabaseException(
-                "The specified ID could not be found in the database."
-            )
+    #     Returns:
+    #         Post: The found post
+    #     """
+    #     post = self.posts.find_one({"_id": id})
+    #     if post is None:
+    #         # no post found
+    #         raise OnaniDatabaseException(
+    #             "The specified ID could not be found in the database."
+    #         )
 
-        # Return post
-        return Post(
-            db=self,
-            post_id=post.get("_id"),
-            file_data=post.get("file"),
-            tags=post.get("tags"),
-            data=post.get("data"),
-        )
-
-    def edit_post(self, post: Post, post_data: dict = None, tags: list = None):
-        pass
+    #     # Return post
+    #     return Post(
+    #         db=self,
+    #         post_id=post.get("_id"),
+    #         file_data=post.get("file"),
+    #         tags=post.get("tags"),
+    #         data=post.get("data"),
+    #     )
 
     ## USERS
     def add_user(
