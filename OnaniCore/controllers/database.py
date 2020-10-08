@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-07 22:00:22
+# @Last Modified time: 2020-10-09 01:26:27
 
 from OnaniCore.models.file import File
 import random
@@ -20,7 +20,7 @@ from ..exceptions import OnaniAuthenticationError, OnaniDatabaseException
 from ..models import (
     Ban,
     Post,
-    PostData,
+    File,
     Tag,
     TagType,
     User,
@@ -69,14 +69,14 @@ class DatabaseController:
         self.file_controller = FileController()
 
     ## POSTS
-    def add_post(self, filedata: File, tags: List[Tag], data: PostData) -> Post:
+    def add_post(self, filedata: File, tags: List[Tag], data: dict) -> Post:
         """```raw
         Add a post to the database
 
         Args:
             filedata (File): The Post File
             tags (List[Tag]): The list of Tag objects for this post
-            data (PostData): The post data
+            data (dict): The post data
 
         Returns:
             Post: The Post method
@@ -85,7 +85,7 @@ class DatabaseController:
             "_id": self.posts.count_documents({}) + 1,
             "file": filedata.to_dict(),
             "tags": tags,
-            "data": data.to_dict(),
+            "data": data,
         }
         insert = self.posts.insert_one(post_data)
         log.debug(f"""Inserted post {insert.inserted_id}""")
