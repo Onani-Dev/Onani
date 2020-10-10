@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-15 23:31:53
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-27 12:30:32
+# @Last Modified time: 2020-10-11 02:01:08
 
 import hashlib
 import io
@@ -46,7 +46,7 @@ class FileController(object):
     def save_avatar(self, file_data: bytes) -> File:
         filename = f"{hashlib.md5(str(current_user.id).encode()).hexdigest()}.png"
 
-        avatar_md5, filesize, width, height = self._get_file_data(file_data)
+        avatar_md5, filesize, width, height, thumbnail = self._get_file_data(file_data)
 
         if width != height:
             raise ValueError("Width and height does not match")
@@ -57,20 +57,40 @@ class FileController(object):
         return File(
             filename=filename,
             directory=self.avatar_directory.replace("./OnaniFrontend/static", ""),
-            thumbnail=None,
+            thumbnail=thumbnail,
             hash=avatar_md5,
             width=width,
             height=height,
             filesize=filesize,
         )
 
-    # INTERNAL FUNCTIONS
-    def _get_file_data(self, file_data: bytes) -> tuple:
-        # Hashlib md5 object thing for creating MD5 hash
-        hash_md5 = hashlib.md5()
+    def save_file(self, file_data: bytes, file_type: str) -> File:
+        post_md5, filesize, width, height, thumbnail = self._get_file_data(
+            file_data, make_thumbnail=True
+        )
 
+        filename = f"{post_md5}.{file_type}"
+
+        with open(f"{self.post_directory}{filename}", "wb") as f:
+            f.write(file_data)
+
+        return File(
+            filename=filename,
+            directory=self.post_directory.replace("./OnaniFrontend/static", ""),
+            thumbnail=thumbnail.replace("./OnaniFrontend/static", ""),
+            hash=post_md5,
+            width=width,
+            height=height,
+            filesize=filesize,
+        )
+
+    # INTERNAL FUNCTIONS
+    def _get_file_data(self, file_data: bytes, make_thumbnail: bool = False) -> tuple:
         # The File-Like image object
         image_file = io.BytesIO(file_data)
+
+        # Get MD5 hash
+        hash_md5 = hashlib.md5(image_file.getbuffer()).hexdigest()
 
         # Get filesize
         filesize = sys.getsizeof(file_data)
@@ -82,10 +102,15 @@ class FileController(object):
         im = Image.open(image_file)
         width, height = im.size
 
-        # Get MD5
-        with image_file as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
+        # Create Thumbnail if true
+        thumbnail = None
+        if make_thumbnail:
+            im.thumbnail((350, 350), Image.ANTIALIAS)
+
+        # Save the thumbnail
+        if make_thumbnail:
+            thumbnail = f"{self.thumb_directory}{hash_md5}.jpeg"
+            im.convert("RGB").save(thumbnail, format="JPEG")
 
         # Return everything
-        return hash_md5.hexdigest(), filesize, width, height
+        return hash_md5, filesize, width, height, thumbnail

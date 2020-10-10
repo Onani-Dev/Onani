@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 15:52:57
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-09 01:24:28
+# @Last Modified time: 2020-10-11 01:32:39
 
 import platform
 from collections import namedtuple
@@ -11,8 +11,8 @@ import requests
 
 
 # Our version info
-VersionInfo = namedtuple("VersionInfo", "major minor patch type")
-__version_info__ = VersionInfo(major=1, minor=0, patch=0, type="dev")
+VersionInfo = namedtuple("VersionInfo", ["major", "minor", "patch", "release"])
+__version_info__ = VersionInfo(major=1, minor=0, patch=0, release="development")
 __version__ = ".".join(map(str, __version_info__))
 
 # Our user agent

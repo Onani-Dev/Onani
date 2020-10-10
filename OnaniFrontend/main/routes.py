@@ -2,7 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-26 23:31:03
+# @Last Modified time: 2020-10-11 03:26:49
+
 
 from flask import (
     abort,
@@ -13,8 +14,8 @@ from flask import (
     request,
     send_from_directory,
 )
+from flask.helpers import url_for
 from flask_login import current_user, login_required
-
 from OnaniCore import *
 
 from . import main, onaniDB
@@ -24,7 +25,9 @@ from . import main, onaniDB
 @main.route("/posts/")
 def posts():
     return render_template(
-        "/index.jinja2", tags=onaniDB.get_tags(limit=25, sort="post_count"),
+        "/index.jinja2",
+        tags=onaniDB.get_tags(limit=25, sort="post_count"),
+        posts=onaniDB.get_posts(),
     )
 
 
@@ -34,6 +37,12 @@ def collections():
     return render_template(
         "/index.jinja2", tags=onaniDB.get_tags(limit=25, sort="post_count"),
     )
+
+
+@main.route("/post/<post_id>")
+def post_route(post_id):
+    post = onaniDB.get_post(int(post_id))
+    return redirect(post.file.full_path)
 
 
 @main.route("/users/")

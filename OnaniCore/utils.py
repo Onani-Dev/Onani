@@ -2,17 +2,18 @@
 # @Author: kapsikkum
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-30 22:42:28
+# @Last Modified time: 2020-10-11 02:35:51
 import html
 import logging
 import random
 import secrets
 import string
+from datetime import datetime
 from typing import List, Tuple
 
 import regex
 from flask import Response
-from ujson import dumps
+from json import dumps
 
 from .controllers.logger import EventLogger
 
@@ -26,6 +27,14 @@ def setup_logger(
     log.addHandler(logdb)
     log.setLevel(level)
     return log
+
+
+def json_object_serialize(o):
+    if isinstance(o, datetime):
+        return o.timestamp()
+
+    if "to_dict" in dir(o):
+        return o.to_dict()
 
 
 def html_escape(string: str) -> str:
@@ -112,7 +121,12 @@ def make_api_response(
         ok = False
     data["ok"] = ok
     data["error"] = error
-    return Response(dumps(data), mimetype="application/json"), code
+    return (
+        Response(
+            dumps(data, default=json_object_serialize), mimetype="application/json"
+        ),
+        code,
+    )
 
 
 def parse_tag(tag: str) -> str:
@@ -157,3 +171,4 @@ def create_api_key() -> str:
 
 def sanitize(query: str) -> str:
     return query.replace("function()", "")
+

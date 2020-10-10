@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-26 18:16:01
+ * @Last Modified time: 2020-10-11 03:18:44
 */
 
 
@@ -657,6 +657,36 @@ code {
   color: rgb(219, 92, 92);
   padding: 0px 5px 0px 5px;
   font-family: 'Consolas';
+}
+
+/* Post container */
+div#posts-container {
+  padding-top: 50px;
+}
+
+/* Post thumbnail container */
+div.post-thumbnail-container {
+  display: inline-block;
+  padding: 10px;
+  width: 140px;
+  height: 150px;
+}
+
+div.post-thumbnail-container a {
+  user-select: none;
+  text-decoration: none;
+}
+
+
+/* Post Thumbnail */
+img.post-thumbnail {
+  align-self: center;
+  display: block;
+  margin: auto;
+  max-height: 100%;
+  max-width: 100%;
+  top: 0;
+  user-select: none;
 }
 
 

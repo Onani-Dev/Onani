@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-03 19:20:13
+# @Last Modified time: 2020-10-10 15:45:37
 
 from ..utils import setup_logger
 
@@ -14,7 +14,7 @@ class Note(object):
     Notes for Posts
     """
 
-    __slots__ = ("_db", "x", "y", "width", "height", "content")
+    __slots__ = ("_db", "_x", "_y", "_width", "_height", "_content")
 
     def __init__(
         self,
@@ -26,13 +26,62 @@ class Note(object):
         content: str = None,
     ):
         self._db = db
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.content = content
+        self._x = x
+        self._y = y
+        self._width = width
+        self._height = height
+        self._content = content
 
-    # TODO #19
+    @property
+    def x(self) -> int:
+        return self._x
 
-    def to_dict(self):
-        return {x: getattr(self, x) for x in self.__slots__ if x != "_db"}
+    @x.setter
+    def x(self, value: int) -> None:
+        # TODO
+        pass
+
+    @property
+    def y(self) -> int:
+        return self._y
+
+    @y.setter
+    def y(self, value: int) -> None:
+        # TODO
+        pass
+
+    @property
+    def width(self) -> int:
+        return self._width
+
+    @width.setter
+    def width(self, value: int) -> None:
+        # TODO
+        pass
+
+    @property
+    def height(self) -> int:
+        return self._height
+
+    @height.setter
+    def height(self, value: int) -> None:
+        # TODO
+        pass
+
+    @property
+    def content(self) -> str:
+        return self._content
+
+    @content.setter
+    def content(self, value: str) -> None:
+        # TODO
+        pass
+
+    def to_dict(self) -> dict:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "width": self.width,
+            "height": self.height,
+            "content": self.content,
+        }

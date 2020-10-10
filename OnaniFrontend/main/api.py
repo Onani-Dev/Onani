@@ -2,7 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-07 21:59:13
+# @Last Modified time: 2020-10-11 02:38:04
+from OnaniCore.models.commentary import Commentary
 import hashlib
 import os
 from datetime import datetime
@@ -18,6 +19,7 @@ from OnaniCore.utils import (
     is_safe_username,
     make_api_response,
 )
+from werkzeug.datastructures import FileStorage
 
 from . import main, main_api, onaniDB
 
@@ -115,3 +117,23 @@ def edit_profile():
         current_user.edit_settings(**settings)
 
     return make_api_response()
+
+
+@main_api.route("/upload", methods=["POST"])
+@login_required
+def upload():
+    uploaded_file: FileStorage = request.files["file"]
+    if uploaded_file.filename != "":
+        filetype = uploaded_file.mimetype.split("/")[1]
+        if filetype in ["jpeg", "jpg", "gif", "png", "webp", "jfif"]:
+            post_file = onaniDB.file_controller.save_file(
+                uploaded_file.read(), filetype
+            )
+            post = onaniDB.add_post(
+                post_file=post_file,
+                source=request.form.get("source", ""),
+                uploader=current_user,
+                commentary=Commentary(onaniDB),
+                tags=list(),  # TODO
+            )
+            return make_api_response(post.to_dict())

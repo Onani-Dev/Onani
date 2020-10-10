@@ -4,4 +4,12 @@
 {% block content %}
 <!-- Left pannel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
+<div id="posts-container">
+  {% for post in posts %}
+  <div class="post-thumbnail-container">
+    <a href="/post/{{ post.id }}"><img src="{{ post.file.thumbnail }}" class="post-thumbnail"></a>
+  </div>
+  {% endfor %}
+</div>
+
 {% endblock %}

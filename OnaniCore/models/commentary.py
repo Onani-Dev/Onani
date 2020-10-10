@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-03 19:24:16
+# @Last Modified time: 2020-10-11 02:15:40
 
 from ..utils import setup_logger
 
@@ -17,7 +17,7 @@ class Commentary(object):
     __slots__ = ("_db", "original", "translated")
 
     def __init__(self, db, original: str = None, translated: str = None):
-        self._db
+        self._db = db
         self.original = original
         self.translated = translated
 
@@ -30,4 +30,4 @@ class Commentary(object):
         pass
 
     def to_dict(self):
-        return {x: getattr(self, x) for x in self.__slots__ if x != "_db"}
+        return {"original": self.original, "translated": self.translated}
