@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-25 17:13:31
+ * @Last Modified time: 2020-10-11 22:41:33
  */
 'use strict';
 
@@ -14,6 +14,7 @@ const curPassword = document.getElementById("profile-settings-current-password")
   formAccountSettings = document.getElementById("settings-account"),
   formPlatformSettings = document.getElementById("settings-platforms"),
   formProfileSettings = document.getElementById("settings-profile"),
+  formSiteSettings = document.getElementById("settings-site"),
   githubProfile = document.getElementById("settings-github"),
   newConfirmPass = document.getElementById("profile-settings-password-confirm"),
   newPassword = document.getElementById("profile-settings-password"),
@@ -21,7 +22,9 @@ const curPassword = document.getElementById("profile-settings-current-password")
   pixivProfile = document.getElementById("settings-pixiv"),
   profilePicSelect = document.getElementById("profile-settings-profile-picture"),
   settingsBio = document.getElementById("profile-settings-bio"),
-  twitterProfile = document.getElementById("settings-twitter");
+  twitterProfile = document.getElementById("settings-twitter"),
+  tagBlacklist = document.getElementById("profile-settings-blacklist"),
+  customCss = document.getElementById("profile-settings-custom-css");
 
 let $uploadCrop;
 
@@ -144,6 +147,28 @@ function SavePlatformSettings() {
       })
     })
   }
+}
+
+function SaveSiteSettings() {
+  fetch("/api/profile/edit", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      custom_css: customCss.value,
+      tag_blacklist: tagBlacklist.value.split("\n")
+    })
+  }).then(response => {
+    response.json().then(json => {
+      if (json.ok) {
+        formSiteSettings.reset();
+        location.reload();
+      } else {
+        alert(json.error);
+      }
+    })
+  })
 }
 
 $('#profile-settings-profile-picture').on('change', function () { readFile(this); });

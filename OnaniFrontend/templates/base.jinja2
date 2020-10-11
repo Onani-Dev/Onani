@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="/css/icomoon.style.min.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css"> -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/v4-shims.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost&display=swap">
   {% block styles %}
@@ -34,6 +34,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
   {% block top_scripts %}
   {% endblock %}
+  {% if current_user.is_authenticated %}
+    {% if current_user.settings.custom_css %}
+    <style type="text/css">{{ current_user.settings.custom_css }}</style>
+    {% endif %}
+  {% endif %}
 </head>
 
 <body {% block bodymodifier %}{% endblock %}>
@@ -49,7 +54,7 @@
     <div id="search-box">
       <form id="search-form">
         <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off">
-        <img src="/svg/search.svg" id="search-icon">
+        <i class="fas fa-search" id="search-icon"></i>
       </form>
     </div>
     <!-- User Profile Picture -->
@@ -73,6 +78,14 @@
     </div>
     {% endif %}
   </header>
+  <script>
+    document.onkeyup = function (e) {
+      if (e.keyCode == 27) {
+        document.body.innerHTML = "";
+        location.href = "https://en.wikipedia.org/wiki/Taiko_no_Tatsujin";
+      }
+    }
+  </script>
   {% block content %}
   {% endblock %}
   {% block bottom_scripts %}

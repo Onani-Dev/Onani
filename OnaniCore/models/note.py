@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-10 15:45:37
+# @Last Modified time: 2020-10-11 23:58:33
 
 from ..utils import setup_logger
 
@@ -14,18 +14,18 @@ class Note(object):
     Notes for Posts
     """
 
-    __slots__ = ("_db", "_x", "_y", "_width", "_height", "_content")
+    __slots__ = ("_post", "_x", "_y", "_width", "_height", "_content")
 
     def __init__(
         self,
-        db,
+        post,
         x: int = None,
         y: int = None,
         width: int = None,
         height: int = None,
         content: str = None,
     ):
-        self._db = db
+        self._post = post
         self._x = x
         self._y = y
         self._width = width

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-15 23:31:53
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-11 02:01:08
+# @Last Modified time: 2020-10-11 19:54:51
 
 import hashlib
 import io
@@ -71,6 +71,9 @@ class FileController(object):
 
         filename = f"{post_md5}.{file_type}"
 
+        if os.path.isfile(f"{self.post_directory}{filename}"):
+            raise FileExistsError("File already exists.")
+
         with open(f"{self.post_directory}{filename}", "wb") as f:
             f.write(file_data)
 
@@ -105,12 +108,13 @@ class FileController(object):
         # Create Thumbnail if true
         thumbnail = None
         if make_thumbnail:
-            im.thumbnail((350, 350), Image.ANTIALIAS)
+            im.thumbnail((170, 170), Image.ANTIALIAS)
 
         # Save the thumbnail
         if make_thumbnail:
             thumbnail = f"{self.thumb_directory}{hash_md5}.jpeg"
-            im.convert("RGB").save(thumbnail, format="JPEG")
+            if not os.path.isfile(thumbnail):
+                im.convert("RGB").save(thumbnail, format="JPEG")
 
         # Return everything
         return hash_md5, filesize, width, height, thumbnail

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-03 18:17:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-11 02:35:51
+# @Last Modified time: 2020-10-12 04:37:39
 import html
 import logging
 import random
@@ -60,7 +60,10 @@ def is_safe_username(username: str) -> bool:
     Returns:
         bool: True if safe False if not
     """
-    banned_chars = "!\"#$%&'()*+,/:;<=>?@[\\]^`{|}~ \t\n\r\x0b\x0c"
+    for char in username:
+        if not char in string.printable:
+            return False
+    banned_chars = "!\"#'()*,/;@[\\]^`{|} \t\n\r\x0b\x0c"
     for char in username:
         if char in banned_chars:
             return False

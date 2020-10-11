@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 13:31:11
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-09-21 19:18:40
+# @Last Modified time: 2020-10-11 16:57:32
 
 from datetime import datetime, timedelta
 
@@ -180,7 +180,6 @@ def register():
 @main.route("/logout")
 @login_required
 def logout():
-    current_user.deauthenticate()
     logout_user()
     flash("Successfully logged out.")
     return redirect("/login")

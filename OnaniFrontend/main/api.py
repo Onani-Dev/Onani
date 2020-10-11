@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-11 02:38:04
+# @Last Modified time: 2020-10-12 01:41:46
 from OnaniCore.models.commentary import Commentary
 import hashlib
 import os
@@ -18,6 +18,7 @@ from OnaniCore.utils import (
     is_safe_email,
     is_safe_username,
     make_api_response,
+    parse_tags,
 )
 from werkzeug.datastructures import FileStorage
 
@@ -103,7 +104,7 @@ def edit_profile():
 
         settings["avatar"] = avatar_file
 
-    if request.json.get("bio"):
+    if request.json.get("bio") or request.json.get("bio") == "":
         if request.json["bio"] != current_user.settings.bio:
             settings["bio"] = html_escape(request.json["bio"])
 
@@ -112,6 +113,18 @@ def edit_profile():
         for p in list(platforms):
             platforms[p] = html_escape(platforms[p])
         current_user.edit_platforms(**platforms)
+
+    if request.json.get("custom_css") or request.json.get("custom_css") == "":
+        if request.json["custom_css"] != current_user.settings.custom_css:
+            settings["custom_css"] = html_escape(request.json["custom_css"])
+
+    if request.json.get("tag_blacklist") or request.json.get("tag_blacklist") == []:
+        if not isinstance(request.json.get("tag_blacklist"), list):
+            abort(400)
+        if request.json["tag_blacklist"] != current_user.settings.tag_blacklist:
+            settings["tag_blacklist"] = parse_tags(
+                [html_escape(x) for x in request.json["tag_blacklist"]]
+            )
 
     if len(settings) > 0:
         current_user.edit_settings(**settings)
@@ -136,4 +149,6 @@ def upload():
                 commentary=Commentary(onaniDB),
                 tags=list(),  # TODO
             )
-            return make_api_response(post.to_dict())
+            return make_api_response({"path": f"/post/{post.id}"})
+        raise OnaniApiError("Invalid File Type.")
+    raise OnaniApiError("File not given.")

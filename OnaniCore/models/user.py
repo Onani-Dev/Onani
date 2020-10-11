@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:03:01
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-09 01:19:01
+# @Last Modified time: 2020-10-11 22:27:16
 
 import re
 from datetime import datetime, timedelta
@@ -80,13 +80,15 @@ class UserSettings(object):
         self,
         avatar: File = File(),
         bio: str = str(),
-        tag_blacklist: list = ["guro", "scat", "furry"],
+        tag_blacklist: list = ["guro", "scat"],
         platforms: UserPlatforms = UserPlatforms(),
+        custom_css: str = None,
     ):
         self.avatar = avatar
         self.bio = bio
         self.tag_blacklist = tag_blacklist
         self.platforms = platforms
+        self.custom_css = custom_css
 
     def update(self, **kwargs) -> None:
         self.__dict__.update(kwargs)

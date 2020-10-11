@@ -1,0 +1,42 @@
+{% extends "base.jinja2" %}
+{% block title %}Upload - {% endblock %}
+
+{% block content %}
+<div id="uploader-container">
+  <h1>Upload File</h1>
+  <div class="row">
+    <div class="column">
+      <div id="preview-image-container"><img id="preview-image"></div>
+    </div>
+    <div class="column">
+      <div id="uploader-input-container">
+        <label for="file-upload" class="uploader-label">File</label>
+        <input type="file" id="file-upload" accept="image/gif, image/jpeg, image/png" onchange="displayImage(this)"
+          class="uploader-input">
+      </div>
+    </div>
+    <div class="column">
+      <label for="file-source" class="uploader-label">Source</label>
+      <input type="text" placeholder="Source" id="file-source" class="uploader-input">
+    </div>
+    <div class="column">
+      <label for="file-tags" class="uploader-label" style="position: absolute;">Tags</label>
+      <textarea placeholder="Add tags for this post (Split with newline)" id="file-tags" class="uploader-textarea"
+        style="margin-left: 64px;"></textarea>
+    </div>
+  </div>
+  <div class="row">
+    <div class="column">
+      <textarea placeholder="Artist Commentary For this Post (Original Language)" id="file-commentary-original"
+        class="uploader-textarea" style="margin-left: 50px;"></textarea>
+    </div>
+    <div class="column">
+      <textarea placeholder="Artist Commentary For this Post (Translated)" id="file-commentary-translated"
+        class="uploader-textarea" style="margin-left: 50px;"></textarea>
+    </div>
+  </div>
+  <button id="upload-button">Upload</button>
+  <script src="/javascript/uploader.min.js"></script>
+</div>
+
+{% endblock %}

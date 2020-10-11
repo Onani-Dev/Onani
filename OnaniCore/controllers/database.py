@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-11 02:49:25
+# @Last Modified time: 2020-10-12 00:19:05
 
+import math
 import re
 from datetime import datetime, timedelta
 from typing import List, Union
@@ -157,8 +158,23 @@ class DatabaseController:
             notes=list(),  # TODO
         )
 
-    def get_posts(self) -> List[Post]:
-        posts = self.posts.find()
+    def get_posts(
+        self, limit: int = 36, tags: list = None, page: int = 0
+    ) -> List[Post]:
+        if tags:
+            posts = (
+                self.posts.find({"tags": {"$in": tags}})
+                .limit(limit)
+                .skip(limit * page)
+                .sort("_id", pymongo.DESCENDING)
+            )
+        else:
+            posts = (
+                self.posts.find()
+                .limit(limit)
+                .skip(limit * page)
+                .sort("_id", pymongo.DESCENDING)
+            )
         return [
             Post(
                 db=self,

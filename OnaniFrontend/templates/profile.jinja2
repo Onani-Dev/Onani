@@ -39,7 +39,7 @@ style="right: -390px;"
     {% endif %}
     {% if user.settings.platforms.discord %}
     <a onclick="CopyText('{{ user.settings.platforms.discord }}')" style="cursor: pointer;"><i
-        class="fa fa-discord fa-2x"></i></a>
+        class="fab fa-discord fa-2x" title="{{ user.settings.platforms.discord }}"></i></a>
     {% endif %}
     {% if user.settings.platforms.paypal %}
     <a href="{{ user.settings.platforms.paypal }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
@@ -58,7 +58,8 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ emoji.emojize(user.settings.bio, use_aliases=true)}}{% else %}{% endif %}</p>
+      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ emoji.emojize(user.settings.bio, use_aliases=true)}}{% else %}{% endif %}
+      </p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
       <p>Posts will go in here</p>
@@ -132,8 +133,7 @@ style="right: -390px;"
               <label for="settings-bio">Bio</label>
             </div>
             <div class="column">
-              <textarea name="settings-bio" id="profile-settings-bio" cols="30"
-                rows="10">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}{% endif %}</textarea>
+              <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}{% endif %}</textarea>
             </div>
           </div>
         </div>
@@ -198,7 +198,39 @@ style="right: -390px;"
           <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SavePlatformSettings()">
         </div>
       </form>
-    </div>
+
+      <!-- Site settings -->
+      <form id="settings-site">
+        <h2 style="padding: 15px;">Site settings</h2>
+
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-blacklist">Tag Blacklist (split by newlines)</label>
+            </div>
+            <div class="column">
+              <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off"
+                autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-custom-css">Custom CSS</label>
+            </div>
+            <div class="column">
+              <textarea name="settings-custom-css" id="profile-settings-custom-css" cols="30" rows="10"
+                autocorrect="off" autocapitalize="off"
+                spellcheck="false">{% if user.settings.custom_css is not none %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
+            </div>
+          </div>
+        </div>
+      <!-- Save Button For Site -->
+      <div class="settings-input-group">
+        <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveSiteSettings()">
+      </div>
+    </form>
     {% endif %}
   </div>
   <script src="/javascript/profile.min.js"></script>
