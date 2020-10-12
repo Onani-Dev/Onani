@@ -2,10 +2,20 @@
  * @Author: kapsikkum
  * @Date:   2020-10-12 02:03:30
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-10-12 02:43:02
+ * @Last Modified time: 2020-10-12 23:08:46
  */
 const fileInput = document.getElementById("file-upload"),
-  uploadButton = document.getElementById("upload-button");
+  uploadButton = document.getElementById("upload-button"),
+  sourceInput = document.getElementById("file-source"),
+  tagTextarea = document.getElementById("file-tags"),
+  ratingRadios = document.getElementsByName("rating");
+
+function getRating() {
+  for (let i = 0; i < ratingRadios.length; i++) {
+    if (ratingRadios[i].checked)
+      return ratingRadios[i].value;
+  }
+}
 
 function displayImage(input) {
   if (input.files && input.files[0]) {
@@ -26,13 +36,13 @@ uploadButton.onclick = function () {
   }
   let formdata = new FormData();
   formdata.append("file", fileInput.files[0]);
-  formdata.append("source", "http://10.147.20.97:5000/");
-  formdata.append("tags", "http://10.147.20.97:5000/");
+  formdata.append("source", sourceInput.value);
+  formdata.append("tags", tagTextarea.value.replace(/ /g, "_").split("\n"));
+  formdata.append("rating", getRating());
 
   fetch("/api/upload", {
     method: 'POST',
-    body: formdata,
-    redirect: 'follow'
+    body: formdata
   }).then(response => response.json())
     .then(result => {
       if (result.ok) {

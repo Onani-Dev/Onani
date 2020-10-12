@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-17 20:04:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-11 02:24:25
+# @Last Modified time: 2020-10-12 20:41:31
 
 from datetime import datetime
 from typing import List
@@ -28,9 +28,9 @@ class PostRating(Enum):
     _init_ = "value string"
     _settings_ = MultiValue
 
-    GREEN = 1, "Green"
-    YELLOW = 2, "Yellow"
-    RED = 3, "Red"
+    SAFE = 1, "Safe"
+    QUESTIONABLE = 2, "Questionable"
+    EXPLICIT = 3, "Explicit"
 
     def __int__(self):
         return self.value
@@ -81,7 +81,7 @@ class Post(object):
         tags: List[Tag],
         uploaded_at: datetime = datetime.utcnow(),
         source: str = None,
-        rating: PostRating = PostRating.YELLOW,
+        rating: PostRating = PostRating.QUESTIONABLE,
         status: PostStatus = PostStatus.PENDING,
         uploader: User = None,
         score: dict = {"likers": [], "dislikers": []},

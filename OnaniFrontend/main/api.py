@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-12 01:41:46
+# @Last Modified time: 2020-10-12 23:34:46
 from OnaniCore.models.commentary import Commentary
 import hashlib
 import os
@@ -139,15 +139,26 @@ def upload():
     if uploaded_file.filename != "":
         filetype = uploaded_file.mimetype.split("/")[1]
         if filetype in ["jpeg", "jpg", "gif", "png", "webp", "jfif"]:
+            print(request.form)
             post_file = onaniDB.file_controller.save_file(
                 uploaded_file.read(), filetype
             )
+            tags = list()
+            if request.form.get("tags"):
+                strings = request.form.get("tags").split(",")
+                tags = onaniDB.add_tags(tag_strings=parse_tags(strings))
+
             post = onaniDB.add_post(
                 post_file=post_file,
                 source=request.form.get("source", ""),
                 uploader=current_user,
                 commentary=Commentary(onaniDB),
-                tags=list(),  # TODO
+                tags=tags,
+                rating=PostRating(
+                    int(request.form.get("rating", 2))
+                    if int(request.form.get("rating", 2)) in [1, 2, 3]
+                    else 2
+                ),
             )
             return make_api_response({"path": f"/post/{post.id}"})
         raise OnaniApiError("Invalid File Type.")

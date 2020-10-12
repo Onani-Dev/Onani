@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-12 00:19:05
+# @Last Modified time: 2020-10-12 23:46:07
 
 import math
 import re
@@ -77,13 +77,14 @@ class DatabaseController:
         source: str,
         uploader: User,
         tags: List[Tag],
+        rating: PostRating,
     ) -> Post:
         post_dict = {
             "_id": self.posts.count_documents({}) + 1,
             "commentary": commentary.to_dict(),
             "favourites": list(),
             "notes": list(),
-            "rating": PostRating.YELLOW.value,
+            "rating": rating.value,
             "score": {"likers": [], "dislikers": []},
             "source": html_escape(source),
             "status": PostStatus.PENDING.value,
@@ -92,6 +93,8 @@ class DatabaseController:
             "file": post_file.to_dict(),
             "tags": [tag.id for tag in tags],
         }
+        for tag in tags:
+            tag.post_count += 1
         insert = self.posts.insert_one(post_dict)
         log.info(f"Post {insert.inserted_id}: Created")
 
@@ -131,18 +134,7 @@ class DatabaseController:
                 height=post["file"].get("height"),
                 filesize=post["file"].get("filesize"),
             ),
-            tags=[
-                Tag(
-                    db=self._db,
-                    tag_string=x.get("string"),
-                    tag_type=TagType(x.get("type", 1)),
-                    aliases=x.get("aliases", list()),
-                    description=x.get("description"),
-                    post_count=x.get("post_count", 0),
-                    popularity=x.get("popularity", 0.0),
-                )
-                for x in post["tags"]
-            ],
+            tags=self.get_tags(tag_strings=post["tags"]),
             uploaded_at=post.get("uploaded_at"),
             source=post.get("source"),
             rating=PostRating(post.get("rating")),
@@ -188,18 +180,7 @@ class DatabaseController:
                     height=post["file"].get("height"),
                     filesize=post["file"].get("filesize"),
                 ),
-                tags=[
-                    Tag(
-                        db=self._db,
-                        tag_string=x.get("string"),
-                        tag_type=TagType(x.get("type", 1)),
-                        aliases=x.get("aliases", list()),
-                        description=x.get("description"),
-                        post_count=x.get("post_count", 0),
-                        popularity=x.get("popularity", 0.0),
-                    )
-                    for x in post["tags"]
-                ],
+                tags=self.get_tags(tag_strings=post["tags"]),
                 uploaded_at=post.get("uploaded_at"),
                 source=post.get("source"),
                 rating=PostRating(post.get("rating")),
@@ -548,6 +529,25 @@ class DatabaseController:
         )
         return self.get_tag(tag_id=insert.inserted_id)
 
+    def add_tags(self, tag_strings: List[str]) -> List[Tag]:
+        # List to return at the end
+        tag_objects = list()
+
+        # Parse the strings
+        tag_strings = parse_tags(tag_strings)
+
+        # Check tags
+        for tag_string in tag_strings:
+            try:
+                tag = self.get_tag(tag_string=tag_string)
+                tag_objects.append(tag)
+            except OnaniDatabaseException:
+                # make it
+                new_tag = self.add_tag(tag_string)
+                tag_objects.append(new_tag)
+
+        return tag_objects
+
     def get_tag(self, tag_id: int = None, tag_string: str = None) -> Tag:
         """```raw
         Find a tag in the database with the provided name or ID
@@ -639,7 +639,9 @@ class DatabaseController:
         # Check if list of tag strings is present ( Limit ingored )
         elif tag_strings:
             # get all the tag strings.
-            found_tags = list(self.tags.find({"string": {"$in": tag_strings}}))
+            found_tags: List[Tag] = list(
+                self.tags.find({"string": {"$in": tag_strings}})
+            )
             found_tags.extend(list(self.tags.find({"aliases": {"$in": tag_strings}})))
 
         else:

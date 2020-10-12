@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-10-12 04:04:41
+ * @Last Modified time: 2020-10-12 22:34:31
 */
 
 
@@ -719,19 +719,19 @@ img.post-thumbnail {
 
 /* Uploader box */
 div#uploader-container {
+  align-content: center;
   border: 1px solid var(--ui-colour);
+  display: flex;
   margin-top: 30px;
   min-height: 100vh;
   padding-top: 50px;
   position: absolute;
   width: 100%;
+  flex-direction: column;
 }
 
 /* uploader title */
 div#uploader-container h1 {
-  margin-bottom: 50px;
-  margin-top: 100px;
-  margin: auto;
   text-align: center;
 }
 
@@ -768,14 +768,16 @@ label.uploader-label {
 
 /* The upload button */
 button#upload-button {
+  display: inline-block;
   background-color: var(--ui-back-colour);
   border: 1px solid var(--ui-colour);
   cursor: pointer;
   font-size: 1.1em;
-  margin: 10px;
   padding: 3px;
-  right: 0;
-  top: 0;
+  width: 100px;
+  margin-top: 30px;
+  margin-right: 30px;
+  float: right;
 }
 
 /* preview image container */
