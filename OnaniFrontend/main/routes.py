@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-12 01:25:38
+# @Last Modified time: 2020-10-13 16:40:53
 
 
 from flask import (
@@ -24,13 +24,14 @@ from . import main, onaniDB
 @main.route("/")
 @main.route("/posts/")
 def posts():
+    tags = request.args.get("tags").split(" ") if request.args.get("tags") else None
     page = request.args.get("p", "0")
     page = int(page) if page.isdigit() else 0
-    print(page)
+    posts = onaniDB.get_posts(limit=36, page=page, tags=tags)
     return render_template(
         "/index.jinja2",
         tags=onaniDB.get_tags(limit=25, sort="post_count"),
-        posts=onaniDB.get_posts(limit=36, page=page),
+        posts=posts,
     )
 
 

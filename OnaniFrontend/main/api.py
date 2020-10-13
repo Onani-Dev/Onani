@@ -139,7 +139,6 @@ def upload():
     if uploaded_file.filename != "":
         filetype = uploaded_file.mimetype.split("/")[1]
         if filetype in ["jpeg", "jpg", "gif", "png", "webp", "jfif"]:
-            print(request.form)
             post_file = onaniDB.file_controller.save_file(
                 uploaded_file.read(), filetype
             )

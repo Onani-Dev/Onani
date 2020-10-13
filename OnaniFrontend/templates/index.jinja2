@@ -5,6 +5,9 @@
 <!-- Left pannel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
 <div id="posts-container">
+  {% if posts|length <= 0 %}
+  <h1>Sorry nothing</h1>
+  {% endif %}
   {% for post in posts %}
   <div class="post-thumbnail-container">
     <a href="/post/{{ post.id }}"><img src="{{ post.file.thumbnail }}" class="post-thumbnail"></a>

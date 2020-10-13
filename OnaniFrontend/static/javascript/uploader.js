@@ -2,8 +2,10 @@
  * @Author: kapsikkum
  * @Date:   2020-10-12 02:03:30
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-10-12 23:08:46
+ * @Last Modified time: 2020-10-13 17:15:26
  */
+'use strict';
+
 const fileInput = document.getElementById("file-upload"),
   uploadButton = document.getElementById("upload-button"),
   sourceInput = document.getElementById("file-source"),

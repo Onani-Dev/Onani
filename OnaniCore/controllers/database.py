@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-12 23:46:07
+# @Last Modified time: 2020-10-13 16:40:05
 
 import math
 import re
@@ -69,6 +69,26 @@ class DatabaseController:
         # Create a file controller for this DatabaseController Instance
         self.file_controller = FileController()
 
+    @property
+    def post_count(self) -> int:
+        return self.posts.count_documents({})
+
+    @property
+    def user_count(self) -> int:
+        return self.users.count_documents({})
+
+    @property
+    def ban_count(self) -> int:
+        return self.bans.count_documents({})
+
+    @property
+    def collection_count(self) -> int:
+        return self.collections.count_documents({})
+
+    @property
+    def tag_count(self) -> int:
+        return self.tags.count_documents({})
+
     ## POSTS
     def add_post(
         self,
@@ -80,7 +100,7 @@ class DatabaseController:
         rating: PostRating,
     ) -> Post:
         post_dict = {
-            "_id": self.posts.count_documents({}) + 1,
+            "_id": self.post_count + 1,
             "commentary": commentary.to_dict(),
             "favourites": list(),
             "notes": list(),
@@ -155,8 +175,10 @@ class DatabaseController:
     ) -> List[Post]:
         if tags:
             posts = (
-                self.posts.find({"tags": {"$in": tags}})
-                .limit(limit)
+                self.posts.find(
+                    {"tags": {"$all": [x.id for x in self.get_tags(tag_strings=tags)]}}
+                )
+                .limit(int(limit))
                 .skip(limit * page)
                 .sort("_id", pymongo.DESCENDING)
             )
@@ -251,7 +273,7 @@ class DatabaseController:
 
         # Construct dict to insert into database
         user_data = {
-            "_id": self.users.count_documents({}) + 1,
+            "_id": self.user_count + 1,
             "username": username,
             "email": email,
             "api_key": create_api_key(),
@@ -515,7 +537,7 @@ class DatabaseController:
 
         # Create dict and insert
         tag_data = {
-            "_id": self.tags.count_documents({}) + 1,
+            "_id": self.tag_count + 1,
             "string": tag_string,
             "type": tag_type.value,
             "aliases": aliases,
