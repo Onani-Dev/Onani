@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 16:15:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-12 23:34:46
+# @Last Modified time: 2020-10-31 22:49:35
 from OnaniCore.models.commentary import Commentary
 import hashlib
 import os
@@ -42,20 +42,20 @@ def view_profile(user_id):
         user = onaniDB.get_user(id=user_id)
     except OnaniDatabaseException:
         raise OnaniApiError("User was not found.", 404)
-
-    return make_api_response(
-        {
-            "id": user.id,
-            "username": user.username,
-            "created_at": datetime.timestamp(user.created_at),
-            "permissions": user.permissions.value,
-            "profile": {
-                "avatar": user.settings.avatar.to_dict(),
-                "bio": user.settings.bio,
-                "platforms": user.settings.platforms.to_dict(),
-            },
-        }
-    )
+    d = {
+        "id": user.id,
+        "username": user.username,
+        "created_at": datetime.timestamp(user.created_at),
+        "permissions": user.permissions.value,
+        "profile": {
+            "avatar": user.settings.avatar.to_dict(),
+            "bio": user.settings.bio,
+            "platforms": user.settings.platforms.to_dict(),
+        },
+    }
+    if current_user.id == user.id:
+        d["api_key"] = user.api_key  # TODO delet this
+    return make_api_response(d)
 
 
 @main_api.route("/profile/edit", methods=["POST"])

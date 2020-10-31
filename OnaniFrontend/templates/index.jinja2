@@ -1,9 +1,16 @@
 {% extends "base.jinja2" %}
 {% block title %}Posts - {% endblock %}
 
+{% block search_box_value %}
+{% if request.args.get("tags") %}
+{{ request.args.get("tags") }}
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <!-- Left pannel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
+
 <div id="posts-container">
   {% if posts|length <= 0 %}
   <h1>Sorry nothing</h1>

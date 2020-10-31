@@ -41,22 +41,23 @@
   {% endif %}
 </head>
 
-<body {% block bodymodifier %}{% endblock %}>
+<body {% block body_modifer %}{% endblock %}>
   <!-- Navbar/header -->
-  <header class="navbar" {% block headermodifier %}{% endblock %}>
+  <header class="navbar" {% block header_modifer %}{% endblock %}>
     <!-- logo -->
     <div id="logo" onclick="location.href='/'">Onani</div>
     <!-- Navbar links -->
-    <a href="/">Posts</a>
-    <a href="/collections">Collections</a>
-    <a href="/upload">Upload</a>
+    <a href="/posts/">Posts</a>
+    <a href="/collections/">Collections</a>
+    <a href="/upload/">Upload</a>
     <!-- Search Box -->
     <div id="search-box">
       <form id="search-form">
-        <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off">
+        <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off" value="{% block search_box_value %}{% endblock %}">
         <i class="fas fa-search" id="search-icon"></i>
       </form>
     </div>
+    <script src="/javascript/search.min.js"></script>
     <!-- User Profile Picture -->
     {% if current_user.is_authenticated %}
     <div id="user-pfp-container">
