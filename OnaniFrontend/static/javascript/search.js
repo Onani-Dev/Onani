@@ -2,12 +2,18 @@
  * @Author: kapsikkum
  * @Date:   2020-10-13 17:15:13
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-10-13 17:16:19
+ * @Last Modified time: 2020-10-31 23:09:58
  */
 'use strict';
 
 const searchBox = document.getElementById("search-input");
+const pageURL = new URL(window.location.href);
 
-searchBox.onkeyup = function () {
-
+searchBox.onkeyup = function (e) {
+    if (e.key == "Enter") {
+        let windowParams = new URLSearchParams();
+        windowParams.set("tags", searchBox.value);
+        pageURL.search = windowParams.toString();
+        location.href = pageURL.href;
+    }
 }

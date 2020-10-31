@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-10 02:40:26
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-17 15:23:34
+ * @Last Modified time: 2020-10-31 23:04:00
  */
 'use strict';
 let currentRoom = "general";
@@ -56,7 +56,7 @@ function init() {
   messageArea.appendChild(connectMessage);
   document.getElementById("chat-box-send").addEventListener("click", function () { SendMessage(); })
   inputArea.addEventListener("keypress", function (e) {
-    if (e.keyCode === 13) {
+    if (e.key == "Enter") {
       e.preventDefault();
       SendMessage();
     }
