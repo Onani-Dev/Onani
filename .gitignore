@@ -133,3 +133,4 @@ config.ini
 .vscode/
 user_data/
 data/
+config.py
