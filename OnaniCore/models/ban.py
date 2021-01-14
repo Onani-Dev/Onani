@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-08-27 18:39:21
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-09 14:25:05
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-09-27 12:36:23
 
-import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from dateutil import tz
 
@@ -36,4 +35,4 @@ class Ban(object):
         return datetime.utcnow().replace(tzinfo=tz.tzutc()) >= self.expires
 
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}', permissions='{self.permissions}', created_at='{self.created_at}')>"
+        return f"<Ban(user='{self.user}', reason='{self.reason}', expires='{self.expires}')>"

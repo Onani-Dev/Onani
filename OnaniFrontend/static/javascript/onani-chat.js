@@ -1,8 +1,8 @@
 /*
- * @Author: Blakeando
+ * @Author: kapsikkum
  * @Date:   2020-09-10 02:40:26
- * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-16 01:35:05
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2020-10-31 23:04:00
  */
 'use strict';
 let currentRoom = "general";
@@ -56,7 +56,7 @@ function init() {
   messageArea.appendChild(connectMessage);
   document.getElementById("chat-box-send").addEventListener("click", function () { SendMessage(); })
   inputArea.addEventListener("keypress", function (e) {
-    if (e.keyCode === 13) {
+    if (e.key == "Enter") {
       e.preventDefault();
       SendMessage();
     }
@@ -111,7 +111,7 @@ function init() {
     let msg = message.message.replace(customEmotes, (current) => {
       return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji' draggable='false' alt='${current}'></img>`
     });
-    AddChatMessage(`<a style="text-decoration:none;cursor:pointer;" title="Double click to view profile." onauxclick="window.open('/users/${message.user_id}', '_blank').focus();" ondblclick="location.href='/users/${message.user_id}'"><b>${message.user}:</b></a> ${msg}`);
+    AddChatMessage(`<a style="text-decoration:none;cursor:pointer;" title="Double click to view profile, or Right click to open profile in a new tab." onauxclick="window.open('/users/${message.user_id}', '_blank').focus();" ondblclick="location.href='/users/${message.user_id}'"><b>${message.user}:</b></a> ${msg}`);
   });
 
   socket.on('connection', function (data) {

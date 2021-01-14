@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-09-12 14:21:03
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-14 03:17:12
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-09-19 11:53:15
 
 import functools
 
 import emoji
 from flask_login import current_user
-from flask_socketio import disconnect, emit, join_room, leave_room, send
+from flask_socketio import disconnect, emit, join_room, leave_room
 
-from OnaniCore import html_escape, custom_emoji
+from OnaniCore import html_escape
 
 from .. import socketio
-from . import main
+
+# TODO #31 Better chat system
 
 
 def authenticated_only(f):
@@ -54,8 +55,8 @@ def handle_message(message):
 def on_join(data):
     room = data["room"]
     join_room(room)
-    if room == "general":
-        return  # Save spamming general
+    # if room == "general":
+    #     return  # Save spamming general
     emit(
         "connection",
         {"data": f"{current_user.username} has joined {html_escape(room)}."},
@@ -69,7 +70,7 @@ def on_leave(data):
     room = data["room"]
     leave_room(room)
     if room == "general":
-        return  # Save spamming general
+        return  # Save spamming general with leaves
     emit(
         "disconnection",
         {"data": f"{current_user.username} has left {html_escape(room)}."},

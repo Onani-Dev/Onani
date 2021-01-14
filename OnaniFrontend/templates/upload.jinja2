@@ -1,0 +1,53 @@
+{% extends "base.jinja2" %}
+{% block title %}Upload - {% endblock %}
+
+{% block content %}
+<div id="uploader-container">
+  <h1>Upload File</h1>
+  <div class="row" style="max-width: 1000px;align-self: center;">
+    <div class="column">
+      <div id="preview-image-container"><img id="preview-image"></div>
+    </div>
+    <div class="column">
+      <div id="uploader-input-container">
+        <label for="file-upload" class="uploader-label">File</label>
+        <input type="file" id="file-upload" accept="image/gif, image/jpeg, image/png" onchange="displayImage(this)"
+          class="uploader-input">
+      </div>
+    </div>
+    <div class="column">
+      <label for="file-source" class="uploader-label">Source</label>
+      <input type="text" placeholder="Source" id="file-source" class="uploader-input">
+    </div>
+    <div class="column">
+      <label for="file-tags" class="uploader-label" style="position: absolute;">Tags</label>
+      <textarea placeholder="Add tags for this post (Split with newline)" id="file-tags" class="uploader-textarea"
+        style="margin-left: 64px;"></textarea>
+    </div>
+    <div class="column">
+      <label for="rating" class="uploader-label" style="position: absolute;">Rating</label>
+      <div style="display: inline-block;margin-left: 64px;">
+        <input type="radio" id="upload-safe" name="rating" value="1">
+        <label for="upload-safe">Safe</label><br>
+        <input type="radio" id="upload-questionable" name="rating" value="2" checked>
+        <label for="upload-questionable">Questionable</label><br>
+        <input type="radio" id="upload-explicit" name="rating" value="3">
+        <label for="upload-explicit">Explicit</label>
+      </div>
+    </div>
+    <div class="column">
+      <button id="upload-button">Upload</button>
+    </div>
+    <!-- <div class="column">
+      <textarea placeholder="Artist Commentary For this Post (Original Language)" id="file-commentary-original"
+        class="uploader-textarea" style="margin-left: 64px;"></textarea>
+    </div>
+    <div class="column">
+      <textarea placeholder="Artist Commentary For this Post (Translated)" id="file-commentary-translated"
+        class="uploader-textarea" style="margin-left: 64px;"></textarea>
+    </div> -->
+  </div>
+  <script src="/javascript/uploader.min.js"></script>
+</div>
+
+{% endblock %}

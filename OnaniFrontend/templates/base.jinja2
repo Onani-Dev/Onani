@@ -3,52 +3,66 @@
 
 <head>
   <title>{% block title %}{% endblock %}Onani</title>
-  <link href="/favicon.ico" rel="icon">
   <!-- META -->
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Onani">
+  <meta name="application-name" content="Onani">
+  <meta name="msapplication-TileColor" content="#000000">
+  <meta name="theme-color" content="#ffffff">
   {% block meta %}
   {% endblock %}
   <!-- STYLES -->
-  <link href="/css/onani.style.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/onani.style.min.css">
+  <link rel="stylesheet" href="/css/icomoon.style.min.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css"> -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/v4-shims.css">
-  <link href="https://fonts.googleapis.com/css2?family=Jost&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost&display=swap">
   {% block styles %}
   {% endblock %}
   <!-- SCRIPTS -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
-    integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
   {% block top_scripts %}
   {% endblock %}
+  {% if current_user.is_authenticated %}
+    {% if current_user.settings.custom_css %}
+    <style type="text/css">{{ current_user.settings.custom_css }}</style>
+    {% endif %}
+  {% endif %}
 </head>
 
-<body {% block bodymodifier %}{% endblock %}>
+<body {% block body_modifer %}{% endblock %}>
   <!-- Navbar/header -->
-  <header class="navbar" {% block headermodifier %}{% endblock %}>
+  <header class="navbar" {% block header_modifer %}{% endblock %}>
     <!-- logo -->
     <div id="logo" onclick="location.href='/'">Onani</div>
     <!-- Navbar links -->
-    <a href="/">Posts</a>
-    <a href="/collections">Collections</a>
-    <a href="/upload">Upload</a>
+    <a href="/posts/">Posts</a>
+    <a href="/collections/">Collections</a>
+    <a href="/upload/">Upload</a>
     <!-- Search Box -->
     <div id="search-box">
-      <form id="search-form">
-        <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off">
-        <img src="/svg/search.svg" id="search-icon">
-      </form>
+      <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off" value="{% block search_box_value %}{% endblock %}">
+      <i class="fas fa-search" id="search-icon"></i>
     </div>
+    <script src="/javascript/search.min.js"></script>
     <!-- User Profile Picture -->
     {% if current_user.is_authenticated %}
     <div id="user-pfp-container">
       <div class="dropdown">
-        <img id="user-pfp" src="{{ current_user.settings.profile_pic }}" alt="{{ current_user.username }}">
+        <img id="user-pfp"
+          src="{{ current_user.settings.avatar.full_path }}?hash={{ current_user.settings.avatar.hash }}"
+          alt="{{ current_user.username }}">
         <div class="dropdown-content">
           <a href="/users/{{ current_user.id }}">Profile</a>
           <a onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}">Logout</a>
@@ -63,6 +77,14 @@
     </div>
     {% endif %}
   </header>
+  <script>
+    document.onkeyup = function (e) {
+      if (e.keyCode == 27) {
+        document.body.innerHTML = "";
+        location.href = "https://en.wikipedia.org/wiki/Taiko_no_Tatsujin";
+      }
+    }
+  </script>
   {% block content %}
   {% endblock %}
   {% block bottom_scripts %}

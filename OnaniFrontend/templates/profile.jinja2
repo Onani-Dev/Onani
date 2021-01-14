@@ -1,10 +1,10 @@
 {% extends "base.jinja2" %}
 {% block title %}{{ user.username }} - {% endblock %}
 
-{% block bodymodifier %}
+{% block body_modifer %}
 class="profile"
 {% endblock %}
-{% block headermodifier %}
+{% block header_modifer %}
 style="right: -390px;"
 {% endblock %}
 
@@ -17,19 +17,36 @@ style="right: -390px;"
   <div id="profile-info-container">
     <!-- PFP -->
     <div id="profile-picture-container">
-      <img src="{{ user.settings.profile_pic }}" id="profile-picture-image"></a>
+      <img src="{{ user.settings.avatar.full_path }}?hash={{ user.settings.avatar.hash }}"
+        id="profile-picture-image"></a>
     </div>
     <!-- Username -->
     <h1 id="profile-username-header">{{ user.username }}</h1>
     <!-- Permission value -->
     <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
-    <!-- User Socials -->
-    <i class="fab fa-patreon fa-2x"></i>
-    <i class="fab fa-twitter fa-2x"></i>
-    <i class="fab fa-github fa-2x"></i>
-    <i class="fab fa-deviantart fa-2x"></i>
-    <i class="fab fa-bitcoin fa-2x"></i>
-    <i class="fab fa-paypal fa-2x"></i>
+    <!-- User Platforms -->
+    {% if user.settings.platforms.twitter %}
+    <a href="{{ user.settings.platforms.twitter }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
+    {% endif %}
+    {% if user.settings.platforms.pixiv %}
+    <a href="{{ user.settings.platforms.pixiv }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
+    {% endif %}
+    {% if user.settings.platforms.patreon %}
+    <a href="{{ user.settings.platforms.patreon }}" target="_blank"><i class="fa fa-patreon fa-2x"></i></a>
+    {% endif %}
+    {% if user.settings.platforms.deviantart %}
+    <a href="{{ user.settings.platforms.deviantart }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
+    {% endif %}
+    {% if user.settings.platforms.discord %}
+    <a onclick="CopyText('{{ user.settings.platforms.discord }}')" style="cursor: pointer;"><i
+        class="fab fa-discord fa-2x" title="{{ user.settings.platforms.discord }}"></i></a>
+    {% endif %}
+    {% if user.settings.platforms.paypal %}
+    <a href="{{ user.settings.platforms.paypal }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
+    {% endif %}
+    {% if user.settings.platforms.github %}
+    <a href="{{ user.settings.platforms.github }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
+    {% endif %}
   </div>
   <!-- Profile content container -->
   <div id="profile-content-container">
@@ -41,8 +58,8 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}
-        This user does not have a Bio.{% endif %}</p>
+      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ emoji.emojize(user.settings.bio, use_aliases=true)}}{% else %}{% endif %}
+      </p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
       <p>Posts will go in here</p>
@@ -53,18 +70,20 @@ style="right: -390px;"
       <form id="settings-account">
         <h2 style="padding: 15px;">Account settings</h2>
 
-        <!-- Username Settings -->
+        <!-- User Info Settings -->
         <div class="settings-input-group">
           <div class="row">
             <div class="column">
               <label for="settings-name">Change Username</label>
+              <label for="settings-email">Change Email</label>
             </div>
             <div class="column">
-              <input type="text" placeholder="New Username" name="settings-name" id="profile-settings-name"
-                value="{{ user.username }}">
+              <input type="text" placeholder="{{ user.username }}" name="settings-name" id="profile-settings-name">
+              <input type="email" placeholder="{{ user.email }}" name="settings-email" id="profile-settings-email">
             </div>
           </div>
         </div>
+
         <!-- Password settings -->
         <div class="settings-input-group">
           <div class="row">
@@ -84,7 +103,7 @@ style="right: -390px;"
         </div>
         <!-- Save Button For account -->
         <div class="settings-input-group">
-          <input type="button" value="Save Changes" class="profile-settings-submit">
+          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveAccountSettings()">
         </div>
       </form>
 
@@ -114,24 +133,115 @@ style="right: -390px;"
               <label for="settings-bio">Bio</label>
             </div>
             <div class="column">
-              <textarea name="settings-bio" id="profile-settings-bio" cols="30"
-                rows="10">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}{% endif %}</textarea>
+              <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}{% endif %}</textarea>
             </div>
           </div>
         </div>
         <!-- Save Button For profile -->
         <div class="settings-input-group">
-          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveAccSettings()">
+          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveProfileSettings()">
         </div>
       </form>
-    </div>
+
+      <!-- Platform settings -->
+      <form id="settings-platforms">
+        <h2 style="padding: 15px;">Platform settings</h2>
+
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-twitter">Twitter</label>
+              <label for="settings-pixiv">Pixiv</label>
+              <label for="settings-patreon">Patreon</label>
+              <label for="settings-deviantart">DeviantArt</label>
+              <label for="settings-discord">Discord</label>
+              <label for="settings-github" style="display: none;">GitHub</label>
+            </div>
+            <div class="column">
+              <input type="text" name="Twitter profile" id="settings-twitter"
+                value="{% if user.settings.platforms.twitter is not none %}{{ user.settings.platforms.twitter }}{% else %}{% endif %}"
+                placeholder="Twitter Profile Link"
+                pattern="\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
+                onkeyup="this.reportValidity();">
+
+              <input type="text" name="Pixiv profile" id="settings-pixiv"
+                value="{% if user.settings.platforms.pixiv is not none %}{{ user.settings.platforms.pixiv }}{% else %}{% endif %}"
+                placeholder="Pixiv Profile Link"
+                pattern="\b((http[s]?:\/\/)?(www\.)?pixiv\.net\/[A-z]{1,}\/users\/[\d]{1,})\b"
+                onkeyup="this.reportValidity();">
+
+              <input type="text" name="Patreon Profile" id="settings-patreon"
+                value="{% if user.settings.platforms.patreon is not none %}{{ user.settings.platforms.patreon }}{% else %}{% endif %}"
+                placeholder="Patreon Profile Link"
+                pattern="\b((http[s]?:\/\/)?(www\.)?patreon\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
+                onkeyup="this.reportValidity();">
+
+              <input type="text" name="DeviantArt Profile" id="settings-deviantart"
+                value="{% if user.settings.platforms.deviantart is not none %}{{ user.settings.platforms.deviantart }}{% else %}{% endif %}"
+                placeholder="DeviantArt Profile Link"
+                pattern="\b((http[s]?:\/\/)?(www\.)?deviantart\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
+                onkeyup="this.reportValidity();">
+
+              <input type="text" name="Discord Username#Discriminator" id="settings-discord"
+                value="{% if user.settings.platforms.discord is not none %}{{ user.settings.platforms.discord }}{% else %}{% endif %}"
+                placeholder="Discord Username#Discriminator" pattern="\b([\w\d]{1,32}#[\d]{4,})\b"
+                onkeyup="this.reportValidity();">
+
+              <input type="text" name="Github Profile" id="settings-github"
+                value="{% if user.settings.platforms.github is not none %}{{ user.settings.platforms.github }}{% else %}{% endif %}"
+                placeholder="Github Profile Link" style="display: none;">
+            </div>
+          </div>
+        </div>
+        <!-- Save Button For Platforms -->
+        <div class="settings-input-group">
+          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SavePlatformSettings()">
+        </div>
+      </form>
+
+      <!-- Site settings -->
+      <form id="settings-site">
+        <h2 style="padding: 15px;">Site settings</h2>
+
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-blacklist">Tag Blacklist (split by newlines)</label>
+            </div>
+            <div class="column">
+              <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off"
+                autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="settings-input-group">
+          <div class="row">
+            <div class="column">
+              <label for="settings-custom-css">Custom CSS</label>
+            </div>
+            <div class="column">
+              <textarea name="settings-custom-css" id="profile-settings-custom-css" cols="30" rows="10"
+                autocorrect="off" autocapitalize="off"
+                spellcheck="false">{% if user.settings.custom_css is not none %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
+            </div>
+          </div>
+        </div>
+      <!-- Save Button For Site -->
+      <div class="settings-input-group">
+        <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveSiteSettings()">
+      </div>
+    </form>
     {% endif %}
   </div>
   <script src="/javascript/profile.min.js"></script>
   <script src="/javascript/edit-profile.min.js"></script>
 </div>
 <script>
+  let bioText = document.getElementById("profile-bio-textarea");
   twemoji.parse(document.getElementById("profile-username-header"));
-  twemoji.parse(document.getElementById("profile-bio-textarea"));
+  twemoji.parse(bioText);
+  bioText.innerHTML = bioText.innerHTML.replace(customEmotes, (current) => {
+    return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji' draggable='false' alt='${current}'></img>`
+  });
 </script>
 {% endblock %}

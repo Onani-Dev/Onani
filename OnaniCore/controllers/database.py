@@ -1,37 +1,36 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-08-12 19:50:22
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 15:28:13
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-10-13 16:40:05
 
-import logging
-import os
-import random
+import math
 import re
-import secrets
-import string
 from datetime import datetime, timedelta
-from timeit import timeit
-from typing import Dict, List, Tuple
+from typing import List, Union
 
 import pymongo
 from dateutil import tz
+from OnaniCore.models.file import File
 from passlib.hash import argon2
 
-from ..exceptions import OnaniDatabaseException
+from ..exceptions import OnaniAuthenticationError, OnaniDatabaseException
 from ..models import (
     Ban,
+    Commentary,
+    File,
     Post,
-    PostData,
-    PostFile,
     PostRating,
+    PostStatus,
     Tag,
     TagType,
     User,
     UserPermissions,
+    UserPlatforms,
     UserSettings,
 )
-from ..utils import setup_logger
+from ..utils import *
+from .files import FileController
 
 log = setup_logger(__name__)
 
@@ -41,7 +40,16 @@ class DatabaseController:
     Controller for the Onani Database
     """
 
-    __slots__ = ("client", "db", "posts", "tags", "users", "collections", "bans")
+    __slots__ = (
+        "bans",
+        "client",
+        "collections",
+        "db",
+        "file_controller",
+        "posts",
+        "tags",
+        "users",
+    )
 
     def __init__(self, mongo_uri: str = "mongodb://localhost:27017/"):
         # Connect to the mongoDB instance
@@ -58,27 +66,57 @@ class DatabaseController:
         self.tags.create_index("aliases")
         self.users.create_index("username")
 
+        # Create a file controller for this DatabaseController Instance
+        self.file_controller = FileController()
+
+    @property
+    def post_count(self) -> int:
+        return self.posts.count_documents({})
+
+    @property
+    def user_count(self) -> int:
+        return self.users.count_documents({})
+
+    @property
+    def ban_count(self) -> int:
+        return self.bans.count_documents({})
+
+    @property
+    def collection_count(self) -> int:
+        return self.collections.count_documents({})
+
+    @property
+    def tag_count(self) -> int:
+        return self.tags.count_documents({})
+
     ## POSTS
-    def add_post(self, filedata: PostFile, tags: List[Tag], data: PostData) -> Post:
-        """```raw
-        Add a post to the database
-
-        Args:
-            filedata (PostFile): The Post File
-            tags (List[Tag]): The list of Tag objects for this post
-            data (PostData): The post data
-
-        Returns:
-            Post: The Post method
-        """
-        post_data = {
-            "_id": self.posts.count_documents({}) + 1,
-            "file": filedata.to_dict(),
-            "tags": tags,
-            "data": data.to_dict(),
+    def add_post(
+        self,
+        post_file: File,
+        commentary: Commentary,
+        source: str,
+        uploader: User,
+        tags: List[Tag],
+        rating: PostRating,
+    ) -> Post:
+        post_dict = {
+            "_id": self.post_count + 1,
+            "commentary": commentary.to_dict(),
+            "favourites": list(),
+            "notes": list(),
+            "rating": rating.value,
+            "score": {"likers": [], "dislikers": []},
+            "source": html_escape(source),
+            "status": PostStatus.PENDING.value,
+            "uploaded_at": datetime.utcnow(),
+            "uploader": uploader.id,
+            "file": post_file.to_dict(),
+            "tags": [tag.id for tag in tags],
         }
-        insert = self.posts.insert_one(post_data)
-        log.debug(f"""Inserted post {insert.inserted_id}""")
+        for tag in tags:
+            tag.post_count += 1
+        insert = self.posts.insert_one(post_dict)
+        log.info(f"Post {insert.inserted_id}: Created")
 
         # get post and return
         return self.get_post(insert.inserted_id)
@@ -105,11 +143,82 @@ class DatabaseController:
 
         # Return post
         return Post(
-            self, post.get("_id"), post.get("file"), post.get("tags"), post.get("data"),
+            db=self,
+            id=post.get("_id"),
+            file=File(
+                filename=post["file"].get("filename"),
+                directory=post["file"].get("directory"),
+                thumbnail=post["file"].get("thumbnail"),
+                hash=post["file"].get("hash"),
+                width=post["file"].get("width"),
+                height=post["file"].get("height"),
+                filesize=post["file"].get("filesize"),
+            ),
+            tags=self.get_tags(tag_strings=post["tags"]),
+            uploaded_at=post.get("uploaded_at"),
+            source=post.get("source"),
+            rating=PostRating(post.get("rating")),
+            status=PostStatus(post.get("status")),
+            uploader=self.get_user(id=post.get("uploader")),
+            score=post.get("score"),
+            favourites=post.get("favourites"),
+            commentary=Commentary(
+                self,
+                post["commentary"].get("original"),
+                post["commentary"].get("translated"),
+            ),
+            notes=list(),  # TODO
         )
 
-    def modify_post_file(self, file: PostFile):
-        pass
+    def get_posts(
+        self, limit: int = 36, tags: list = None, page: int = 0
+    ) -> List[Post]:
+        if tags:
+            posts = (
+                self.posts.find(
+                    {"tags": {"$all": [x.id for x in self.get_tags(tag_strings=tags)]}}
+                )
+                .limit(int(limit))
+                .skip(limit * page)
+                .sort("_id", pymongo.DESCENDING)
+            )
+        else:
+            posts = (
+                self.posts.find()
+                .limit(limit)
+                .skip(limit * page)
+                .sort("_id", pymongo.DESCENDING)
+            )
+        return [
+            Post(
+                db=self,
+                id=post.get("_id"),
+                file=File(
+                    filename=post["file"].get("filename"),
+                    directory=post["file"].get("directory"),
+                    thumbnail=post["file"].get("thumbnail"),
+                    hash=post["file"].get("hash"),
+                    width=post["file"].get("width"),
+                    height=post["file"].get("height"),
+                    filesize=post["file"].get("filesize"),
+                ),
+                tags=self.get_tags(tag_strings=post["tags"]),
+                uploaded_at=post.get("uploaded_at"),
+                source=post.get("source"),
+                rating=PostRating(post.get("rating")),
+                status=PostStatus(post.get("status")),
+                uploader=self.get_user(id=post.get("uploader")),
+                score=post.get("score"),
+                favourites=post.get("favourites"),
+                commentary=Commentary(
+                    self,
+                    post["commentary"].get("original"),
+                    post["commentary"].get("translated"),
+                ),
+                notes=list(),  # TODO
+            )
+            for post in posts
+        ]
 
     ## USERS
     def add_user(
@@ -143,10 +252,12 @@ class DatabaseController:
             # We didnt recieve a password
             raise OnaniDatabaseException("Accounts MUST have a password.")
         if username is None:
-            username = self._random_username()
+            username = random_username()
 
         # Check if Username is already taken.
-        user = self.users.find_one({"username": re.compile(username, re.IGNORECASE)})
+        user = self.users.find_one(
+            {"username": re.compile(fr"\b{username}\b", re.IGNORECASE)}
+        )
         if user is not None:
             # We can't use this username.
             raise OnaniDatabaseException("Username is taken.")
@@ -162,10 +273,10 @@ class DatabaseController:
 
         # Construct dict to insert into database
         user_data = {
-            "_id": self.users.count_documents({}) + 1,
+            "_id": self.user_count + 1,
             "username": username,
             "email": email,
-            "api_key": self._create_api_key(),
+            "api_key": create_api_key(),
             "created_at": datetime.utcnow().replace(tzinfo=tz.tzutc()),
             "favourites": favourites,
             "permissions": permissions.value,
@@ -176,9 +287,13 @@ class DatabaseController:
 
         # insert the dict
         insert = self.users.insert_one(user_data)
-        log.debug(
-            f"""User \"{user_data.get("username")}\" inserted into Database with _id \"{insert.inserted_id}\""""
+
+        # Log to database
+        log.info(
+            f'User {user_data.get("username")} ({insert.inserted_id}): Account Created'
         )
+
+        # Return user object
         return self.get_user(id=insert.inserted_id)
 
     def get_user(
@@ -215,7 +330,7 @@ class DatabaseController:
         elif username is not None:
             # Check for user with Username
             user = self.users.find_one(
-                {"username": re.compile(username, re.IGNORECASE)}
+                {"username": re.compile(fr"\b{username}\b", re.IGNORECASE)}
             )
             if user is None:
                 raise OnaniDatabaseException(
@@ -251,121 +366,27 @@ class DatabaseController:
                 "One of: id, username, api_key must be supplied."
             )
 
+        # Make platforms object
+        if user.get("settings"):
+            user["settings"]["platforms"] = UserPlatforms(
+                **user["settings"]["platforms"]
+            )
+            user["settings"]["avatar"] = File(**user["settings"]["avatar"])
+
         # Return our user
         return User(
-            self,
-            user.get("_id"),
-            user.get("username"),
-            user.get("email"),
-            UserPermissions(user.get("permissions")),
-            user.get("favourites") or list(),
-            UserSettings(**user.get("settings")),
-            user.get("api_key"),
-            user.get("created_at"),
-            user.get("is_active"),
-            user.get("pass_hash"),
+            db=self,
+            id=user.get("_id"),
+            username=user.get("username"),
+            email=user.get("email"),
+            permissions=UserPermissions(user.get("permissions")),
+            favourites=user.get("favourites") or list(),
+            settings=UserSettings(**user.get("settings")),
+            api_key=user.get("api_key"),
+            created_at=user.get("created_at"),
+            is_active=user.get("is_active"),
+            pass_hash=user.get("pass_hash"),
         )
-
-    def modify_user(
-        self,
-        user: User,
-        username: str = None,
-        email: str = None,
-        settings: dict = None,
-        permissions: UserPermissions = None,
-    ) -> None:
-        """```raw
-        Modify a User object
-
-        Args:
-            user (User): The user to modify
-            username (str, optional): The username to change to. Defaults to None.
-            email (str, optional): The email to change to. Defaults to None.
-            settings (dict, optional): The settings to change. Defaults to None.
-            permissions (UserPermissions, optional): The UserPermissions to change to. Defaults to None.
-
-        Raises:
-            OnaniDatabaseException: Raised when modifying username, When the username already exists.
-        """
-        # Edit username if present
-        if username is not None:
-            existing_user = self.users.find_one(
-                {"username": re.compile(username, re.IGNORECASE)}
-            )
-            if existing_user is not None:
-                # We can't use this username.
-                raise OnaniDatabaseException("Username is taken.")
-            self.users.update_one({"_id": user.id}, {"$set": {"username": username}})
-            user.username = username
-
-        # Edit email if present
-        if email is not None:
-            existing_user = self.users.find_one({"email": email})
-            if existing_user is not None:
-                # We can't use this email.
-                raise OnaniDatabaseException("Email is in use.")
-            self.users.update_one({"_id": user.id}, {"$set": {"email": email}})
-            user.email = email
-
-        # Edit settings if present
-        if settings is not None:
-            user.settings.update(**settings)
-            self.users.update_one(
-                {"_id": user.id}, {"$set": {"settings": user.settings.to_dict()}}
-            )
-
-        # Edit permissions if present
-        if permissions is not None:
-            self.users.update_one(
-                {"_id": user.id}, {"$set": {"permissions": permissions.value}}
-            )
-            user.permissions = permissions
-
-    def regen_user_api_key(self, user: User) -> None:
-        """```raw
-        Regen a user's API key
-
-        Args:
-            user (User): The user to regen the api key for
-        """
-        api_key = self._create_api_key()
-        self.users.update_one({"_id": user.id}, {"$set": {"api_key": api_key}})
-        user.api_key = api_key
-
-    def add_user_favourite(self, user: User, post: Post) -> None:
-        """```raw
-        Add a post to user favourites
-
-        Args:
-            user (User): The user to add the favourite to
-            post (Post): The post to favourite
-        """
-        update = self.users.update_one(
-            {"_id": user.id}, {"$addToSet": {"favourites": post.id}}
-        )
-        if update.modified_count > 0:
-            user.favourites.append(post.id)
-            log.debug(f"Post {post.id} was added to {user.username}'s Favourites")
-        else:
-            log.debug("Post was not added as it already exists as a favourite.")
-
-    def remove_user_favourite(self, user: User, post: Post) -> None:
-        """```raw
-        Remove a post from user favourites
-
-        Args:
-            user (User): The user to remove the favourite from
-            post (Post): The post to unfavourite
-        """
-
-        update = self.users.update_one(
-            {"_id": user.id}, {"$pull": {"favourites": post.id}}
-        )
-        if update.modified_count > 0:
-            user.favourites.remove(post.id)
-            log.debug(f"Post {post.id} was removed from {user.username}'s Favourites")
-        else:
-            log.debug("Post was not removed as it does not exist as a favourite.")
 
     def add_user_ban(
         self,
@@ -411,9 +432,7 @@ class DatabaseController:
             {"username": user.username, "_id": user.id},
             {"$set": {"permissions": UserPermissions.BANNED.value}},
         )
-        log.info(
-            f"{user.username} (ID: {user.id}) has been banned with reason: {reason}."
-        )
+        log.info(f"User {user.username} ({user.id}): Banned with reason: {reason}.")
         user.permissions = UserPermissions.BANNED
 
     def remove_user_ban(self, user: User) -> None:
@@ -440,10 +459,10 @@ class DatabaseController:
             {"username": user.username, "_id": user.id},
             {"$set": {"permissions": UserPermissions.MEMBER.value}},
         )
-        log.info(f"{user.username} (ID: {user.id}) has been unbanned")
+        log.info(f"User {user.username} ({user.id}): Unbanned")
         user.permissions = UserPermissions.MEMBER
 
-    def get_user_ban(self, user: User) -> Ban:
+    def get_ban(self, user: Union[int, User]) -> Ban:
         """```raw
         Get a user ban from the database
 
@@ -462,12 +481,12 @@ class DatabaseController:
             # there is no existing ban
             raise OnaniDatabaseException("This user is not banned")
         return Ban(
-            self,
-            self.get_user(id=ban.get("user_id")),
-            ban.get("reason"),
-            self.get_user(id=ban.get("ban_creator_id")),
-            ban.get("since"),
-            ban.get("expires"),
+            db=self,
+            user=self.get_user(id=ban.get("user_id")),
+            reason=ban.get("reason"),
+            ban_creator=self.get_user(id=ban.get("ban_creator_id")),
+            since=ban.get("since"),
+            expires=ban.get("expires"),
         )
 
     ## TAGS
@@ -497,15 +516,28 @@ class DatabaseController:
         Returns:
             Tag: The Tag object
         """
-        tag_string = self._parse_tag(tag_string)
+        tag_string = parse_tag(tag_string)
 
-        tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
+        # Check if tag exists in strings
+        tag = self.tags.find_one(
+            {"string": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+        )
         if tag is not None:
             # What the OnaniDatabaseException says :)
             raise OnaniDatabaseException("A tag with this name already exists.")
 
+        # Check aliases
+        tag = self.tags.find_one(
+            {"aliases": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+        )
+
+        if tag is not None:
+            # Tag has alias of same name
+            raise OnaniDatabaseException("A tag with this alias already exists.")
+
         # Create dict and insert
         tag_data = {
+            "_id": self.tag_count + 1,
             "string": tag_string,
             "type": tag_type.value,
             "aliases": aliases,
@@ -517,58 +549,84 @@ class DatabaseController:
         log.debug(
             f"Tag \"{tag_data.get('string')}\" inserted into Database with _id \"{insert.inserted_id}\""
         )
-        return self.get_tag(tag_data.get("string"))
+        return self.get_tag(tag_id=insert.inserted_id)
 
-    def add_tag_alias(self, tag: Tag, alias: str) -> None:
+    def add_tags(self, tag_strings: List[str]) -> List[Tag]:
+        # List to return at the end
+        tag_objects = list()
+
+        # Parse the strings
+        tag_strings = parse_tags(tag_strings)
+
+        # Check tags
+        for tag_string in tag_strings:
+            try:
+                tag = self.get_tag(tag_string=tag_string)
+                tag_objects.append(tag)
+            except OnaniDatabaseException:
+                # make it
+                new_tag = self.add_tag(tag_string)
+                tag_objects.append(new_tag)
+
+        return tag_objects
+
+    def get_tag(self, tag_id: int = None, tag_string: str = None) -> Tag:
         """```raw
-        Add an alias for a tag
+        Find a tag in the database with the provided name or ID
 
         Args:
-            tag (Tag): The tag to add the alias to
-            alias (str): The alias string (Automatically stripped and whitespace replaced with _)
-        """
-        # add an alias to a tag
-        alias = self._parse_tag(alias)
-        update = self.tags.update_one(
-            {"string": tag.string}, {"$addToSet": {"aliases": alias}}
-        )
-        if update.modified_count > 0:
-            tag.aliases.append(alias)
-            log.debug(f'Alias added for tag "{tag.string}"')
-        else:
-            log.debug("Alias was not added as it already exists.")
-
-    def get_tag(self, tag_string: str) -> Tag:
-        """```raw
-        Find a tag in the database with the provided name
-
-        Args:
-            tag_string (str): The string of the tag or alias to look for
+            tag_id (int, optional): The ID of the tag to look for. Defaults to None.
+            tag_string (str, optional): The string of the tag or alias to look for. Defaults to None.
 
         Raises:
+            ValueError: Nothing was supplied
             OnaniDatabaseException: No match found
 
         Returns:
             Tag: The found tag
         """
-        tag = self.tags.find_one({"string": re.compile(tag_string, re.IGNORECASE)})
-        if tag is None:
-            tag = self.tags.find_one({"aliases": re.compile(tag_string, re.IGNORECASE)})
-            if tag is None:
+        # Check if Tag ID is present
+        if tag_id:
+            # Find em
+            tag = self.tags.find_one({"_id": tag_id})
+            if not tag:
                 raise OnaniDatabaseException(
-                    f'No tag mathching the name "{tag_string}" could be found.'
+                    f"No tag mathching the ID {tag_id} could be found."
                 )
-        log.debug(f'Tag found with name "{tag_string}"')
+            log.debug(f'Tag found with ID "{tag_id}"')
+
+        # Check with tag string
+        elif tag_string:
+            tag = self.tags.find_one(
+                {"string": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+            )
+            if not tag:
+                # Maybe an alias?
+                tag = self.tags.find_one(
+                    {"aliases": re.compile(fr"\b{tag_string}\b", re.IGNORECASE)}
+                )
+                if not tag:
+                    # Not an alias. Doesn't exist
+                    raise OnaniDatabaseException(
+                        f'No tag mathching the name "{tag_string}" could be found.'
+                    )
+            log.debug(f'Tag found with name "{tag_string}"')
+
+        # Nothing.
+        else:
+            # You are a loser
+            raise ValueError("No argument was supplied.")
 
         # return our tag
         return Tag(
-            self,
-            tag.get("string"),
-            TagType(tag.get("type")),
-            tag.get("aliases"),
-            tag.get("description"),
-            tag.get("post_count"),
-            tag.get("popularity"),
+            db=self,
+            id=tag.get("_id"),
+            tag_string=tag.get("string"),
+            tag_type=TagType(tag.get("type")),
+            aliases=tag.get("aliases"),
+            description=tag.get("description"),
+            post_count=tag.get("post_count"),
+            popularity=tag.get("popularity"),
         )
 
     def get_tags(
@@ -578,6 +636,7 @@ class DatabaseController:
         sort: str = "_id",
         sort_direction: int = pymongo.DESCENDING,
         tag_strings: list = None,
+        tag_ids: list = None,
     ) -> List[Tag]:
         """```raw
         Find tags in the database with the provided regex or list of tag strings
@@ -588,19 +647,28 @@ class DatabaseController:
             sort (str, optional): The order to sort the tags by. Defaults to "_id".
             sort_direction (int, optional): The Direction to sort. Defaults to pymongo.DESCENDING.
             tag_strings (list, optional): l. Defaults to None.
+            tag_ids (list, optional): The tag IDs to find. Defaults to None.
 
         Returns:
             List[Tag]: List of Tag found tag objects
         """
+
+        # Check if list of tag IDs is present
+        if tag_ids:
+            # Find the tags with supplied IDs
+            found_tags = list(self.tags.find({"_id": {"$in": tag_ids}}))
+
         # Check if list of tag strings is present ( Limit ingored )
-        if tag_strings is not None:
+        elif tag_strings:
             # get all the tag strings.
-            found_tags = list(self.tags.find({"string": {"$in": tag_strings}}))
+            found_tags: List[Tag] = list(
+                self.tags.find({"string": {"$in": tag_strings}})
+            )
             found_tags.extend(list(self.tags.find({"aliases": {"$in": tag_strings}})))
 
         else:
             # get tags with regex
-            if tag_regex is None:
+            if not tag_regex:
                 # Find all
                 found_tags = list(
                     self.tags.find().limit(limit).sort(sort, sort_direction)
@@ -612,6 +680,7 @@ class DatabaseController:
                     .limit(limit)
                     .sort(sort, sort_direction)
                 )
+                # Extend with aliases
                 found_tags.extend(
                     list(
                         self.tags.find(
@@ -625,120 +694,14 @@ class DatabaseController:
         # return a list of Tag objects
         return [
             Tag(
-                self,
-                x.get("string"),
-                TagType(x.get("type")),
-                x.get("aliases"),
-                x.get("description"),
-                x.get("post_count"),
-                x.get("popularity"),
+                db=self,
+                id=x.get("_id"),
+                tag_string=x.get("string"),
+                tag_type=TagType(x.get("type")),
+                aliases=x.get("aliases"),
+                description=x.get("description"),
+                post_count=x.get("post_count"),
+                popularity=x.get("popularity"),
             )
             for x in found_tags
         ]
-
-    def remove_tag_alias(self, tag: Tag, alias: str) -> None:
-        """```raw
-        Remove an alias from a tag
-
-        Args:
-            tag (Tag): The tag to remove it from
-            alias (str): The alias to remove
-        """
-        update = self.tags.update_one(
-            {"string": tag.string}, {"$pull": {"aliases": alias}}
-        )
-        if update.modified_count > 0:
-            tag.aliases.remove(alias)
-            log.debug(f'Alias removed for tag "{tag.string}"')
-        else:
-            log.debug("Alias was not removed as it doesnt't exist.")
-
-    def modify_tag(
-        self,
-        tag: Tag,
-        tag_string: str = None,
-        tag_type: TagType = None,
-        description: str = None,
-        post_count: int = None,
-        popularity: float = None,
-    ) -> None:
-        """```raw
-        Modify a tag
-
-        Args:
-            tag (Tag): The tag to modify
-            tag_string (str, optional): The tag string to change to. Defaults to None.
-            tag_type (TagType, optional): The type of the tag. Defaults to None.
-            description (str, optional): The tag's description. Defaults to None.
-            post_count (int, optional): The tag's post count. Defaults to None.
-            popularity (float, optional): The tag's popularity. Defaults to None.
-        """
-        # Update string if present
-        if tag_string is not None:
-            tag_string = self._parse_tag(tag_string)
-            self.tags.update_one(
-                {"string": tag.string}, {"$set": {"string": tag_string}},
-            )
-            tag.string = tag_string
-            log.debug(f'Tag name changed to "{tag.string}"')
-
-        # update type if present
-        if tag_type is not None:
-            self.tags.update_one(
-                {"string": tag.string}, {"$set": {"type": tag_type.value}},
-            )
-            tag.type = tag_type
-            log.debug(f'Type changed to "{tag_type.string}" for tag "{tag.string}"')
-
-        # update description if present
-        if description is not None:
-            self.tags.update_one(
-                {"string": tag.string}, {"$set": {"description": description}},
-            )
-            tag.description = description
-            log.debug(f'Description changed for tag "{tag.string}"')
-
-        # Update post count if present
-        if post_count is not None:
-            tag.post_count += post_count
-            self.tags.update_one(
-                {"string": tag.string}, {"$set": {"post_count": tag.post_count}},
-            )
-            log.debug(
-                f'Post count changed to value {tag.post_count} for tag "{tag.string}"'
-            )
-
-        # Update popularity if present
-        if popularity is not None:
-            tag.popularity += popularity
-            self.tags.update_one(
-                {"string": tag.string}, {"$set": {"popularity": tag.popularity}},
-            )
-            log.debug(
-                f'Popularity changed to value {tag.popularity} for tag "{tag.string}"'
-            )
-
-    ## INTERNAL FUNCTIONS
-
-    def _parse_tag(self, tag: str) -> str:
-        return tag.strip().replace(" ", "_").lower()
-
-    def _parse_tags(self, tags: list) -> list:
-        tgs = set()
-        for tag in tags:
-            tgs.add(self._parse_tag(tag))
-        return list(tgs)
-
-    def _random_username(self) -> str:
-        return "User_" + "".join(
-            random.choice(
-                string.ascii_uppercase + string.ascii_lowercase + string.digits
-            )
-            for x in range(6)
-        )
-
-    def _create_api_key(self) -> str:
-        return secrets.token_urlsafe(32)
-
-    def _sanitize(self, query: str) -> str:
-        return query.replace("function()", "")

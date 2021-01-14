@@ -1,22 +1,27 @@
 /*
- * @Author: Blakeando
+ * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
- * @Last Modified by:   Blakeando
- * @Last Modified time: 2020-09-15 17:13:48
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2020-09-26 18:10:14
  */
 'use strict';
 const tabcontent = document.getElementsByClassName("profile-tab-content");
 const tablinks = document.getElementsByClassName("profile-tab-link");
-const windowHash = window.location.hash.replace("#", "");
-if (window.location.hash != "" && ["bio", "settings", "posts"].includes(windowHash)) {
-  document.getElementById(window.location.hash.replace("#", "")).click();
+const pageURL = new URL(window.location.href);
+const windowParams = new URLSearchParams(window.location.search);
+
+if (windowParams.get("t") != "" && ["bio", "settings", "posts"].includes(windowParams.get("t"))) {
+  document.getElementById(windowParams.get("t")).click();
 }
 else {
-  console.log("clicking default")
   document.getElementById("bio").click();
 }
 
 function changeTab(evt, tabName) {
+  windowParams.set("t", tabName.replace("-tab", ""));
+  pageURL.search = windowParams.toString();
+  window.history.replaceState({ path: pageURL.href }, '', pageURL.href);
+
   for (var i = 0; i < tabcontent.length; i++) {
     tabcontent[i].style.display = "none";
   }
@@ -27,4 +32,16 @@ function changeTab(evt, tabName) {
 
   document.getElementById(tabName).style.display = "block";
   evt.currentTarget.className += " active";
-} 
+}
+
+function CopyText(text) {
+  const listener = function (ev) {
+    ev.preventDefault();
+    ev.clipboardData.setData('text/html', text);
+    ev.clipboardData.setData('text/plain', text);
+  };
+  document.addEventListener('copy', listener);
+  document.execCommand('copy');
+  document.removeEventListener('copy', listener);
+  alert("Copied to clipboard!");
+}

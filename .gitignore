@@ -132,3 +132,4 @@ dmypy.json
 config.ini
 .vscode/
 user_data/
+data/

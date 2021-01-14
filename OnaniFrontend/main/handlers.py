@@ -1,33 +1,28 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-09-12 14:10:42
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-15 19:28:56
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-09-24 21:39:27
 
-from flask import flash, jsonify, redirect, render_template
+from flask import flash, redirect, render_template, request
+from OnaniCore import *
+from OnaniCore.utils import make_api_response
 from werkzeug.exceptions import HTTPException
 
-from . import main, main_api
+from . import main
 
 
-@main.errorhandler(401)
-def error401(e):
-    flash("You must login to do this.")
-    return redirect("/login")
-
-
-@main.errorhandler(400)
-@main.errorhandler(404)
-@main.errorhandler(405)
-@main.errorhandler(500)
-def html_error_handler(e):
-    return str(e)
-
-
-@main_api.app_errorhandler(Exception)
+@main.app_errorhandler(Exception)
 def error_handler(e):
-    code = 500
+    if request.path.startswith("/api/"):
+        code = 500
+        if isinstance(e, HTTPException) or isinstance(e, OnaniApiError):
+            code = e.code
+        return make_api_response(error=str(e), code=code)
+
     if isinstance(e, HTTPException):
-        code = e.code
-    return jsonify({"ok": False, "error": str(e)}), code
+        if e.code == 401:
+            flash("You must login to do this.")
+            return redirect("/login")
+    return str(e)
 

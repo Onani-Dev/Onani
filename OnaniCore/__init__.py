@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-08-12 15:52:57
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-10 14:12:11
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-10-11 01:32:39
 
-import logging
 import platform
-import sys
 from collections import namedtuple
 
 import requests
 
 
 # Our version info
-VersionInfo = namedtuple("VersionInfo", "major minor patch type")
-__version_info__ = VersionInfo(major=1, minor=0, patch=0, type="dev")
+VersionInfo = namedtuple("VersionInfo", ["major", "minor", "patch", "release"])
+__version_info__ = VersionInfo(major=1, minor=0, patch=0, release="development")
 __version__ = ".".join(map(str, __version_info__))
 
 # Our user agent
@@ -25,9 +23,8 @@ from .controllers.database import DatabaseController
 from .controllers.scrapers import DanBooruScraper, Scraper
 from .exceptions import *
 from .models import (
+    File,
     Post,
-    PostData,
-    PostFile,
     PostRating,
     PostStatus,
     Tag,

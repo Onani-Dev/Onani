@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# @Author: Blakeando
+# @Author: kapsikkum
 # @Date:   2020-08-15 17:19:32
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-09-09 03:06:26
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-10-05 19:57:10
 
 from .utils import setup_logger
 
@@ -16,7 +16,24 @@ class OnaniDatabaseException(Exception):
 
     def __init__(self, msg=""):
         self.msg = msg
-        log.error(msg)
+        log.debug(msg)
+
+    def __str__(self):
+        return self.msg
+
+
+class OnaniPermissionError(Exception):
+    pass
+
+
+class OnaniAuthenticationError(Exception):
+    pass
+
+
+class OnaniApiError(Exception):
+    def __init__(self, msg="", code=400):
+        self.msg = msg
+        self.code = code
 
     def __str__(self):
         return self.msg
