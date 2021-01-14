@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-08-13 18:11:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-11 00:47:14
+# @Last Modified time: 2020-11-01 18:18:30
 
 from collections import Iterable
 from json import dumps
@@ -253,3 +253,6 @@ class Tag(object):
 
     def __repr__(self) -> str:
         return f"<Tag(name='{self.name}', type='{self.type}', aliases='{dumps(self.aliases)}')>"
+
+    def __eq__(self, other):
+        return self.name == other.name or other.name in self.aliases

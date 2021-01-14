@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 13:23:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-13 16:40:53
+# @Last Modified time: 2020-11-01 18:16:00
 
 
 from flask import (
@@ -24,10 +24,32 @@ from . import main, onaniDB
 @main.route("/")
 @main.route("/posts/")
 def posts():
+    # Get the tags from the query string
     tags = request.args.get("tags").split(" ") if request.args.get("tags") else None
+
+    # get page and turn into int
     page = request.args.get("p", "0")
     page = int(page) if page.isdigit() else 0
-    posts = onaniDB.get_posts(limit=36, page=page, tags=tags)
+
+    # Add the posts to a list
+    posts = list()
+    for post in onaniDB.get_posts(limit=36, page=page, tags=tags):
+        # Set default value to true
+        add = True
+
+        # iterate through current user blacklist
+        for tag in current_user.settings.tag_blacklist:
+
+            # If the tag is in there
+            if tag in [x.name for x in post.tags]:
+                # set add value to false and break from the loop
+                add = False
+                break
+
+        # add post to list if true
+        if add:
+            posts.append(post)
+
     return render_template(
         "/index.jinja2",
         tags=onaniDB.get_tags(limit=25, sort="post_count"),

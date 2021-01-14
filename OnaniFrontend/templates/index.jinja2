@@ -16,9 +16,9 @@
   <h1>Sorry nothing</h1>
   {% endif %}
   {% for post in posts %}
-  <div class="post-thumbnail-container">
-    <a href="/post/{{ post.id }}"><img src="{{ post.file.thumbnail }}" class="post-thumbnail"></a>
-  </div>
+    <div class="post-thumbnail-container">
+      <a href="/post/{{ post.id }}"><img src="{{ post.file.thumbnail }}" class="post-thumbnail"></a>
+    </div>
   {% endfor %}
 </div>
 <div id="index-navigation">
