@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-13 21:33:32
+# @Last Modified time: 2021-01-16 03:36:38
 
 import enum
 
@@ -14,6 +14,12 @@ alias_table = db.Table(
     "tag_aliases",
     db.Column("parent_id", db.Integer, db.ForeignKey("tags.id")),
     db.Column("child_id", db.Integer, db.ForeignKey("tags.id")),
+)
+
+post_table = db.Table(
+    "tag_posts",
+    db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
+    db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
 )
 
 
@@ -46,23 +52,43 @@ class Tag(db.Model):
         default=TagType.GENERAL,
         nullable=False,
     )
+    description = db.Column(
+        db.String(2048), default="No description has been added to this tag."
+    )
 
     # alias
+    # alias_of = db.Column(db.Integer, db.ForeignKey("tags.id"))
     aliases = db.relationship(
         "Tag",
         secondary=alias_table,
         primaryjoin=(alias_table.c.parent_id == id),
         secondaryjoin=(alias_table.c.child_id == id),
-        backref=db.backref("tags", lazy="dynamic"),
+        backref=db.backref("tag_aliases", lazy="dynamic"),
         lazy="dynamic",
     )
 
+    # list posts
+    posts = db.relationship(
+        "Post", secondary=post_table, backref=db.backref("tag_posts", lazy="dynamic")
+    )
+
+    @property
+    def post_count(self):
+        return len(self.posts)
+
     def save_to_db(self):
         db.session.add(self)
-        self.commit()
-
-    def commit(self):
         db.session.commit()
 
     def __repr__(self):
         return "<Tag {0!r}>".format(self.__dict__)
+
+
+# aliases = db.relationship(
+#     "Tag",
+#     secondary=alias_table,
+#     primaryjoin=(alias_table.c.parent_id == id),
+#     secondaryjoin=(alias_table.c.child_id == id),
+#     backref=db.backref("tags", lazy="dynamic"),
+#     lazy="dynamic",
+# )

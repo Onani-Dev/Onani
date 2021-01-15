@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-14 18:26:21
+# @Last Modified time: 2021-01-16 03:29:58
 
 import datetime
 import enum
@@ -70,7 +70,9 @@ class User(UserMixin, db.Model):
 
     # User preferences
     tag_blacklist = db.relationship(
-        "Tag", secondary=tag_blacklist, backref=db.backref("users", lazy="dynamic")
+        "Tag",
+        secondary=tag_blacklist,
+        backref=db.backref("user_tag_blacklist", lazy="dynamic"),
     )
     custom_css = db.Column(db.UnicodeText)
 
@@ -123,9 +125,6 @@ class User(UserMixin, db.Model):
 
     def save_to_db(self):
         db.session.add(self)
-        self.commit()
-
-    def commit(self):
         db.session.commit()
 
     def __repr__(self):

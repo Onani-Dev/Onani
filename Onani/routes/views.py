@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 22:04:59
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-14 02:22:44
+# @Last Modified time: 2021-01-16 03:40:34
 
 import html
 import random
@@ -57,17 +57,20 @@ def index():
     for user in User.query.all():
         print(user.username, user.password_hash, str(user.permissions))
 
-    tag = Tag(name="".join([random.choice(string.ascii_letters) for _ in range(32)]))
-    tag.save_to_db()
+    tag1 = Tag(name="".join([random.choice(string.ascii_letters) for _ in range(32)]))
+    tag1.save_to_db()
 
-    user.tag_blacklist.append(tag)
-    user.commit()
+    user.tag_blacklist.append(tag1)
+    db.session.commit()
 
-    tag = Tag(name="".join([random.choice(string.ascii_letters) for _ in range(32)]))
-    tag.save_to_db()
+    tag2 = Tag(name="".join([random.choice(string.ascii_letters) for _ in range(32)]))
+    tag1.aliases.append(tag2)
+    tag2.save_to_db()
 
-    user.tag_blacklist.append(tag)
-    user.commit()
+    user.tag_blacklist.append(tag2)
+    db.session.commit()
 
     print(user.tag_blacklist)
+    print(tag1.aliases)
+
     return html.escape(str(user))
