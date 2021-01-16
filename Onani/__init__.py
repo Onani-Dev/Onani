@@ -2,19 +2,22 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-12 17:56:47
+# @Last Modified time: 2021-01-16 20:58:38
 
 import datetime
 import time
-import emoji
 
+import emoji
 from flask import Flask
 from flask_login import LoginManager
-
+from flask_marshmallow import Marshmallow
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 login_manager = LoginManager()
 db = SQLAlchemy()  # session_options={"autocommit": True}
+ma = Marshmallow()
+migrate = Migrate()
 
 
 def init_app():
@@ -27,12 +30,14 @@ def init_app():
 
     app.jinja_env.globals.update(datetime=datetime, time=time, emoji=emoji)
 
-    from .routes import main, api
+    from .routes import api, main
 
     app.register_blueprint(main)
     app.register_blueprint(api, url_prefix="/api")
 
     login_manager.init_app(app)  # login manager init
-    db.init_app(app)  # MongoEngine init
+    db.init_app(app)  # SQLAlchemy init
+    ma.init_app(app)  # Marshmallow init
+    migrate.init_app(app, db)  # flask migrate init
 
     return app

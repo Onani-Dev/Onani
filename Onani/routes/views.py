@@ -2,18 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 22:04:59
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-16 03:40:34
+# @Last Modified time: 2021-01-17 03:05:50
 
 import html
 import random
 import re
 import string
+from datetime import datetime, timedelta
 
-# from flask import request
+from flask import jsonify
 from flask_login import LoginManager, current_user
 
 from .. import login_manager
-from ..models import Tag, User, UserPermissions
+from ..models import Ban, Tag, User, UserPermissions, user_schemas
 from . import db, main
 
 
@@ -54,8 +55,8 @@ def index():
     )
     user.set_password("Cumm1")
     user.save_to_db()
-    for user in User.query.all():
-        print(user.username, user.password_hash, str(user.permissions))
+    # for user in User.query.all():
+    #     print(user.username, user.password_hash, str(user.permissions))
 
     tag1 = Tag(name="".join([random.choice(string.ascii_letters) for _ in range(32)]))
     tag1.save_to_db()
@@ -68,9 +69,17 @@ def index():
     tag2.save_to_db()
 
     user.tag_blacklist.append(tag2)
+
     db.session.commit()
 
-    print(user.tag_blacklist)
-    print(tag1.aliases)
+    ban = Ban(
+        user=user.id, reason="Cockhead", expires=datetime.utcnow() + timedelta(days=50)
+    )
+    ban.save_to_db()
 
-    return html.escape(str(user))
+    print(ban.has_expired)
+
+    print(user.tag_blacklist)
+    print(type(tag1.aliases))
+
+    return user_schemas.jsonify(User.query.all())

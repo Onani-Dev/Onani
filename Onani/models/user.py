@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-16 03:29:58
+# @Last Modified time: 2021-01-17 03:03:24
 
 import datetime
 import enum
@@ -37,6 +37,9 @@ class UserPermissions(enum.Enum):
     ADMIN = 6
     OWNER = 666
 
+    def __int__(self):
+        return self.value
+
 
 class User(UserMixin, db.Model):
     """
@@ -63,10 +66,11 @@ class User(UserMixin, db.Model):
         default=lambda: secrets.token_urlsafe(32),
     )
 
+    ban = db.relationship("Ban", uselist=False, backref="user_ban")
     # Ban info
-    is_banned = db.Column(db.Boolean, default=False, nullable=False)
-    ban_expires = db.Column(db.DateTime)
-    ban_reason = db.Column(db.UnicodeText)
+    # is_banned = db.Column(db.Boolean, default=False, nullable=False)
+    # ban_expires = db.Column(db.DateTime)
+    # ban_reason = db.Column(db.UnicodeText)
 
     # User preferences
     tag_blacklist = db.relationship(

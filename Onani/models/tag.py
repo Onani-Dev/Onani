@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-16 03:36:38
+# @Last Modified time: 2021-01-17 02:23:16
 
 import enum
 
@@ -10,11 +10,6 @@ from sqlalchemy_utils import ChoiceType
 
 from . import db
 
-alias_table = db.Table(
-    "tag_aliases",
-    db.Column("parent_id", db.Integer, db.ForeignKey("tags.id")),
-    db.Column("child_id", db.Integer, db.ForeignKey("tags.id")),
-)
 
 post_table = db.Table(
     "tag_posts",
@@ -35,6 +30,9 @@ class TagType(enum.Enum):
     CHARACTER = 3
     COPYRIGHT = 4
     META = 5
+
+    def __int__(self):
+        return self.value
 
 
 class Tag(db.Model):
@@ -57,24 +55,25 @@ class Tag(db.Model):
     )
 
     # alias
-    # alias_of = db.Column(db.Integer, db.ForeignKey("tags.id"))
+    alias_of = db.Column(db.Integer, db.ForeignKey("tags.id"))
     aliases = db.relationship(
-        "Tag",
-        secondary=alias_table,
-        primaryjoin=(alias_table.c.parent_id == id),
-        secondaryjoin=(alias_table.c.child_id == id),
-        backref=db.backref("tag_aliases", lazy="dynamic"),
-        lazy="dynamic",
+        "Tag", backref=db.backref("tag", remote_side=[id], lazy="joined")
     )
 
     # list posts
     posts = db.relationship(
-        "Post", secondary=post_table, backref=db.backref("tag_posts", lazy="dynamic")
+        "Post", secondary=post_table, backref=db.backref("tag", lazy="dynamic")
     )
 
     @property
     def post_count(self):
         return len(self.posts)
+
+    @property
+    def is_alias(self):
+        if self.alias_of:
+            return True
+        return False
 
     def save_to_db(self):
         db.session.add(self)
@@ -86,9 +85,9 @@ class Tag(db.Model):
 
 # aliases = db.relationship(
 #     "Tag",
-#     secondary=alias_table,
-#     primaryjoin=(alias_table.c.parent_id == id),
-#     secondaryjoin=(alias_table.c.child_id == id),
+#     secondary=tag_aliases,
+#     primaryjoin=(tag_aliases.c.parent_id == id),
+#     secondaryjoin=(tag_aliases.c.child_id == id),
 #     backref=db.backref("tags", lazy="dynamic"),
 #     lazy="dynamic",
 # )

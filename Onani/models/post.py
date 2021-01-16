@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-16 03:28:02
+# @Last Modified time: 2021-01-16 20:53:05
 
 import datetime
 import enum
@@ -41,6 +41,9 @@ class PostRating(enum.Enum):
     QUESTIONABLE = 2
     EXPLICIT = 3
 
+    def __int__(self):
+        return self.value
+
 
 class PostStatus(enum.Enum):
     """
@@ -50,6 +53,9 @@ class PostStatus(enum.Enum):
     DELETED = 0
     PENDING = 1
     ACCEPTED = 2
+
+    def __int__(self):
+        return self.value
 
 
 class Post(db.Model):
