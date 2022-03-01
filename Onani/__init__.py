@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-16 20:58:38
+# @Last Modified time: 2022-03-01 16:12:56
 
 import datetime
 import time
@@ -26,7 +26,7 @@ def init_app():
     app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
     # Temporary secret key; Change to config generated one
 
-    app.config.from_pyfile("config.py")
+    app.config.from_pyfile("./config.py")
 
     app.jinja_env.globals.update(datetime=datetime, time=time, emoji=emoji)
 
