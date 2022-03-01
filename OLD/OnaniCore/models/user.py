@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timedelta
 
 from aenum import Enum, MultiValue
-from dateutil import tz
+from dateuti import tz
 from passlib.hash import argon2
 
 from ..exceptions import (
@@ -331,7 +331,10 @@ class User(object):
         return False
 
     def ban(
-        self, reason: str, duration: timedelta = timedelta(days=30), ban_creator=None,
+        self,
+        reason: str,
+        duration: timedelta = timedelta(days=30),
+        ban_creator=None,
     ) -> None:
         if ban_creator:
             if not ban_creator.has_permissions(UserPermissions.ADMINISTRATOR):
