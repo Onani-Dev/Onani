@@ -2,13 +2,17 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-16 20:53:05
+# @Last Modified time: 2022-03-03 01:13:27
 
 import datetime
 import enum
 
 from sqlalchemy.orm import backref, validates
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
+from Onani.models.tag import Tag
+
+from Onani.models.translation import Translation
+from Onani.models.user import User
 
 from . import db
 
@@ -79,14 +83,14 @@ class Post(db.Model):
         nullable=False,
     )
     source = db.Column(db.String(256))
+    description = db.Column(db.String(1024))
 
     # Foregin key shit
-    file = None
-    commentary = None
-    notes = None
+    file = db.Column(db.Integer, db.ForeignKey("files.id"))
+    translations = db.relationship(Translation, backref="post_translations", lazy=True)
     uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
     tags = db.relationship(
-        "Tag",
+        Tag,
         secondary=post_tags,
         primaryjoin=(post_tags.c.post_id == id),
         secondaryjoin=(post_tags.c.tag_id == id),
@@ -94,7 +98,7 @@ class Post(db.Model):
         lazy="dynamic",
     )
     upvoters = db.relationship(
-        "User",
+        User,
         secondary=post_upvotes,
         primaryjoin=(post_upvotes.c.post_id == id),
         secondaryjoin=(post_upvotes.c.user_id == id),
@@ -102,7 +106,7 @@ class Post(db.Model):
         lazy="dynamic",
     )
     downvoters = db.relationship(
-        "User",
+        User,
         secondary=post_downvotes,
         primaryjoin=(post_downvotes.c.post_id == id),
         secondaryjoin=(post_downvotes.c.user_id == id),
