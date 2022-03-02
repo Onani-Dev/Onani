@@ -2,15 +2,16 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 22:04:59
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-17 03:05:50
+# @Last Modified time: 2022-03-03 01:38:36
 
 import html
 import random
 import re
 import string
+import traceback
 from datetime import datetime, timedelta
 
-from flask import jsonify
+from flask import jsonify, render_template, request
 from flask_login import LoginManager, current_user
 
 from .. import login_manager
@@ -20,7 +21,8 @@ from . import db, main
 
 @main.app_errorhandler(Exception)
 def error_handler(e):
-    return str(e)
+    print(traceback.print_tb(e.__traceback__))  # DEBUG
+    return str(traceback.print_tb(e.__traceback__))
 
 
 @login_manager.request_loader
@@ -47,39 +49,20 @@ def request_loader(request):
 
 
 @main.route("/")
-def index():
-    user = User(
-        username="".join([random.choice(string.ascii_letters) for _ in range(32)]),
-        email="".join([random.choice(string.ascii_letters) for _ in range(6)])
-        + "@onanis.me",
+@main.route("/posts/")
+def posts():
+    tags = request.args.get("tags").split(" ") if request.args.get("tags") else None
+    page = request.args.get("p", "0")
+    page = int(page) if page.isdigit() else 0
+    posts = []
+    return render_template(
+        "/index.jinja2",
+        tags=[],
+        posts=posts,
     )
-    user.set_password("Cumm1")
-    user.save_to_db()
-    # for user in User.query.all():
-    #     print(user.username, user.password_hash, str(user.permissions))
 
-    tag1 = Tag(name="".join([random.choice(string.ascii_letters) for _ in range(32)]))
-    tag1.save_to_db()
 
-    user.tag_blacklist.append(tag1)
-    db.session.commit()
-
-    tag2 = Tag(name="".join([random.choice(string.ascii_letters) for _ in range(32)]))
-    tag1.aliases.append(tag2)
-    tag2.save_to_db()
-
-    user.tag_blacklist.append(tag2)
-
-    db.session.commit()
-
-    ban = Ban(
-        user=user.id, reason="Cockhead", expires=datetime.utcnow() + timedelta(days=50)
-    )
-    ban.save_to_db()
-
-    print(ban.has_expired)
-
-    print(user.tag_blacklist)
-    print(type(tag1.aliases))
-
-    return user_schemas.jsonify(User.query.all())
+# Easter eggs
+@main.route("/fun")
+def sonic_fun():
+    return render_template("/fun.jinja2")

@@ -1,34 +1,46 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-01 19:34:24
+# @Last Modified time: 2022-03-03 01:27:47
 version: '3.8'
 
 services:
- web_server:
-  build:
-   context: .
-  ports:
-  - 5000:5000
-  depends_on:
-    mysql_db:
-      condition: service_healthy
-  command: ["python init_db.py"]
+  flask:
+    build:
+      context: .
+    expose:
+    - 5000
+    environment:
+      FLASK_APP: run
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+    - files:/files
 
+  nginx:
+    build: ./nginx
+    ports:
+      - 5000:80
+    depends_on:
+      - flask
 
- mysql_db:
-  image: mysql
-  ports:
-  - 3306:3306
-  environment:
-    MYSQL_DATABASE: onani_db
-    MYSQL_ROOT_PASSWORD: root
-  volumes:
-  - database:/var/lib/mysql
-  healthcheck:
-    test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-    timeout: 20s
-    retries: 10
+  mysql:
+    image: mysql
+    ports:
+      - 3306:3306
+    #expose:
+    #- 3306
+    environment:
+      MYSQL_DATABASE: onani_db
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+    - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
 volumes:
   database:
+  files:

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-17 03:03:24
+# @Last Modified time: 2022-03-03 01:08:41
 
 import datetime
 import enum
@@ -11,9 +11,11 @@ import secrets
 
 import regex as re
 from flask_login import UserMixin
+from Onani.models.ban import Ban
+from Onani.models.tag import Tag
 from passlib.hash import argon2
 from sqlalchemy.orm import backref, validates
-from sqlalchemy_utils import ChoiceType, URLType, JSONType
+from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from . import db
 
@@ -66,7 +68,7 @@ class User(UserMixin, db.Model):
         default=lambda: secrets.token_urlsafe(32),
     )
 
-    ban = db.relationship("Ban", uselist=False, backref="user_ban")
+    ban = db.relationship(Ban, uselist=False, backref="user_ban")
     # Ban info
     # is_banned = db.Column(db.Boolean, default=False, nullable=False)
     # ban_expires = db.Column(db.DateTime)
@@ -74,7 +76,7 @@ class User(UserMixin, db.Model):
 
     # User preferences
     tag_blacklist = db.relationship(
-        "Tag",
+        Tag,
         secondary=tag_blacklist,
         backref=db.backref("user_tag_blacklist", lazy="dynamic"),
     )

@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:54:25
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-17 03:09:09
+# @Last Modified time: 2022-03-03 01:07:41
 
 from .. import db
 from .ban import Ban
+from .file import File
 from .post import Post, PostRating, PostStatus
 from .schemas import (
     ban_schema,
@@ -18,4 +19,5 @@ from .schemas import (
     user_schemas,
 )
 from .tag import Tag, TagType
+from .translation import Translation
 from .user import User, UserPermissions
