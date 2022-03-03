@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 22:19:55
+# @Last Modified time: 2022-03-04 04:48:50
 
 import random
 import string
@@ -51,7 +51,7 @@ def seed_db():
     user.set_password("Root1")
     user.save_to_db()
 
-    for x in range(0, 10):
+    for _ in range(10):
         user = User(
             username="".join([random.choice(string.ascii_letters) for _ in range(32)]),
             email="".join([random.choice(string.ascii_letters) for _ in range(6)])

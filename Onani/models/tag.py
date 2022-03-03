@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 22:26:13
+# @Last Modified time: 2022-03-04 04:48:48
 
 import enum
 
@@ -71,9 +71,7 @@ class Tag(db.Model):
 
     @property
     def is_alias(self):
-        if self.alias_of:
-            return True
-        return False
+        return bool(self.alias_of)
 
     @property
     def post_count(self):

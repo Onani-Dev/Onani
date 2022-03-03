@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 22:36:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 03:44:16
+# @Last Modified time: 2022-03-04 04:42:24
 from datetime import datetime, timedelta
 
 import humanize
@@ -43,9 +43,7 @@ def request_loader(request):
         if user.check_password(password):
             return user if not user.is_banned else None
 
-    # API Key login
-    api_key = request.headers.get("Authorization")
-    if api_key:
+    if api_key := request.headers.get("Authorization"):
         user = User.query.filter_by(api_key=api_key).first()
         if user is None:
             return
@@ -122,36 +120,35 @@ def register():
         return redirect(f"/users/{current_user.id}")
     if request.method == "GET":
         return render_template("/register.jinja2")
-    else:
-        username = request.form["username"]
-        password = request.form["password"]
-        confirm = request.form["confirm-password"]
-        if not username and not password and not confirm:
-            flash("🤨")
-            return redirect("/register")
-        # Check password
-        if not password:
-            flash("No password was entered.")
-            return redirect("/register")
+    username = request.form["username"]
+    password = request.form["password"]
+    confirm = request.form["confirm-password"]
+    if not username and not password and not confirm:
+        flash("🤨")
+        return redirect("/register")
+    # Check password
+    if not password:
+        flash("No password was entered.")
+        return redirect("/register")
 
         # Check if passwords match
-        if not password == confirm:
-            flash("Passwords did not match.")
-            return redirect("/register")
+    if password != confirm:
+        flash("Passwords did not match.")
+        return redirect("/register")
 
-        # Try to insert it into database
-        try:
-            user = User(username=username, email="test@pee.com")
-            user.set_password(password)
-            user.save_to_db()
-        except Exception as e:
-            # We couldn't.
-            flash(str(e))
-            return redirect("/register")
+    # Try to insert it into database
+    try:
+        user = User(username=username, email="test@pee.com")
+        user.set_password(password)
+        user.save_to_db()
+    except Exception as e:
+        # We couldn't.
+        flash(str(e))
+        return redirect("/register")
 
-        # Account created.
-        flash("Account created, You can now login.")
-        return redirect("/login")
+    # Account created.
+    flash("Account created, You can now login.")
+    return redirect("/login")
 
 
 @main.route("/logout")

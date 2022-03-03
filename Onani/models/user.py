@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 02:59:21
+# @Last Modified time: 2022-03-04 04:46:46
 
 import datetime
 import enum
@@ -128,7 +128,7 @@ class User(UserMixin, db.Model):
 
     @property
     def is_banned(self):
-        return False if self.ban is None else True
+        return self.ban is not None
 
     def set_password(self, password):
         if not password:
