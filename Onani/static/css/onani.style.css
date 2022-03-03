@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-10-12 22:34:31
+ * @Last Modified time: 2022-03-04 04:05:06
 */
 
 
@@ -508,6 +508,7 @@ div.flash-message {
   right: 0;
   text-align: center;
   white-space: pre;
+  font-size: 95%;
 }
 
 /* Profile Container */

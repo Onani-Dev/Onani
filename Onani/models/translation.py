@@ -2,13 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:20:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 00:46:12
+# @Last Modified time: 2022-03-03 02:28:13
 from . import db
 
 
 class Translation(db.Model):
     """
-    Translation model
+    Translation Model
     """
 
     __tablename__ = "translations"

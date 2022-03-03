@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 00:35:18
+# @Last Modified time: 2022-03-04 03:03:29
 from . import db
 
 
@@ -14,7 +14,7 @@ class File(db.Model):
     __tablename__ = "files"
 
     id = db.Column(db.Integer, primary_key=True)
-    post = db.Column(db.Integer, db.ForeignKey("posts.id"))
+    post = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
     directory = db.Column(db.String(128))
     filename = db.Column(db.String(128))
     thumbnail = db.Column(db.String(128))

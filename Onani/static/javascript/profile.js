@@ -2,12 +2,12 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-26 18:10:14
+ * @Last Modified time: 2022-03-04 03:50:27
  */
 'use strict';
 const tabcontent = document.getElementsByClassName("profile-tab-content");
 const tablinks = document.getElementsByClassName("profile-tab-link");
-const pageURL = new URL(window.location.href);
+// const pageURL = new URL(window.location.href);
 const windowParams = new URLSearchParams(window.location.search);
 
 if (windowParams.get("t") != "" && ["bio", "settings", "posts"].includes(windowParams.get("t"))) {

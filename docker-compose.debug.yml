@@ -1,15 +1,15 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 02:58:31
+# @Last Modified time: 2022-03-04 02:58:40
 version: '3.8'
 
 services:
   flask:
     build:
       context: .
-    expose:
-    - 5000
+    ports:
+    - 5001:5000
     environment:
       FLASK_APP: run
     depends_on:
@@ -21,7 +21,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - 80:80
+      - 5000:80
     depends_on:
       - flask
     volumes:
@@ -29,8 +29,8 @@ services:
 
   mysql:
     image: mysql
-    expose:
-    - 3306
+    ports:
+      - 3306:3306
     environment:
       MYSQL_DATABASE: onani_db
       MYSQL_ROOT_PASSWORD: root

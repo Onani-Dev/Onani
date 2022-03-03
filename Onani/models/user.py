@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 01:08:41
+# @Last Modified time: 2022-03-04 02:59:21
 
 import datetime
 import enum
@@ -28,7 +28,7 @@ tag_blacklist = db.Table(
 
 class UserPermissions(enum.Enum):
     """
-    Permissions for User objects.
+    Permissions for User models.
     """
 
     MEMBER = 1
@@ -41,6 +41,28 @@ class UserPermissions(enum.Enum):
 
     def __int__(self):
         return self.value
+
+
+class UserSettings(db.Model):
+    """
+    UserSettings Models
+    """
+
+    __tablename__ = "settings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+    # User Profile
+    biography = db.Column(db.UnicodeText(1024))
+    avatar = db.Column(db.String(256))
+    custom_css = db.Column(db.UnicodeText)
+    deviantart = db.Column(db.String(128))
+    discord = db.Column(db.String(128))
+    github = db.Column(db.String(128))
+    patreon = db.Column(db.String(128))
+    pixiv = db.Column(db.String(128))
+    twitter = db.Column(db.String(128))
 
 
 class User(UserMixin, db.Model):
@@ -69,10 +91,6 @@ class User(UserMixin, db.Model):
     )
 
     ban = db.relationship(Ban, uselist=False, backref="user_ban")
-    # Ban info
-    # is_banned = db.Column(db.Boolean, default=False, nullable=False)
-    # ban_expires = db.Column(db.DateTime)
-    # ban_reason = db.Column(db.UnicodeText)
 
     # User preferences
     tag_blacklist = db.relationship(
@@ -80,11 +98,7 @@ class User(UserMixin, db.Model):
         secondary=tag_blacklist,
         backref=db.backref("user_tag_blacklist", lazy="dynamic"),
     )
-    custom_css = db.Column(db.UnicodeText)
-
-    # User Profile
-    biography = db.Column(db.UnicodeText(1024))
-    avatar = db.Column(db.String(256))
+    settings = db.relationship(UserSettings, uselist=False, backref="user_settings")
 
     @validates("username")
     def validate_username(self, key, username):
@@ -112,6 +126,10 @@ class User(UserMixin, db.Model):
             raise AssertionError("Biography is too large. (Max 512)")
         return html.escape(biography)
 
+    @property
+    def is_banned(self):
+        return False if self.ban is None else True
+
     def set_password(self, password):
         if not password:
             raise AssertionError("Password not provided")
@@ -130,6 +148,9 @@ class User(UserMixin, db.Model):
         self.commit()
 
     def save_to_db(self):
+        self.settings = UserSettings(
+            avatar="/image/default.png",
+        )
         db.session.add(self)
         db.session.commit()
 
