@@ -2,21 +2,21 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:54:25
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 01:07:41
+# @Last Modified time: 2022-03-04 03:10:23
 
 from .. import db
 from .ban import Ban
+from .collection import Collection, CollectionStatus
 from .file import File
 from .post import Post, PostRating, PostStatus
 from .schemas import (
-    ban_schema,
-    ban_schemas,
-    post_schema,
-    post_schemas,
-    tag_schema,
-    tag_schemas,
-    user_schema,
-    user_schemas,
+    BanSchema,
+    CollectionSchema,
+    FileSchema,
+    PostSchema,
+    SettingsSchema,
+    TagSchema,
+    UserSchema,
 )
 from .tag import Tag, TagType
 from .translation import Translation

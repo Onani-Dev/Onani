@@ -2,20 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 01:13:27
+# @Last Modified time: 2022-03-04 03:07:17
 
 import datetime
 import enum
 
-from sqlalchemy.orm import backref, validates
-from sqlalchemy_utils import ChoiceType, JSONType, URLType
+from Onani.models.file import File
 from Onani.models.tag import Tag
-
 from Onani.models.translation import Translation
 from Onani.models.user import User
+from sqlalchemy.orm import backref, validates
+from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from . import db
-
 
 post_upvotes = db.Table(
     "post_upvotes",
@@ -86,7 +85,7 @@ class Post(db.Model):
     description = db.Column(db.String(1024))
 
     # Foregin key shit
-    file = db.Column(db.Integer, db.ForeignKey("files.id"))
+    file = db.relationship(File, uselist=False, backref="post_file")
     translations = db.relationship(Translation, backref="post_translations", lazy=True)
     uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
     tags = db.relationship(

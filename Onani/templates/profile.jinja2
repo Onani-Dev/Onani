@@ -17,35 +17,35 @@ style="right: -390px;"
   <div id="profile-info-container">
     <!-- PFP -->
     <div id="profile-picture-container">
-      <img src="{{ user.settings.avatar.full_path }}?hash={{ user.settings.avatar.hash }}"
+      <img src="{{ user.settings.avatar }}"
         id="profile-picture-image"></a>
     </div>
     <!-- Username -->
     <h1 id="profile-username-header">{{ user.username }}</h1>
     <!-- Permission value -->
-    <h3 id="profile-user-permissions">{{ user.permissions.string }}</h3>
+    <h3 id="profile-user-permissions">{{ user.permissions.name }}</h3>
     <!-- User Platforms -->
-    {% if user.settings.platforms.twitter %}
-    <a href="{{ user.settings.platforms.twitter }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
+    {% if user.settings.twitter %}
+    <a href="{{ user.settings.twitter }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.platforms.pixiv %}
-    <a href="{{ user.settings.platforms.pixiv }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
+    {% if user.settings.pixiv %}
+    <a href="{{ user.settings.pixiv }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.platforms.patreon %}
-    <a href="{{ user.settings.platforms.patreon }}" target="_blank"><i class="fa fa-patreon fa-2x"></i></a>
+    {% if user.settings.patreon %}
+    <a href="{{ user.settings.patreon }}" target="_blank"><i class="fa fa-patreon fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.platforms.deviantart %}
-    <a href="{{ user.settings.platforms.deviantart }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
+    {% if user.settings.deviantart %}
+    <a href="{{ user.settings.deviantart }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.platforms.discord %}
-    <a onclick="CopyText('{{ user.settings.platforms.discord }}')" style="cursor: pointer;"><i
-        class="fab fa-discord fa-2x" title="{{ user.settings.platforms.discord }}"></i></a>
+    {% if user.settings.discord %}
+    <a onclick="CopyText('{{ user.settings.discord }}')" style="cursor: pointer;"><i
+        class="fab fa-discord fa-2x" title="{{ user.settings.discord }}"></i></a>
     {% endif %}
-    {% if user.settings.platforms.paypal %}
-    <a href="{{ user.settings.platforms.paypal }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
+    {% if user.settings.paypal %}
+    <a href="{{ user.settings.paypal }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.platforms.github %}
-    <a href="{{ user.settings.platforms.github }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
+    {% if user.settings.github %}
+    <a href="{{ user.settings.github }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
     {% endif %}
   </div>
   <!-- Profile content container -->
@@ -58,7 +58,7 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.bio is not none %}{{ emoji.emojize(user.settings.bio, use_aliases=true)}}{% else %}{% endif %}
+      <p id="profile-bio-textarea">{% if user.settings.biography is not none %}{{ emoji.emojize(user.settings.biography, use_aliases=true)}}{% else %}{% endif %}
       </p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
@@ -133,7 +133,7 @@ style="right: -390px;"
               <label for="settings-bio">Bio</label>
             </div>
             <div class="column">
-              <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.bio is not none %}{{ user.settings.bio }}{% else %}{% endif %}</textarea>
+              <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.biography is not none %}{{ user.settings.biography }}{% else %}{% endif %}</textarea>
             </div>
           </div>
         </div>
@@ -159,36 +159,36 @@ style="right: -390px;"
             </div>
             <div class="column">
               <input type="text" name="Twitter profile" id="settings-twitter"
-                value="{% if user.settings.platforms.twitter is not none %}{{ user.settings.platforms.twitter }}{% else %}{% endif %}"
+                value="{% if user.settings.twitter is not none %}{{ user.settings.twitter }}{% else %}{% endif %}"
                 placeholder="Twitter Profile Link"
                 pattern="\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
                 onkeyup="this.reportValidity();">
 
               <input type="text" name="Pixiv profile" id="settings-pixiv"
-                value="{% if user.settings.platforms.pixiv is not none %}{{ user.settings.platforms.pixiv }}{% else %}{% endif %}"
+                value="{% if user.settings.pixiv is not none %}{{ user.settings.pixiv }}{% else %}{% endif %}"
                 placeholder="Pixiv Profile Link"
                 pattern="\b((http[s]?:\/\/)?(www\.)?pixiv\.net\/[A-z]{1,}\/users\/[\d]{1,})\b"
                 onkeyup="this.reportValidity();">
 
               <input type="text" name="Patreon Profile" id="settings-patreon"
-                value="{% if user.settings.platforms.patreon is not none %}{{ user.settings.platforms.patreon }}{% else %}{% endif %}"
+                value="{% if user.settings.patreon is not none %}{{ user.settings.patreon }}{% else %}{% endif %}"
                 placeholder="Patreon Profile Link"
                 pattern="\b((http[s]?:\/\/)?(www\.)?patreon\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
                 onkeyup="this.reportValidity();">
 
               <input type="text" name="DeviantArt Profile" id="settings-deviantart"
-                value="{% if user.settings.platforms.deviantart is not none %}{{ user.settings.platforms.deviantart }}{% else %}{% endif %}"
+                value="{% if user.settings.deviantart is not none %}{{ user.settings.deviantart }}{% else %}{% endif %}"
                 placeholder="DeviantArt Profile Link"
                 pattern="\b((http[s]?:\/\/)?(www\.)?deviantart\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
                 onkeyup="this.reportValidity();">
 
               <input type="text" name="Discord Username#Discriminator" id="settings-discord"
-                value="{% if user.settings.platforms.discord is not none %}{{ user.settings.platforms.discord }}{% else %}{% endif %}"
+                value="{% if user.settings.discord is not none %}{{ user.settings.discord }}{% else %}{% endif %}"
                 placeholder="Discord Username#Discriminator" pattern="\b([\w\d]{1,32}#[\d]{4,})\b"
                 onkeyup="this.reportValidity();">
 
               <input type="text" name="Github Profile" id="settings-github"
-                value="{% if user.settings.platforms.github is not none %}{{ user.settings.platforms.github }}{% else %}{% endif %}"
+                value="{% if user.settings.github is not none %}{{ user.settings.github }}{% else %}{% endif %}"
                 placeholder="Github Profile Link" style="display: none;">
             </div>
           </div>

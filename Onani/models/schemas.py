@@ -2,13 +2,15 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 20:35:46
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-17 03:09:37
+# @Last Modified time: 2022-03-04 03:09:46
 
 from marshmallow import fields
 from Onani.models.ban import Ban
+from Onani.models.collection import Collection
+from Onani.models.file import File
 from Onani.models.post import Post
 from Onani.models.tag import Tag
-from Onani.models.user import User
+from Onani.models.user import User, UserSettings
 
 from .. import ma
 
@@ -17,6 +19,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 
     tag_blacklist = ma.Nested("TagSchema", many=True)
     ban = ma.Nested("BanSchema")
+    settings = ma.Nested("SettingsSchema")
 
     class Meta:
         model = User
@@ -32,7 +35,16 @@ class TagSchema(ma.SQLAlchemyAutoSchema):
         model = Tag
 
 
+class FileSchema(ma.SQLAlchemyAutoSchema):
+    post = ma.auto_field()
+
+    class Meta:
+        model = File
+
+
 class PostSchema(ma.SQLAlchemyAutoSchema):
+    file = ma.Nested("FileSchema")
+
     class Meta:
         model = Post
 
@@ -42,14 +54,30 @@ class BanSchema(ma.SQLAlchemyAutoSchema):
         model = Ban
 
 
-user_schema = UserSchema(exclude=["password_hash", "api_key"])
-user_schemas = UserSchema(exclude=["password_hash", "api_key"], many=True)
+class CollectionSchema(ma.SQLAlchemyAutoSchema):
+    posts = ma.Nested("PostSchema", many=True)
+    creator = ma.auto_field()
 
-tag_schema = TagSchema()
-tag_schemas = TagSchema(many=True)
+    class Meta:
+        model = Collection
 
-post_schema = PostSchema()
-post_schemas = PostSchema(many=True)
 
-ban_schema = BanSchema()
-ban_schemas = BanSchema(many=True)
+class SettingsSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = UserSettings
+
+
+# user_schema = UserSchema(exclude=["password_hash", "api_key"])
+# user_schemas = UserSchema(exclude=["password_hash", "api_key"], many=True)
+
+# tag_schema = TagSchema()
+# tag_schemas = TagSchema(many=True)
+
+# post_schema = PostSchema()
+# post_schemas = PostSchema(many=True)
+
+# ban_schema = BanSchema()
+# ban_schemas = BanSchema(many=True)
+
+# collection_schema = CollectionSchema()
+# collection_schemas = CollectionSchema(many=True)

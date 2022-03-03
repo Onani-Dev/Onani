@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-17 02:23:16
+# @Last Modified time: 2022-03-03 22:26:13
 
 import enum
 
@@ -74,6 +74,10 @@ class Tag(db.Model):
         if self.alias_of:
             return True
         return False
+
+    @property
+    def post_count(self):
+        return len(self.posts)
 
     def save_to_db(self):
         db.session.add(self)
