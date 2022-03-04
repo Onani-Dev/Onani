@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 04:48:48
+# @Last Modified time: 2022-03-05 01:54:11
 
 import enum
 
@@ -65,6 +65,8 @@ class Tag(db.Model):
         "Post", secondary=post_table, backref=db.backref("tag", lazy="dynamic")
     )
 
+    post_count = db.Column(db.Integer)
+
     @property
     def post_count(self):
         return len(self.posts)
@@ -72,10 +74,6 @@ class Tag(db.Model):
     @property
     def is_alias(self):
         return bool(self.alias_of)
-
-    @property
-    def post_count(self):
-        return len(self.posts)
 
     def save_to_db(self):
         db.session.add(self)

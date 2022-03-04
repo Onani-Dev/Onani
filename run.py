@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 19:52:03
+# @Last Modified time: 2022-03-05 02:27:16
 import random
 import string
 from datetime import datetime, timedelta
@@ -11,6 +11,7 @@ import click
 
 from Onani import db, init_app
 from Onani.models import Ban, Tag, User
+from Onani.models.news import NewsPost
 from Onani.models.user import UserPermissions
 
 app = init_app()
@@ -44,19 +45,32 @@ def drop_db():
 
 @app.cli.command("seed-db")
 def seed_db():
-    user = User(
+    news_posts = """Onani acquired by Titter!
+Official Onani IRC server!
+Fatass don-chan in a Tuxedo, wtf??!
+Free sex for free no survey""".splitlines()
+    root = User(
         username="Root", email="root@onanis.me", permissions=UserPermissions.OWNER
     )
-    user.set_password("Root1")
-    user.save_to_db()
-    user.settings.deviantart = "root"
-    user.settings.biography = "root"
-    user.settings.discord = "root"
-    user.settings.github = "root"
-    user.settings.patreon = "root"
-    user.settings.pixiv = "root"
-    user.settings.twitter = "root"
+    root.set_password("Root1")
+    root.save_to_db()
+    root.settings.deviantart = "root"
+    root.settings.biography = "root"
+    root.settings.discord = "root"
+    root.settings.github = "root"
+    root.settings.patreon = "root"
+    root.settings.pixiv = "root"
+    root.settings.twitter = "root"
+
     db.session.commit()
+
+    for _ in range(10):
+        news = NewsPost(
+            title=f"{random.choice(news_posts)}-{random.randint(0,9999)}",
+            content="".join([random.choice(string.ascii_letters) for _ in range(2048)]),
+            author=root.id,
+        )
+        news.save_to_db()
 
     for _ in range(10):
         user = User(

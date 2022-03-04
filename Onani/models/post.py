@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 15:52:46
+# @Last Modified time: 2022-03-05 01:55:10
 
 import datetime
 import enum
@@ -41,7 +41,7 @@ class PostRating(enum.Enum):
     """
 
     SAFE = 1
-    QUESTIONABLE = 2
+    UNKNOWN = 2
     EXPLICIT = 3
 
     def __int__(self):
@@ -78,7 +78,7 @@ class Post(db.Model):
     )
     rating = db.Column(
         ChoiceType(PostRating, impl=db.Integer()),
-        default=PostRating.QUESTIONABLE,
+        default=PostRating.UNKNOWN,
         nullable=False,
     )
     source = db.Column(db.String(256))

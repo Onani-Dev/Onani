@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 19:46:14
+# @Last Modified time: 2022-03-05 02:28:38
 
 import datetime
 import time
@@ -33,7 +33,7 @@ def init_app():
     from .routes import api, main
 
     app.register_blueprint(main)
-    app.register_blueprint(api, url_prefix="/api/")
+    app.register_blueprint(api, url_prefix="/api")
 
     db.init_app(app)  # SQLAlchemy init
     login_manager.init_app(app)  # login manager init
