@@ -2,16 +2,16 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:20:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 02:28:13
+# @Last Modified time: 2022-03-04 15:52:25
 from . import db
 
 
-class Translation(db.Model):
+class Note(db.Model):
     """
-    Translation Model
+    Note Model
     """
 
-    __tablename__ = "translations"
+    __tablename__ = "notes"
 
     id = db.Column(db.Integer, primary_key=True)
     post = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
@@ -26,4 +26,4 @@ class Translation(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<Translation {0!r}>".format(self.__dict__)
+        return "<Note {0!r}>".format(self.__dict__)

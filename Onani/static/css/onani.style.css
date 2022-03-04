@@ -812,8 +812,8 @@ img#preview-image {
 @font-face {
   font-family: 'Bloody';
   src: 
-    url('/fonts/Bloody.woff2') format('woff2'),
-    url('/fonts/Bloody.woff') format('woff');
+    url('/static/fonts/Bloody.woff2') format('woff2'),
+    url('/static/fonts/Bloody.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
@@ -822,8 +822,8 @@ img#preview-image {
 @font-face {
   font-family: "MADEEvolveSans";
   src: 
-    url("/fonts/MADEEvolveSansRegular.woff") format("woff"),
-    url("/fonts/MADEEvolveSansRegular.woff2") format("woff2");
+    url("/static/fonts/MADEEvolveSansRegular.woff") format("woff"),
+    url("/static/fonts/MADEEvolveSansRegular.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
@@ -832,8 +832,8 @@ img#preview-image {
 @font-face {
   font-family: "Consolas";
   src: 
-    url("/fonts/Consolas.woff") format("woff"),
-    url("/fonts/Consolas.woff2") format("woff2");
+    url("/static/fonts/Consolas.woff") format("woff"),
+    url("/static/fonts/Consolas.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }

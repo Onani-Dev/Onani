@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 02:17:04
+# @Last Modified time: 2022-03-04 16:00:36
 import datetime
 import enum
 
@@ -56,3 +56,6 @@ class Collection(db.Model):
     )
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     creator = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+    def __repr__(self):
+        return "<Collection {0!r}>".format(self.__dict__)

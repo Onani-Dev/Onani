@@ -6,9 +6,9 @@
   <!-- META -->
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="apple-mobile-web-app-title" content="Onani">
   <meta name="application-name" content="Onani">
@@ -17,12 +17,12 @@
   {% block meta %}
   {% endblock %}
   <!-- STYLES -->
-  <link rel="stylesheet" href="/css/onani.style.min.css">
-  <link rel="stylesheet" href="/css/icomoon.style.min.css">
+  <link rel="stylesheet" href="/static/css/onani.style.min.css">
+  <link rel="stylesheet" href="/static/css/icomoon.style.min.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
-  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css"> -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/v4-shims.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css" integrity="sha256-XoaMnoYC5TH6/+ihMEnospgm0J1PM/nioxbOUdnM8HY=" crossorigin="anonymous">
+  <!-- <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/v4-shims.css"> -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost&display=swap">
   {% block styles %}
   {% endblock %}
@@ -30,7 +30,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
   {% block top_scripts %}
   {% endblock %}
@@ -55,7 +55,7 @@
       <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off" value="{% block search_box_value %}{% endblock %}">
       <i class="fas fa-search" id="search-icon"></i>
     </div>
-    <script src="/javascript/search.min.js"></script>
+    <script src="/static/javascript/search.min.js"></script>
     <!-- User Profile Picture -->
     {% if current_user.is_authenticated %}
     <div id="user-pfp-container">

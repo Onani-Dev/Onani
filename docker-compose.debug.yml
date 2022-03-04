@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 02:58:40
+# @Last Modified time: 2022-03-04 18:46:47
 version: '3.8'
 
 services:
@@ -19,7 +19,9 @@ services:
     - images:/images
 
   nginx:
-    build: ./nginx
+    build: 
+      context: .
+      dockerfile: ./nginx/dockerfile
     ports:
       - 5000:80
     depends_on:

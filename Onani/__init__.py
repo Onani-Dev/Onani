@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-01 16:12:56
+# @Last Modified time: 2022-03-04 19:46:14
 
 import datetime
 import time
@@ -14,14 +14,14 @@ from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-login_manager = LoginManager()
 db = SQLAlchemy()  # session_options={"autocommit": True}
+login_manager = LoginManager()
 ma = Marshmallow()
 migrate = Migrate()
 
 
 def init_app():
-    app = Flask(__name__, static_url_path="")
+    app = Flask(__name__, static_url_path="/static/", static_folder="/static")
 
     app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
     # Temporary secret key; Change to config generated one
@@ -33,10 +33,10 @@ def init_app():
     from .routes import api, main
 
     app.register_blueprint(main)
-    app.register_blueprint(api, url_prefix="/api")
+    app.register_blueprint(api, url_prefix="/api/")
 
-    login_manager.init_app(app)  # login manager init
     db.init_app(app)  # SQLAlchemy init
+    login_manager.init_app(app)  # login manager init
     ma.init_app(app)  # Marshmallow init
     migrate.init_app(app, db)  # flask migrate init
 

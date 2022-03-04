@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 04:46:46
+# @Last Modified time: 2022-03-04 19:06:37
 
 import datetime
 import enum
@@ -149,7 +149,7 @@ class User(UserMixin, db.Model):
 
     def save_to_db(self):
         self.settings = UserSettings(
-            avatar="/image/default.png",
+            avatar="/static/image/default.png",
         )
         db.session.add(self)
         db.session.commit()

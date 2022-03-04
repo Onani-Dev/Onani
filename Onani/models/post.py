@@ -2,14 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 03:07:17
+# @Last Modified time: 2022-03-04 15:52:46
 
 import datetime
 import enum
 
 from Onani.models.file import File
 from Onani.models.tag import Tag
-from Onani.models.translation import Translation
+from Onani.models.note import Note
 from Onani.models.user import User
 from sqlalchemy.orm import backref, validates
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
@@ -86,7 +86,7 @@ class Post(db.Model):
 
     # Foregin key shit
     file = db.relationship(File, uselist=False, backref="post_file")
-    translations = db.relationship(Translation, backref="post_translations", lazy=True)
+    notes = db.relationship(Note, backref="post_notes", lazy=True)
     uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
     tags = db.relationship(
         Tag,

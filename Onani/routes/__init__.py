@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 21:54:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-03 22:51:47
+# @Last Modified time: 2022-03-04 19:45:54
 
 from flask import Blueprint
 from .. import db

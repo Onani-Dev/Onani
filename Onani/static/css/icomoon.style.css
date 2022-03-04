@@ -2,15 +2,15 @@
  * @Author: kapsikkum
  * @Date:   2020-09-23 13:46:09
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-09-23 13:46:09
+ * @Last Modified time: 2022-03-04 19:01:11
  */
 @font-face {
   font-family: 'icomoon';
-  src:  url('/fonts/icomoon.eot?z43ybu');
-  src:  url('/fonts/icomoon.eot?z43ybu#iefix') format('embedded-opentype'),
-    url('/fonts/icomoon.ttf?z43ybu') format('truetype'),
-    url('/fonts/icomoon.woff?z43ybu') format('woff'),
-    url('/fonts/icomoon.svg?z43ybu#icomoon') format('svg');
+  src:  url('/static/fonts/icomoon.eot?z43ybu');
+  src:  url('/static/fonts/icomoon.eot?z43ybu#iefix') format('embedded-opentype'),
+    url('/static/fonts/icomoon.ttf?z43ybu') format('truetype'),
+    url('/static/fonts/icomoon.woff?z43ybu') format('woff'),
+    url('/static/fonts/icomoon.svg?z43ybu#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;

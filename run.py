@@ -2,8 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 04:48:50
-
+# @Last Modified time: 2022-03-04 19:52:03
 import random
 import string
 from datetime import datetime, timedelta
@@ -50,6 +49,14 @@ def seed_db():
     )
     user.set_password("Root1")
     user.save_to_db()
+    user.settings.deviantart = "root"
+    user.settings.biography = "root"
+    user.settings.discord = "root"
+    user.settings.github = "root"
+    user.settings.patreon = "root"
+    user.settings.pixiv = "root"
+    user.settings.twitter = "root"
+    db.session.commit()
 
     for _ in range(10):
         user = User(
