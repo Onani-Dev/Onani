@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:56:58
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-05 02:39:27
+# @Last Modified time: 2022-03-05 03:32:59
 
 import json
 from flask import flash, jsonify, redirect, render_template, request
@@ -33,5 +33,5 @@ def edit_profile():
 @api.route("/news", methods=["GET"])
 def get_news():
     news_schema = NewsPostSchema(many=True)
-    news = NewsPost.query.order_by(NewsPost.id.desc()).limit(5)
+    news = NewsPost.query.order_by(NewsPost.id.desc()).limit(10)
     return jsonify(news_schema.dump(news))

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-04 04:05:06
+ * @Last Modified time: 2022-03-05 03:28:57
 */
 
 
@@ -306,7 +306,7 @@ div#right-pannel {
 /* News box */
 div#news-container {
   width: 350px;
-  height: 100px;
+  height: 200px;
   border: 1px solid var(--ui-colour);
   overflow-y: scroll;
 }
