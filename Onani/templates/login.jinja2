@@ -14,8 +14,9 @@
   <h1 class="login-bloody-header">Login</h1>
   <!-- Form -->
   <form action="/login" method="POST">
-    <input autocapitalize="off" id="username" name="username" placeholder="Username" type="text">
-    <input autocomplete="off" id="password" name="password" placeholder="Password" type="password">
+    {{ form.csrf_token }}
+    {{ form.username(placeholder="Username", autocapitalize="off") }}
+    {{ form.password(placeholder="Password", autocomplete="off") }}
     <input id="submit" type="submit" value="Login">
   </form>
 </div>

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-05 02:28:38
+# @Last Modified time: 2022-03-07 00:33:15
 
 import datetime
 import time
@@ -13,7 +13,9 @@ from flask_login import LoginManager
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 
+csrf = CSRFProtect()
 db = SQLAlchemy()  # session_options={"autocommit": True}
 login_manager = LoginManager()
 ma = Marshmallow()
@@ -39,5 +41,6 @@ def init_app():
     login_manager.init_app(app)  # login manager init
     ma.init_app(app)  # Marshmallow init
     migrate.init_app(app, db)  # flask migrate init
+    csrf.init_app(app)  # CSRF Protection init
 
     return app

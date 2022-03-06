@@ -11,8 +11,8 @@ style="right: -390px;"
 {% block content %}
 <!-- Left pannel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
-<!-- News and chat -->
-{% include "elements/chat_and_news.jinja2" %}
+<!-- Right pannel/News -->
+{% include "elements/right_bar.jinja2" %}
 <div id="profile-container">
   <div id="profile-info-container">
     <!-- PFP -->
@@ -38,8 +38,9 @@ style="right: -390px;"
     <a href="{{ user.settings.deviantart }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
     {% endif %}
     {% if user.settings.discord %}
-    <a onclick="CopyText('{{ user.settings.discord }}')" style="cursor: pointer;"><i
-        class="fab fa-discord fa-2x" title="{{ user.settings.discord }}"></i></a>
+    <a onclick="CopyText('{{ user.settings.discord }}')" style="cursor: pointer;">
+      <i class="fa fa-discord fa-2x" title="{{ user.settings.discord }}"></i>
+    </a>
     {% endif %}
     {% if user.settings.paypal %}
     <a href="{{ user.settings.paypal }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
@@ -58,11 +59,11 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.biography is not none %}{{ emoji.emojize(user.settings.biography, use_aliases=true)}}{% else %}{% endif %}
+      <p id="profile-bio-textarea">{% if user.settings.biography is not none %}{{ emoji.emojize(user.settings.biography, use_aliases=true)}}{% else %}User has no Bio.{% endif %}
       </p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
-      <p>Posts will go in here</p>
+      <p>User has no posts.</p>
     </div>
     {% if current_user.id == user.id %}
     <div id="settings-tab" class="profile-tab-content">
@@ -237,6 +238,14 @@ style="right: -390px;"
   <script src="/static/javascript/edit-profile.min.js"></script>
 </div>
 <script>
+  const customEmotes = /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g,
+    emojiTable = {
+      don: "/static/svg/don.svg",
+      katsu: "/static/svg/katsu.svg",
+      desuwa: "/static/svg/desuwa.svg",
+      dirt: "/static/image/dirt_small.gif",
+      armagan: "/static/image/armagan_small.gif"
+    }
   let bioText = document.getElementById("profile-bio-textarea");
   twemoji.parse(document.getElementById("profile-username-header"));
   twemoji.parse(bioText);

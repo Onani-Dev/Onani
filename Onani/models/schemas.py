@@ -2,11 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 20:35:46
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-05 01:56:43
+# @Last Modified time: 2022-03-07 00:34:41
 
 from marshmallow import fields
 from Onani.models.ban import Ban
 from Onani.models.collection import Collection
+from Onani.models.comment import PostComment
 from Onani.models.file import File
 from Onani.models.news import NewsPost
 from Onani.models.post import Post
@@ -73,6 +74,13 @@ class NewsPostSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = NewsPost
+
+
+class PostCommentSchema(ma.SQLAlchemyAutoSchema):
+    author = ma.auto_field()
+
+    class Meta:
+        model = PostComment
 
 
 # user_schema = UserSchema(exclude=["password_hash", "api_key"])

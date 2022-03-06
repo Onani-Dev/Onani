@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-05 01:55:10
+# @Last Modified time: 2022-03-06 23:57:41
 
 import datetime
 import enum
+from Onani.models.comment import PostComment
 
 from Onani.models.file import File
 from Onani.models.tag import Tag
@@ -32,6 +33,12 @@ post_tags = db.Table(
     "post_tags",
     db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
     db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
+)
+
+post_comments = db.Table(
+    "post_comments",
+    db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
+    db.Column("comment_id", db.Integer, db.ForeignKey("comments.id")),
 )
 
 
@@ -81,13 +88,14 @@ class Post(db.Model):
         default=PostRating.UNKNOWN,
         nullable=False,
     )
-    source = db.Column(db.String(256))
-    description = db.Column(db.String(1024))
+    source = db.Column(db.String)
+    description = db.Column(db.String)
 
     # Foregin key shit
     file = db.relationship(File, uselist=False, backref="post_file")
     notes = db.relationship(Note, backref="post_notes", lazy=True)
     uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
+
     tags = db.relationship(
         Tag,
         secondary=post_tags,
@@ -96,6 +104,7 @@ class Post(db.Model):
         backref=db.backref("post_tags", lazy="dynamic"),
         lazy="dynamic",
     )
+
     upvoters = db.relationship(
         User,
         secondary=post_upvotes,
@@ -104,6 +113,7 @@ class Post(db.Model):
         backref=db.backref("post_upvoters", lazy="dynamic"),
         lazy="dynamic",
     )
+
     downvoters = db.relationship(
         User,
         secondary=post_downvotes,
@@ -113,9 +123,18 @@ class Post(db.Model):
         lazy="dynamic",
     )
 
+    comments = db.relationship(
+        PostComment,
+        secondary=post_comments,
+        primaryjoin=(post_comments.c.post_id == id),
+        secondaryjoin=(post_comments.c.comment_id == id),
+        backref=db.backref("post_comments", lazy="dynamic"),
+        lazy="dynamic",
+    )
+
     @property
     def score(self):
         return len(self.upvoters) - len(self.downvoters)
 
     def __repr__(self):
-        return "<Post {0!r}>".format(self.__dict__)
+        return f"<Post {self.__dict__}>"

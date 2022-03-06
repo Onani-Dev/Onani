@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 19:06:37
+# @Last Modified time: 2022-03-07 00:25:14
 
 import datetime
 import enum
@@ -54,15 +54,21 @@ class UserSettings(db.Model):
     user = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     # User Profile
-    biography = db.Column(db.UnicodeText(1024))
-    avatar = db.Column(db.String(256))
+    biography = db.Column(db.UnicodeText)
+    avatar = db.Column(db.String)
     custom_css = db.Column(db.UnicodeText)
-    deviantart = db.Column(db.String(128))
-    discord = db.Column(db.String(128))
-    github = db.Column(db.String(128))
-    patreon = db.Column(db.String(128))
-    pixiv = db.Column(db.String(128))
-    twitter = db.Column(db.String(128))
+    deviantart = db.Column(db.String)
+    discord = db.Column(db.String)
+    github = db.Column(db.String)
+    patreon = db.Column(db.String)
+    pixiv = db.Column(db.String)
+    twitter = db.Column(db.String)
+
+    @validates("biography")
+    def validate_biography(self, key, biography):
+        if len(biography) > 1024:
+            raise AssertionError("Biography is too large. (Max 1024)")
+        return html.escape(biography)
 
 
 class User(UserMixin, db.Model):
@@ -74,9 +80,9 @@ class User(UserMixin, db.Model):
 
     # Core user stuff
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), index=True, unique=True, nullable=False)
-    email = db.Column(db.String(64), index=True, unique=True)
-    password_hash = db.Column(db.String(128), nullable=False)
+    username = db.Column(db.String, index=True, unique=True, nullable=False)
+    email = db.Column(db.String, index=True, unique=True)
+    password_hash = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     permissions = db.Column(
         ChoiceType(UserPermissions, impl=db.Integer()),
@@ -84,7 +90,7 @@ class User(UserMixin, db.Model):
         nullable=False,
     )
     api_key = db.Column(
-        db.String(64),
+        db.String,
         index=True,
         unique=True,
         default=lambda: secrets.token_urlsafe(32),
@@ -99,6 +105,7 @@ class User(UserMixin, db.Model):
         backref=db.backref("user_tag_blacklist", lazy="dynamic"),
     )
     settings = db.relationship(UserSettings, uselist=False, backref="user_settings")
+    comments = db.relationship("PostComment")
 
     @validates("username")
     def validate_username(self, key, username):
@@ -120,17 +127,26 @@ class User(UserMixin, db.Model):
             raise AssertionError("Provided email is not an email address")
         return email
 
-    @validates("biography")
-    def validate_biography(self, key, biography):
-        if len(biography) > 512:
-            raise AssertionError("Biography is too large. (Max 512)")
-        return html.escape(biography)
-
     @property
     def is_banned(self):
+        """Check if this user is banned.
+
+        Returns:
+            bool: True if this user is banned and False if not.
+        """
         return self.ban is not None
 
     def set_password(self, password):
+        """Set this User's password. It will create an argon2 hash from the specified string.
+
+        Args:
+            password (str): The password to create the hash from.
+
+        Raises:
+            AssertionError: Password not provided
+            AssertionError: Password must contain 1 capital letter and 1 number
+            AssertionError: Password must be between 5 and 50 characters
+        """
         if not password:
             raise AssertionError("Password not provided")
         if not re.match("\d.*[A-Z]|[A-Z].*\d", password):
@@ -141,16 +157,31 @@ class User(UserMixin, db.Model):
         self.password_hash = argon2.using(rounds=8).hash(password)
 
     def check_password(self, password):
+        """Check the user's password against the stored argon2 hash.
+
+        Args:
+            password (str): The password to check against
+
+        Returns:
+            bool: True if the password was correct, False if incorrect.
+        """
         return argon2.verify(password, self.password_hash)
 
     def regen_api_key(self):
+        """
+        Regenerate this User's API key.
+        """
         self.api_key = secrets.token_urlsafe(32)
         self.commit()
 
     def save_to_db(self):
-        self.settings = UserSettings(
-            avatar="/static/image/default.png",
-        )
+        """
+        Save the Model to the database. It will automatically add a UserSettings model to this user if one has not been set already.
+        """
+        if self.settings is None:
+            self.settings = UserSettings(
+                avatar="/static/image/default.png",
+            )
         db.session.add(self)
         db.session.commit()
 

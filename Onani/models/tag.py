@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-05 01:54:11
+# @Last Modified time: 2022-03-06 20:19:11
 
+from email.policy import default
 import enum
 
 from sqlalchemy_utils import ChoiceType
@@ -44,14 +45,14 @@ class Tag(db.Model):
 
     # basic info
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False, index=True)
+    name = db.Column(db.String, nullable=False, index=True)
     type = db.Column(
         ChoiceType(TagType, impl=db.Integer()),
         default=TagType.GENERAL,
         nullable=False,
     )
     description = db.Column(
-        db.String(2048), default="No description has been added to this tag."
+        db.String, default="No description has been added to this tag."
     )
 
     # alias
@@ -65,11 +66,7 @@ class Tag(db.Model):
         "Post", secondary=post_table, backref=db.backref("tag", lazy="dynamic")
     )
 
-    post_count = db.Column(db.Integer)
-
-    @property
-    def post_count(self):
-        return len(self.posts)
+    post_count = db.Column(db.Integer, nullable=False, default=0)
 
     @property
     def is_alias(self):

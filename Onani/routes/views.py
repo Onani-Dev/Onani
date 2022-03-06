@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 22:04:59
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 03:44:28
+# @Last Modified time: 2022-03-07 01:40:36
 
 import html
 import random
@@ -29,15 +29,26 @@ def error_handler(e):
 @main.route("/")
 @main.route("/posts/")
 def posts():
+    # Get the tags from the request args
     tags = request.args.get("tags").split(" ") if request.args.get("tags") else None
+
+    # Get the page, will default to 0 if there is no args
     page = request.args.get("p", "0")
+
+    # Convert the page to an int if it is a digit, if it is not, default to 0
     page = int(page) if page.isdigit() else 0
-    posts = Post.query.all()
-    tags = Tag.query.all()
+
+    # Get the posts with an offset times the page and with a limit of 36 per page
+    posts = Post.query.order_by(Post.id.desc()).offset(36 * page).limit(36)
+
+    # Get the tags sorted by the post count
+    tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
+
+    # render the index template
     return render_template(
         "/index.jinja2",
-        tags=tags,
-        posts=posts,
+        tags=list(tags),
+        posts=list(posts),
     )
 
 
@@ -45,21 +56,36 @@ def posts():
 @main.route("/users/<user_id>")
 @login_required
 def users(user_id=None):
-    if user_id is not None:
-        try:
-            user_id = int(user_id)
-        except Exception:
-            abort(404)
-        if user_id == current_user.id:
-            user = current_user
-        else:
-            User.query.filter_by(id=user_id).first_or_404()
-        return render_template(
-            "/profile.jinja2",
-            user=user,
-            tags=Tag.query.all(),
-        )
-    return "Sorry nothing"
+    # Check if the user id is in the URL
+    if user_id is None:
+
+        return "Sorry nothing"
+    # Check if it is a valid number
+    if not user_id.isdigit():
+        # abort, it's not a number
+        abort(404)
+
+    # Convert to integer
+    user_id = int(user_id)
+
+    # Check If the user's id is the same as the logged in user
+    if user_id == current_user.id:
+        # We can save a database query by using the currently logged in user object
+        user = current_user
+
+    else:
+        # Query for the user, if not found throw a 404
+        user = User.query.filter_by(id=user_id).first_or_404()
+
+    # Get the tags sorted by the post count
+    tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
+
+    # Render the user page
+    return render_template(
+        "/profile.jinja2",
+        user=user,
+        tags=tags,
+    )
 
 
 @main.route("/test")

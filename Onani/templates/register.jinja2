@@ -14,11 +14,11 @@
   <h1 class="login-bloody-header">Register</h1>
   <!-- Form -->
   <form action="/register" method="POST">
-    <input autocapitalize="off" id="username" name="username" placeholder="Username" type="text">
-    <input autocapitalize="off" id="email" name="email" placeholder="Email (Optional)" type="email">
-    <input autocomplete="off" id="password" name="password" placeholder="Password" type="password">
-    <input autocomplete="off" id="confirm-password" name="confirm-password" placeholder="Confirm Password"
-      type="password">
+    {{ form.csrf_token }}
+    {{ form.username(placeholder="Username", autocapitalize="off") }}
+    {{ form.email(placeholder="Email (Optional)", autocapitalize="off") }}
+    {{ form.password(placeholder="Password", autocomplete="off") }}
+    {{ form.confirm(placeholder="Confirm Password", autocomplete="off") }}
     <input id="submit" type="submit" value="Register">
   </form>
   <script>

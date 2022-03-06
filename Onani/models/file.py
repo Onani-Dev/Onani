@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 03:03:29
+# @Last Modified time: 2022-03-06 20:17:50
 from . import db
 
 
@@ -15,10 +15,10 @@ class File(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     post = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
-    directory = db.Column(db.String(128))
-    filename = db.Column(db.String(128))
-    thumbnail = db.Column(db.String(128))
-    hash = db.Column(db.String(32))
+    directory = db.Column(db.String)
+    filename = db.Column(db.String)
+    thumbnail = db.Column(db.String)
+    hash = db.Column(db.String)
     width = db.Column(db.Integer)
     height = db.Column(db.Integer)
     filesize = db.Column(db.Integer)

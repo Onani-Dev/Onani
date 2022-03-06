@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 16:00:36
+# @Last Modified time: 2022-03-06 20:17:39
 import datetime
 import enum
 
@@ -39,9 +39,9 @@ class Collection(db.Model):
 
     # basic info
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(64), nullable=False, index=True)
+    title = db.Column(db.String, nullable=False, index=True)
     description = db.Column(
-        db.String(2048), default="No description has been added to this collection."
+        db.String, default="No description has been added to this collection."
     )
 
     posts = db.relationship(

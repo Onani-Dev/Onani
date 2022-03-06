@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:20:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 15:52:25
+# @Last Modified time: 2022-03-06 20:18:03
 from . import db
 
 
@@ -15,7 +15,7 @@ class Note(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     post = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
-    text = db.Column(db.String(1024))
+    text = db.Column(db.String)
     x = db.Column(db.Integer)
     y = db.Column(db.Integer)
     width = db.Column(db.Integer)

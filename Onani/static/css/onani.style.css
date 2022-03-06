@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-05 03:28:57
+ * @Last Modified time: 2022-03-07 00:55:09
 */
 
 
@@ -481,7 +481,7 @@ h1.login-bloody-header {
 input#username, 
 input#password,
 input#email,
-input#confirm-password {
+input#confirm {
   display: flex;
   font-size: medium;
   margin: 5px;
@@ -611,6 +611,7 @@ div.profile-tab-content {
 
 p#profile-bio-textarea {
   white-space: pre-wrap;
+  margin: 1%;
 }
 
 div.settings-input-group {
