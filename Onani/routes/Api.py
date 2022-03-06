@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:56:58
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-05 03:32:59
+# @Last Modified time: 2022-03-07 02:42:18
 
 import json
 from flask import flash, jsonify, redirect, render_template, request
@@ -21,7 +21,7 @@ from . import api, db
 
 @api.route("/", methods=["GET"])
 def api_index():
-    return jsonify({"message": "allo!"})
+    return jsonify({"message": request.remote_addr})
 
 
 @api.route("/profile/edit", methods=["POST"])

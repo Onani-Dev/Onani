@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-07 00:55:09
+ * @Last Modified time: 2022-03-07 02:26:04
 */
 
 
@@ -25,12 +25,13 @@
   --input-focus: #0f0f0f;
 
   /* Tag colours */
-  --tag-banned: #ff00001a;
+  --tag-banned: #ff000042;
   --tag-general: #d61212;
-  --tag-artist: #3c790a;
-  --tag-character: #00fafa;
-  --tag-copyright: #490b9b;
-  --tag-meta: #757575;
+  --tag-artist: #CCCC00;
+  --tag-circle: #12BBBB;
+  --tag-character: #00AA12;
+  --tag-copyright: #D100D1;
+  --tag-meta: #B97B87;
 }
 
 /* Dirt theme sex */

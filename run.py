@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-05 02:27:16
+# @Last Modified time: 2022-03-07 02:34:41
 import random
 import string
 from datetime import datetime, timedelta
@@ -12,6 +12,7 @@ import click
 from Onani import db, init_app
 from Onani.models import Ban, Tag, User
 from Onani.models.news import NewsPost
+from Onani.models.tag import TagType
 from Onani.models.user import UserPermissions
 
 app = init_app()
@@ -49,18 +50,26 @@ def seed_db():
 Official Onani IRC server!
 Fatass don-chan in a Tuxedo, wtf??!
 Free sex for free no survey""".splitlines()
+    tagtypes = [
+        TagType.ARTIST,
+        TagType.BANNED,
+        TagType.CHARACTER,
+        TagType.COPYRIGHT,
+        TagType.GENERAL,
+        TagType.META,
+    ]
     root = User(
         username="Root", email="root@onanis.me", permissions=UserPermissions.OWNER
     )
     root.set_password("Root1")
     root.save_to_db()
-    root.settings.deviantart = "root"
-    root.settings.biography = "root"
-    root.settings.discord = "root"
-    root.settings.github = "root"
-    root.settings.patreon = "root"
-    root.settings.pixiv = "root"
-    root.settings.twitter = "root"
+    root.settings.biography = ":don::desuwa:"
+    root.settings.deviantart = "/fun"
+    root.settings.discord = "/fun"
+    root.settings.github = "/fun"
+    root.settings.patreon = "/fun"
+    root.settings.pixiv = "/fun"
+    root.settings.twitter = "/fun"
 
     db.session.commit()
 
@@ -82,7 +91,8 @@ Free sex for free no survey""".splitlines()
         user.save_to_db()
 
         tag1 = Tag(
-            name="".join([random.choice(string.ascii_letters) for _ in range(32)])
+            name="".join([random.choice(string.ascii_letters) for _ in range(32)]),
+            type=random.choice(tagtypes),
         )
         tag1.save_to_db()
 
@@ -90,7 +100,8 @@ Free sex for free no survey""".splitlines()
         db.session.commit()
 
         tag2 = Tag(
-            name="".join([random.choice(string.ascii_letters) for _ in range(32)])
+            name="".join([random.choice(string.ascii_letters) for _ in range(32)]),
+            type=random.choice(tagtypes),
         )
         tag1.aliases.append(tag2)
         tag2.save_to_db()
