@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-07 02:34:41
+# @Last Modified time: 2022-03-07 20:07:09
 import random
 import string
 from datetime import datetime, timedelta
@@ -58,6 +58,13 @@ Free sex for free no survey""".splitlines()
         TagType.GENERAL,
         TagType.META,
     ]
+    pfps = [
+        "/static/image/armagan.gif",
+        "/static/image/default.png",
+        "/static/image/dirt.gif",
+        "/static/image/looking.png",
+        "/static/image/sonic_fun.png",
+    ]
     root = User(
         username="Root", email="root@onanis.me", permissions=UserPermissions.OWNER
     )
@@ -70,6 +77,7 @@ Free sex for free no survey""".splitlines()
     root.settings.patreon = "/fun"
     root.settings.pixiv = "/fun"
     root.settings.twitter = "/fun"
+    root.settings.avatar = "/static/image/looking.png"
 
     db.session.commit()
 
@@ -89,7 +97,7 @@ Free sex for free no survey""".splitlines()
         )
         user.set_password("Cumm1")
         user.save_to_db()
-
+        user.settings.avatar = random.choice(pfps)
         tag1 = Tag(
             name="".join([random.choice(string.ascii_letters) for _ in range(32)]),
             type=random.choice(tagtypes),

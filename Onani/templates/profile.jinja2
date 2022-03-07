@@ -13,15 +13,30 @@ style="right: -390px;"
 {% include "elements/tag_bar.jinja2" %}
 <!-- Right pannel/News -->
 {% include "elements/right_bar.jinja2" %}
+
+{% if user.ban %}
+  {% set username_class = "banned" %}
+  {% set pfp_class = "banned" %}
+  {% set user_bio = "User is banned. Reason: " + user.ban.reason %}
+{% else %}
+  {% set username_class = "" %}
+  {% set pfp_class = "" %}
+  {% if user.settings.biography is not none %}
+    {% set user_bio = emoji.emojize(user.settings.biography, use_aliases=true) %}
+  {% else %}
+    {% set user_bio = "User has no Bio." %}
+  {% endif %}
+{% endif %}
+
 <div id="profile-container">
   <div id="profile-info-container">
     <!-- PFP -->
     <div id="profile-picture-container">
       <img src="{{ user.settings.avatar }}"
-        id="profile-picture-image"></a>
+        id="profile-picture-image" class="{{ pfp_class }}"></a>
     </div>
     <!-- Username -->
-    <h1 id="profile-username-header">{{ user.username }}</h1>
+    <h1 id="profile-username-header" class="{{ username_class }}">{{ user.username }}</h1>
     <!-- Permission value -->
     <h3 id="profile-user-permissions">{{ user.permissions.name }}</h3>
     <!-- User Platforms -->
@@ -59,11 +74,10 @@ style="right: -390px;"
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{% if user.settings.biography is not none %}{{ emoji.emojize(user.settings.biography, use_aliases=true)}}{% else %}User has no Bio.{% endif %}
-      </p>
+      <p id="profile-bio-textarea">{{ user_bio }}</p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
-      <p>User has no posts.</p>
+      <p id="profile-bio-textarea">User has no posts.</p>
     </div>
     {% if current_user.id == user.id %}
     <div id="settings-tab" class="profile-tab-content">

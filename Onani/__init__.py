@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-07 02:43:24
+# @Last Modified time: 2022-03-07 20:31:34
 
 import datetime
 import time
@@ -26,10 +26,7 @@ migrate = Migrate()
 def init_app():
     app = Flask(__name__, static_url_path="/static/", static_folder="/static")
 
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2)
-
-    app.config["SECRET_KEY"] = b"\xd2\xc0\xe1\x00$\x06\x19\xef"
-    # Temporary secret key; Change to config generated one
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 
     app.config.from_pyfile("./config.py")
 

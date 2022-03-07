@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-07 02:26:04
+ * @Last Modified time: 2022-03-07 20:10:31
 */
 
 
@@ -418,28 +418,28 @@ a.tag-list-item {
 }
 
 /* Colours */
-.banned {
+a.tag-list-item.banned {
   color: var(--tag-banned);
   cursor: not-allowed;
 }
 
-.general {
+a.tag-list-item.general {
   color: var(--tag-general);
 }
 
-.artist {
+a.tag-list-item.artist {
   color: var(--tag-artist);
 }
 
-.character {
+a.tag-list-item.character {
   color: var(--tag-character);
 }
 
-.copyright {
+a.tag-list-item.copyright {
   color: var(--tag-copyright);
 }
 
-.meta {
+a.tag-list-item.meta {
   color: var(--tag-meta);
 }
 
@@ -544,11 +544,19 @@ img#profile-picture-image {
   max-height: 150px;
 }
 
+img#profile-picture-image.banned {
+  filter: blur(6px);
+}
+
 /* User name */
 h1#profile-username-header {
   position: absolute;
   display: inline-block;
   top: 50px;
+}
+
+h1#profile-username-header.banned {
+  text-decoration: line-through;
 }
 
 /* User permission title */

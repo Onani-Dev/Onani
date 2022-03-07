@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-06 22:26:26
+# @Last Modified time: 2022-03-07 18:51:40
 version: '3.8'
 
 services:
@@ -12,6 +12,8 @@ services:
     - 5001:5000
     environment:
       FLASK_APP: run
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev}
+      DB_PASSWORD: ${DB_PASSWORD:-onani_db}
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,7 +40,7 @@ services:
     environment:
       - PGUSER=onani_db
       - POSTGRES_USER=onani_db
-      - POSTGRES_PASSWORD=GjA5BjRPqpue2hNVJtAE
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-onani_db}
       - POSTGRES_DB=onani_db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
