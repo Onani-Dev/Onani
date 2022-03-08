@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 21:54:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 03:12:07
+# @Last Modified time: 2022-03-09 03:36:48
 
 from flask import Blueprint
 from .. import db, login_manager
