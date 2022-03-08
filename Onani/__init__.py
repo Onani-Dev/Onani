@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-07 20:31:34
+# @Last Modified time: 2022-03-09 03:08:41
 
 import datetime
 import time
@@ -32,10 +32,12 @@ def init_app():
 
     app.jinja_env.globals.update(datetime=datetime, time=time, emoji=emoji)
 
-    from .routes import api, main
+    from .routes import main_api, main, admin, admin_api
 
     app.register_blueprint(main)
-    app.register_blueprint(api, url_prefix="/api")
+    app.register_blueprint(main_api, url_prefix="/api")
+    admin.register_blueprint(admin_api, url_prefix="/api")
+    app.register_blueprint(admin, url_prefix="/admin")
 
     db.init_app(app)  # SQLAlchemy init
     login_manager.init_app(app)  # login manager init

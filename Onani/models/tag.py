@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:27:10
+# @Last Modified time: 2022-03-09 02:34:06
 
 import enum
 
@@ -89,13 +89,3 @@ class Tag(db.Model):
 
     def __repr__(self):
         return f"<Tag {self.__dict__}>"
-
-
-# aliases = db.relationship(
-#     "Tag",
-#     secondary=tag_aliases,
-#     primaryjoin=(tag_aliases.c.parent_id == id),
-#     secondaryjoin=(tag_aliases.c.child_id == id),
-#     backref=db.backref("tags", lazy="dynamic"),
-#     lazy="dynamic",
-# )
