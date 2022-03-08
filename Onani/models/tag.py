@@ -2,9 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 01:54:01
+# @Last Modified time: 2022-03-09 02:27:10
 
-from email.policy import default
 import enum
 
 from sqlalchemy_utils import ChoiceType
