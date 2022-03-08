@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 20:54:49
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-07 19:04:41
+# @Last Modified time: 2022-03-09 00:21:40
 
 import os
 import secrets
@@ -11,7 +11,7 @@ import string
 DB_PASSWORD = "".join(
     secrets.choice(string.ascii_letters + string.digits) for _ in range(20)
 )
-FLASK_SECRET_KEY = str(os.urandom(24)).lstrip("b")
+FLASK_SECRET_KEY = os.urandom(24)
 
 if os.path.exists("./.env"):
     raise Exception(".env File already exists!")

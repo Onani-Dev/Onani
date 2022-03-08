@@ -6,4 +6,4 @@ Docker is required.
 
 Generate a .env file with generate.py by using `python generate.py` to create a password and secret key.
 
-To run (Development only atm): `./build.sh`
+To run: `./build.debug.sh` (Development) or `./build.sh` (Production)

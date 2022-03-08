@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-06 20:17:39
+# @Last Modified time: 2022-03-09 02:08:17
 import datetime
 import enum
 
@@ -37,17 +37,15 @@ class Collection(db.Model):
 
     __tablename__ = "collections"
 
-    # basic info
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False, index=True)
     description = db.Column(
         db.String, default="No description has been added to this collection."
     )
-
     posts = db.relationship(
         "Post",
         secondary=collection_table,
-        backref=db.backref("collection", lazy="dynamic"),
+        backref=db.backref("collection_posts", lazy="dynamic"),
     )
     status = db.Column(
         ChoiceType(CollectionStatus, impl=db.Integer()),

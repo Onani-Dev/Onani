@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-07 20:07:09
+# @Last Modified time: 2022-03-09 02:17:35
 import random
 import string
 from datetime import datetime, timedelta
@@ -10,12 +10,62 @@ from datetime import datetime, timedelta
 import click
 
 from Onani import db, init_app
+from Onani.controllers import create_user
 from Onani.models import Ban, Tag, User
 from Onani.models.news import NewsPost
 from Onani.models.tag import TagType
 from Onani.models.user import UserPermissions
 
 app = init_app()
+
+
+def random_user() -> User:
+    pfps = [
+        "/static/image/armagan.gif",
+        "/static/image/default.png",
+        "/static/image/dirt.gif",
+        "/static/image/looking.png",
+        "/static/image/sonic_fun.png",
+    ]
+    user = create_user(
+        username="".join([random.choice(string.ascii_letters) for _ in range(8)]),
+        password="Onani1",
+    )
+    user.settings.avatar = random.choice(pfps)
+    return user
+
+
+def random_tag() -> Tag:
+    tagtypes = [
+        TagType.ARTIST,
+        TagType.BANNED,
+        TagType.CHARACTER,
+        TagType.COPYRIGHT,
+        TagType.GENERAL,
+        TagType.META,
+    ]
+    tag = Tag(
+        name="".join([random.choice(string.ascii_letters) for _ in range(32)]),
+        type=random.choice(tagtypes),
+    )
+    tag.save_to_db()
+    return tag
+
+
+def random_news(author: User) -> NewsPost:
+    news_posts = [
+        "Onani acquired by Titter!",
+        "Official Onani IRC server!",
+        "Fatass don-chan in a Tuxedo, wtf??!",
+        "Free sex for free no survey",
+    ]
+    news = NewsPost(
+        title=random.choice(news_posts),
+        content="".join([random.choice(string.ascii_letters) for _ in range(2048)]),
+        author=author.id,
+    )
+    news.save_to_db()
+    return news
 
 
 @app.cli.command("init-db")
@@ -46,84 +96,41 @@ def drop_db():
 
 @app.cli.command("seed-db")
 def seed_db():
-    news_posts = """Onani acquired by Titter!
-Official Onani IRC server!
-Fatass don-chan in a Tuxedo, wtf??!
-Free sex for free no survey""".splitlines()
-    tagtypes = [
-        TagType.ARTIST,
-        TagType.BANNED,
-        TagType.CHARACTER,
-        TagType.COPYRIGHT,
-        TagType.GENERAL,
-        TagType.META,
-    ]
-    pfps = [
-        "/static/image/armagan.gif",
-        "/static/image/default.png",
-        "/static/image/dirt.gif",
-        "/static/image/looking.png",
-        "/static/image/sonic_fun.png",
-    ]
-    root = User(
-        username="Root", email="root@onanis.me", permissions=UserPermissions.OWNER
+    root = create_user(
+        username="Root",
+        password="Root1",
+        email="root@onanis.me",
+        permissions=UserPermissions.OWNER,
     )
-    root.set_password("Root1")
-    root.save_to_db()
+
     root.settings.biography = ":don::desuwa:"
-    root.settings.deviantart = "/fun"
-    root.settings.discord = "/fun"
-    root.settings.github = "/fun"
-    root.settings.patreon = "/fun"
-    root.settings.pixiv = "/fun"
-    root.settings.twitter = "/fun"
     root.settings.avatar = "/static/image/looking.png"
-
-    db.session.commit()
-
-    for _ in range(10):
-        news = NewsPost(
-            title=f"{random.choice(news_posts)}-{random.randint(0,9999)}",
-            content="".join([random.choice(string.ascii_letters) for _ in range(2048)]),
-            author=root.id,
-        )
-        news.save_to_db()
+    root.settings.connections = {
+        "deviantart": "/fun",
+        "discord": "/fun",
+        "github": "/fun",
+        "patreon": "/fun",
+        "pixiv": "/fun",
+        "twitter": "/fun",
+    }
 
     for _ in range(10):
-        user = User(
-            username="".join([random.choice(string.ascii_letters) for _ in range(32)]),
-            email="".join([random.choice(string.ascii_letters) for _ in range(6)])
-            + "@onanis.me",
-        )
-        user.set_password("Cumm1")
-        user.save_to_db()
-        user.settings.avatar = random.choice(pfps)
-        tag1 = Tag(
-            name="".join([random.choice(string.ascii_letters) for _ in range(32)]),
-            type=random.choice(tagtypes),
-        )
-        tag1.save_to_db()
+        random_news(author=root)
 
+    for _ in range(10):
+        user = random_user()
+        tag1 = random_tag()
         user.tag_blacklist.append(tag1)
-        db.session.commit()
-
-        tag2 = Tag(
-            name="".join([random.choice(string.ascii_letters) for _ in range(32)]),
-            type=random.choice(tagtypes),
-        )
+        tag2 = random_tag()
         tag1.aliases.append(tag2)
-        tag2.save_to_db()
-
         user.tag_blacklist.append(tag2)
 
-        db.session.commit()
-
-        ban = Ban(
+        Ban(
             user=user.id,
             reason="Cockhead",
             expires=datetime.utcnow() + timedelta(days=50),
         )
-        ban.save_to_db()
+    db.session.commit()
     print("Database has been seeded")
 
 
@@ -133,9 +140,12 @@ Free sex for free no survey""".splitlines()
 @click.option("--password")
 @click.option("--perms")
 def add_user(username, email, password, perms):
-    user = User(username=username, email=email, permissions=UserPermissions(int(perms)))
-    user.set_password(password)
-    user.save_to_db()
+    create_user(
+        username=username,
+        email=email,
+        password=password,
+        permissions=UserPermissions(int(perms)),
+    )
     print("User added to database")
 
 

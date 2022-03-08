@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-06 20:19:11
+# @Last Modified time: 2022-03-09 01:54:01
 
 from email.policy import default
 import enum
@@ -43,30 +43,42 @@ class Tag(db.Model):
 
     __tablename__ = "tags"
 
-    # basic info
+    # The tags primary key.
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False, index=True)
+
+    # The tag's name. must be unique
+    name = db.Column(db.String, nullable=False, index=True, unique=True)
+
+    # The tag's type. enum. sick.
     type = db.Column(
         ChoiceType(TagType, impl=db.Integer()),
         default=TagType.GENERAL,
         nullable=False,
     )
+
+    # Tag's description. will be used for users to see what the tag is about.
     description = db.Column(
         db.String, default="No description has been added to this tag."
     )
 
-    # alias
+    # If this tag is an Alias of another tag this value will be that tag's ID
     alias_of = db.Column(db.Integer, db.ForeignKey("tags.id"))
+
+    # If this tag has aliases they will be listed here.
     aliases = db.relationship(
-        "Tag", backref=db.backref("tag", remote_side=[id], lazy="joined")
+        "Tag", backref=db.backref("tag_aliases", remote_side=[id], lazy="joined")
     )
 
-    # list posts
+    # the posts with this tag will be here.
     posts = db.relationship(
-        "Post", secondary=post_table, backref=db.backref("tag", lazy="dynamic")
+        "Post", secondary=post_table, backref="tag_posts", lazy="dynamic"
     )
 
+    # The post count for this tag's posts
     post_count = db.Column(db.Integer, nullable=False, default=0)
+
+    # The url that will be associated with this tag. only used for artists.
+    url = db.Column(db.String)
 
     @property
     def is_alias(self):
@@ -77,7 +89,7 @@ class Tag(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<Tag {0!r}>".format(self.__dict__)
+        return f"<Tag {self.__dict__}>"
 
 
 # aliases = db.relationship(

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-07 00:25:14
+# @Last Modified time: 2022-03-09 02:24:52
 
 import datetime
 import enum
@@ -53,16 +53,27 @@ class UserSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-    # User Profile
+    # User biography. allows custom text on the profile. (and hopefully not Cross Site Scripting)
     biography = db.Column(db.UnicodeText)
+
+    # The link to the user's avatar.
     avatar = db.Column(db.String)
+
+    # The user's custom css. overrides the default css that i worked so hard on :(
     custom_css = db.Column(db.UnicodeText)
-    deviantart = db.Column(db.String)
-    discord = db.Column(db.String)
-    github = db.Column(db.String)
-    patreon = db.Column(db.String)
-    pixiv = db.Column(db.String)
-    twitter = db.Column(db.String)
+
+    # The user's connections to other website's accounts
+    connections = db.Column(
+        db.JSON,
+        default={
+            "deviantart": None,
+            "discord": None,
+            "github": None,
+            "patreon": None,
+            "pixiv": None,
+            "twitter": None,
+        },
+    )
 
     @validates("biography")
     def validate_biography(self, key, biography):
@@ -78,17 +89,29 @@ class User(UserMixin, db.Model):
 
     __tablename__ = "users"
 
-    # Core user stuff
+    # Users ID, obviously unique as it is the primary key
     id = db.Column(db.Integer, primary_key=True)
+
+    # Users username, must be unique
     username = db.Column(db.String, index=True, unique=True, nullable=False)
+
+    # Users email, optional and must be unique
     email = db.Column(db.String, index=True, unique=True)
+
+    # The argon2 hash of the users password.
     password_hash = db.Column(db.String, nullable=False)
+
+    # The time this user was created. it doesn't need to be touched.
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    # The User's permissions. this affects what the user can do.
     permissions = db.Column(
         ChoiceType(UserPermissions, impl=db.Integer()),
         default=UserPermissions.MEMBER,
         nullable=False,
     )
+
+    # The api key the user will use for the /api endpoint. Grants full control over the user account
     api_key = db.Column(
         db.String,
         index=True,
@@ -96,35 +119,43 @@ class User(UserMixin, db.Model):
         default=lambda: secrets.token_urlsafe(32),
     )
 
+    # The ban that this user has. will be None if not banned.
     ban = db.relationship(Ban, uselist=False, backref="user_ban")
 
-    # User preferences
+    # The tag blacklist. posts with tags on this list will not appear on this user's results.
     tag_blacklist = db.relationship(
-        Tag,
+        "Tag",
         secondary=tag_blacklist,
-        backref=db.backref("user_tag_blacklist", lazy="dynamic"),
+        backref="user_blacklist",
+        lazy="dynamic",
     )
-    settings = db.relationship(UserSettings, uselist=False, backref="user_settings")
-    comments = db.relationship("PostComment")
+
+    # The user's settings. eg. custom css or profile connections
+    settings = db.relationship("UserSettings", uselist=False, backref="user_settings")
+
+    # The users comments on posts.
+    comments = db.relationship("PostComment", backref="user_comments", lazy="dynamic")
+
+    # The users uploaded posts.
+    posts = db.relationship("Post", backref="user_posts", lazy="dynamic")
 
     @validates("username")
     def validate_username(self, key, username):
         if not username:
             raise AssertionError("No username provided")
-        if User.query.filter(User.username == username).first():
-            raise AssertionError("Username is already in use")
         if len(username) < 3 or len(username) > 32:
             raise AssertionError("Username must be between 3 and 32 characters")
+        if User.query.filter(User.username == username).first():
+            raise AssertionError("Username is already in use")
         return username
 
     @validates("email")
     def validate_email(self, key, email):
-        if not email:
-            raise AssertionError("No email provided")
-        if User.query.filter(User.email == email).first():
-            raise AssertionError("Email is already in use")
-        if not re.match("[^@]+@[^@]+\.[^@]+", email):
-            raise AssertionError("Provided email is not an email address")
+        if email is not None:
+            if not re.match("[^@]+@[^@]+\.[^@]+", email):
+                raise AssertionError("Provided email is not an email address")
+            if User.query.filter(User.email == email).first():
+                raise AssertionError("Email is already in use")
         return email
 
     @property
@@ -143,16 +174,16 @@ class User(UserMixin, db.Model):
             password (str): The password to create the hash from.
 
         Raises:
-            AssertionError: Password not provided
-            AssertionError: Password must contain 1 capital letter and 1 number
-            AssertionError: Password must be between 5 and 50 characters
+            ValueError: Password not provided
+            ValueError: Password must contain 1 capital letter and 1 number
+            ValueError: Password must be between 5 and 50 characters
         """
         if not password:
-            raise AssertionError("Password not provided")
+            raise ValueError("Password not provided")
         if not re.match("\d.*[A-Z]|[A-Z].*\d", password):
-            raise AssertionError("Password must contain 1 capital letter and 1 number")
+            raise ValueError("Password must contain 1 capital letter and 1 number")
         if len(password) < 5 or len(password) > 50:
-            raise AssertionError("Password must be between 5 and 50 characters")
+            raise ValueError("Password must be between 5 and 50 characters")
 
         self.password_hash = argon2.using(rounds=8).hash(password)
 
@@ -186,4 +217,4 @@ class User(UserMixin, db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<User {0!r}>".format(self.__dict__)
+        return f"<User {self.__dict__}>"
