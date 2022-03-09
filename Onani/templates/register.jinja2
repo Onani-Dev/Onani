@@ -1,13 +1,13 @@
+{% set title = "Register - " %}
 {% extends "base.jinja2" %}
-{% block title %}Register - {% endblock %}
 
 {% block content %}
 {% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<div class="flash-message">{{ message }}</div>
-{% endfor %}
-{% endif %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="flash-message">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
 {% endwith %}
 <!-- Register box -->
 <div class="login-box">

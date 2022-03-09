@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:24:52
+# @Last Modified time: 2022-03-09 21:34:32
 
 import datetime
 import enum
@@ -49,8 +49,19 @@ class UserSettings(db.Model):
     """
 
     __tablename__ = "settings"
+    _connection_regex = {
+        "deviantart": r"\bhttps:\/\/www\.deviantart\.com\/[.\S]{1,}\b",
+        "discord": r"\b[.\S]{1,32}#[\d]{4,}\b",
+        "github": r"\bhttps:\/\/github\.com\/[.\S]{1,}\b",
+        "patreon": r"\bhttps:\/\/www\.patreon\.com\/[.\S]{1,}(?:\/)?(?:posts)?\b",
+        "paypal": r"\bhttps:\/\/(paypal\.me|www\.paypal\.com\/paypalme)\/[.\S]{1,}\b",
+        "pixiv": r"\bhttps:\/\/www\.pixiv\.net(?:\/[.\S]{2,4})?\/users\/[\d\S]{1,}\b",
+        "twitter": r"\bhttps:\/\/twitter\.com\/[.\S]{1,}\b",
+    }
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # The User that the settings belong to.
     user = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     # User biography. allows custom text on the profile. (and hopefully not Cross Site Scripting)
@@ -70,6 +81,7 @@ class UserSettings(db.Model):
             "discord": None,
             "github": None,
             "patreon": None,
+            "paypal": None,
             "pixiv": None,
             "twitter": None,
         },
@@ -78,8 +90,21 @@ class UserSettings(db.Model):
     @validates("biography")
     def validate_biography(self, key, biography):
         if len(biography) > 1024:
-            raise AssertionError("Biography is too large. (Max 1024)")
+            raise ValueError("Biography is too large. (Max 1024)")
         return html.escape(biography)
+
+    @validates("connections")
+    def validate_connections(self, key, connections):
+        for c in list(connections.keys()):
+            if len(connections[c]) > 64:
+                raise ValueError(f"{c} connection is too long. (Max 64)")
+            if regex := self._connection_regex.get(c):
+                if not re.match(regex, connections[c]):
+                    raise ValueError(
+                        f"{c} connection did not match the required regex."
+                    )
+            connections[c] = html.escape(connections[c])
+        return connections
 
 
 class User(UserMixin, db.Model):
@@ -139,23 +164,26 @@ class User(UserMixin, db.Model):
     # The users uploaded posts.
     posts = db.relationship("Post", backref="user_posts", lazy="dynamic")
 
+    # Amount of posts this user has uploaded.
+    post_count = db.Column(db.Integer, default=0, nullable=False)
+
     @validates("username")
     def validate_username(self, key, username):
         if not username:
-            raise AssertionError("No username provided")
+            raise ValueError("No username provided")
         if len(username) < 3 or len(username) > 32:
-            raise AssertionError("Username must be between 3 and 32 characters")
+            raise ValueError("Username must be between 3 and 32 characters")
         if User.query.filter(User.username == username).first():
-            raise AssertionError("Username is already in use")
+            raise ValueError("Username is already in use")
         return username
 
     @validates("email")
     def validate_email(self, key, email):
         if email is not None:
             if not re.match("[^@]+@[^@]+\.[^@]+", email):
-                raise AssertionError("Provided email is not an email address")
+                raise ValueError("Provided email is not an email address")
             if User.query.filter(User.email == email).first():
-                raise AssertionError("Email is already in use")
+                raise ValueError("Email is already in use")
         return email
 
     @property

@@ -1,18 +1,8 @@
+{% set title = user.username + " - " %}
+{% set body_class = "profile" %}
+{% set header_style = "right: -390px;" %}
+
 {% extends "base.jinja2" %}
-{% block title %}{{ user.username }} - {% endblock %}
-
-{% block body_modifer %}
-class="profile"
-{% endblock %}
-{% block header_modifer %}
-style="right: -390px;"
-{% endblock %}
-
-{% block content %}
-<!-- Left pannel/Tags -->
-{% include "elements/tag_bar.jinja2" %}
-<!-- Right pannel/News -->
-{% include "elements/right_bar.jinja2" %}
 
 {% if user.ban %}
   {% set username_class = "banned" %}
@@ -28,7 +18,13 @@ style="right: -390px;"
   {% endif %}
 {% endif %}
 
-<div id="profile-container">
+{% block content %}
+<!-- Left pannel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+<!-- Right pannel/News -->
+{% include "elements/right_bar.jinja2" %}
+
+<div id="outlined-container">
   <div id="profile-info-container">
     <!-- PFP -->
     <div id="profile-picture-container">
@@ -40,28 +36,28 @@ style="right: -390px;"
     <!-- Permission value -->
     <h3 id="profile-user-permissions">{{ user.permissions.name }}</h3>
     <!-- User Platforms -->
-    {% if user.settings.twitter %}
-    <a href="{{ user.settings.twitter }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
+    {% if user.settings.connections.get('twitter') %}
+    <a href="{{ user.settings.connections.get('twitter') }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.pixiv %}
-    <a href="{{ user.settings.pixiv }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
+    {% if user.settings.connections.get('pixiv') %}
+    <a href="{{ user.settings.connections.get('pixiv') }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.patreon %}
-    <a href="{{ user.settings.patreon }}" target="_blank"><i class="fa fa-patreon fa-2x"></i></a>
+    {% if user.settings.connections.get('patreon') %}
+    <a href="{{ user.settings.connections.get('patreon') }}" target="_blank"><i class="fa fa-patreon fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.deviantart %}
-    <a href="{{ user.settings.deviantart }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
+    {% if user.settings.connections.get('deviantart') %}
+    <a href="{{ user.settings.connections.get('deviantart') }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.discord %}
-    <a onclick="CopyText('{{ user.settings.discord }}')" style="cursor: pointer;">
-      <i class="fa fa-discord fa-2x" title="{{ user.settings.discord }}"></i>
+    {% if user.settings.connections.get('discord') %}
+    <a onclick="CopyText('{{ user.settings.connections.get('discord') }}')" style="cursor: pointer;">
+      <i class="fa fa-discord fa-2x" title="{{ user.settings.connections.get('discord') }}"></i>
     </a>
     {% endif %}
-    {% if user.settings.paypal %}
-    <a href="{{ user.settings.paypal }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
+    {% if user.settings.connections.get('paypal') %}
+    <a href="{{ user.settings.connections.get('paypal') }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
     {% endif %}
-    {% if user.settings.github %}
-    <a href="{{ user.settings.github }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
+    {% if user.settings.connections.get('github') %}
+    <a href="{{ user.settings.connections.get('github') }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
     {% endif %}
   </div>
   <!-- Profile content container -->
@@ -77,7 +73,14 @@ style="right: -390px;"
       <p id="profile-bio-textarea">{{ user_bio }}</p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
+    {% if user.posts.all()|length <= 0 %}
       <p id="profile-bio-textarea">User has no posts.</p>
+    {% endif %}
+    {% for post in user.posts.all() %}
+      <div class="post-thumbnail-container">
+        <a href="/post/{{ post.id }}"><img src="{{ post.file.thumbnail }}" class="post-thumbnail"></a>
+      </div>
+    {% endfor %}
     </div>
     {% if current_user.id == user.id %}
     <div id="settings-tab" class="profile-tab-content">

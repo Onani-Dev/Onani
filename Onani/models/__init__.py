@@ -2,9 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:54:25
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-06 23:51:01
+# @Last Modified time: 2022-03-09 20:37:44
 
-from .. import db
+from .. import db, ma
 from .ban import Ban
 from .collection import Collection, CollectionStatus
 from .comment import PostComment
@@ -12,6 +12,9 @@ from .file import File
 from .news import NewsPost
 from .note import Note
 from .post import Post, PostRating, PostStatus
+from .tag import Tag, TagType
+from .user import User, UserPermissions, UserSettings
+
 from .schemas import (
     BanSchema,
     CollectionSchema,
@@ -22,5 +25,3 @@ from .schemas import (
     TagSchema,
     UserSchema,
 )
-from .tag import Tag, TagType
-from .user import User, UserPermissions

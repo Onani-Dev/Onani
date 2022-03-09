@@ -28,7 +28,7 @@ class PostComment(db.Model):
     @validates("content")
     def validate_content(self, key, content):
         if len(content) > 500:
-            raise AssertionError("Comment was too long. (Over 500 Chars)")
+            raise ValueError("Comment was too long. (Over 500 Chars)")
 
         return html.escape(content)
 

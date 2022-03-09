@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>{% block title %}{% endblock %}Onani</title>
+  <title>{{ title }}Onani</title>
   <!-- META -->
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
@@ -35,14 +35,14 @@
   {% endblock %}
   {% if current_user.is_authenticated %}
     {% if current_user.settings.custom_css %}
-    <style type="text/css">{{ current_user.settings.custom_css }}</style>
+      <style type="text/css">{{ current_user.settings.custom_css }}</style>
     {% endif %}
   {% endif %}
 </head>
 
-<body {% block body_modifer %}{% endblock %}>
+<body class="{{ body_class }}">
   <!-- Navbar/header -->
-  <header class="navbar" {% block header_modifer %}{% endblock %}>
+  <header class="navbar {{ header_class }}" style="{{ header_style }}">
     <!-- logo -->
     <div id="logo" onclick="location.href='/'">Onani</div>
     <!-- Navbar links -->
@@ -51,7 +51,7 @@
     <a href="/upload/">Upload</a>
     <!-- Search Box -->
     <div id="search-box">
-      <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off" value="{% block search_box_value %}{% endblock %}">
+      <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off" value="{{ search_box_value }}">
       <i class="fas fa-search" id="search-icon"></i>
     </div>
     <script src="/static/javascript/search.min.js"></script>

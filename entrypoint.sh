@@ -2,6 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2022-03-02 19:19:49
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-04 19:45:10
+# @Last Modified time: 2022-03-09 21:52:44
+flask db init
 flask init-db
+flask db migrate
 gunicorn -b 0.0.0.0:5000 -w 10 --threads 100 run:app

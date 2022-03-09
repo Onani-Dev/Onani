@@ -1,0 +1,13 @@
+{% set title = "Users - " %}
+{% set body_class = "profile" %}
+{% set header_style = "right: -390px;" %}
+
+{% extends "base.jinja2" %}
+
+{% block content %}
+<div id="outlined-container" class="grid-container">
+    {% for user in users.items %}
+        <div class="grid-item"><a href="/users/{{ user.id }}" alt="{{ user.username }}"><img src="{{ user.settings.avatar }}" class="user-pfp">{{ user.username }}</a></div>
+    {% endfor %}
+</div>
+{% endblock %}

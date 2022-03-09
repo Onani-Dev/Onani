@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:17:35
+# @Last Modified time: 2022-03-09 15:25:37
 import random
 import string
 from datetime import datetime, timedelta
@@ -45,7 +45,7 @@ def random_tag() -> Tag:
         TagType.META,
     ]
     tag = Tag(
-        name="".join([random.choice(string.ascii_letters) for _ in range(32)]),
+        name="".join([random.choice(string.ascii_letters) for _ in range(7)]),
         type=random.choice(tagtypes),
     )
     tag.save_to_db()
@@ -106,12 +106,13 @@ def seed_db():
     root.settings.biography = ":don::desuwa:"
     root.settings.avatar = "/static/image/looking.png"
     root.settings.connections = {
-        "deviantart": "/fun",
-        "discord": "/fun",
-        "github": "/fun",
-        "patreon": "/fun",
-        "pixiv": "/fun",
-        "twitter": "/fun",
+        "deviantart": "https://www.deviantart.com/vore",
+        "discord": "dirt#3009",
+        "github": "https://github.com/Mattlau04",
+        "patreon": "https://www.patreon.com/dankpods/posts",
+        "pixiv": "https://www.pixiv.net/en/users/19183275",
+        "twitter": "https://twitter.com/kapsikkum",
+        "paypal": "https://www.paypal.com/paypalme/onani",  # Disclaimer: i do not know this person. do not send them money.
     }
 
     for _ in range(10):
@@ -124,12 +125,12 @@ def seed_db():
         tag2 = random_tag()
         tag1.aliases.append(tag2)
         user.tag_blacklist.append(tag2)
-
-        Ban(
+        user.ban = Ban(
             user=user.id,
             reason="Cockhead",
             expires=datetime.utcnow() + timedelta(days=50),
         )
+
     db.session.commit()
     print("Database has been seeded")
 

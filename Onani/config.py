@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 00:25:11
+# @Last Modified time: 2022-03-09 18:12:50
 import os
 
 # Flask Config
@@ -19,3 +19,8 @@ SQLALCHEMY_DATABASE_URI = (
     f"postgresql://onani_db:{os.environ['DB_PASSWORD']}@postgres:5432/onani_db"
 )
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+if os.environ.get("FLASK_SQLALCHEMY_ECHO"):
+    print("SQLALCHEMY_ECHO enabled.")
+    SQLALCHEMY_ECHO = True

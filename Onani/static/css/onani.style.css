@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-07 20:10:31
+ * @Last Modified time: 2022-03-09 21:47:43
 */
 
 
@@ -512,8 +512,8 @@ div.flash-message {
   font-size: 95%;
 }
 
-/* Profile Container */
-div#profile-container {
+/* Profile/other stuff Container */
+div#outlined-container {
   border: 1px solid var(--ui-colour);
   margin-top: 30px;
   position: absolute;
@@ -813,6 +813,12 @@ img#preview-image {
   align-content: center;
   width: 350px;
   max-width: 350px;
+}
+
+
+.grid-container {
+  display: inline-grid;
+  column-gap: 5px;
 }
 
 

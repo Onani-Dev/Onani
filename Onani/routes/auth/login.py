@@ -87,7 +87,7 @@ def register():
         if form.email.data:
             try:
                 user.email = form.email.data
-            except AssertionError as e:
+            except ValueError as e:
                 flash("Invalid Email.")
                 return redirect(url_for("main.register"))
         user.set_password(form.password.data)

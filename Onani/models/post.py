@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:07:18
+# @Last Modified time: 2022-03-09 15:44:21
 
 import datetime
 import enum
@@ -104,7 +104,7 @@ class Post(db.Model):
     file = db.relationship(File, uselist=False, backref="post_file")
 
     # The post's notes. those little thingys on the image over the japanese text :)
-    notes = db.relationship(Note, backref="post_notes", lazy=True)
+    notes = db.relationship(Note, backref="post_notes", lazy="joined")
 
     # The post's uploader. is a user.
     uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
