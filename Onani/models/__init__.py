@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:54:25
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 20:37:44
+# @Last Modified time: 2022-03-10 22:00:33
 
 from .. import db, ma
 from .ban import Ban

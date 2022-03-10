@@ -2,11 +2,13 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-04 03:50:27
+ * @Last Modified time: 2022-03-11 00:00:54
  */
 'use strict';
-const tabcontent = document.getElementsByClassName("profile-tab-content");
-const tablinks = document.getElementsByClassName("profile-tab-link");
+const tabcontent = document.getElementsByClassName("profile-tab-content"),
+  tablinks = document.getElementsByClassName("profile-tab-link"),
+  settingsTabContent = document.getElementsByClassName("settings-tab-content"),
+  settingsTabLinks = document.getElementsByClassName("settings-tab-link");
 // const pageURL = new URL(window.location.href);
 const windowParams = new URLSearchParams(window.location.search);
 
@@ -34,6 +36,20 @@ function changeTab(evt, tabName) {
   evt.currentTarget.className += " active";
 }
 
+
+function changeSettingsTab(evt, tabName) {
+  for (var i = 0; i < settingsTabContent.length; i++) {
+    settingsTabContent[i].style.display = "none";
+  }
+
+  for (i = 0; i < settingsTabLinks.length; i++) {
+    settingsTabLinks[i].className = settingsTabLinks[i].className.replace(" active", "");
+  }
+
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
 function CopyText(text) {
   const listener = function (ev) {
     ev.preventDefault();
@@ -45,3 +61,7 @@ function CopyText(text) {
   document.removeEventListener('copy', listener);
   alert("Copied to clipboard!");
 }
+
+try {
+  document.getElementById("account-settings").click();
+} catch (error) {}

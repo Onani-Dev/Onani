@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:45:07
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:46:53
+# @Last Modified time: 2022-03-10 21:17:26
 import json
 
 from flask import flash, jsonify, redirect, render_template, request
@@ -14,10 +14,11 @@ from flask_login import (
     logout_user,
 )
 
-from . import admin_api, db, main_api
+from . import admin_api, csrf, db, main_api
 
 
 @main_api.route("/profile/edit", methods=["POST"])
 @login_required
+@csrf.exempt
 def edit_profile():
     pass

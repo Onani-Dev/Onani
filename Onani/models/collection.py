@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:08:17
+# @Last Modified time: 2022-03-10 19:48:54
 import datetime
 import enum
 
@@ -29,6 +29,10 @@ class CollectionStatus(enum.Enum):
     def __int__(self):
         return self.value
 
+    @classmethod
+    def get_all(self):
+        return {e.name: e.value for e in self}
+
 
 class Collection(db.Model):
     """
@@ -45,7 +49,8 @@ class Collection(db.Model):
     posts = db.relationship(
         "Post",
         secondary=collection_table,
-        backref=db.backref("collection_posts", lazy="dynamic"),
+        backref="collection_posts",
+        lazy="dynamic",
     )
     status = db.Column(
         ChoiceType(CollectionStatus, impl=db.Integer()),

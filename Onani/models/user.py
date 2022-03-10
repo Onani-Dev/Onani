@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 21:34:32
+# @Last Modified time: 2022-03-10 20:12:08
 
 import datetime
 import enum
@@ -42,6 +42,10 @@ class UserPermissions(enum.Enum):
     def __int__(self):
         return self.value
 
+    @classmethod
+    def get_all(self):
+        return {e.name: e.value for e in self}
+
 
 class UserSettings(db.Model):
     """
@@ -49,7 +53,7 @@ class UserSettings(db.Model):
     """
 
     __tablename__ = "settings"
-    _connection_regex = {
+    CONNECTION_REGEX = {
         "deviantart": r"\bhttps:\/\/www\.deviantart\.com\/[.\S]{1,}\b",
         "discord": r"\b[.\S]{1,32}#[\d]{4,}\b",
         "github": r"\bhttps:\/\/github\.com\/[.\S]{1,}\b",
@@ -98,13 +102,17 @@ class UserSettings(db.Model):
         for c in list(connections.keys()):
             if len(connections[c]) > 64:
                 raise ValueError(f"{c} connection is too long. (Max 64)")
-            if regex := self._connection_regex.get(c):
+            if regex := self.CONNECTION_REGEX.get(c):
                 if not re.match(regex, connections[c]):
                     raise ValueError(
                         f"{c} connection did not match the required regex."
                     )
             connections[c] = html.escape(connections[c])
         return connections
+
+    @validates("custom_css")
+    def validate_custom_css(self, key, css):
+        return html.escape(css)
 
 
 class User(UserMixin, db.Model):
@@ -175,7 +183,7 @@ class User(UserMixin, db.Model):
             raise ValueError("Username must be between 3 and 32 characters")
         if User.query.filter(User.username == username).first():
             raise ValueError("Username is already in use")
-        return username
+        return html.escape(username)
 
     @validates("email")
     def validate_email(self, key, email):
@@ -184,7 +192,7 @@ class User(UserMixin, db.Model):
                 raise ValueError("Provided email is not an email address")
             if User.query.filter(User.email == email).first():
                 raise ValueError("Email is already in use")
-        return email
+        return html.escape(email)
 
     @property
     def is_banned(self):
@@ -231,7 +239,6 @@ class User(UserMixin, db.Model):
         Regenerate this User's API key.
         """
         self.api_key = secrets.token_urlsafe(32)
-        self.commit()
 
     def save_to_db(self):
         """

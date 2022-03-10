@@ -1,6 +1,4 @@
 {% set title = user.username + " - " %}
-{% set body_class = "profile" %}
-{% set header_style = "right: -390px;" %}
 
 {% extends "base.jinja2" %}
 
@@ -84,171 +82,189 @@
     </div>
     {% if current_user.id == user.id %}
     <div id="settings-tab" class="profile-tab-content">
+      <div class="profile-tab-bar sub">
+        <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-account-tab')" id="account-settings">Account Settings</button>
+        <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-profile-tab')" id="profile-settings">Profile Settings</button>
+        <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-platforms-tab')" id="platform-settings">Platform Settings</button>
+        <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-site-tab')" id="site-settings">Site Settings</button>
+      </div>
       <!-- Account settings -->
-      <form id="settings-account">
-        <h2 style="padding: 15px;">Account settings</h2>
+      <div id="settings-account-tab" class="settings-tab-content">
+        <form id="settings-account">
+          <h2 style="padding: 15px;">Account settings</h2>
 
-        <!-- User Info Settings -->
-        <div class="settings-input-group">
-          <div class="row">
-            <div class="column">
-              <label for="settings-name">Change Username</label>
-              <label for="settings-email">Change Email</label>
-            </div>
-            <div class="column">
-              <input type="text" placeholder="{{ user.username }}" name="settings-name" id="profile-settings-name">
-              <input type="email" placeholder="{{ user.email }}" name="settings-email" id="profile-settings-email">
+          <!-- User Info Settings -->
+          <div class="settings-input-group">
+            <div class="row">
+              <div class="column">
+                <label for="settings-name">Change Username</label>
+                <label for="settings-email">Change Email</label>
+              </div>
+              <div class="column">
+                <input type="text" placeholder="{{ user.username }}" name="settings-name" id="profile-settings-name">
+                <input type="email" placeholder="{{ user.email }}" name="settings-email" id="profile-settings-email">
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Password settings -->
-        <div class="settings-input-group">
-          <div class="row">
-            <div class="column">
-              <label for="settings-current-password">Current password</label>
-              <label for="settings-password">New Password</label>
-              <label for="settings-password-confirm">Confirm password</label>
-            </div>
-            <div class="column">
-              <input type="password" placeholder="Current Password" name="settings-current-password"
-                id="profile-settings-current-password">
-              <input type="password" placeholder="New Password" name="settings-password" id="profile-settings-password">
-              <input type="password" placeholder="Confrim New Password" name="settings-password-confirm"
-                id="profile-settings-password-confirm">
+          <!-- Password settings -->
+          <div class="settings-input-group">
+            <div class="row">
+              <div class="column">
+                <label for="settings-current-password">Current password</label>
+                <label for="settings-password">New Password</label>
+                <label for="settings-password-confirm">Confirm password</label>
+              </div>
+              <div class="column">
+                <input type="password" placeholder="Current Password" name="settings-current-password"
+                  id="profile-settings-current-password">
+                <input type="password" placeholder="New Password" name="settings-password" id="profile-settings-password">
+                <input type="password" placeholder="Confrim New Password" name="settings-password-confirm"
+                  id="profile-settings-password-confirm">
+              </div>
             </div>
           </div>
-        </div>
-        <!-- Save Button For account -->
-        <div class="settings-input-group">
-          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveAccountSettings()">
-        </div>
-      </form>
+          <!-- Save Button For account -->
+          <div class="settings-input-group">
+            <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveAccountSettings()">
+          </div>
+        </form>
+      </div>
+      
+      
 
       <!-- Profile settings -->
-      <form id="settings-profile">
-        <h2 style="padding: 15px;">Profile settings</h2>
+      <div id="settings-profile-tab" class="settings-tab-content">
+        <form id="settings-profile">
+          <h2 style="padding: 15px;">Profile settings</h2>
 
-        <!-- Profile Picture Settings -->
-        <div class="settings-input-group">
-          <div class="row">
-            <div class="column">
-              <label for="settings-profile-picture">Profile Picture</label>
-            </div>
-            <div class="column">
-              <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture"
-                accept="image/png, image/jpeg">
-              <!-- Croppie container -->
-              <div id="upload-image"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bio Settings -->
-        <div class="settings-input-group">
-          <div class="row">
-            <div class="column">
-              <label for="settings-bio">Bio</label>
-            </div>
-            <div class="column">
-              <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.biography is not none %}{{ user.settings.biography }}{% else %}{% endif %}</textarea>
+          <!-- Profile Picture Settings -->
+          <div class="settings-input-group">
+            <div class="row">
+              <div class="column">
+                <label for="settings-profile-picture">Profile Picture</label>
+              </div>
+              <div class="column">
+                <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture"
+                  accept="image/png, image/jpeg">
+                <!-- Croppie container -->
+                <div id="upload-image"></div>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- Save Button For profile -->
-        <div class="settings-input-group">
-          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveProfileSettings()">
-        </div>
-      </form>
 
-      <!-- Platform settings -->
-      <form id="settings-platforms">
-        <h2 style="padding: 15px;">Platform settings</h2>
-
-        <div class="settings-input-group">
-          <div class="row">
-            <div class="column">
-              <label for="settings-twitter">Twitter</label>
-              <label for="settings-pixiv">Pixiv</label>
-              <label for="settings-patreon">Patreon</label>
-              <label for="settings-deviantart">DeviantArt</label>
-              <label for="settings-discord">Discord</label>
-              <label for="settings-github" style="display: none;">GitHub</label>
-            </div>
-            <div class="column">
-              <input type="text" name="Twitter profile" id="settings-twitter"
-                value="{% if user.settings.twitter is not none %}{{ user.settings.twitter }}{% else %}{% endif %}"
-                placeholder="Twitter Profile Link"
-                pattern="\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
-                onkeyup="this.reportValidity();">
-
-              <input type="text" name="Pixiv profile" id="settings-pixiv"
-                value="{% if user.settings.pixiv is not none %}{{ user.settings.pixiv }}{% else %}{% endif %}"
-                placeholder="Pixiv Profile Link"
-                pattern="\b((http[s]?:\/\/)?(www\.)?pixiv\.net\/[A-z]{1,}\/users\/[\d]{1,})\b"
-                onkeyup="this.reportValidity();">
-
-              <input type="text" name="Patreon Profile" id="settings-patreon"
-                value="{% if user.settings.patreon is not none %}{{ user.settings.patreon }}{% else %}{% endif %}"
-                placeholder="Patreon Profile Link"
-                pattern="\b((http[s]?:\/\/)?(www\.)?patreon\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
-                onkeyup="this.reportValidity();">
-
-              <input type="text" name="DeviantArt Profile" id="settings-deviantart"
-                value="{% if user.settings.deviantart is not none %}{{ user.settings.deviantart }}{% else %}{% endif %}"
-                placeholder="DeviantArt Profile Link"
-                pattern="\b((http[s]?:\/\/)?(www\.)?deviantart\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b"
-                onkeyup="this.reportValidity();">
-
-              <input type="text" name="Discord Username#Discriminator" id="settings-discord"
-                value="{% if user.settings.discord is not none %}{{ user.settings.discord }}{% else %}{% endif %}"
-                placeholder="Discord Username#Discriminator" pattern="\b([\w\d]{1,32}#[\d]{4,})\b"
-                onkeyup="this.reportValidity();">
-
-              <input type="text" name="Github Profile" id="settings-github"
-                value="{% if user.settings.github is not none %}{{ user.settings.github }}{% else %}{% endif %}"
-                placeholder="Github Profile Link" style="display: none;">
+          <!-- Bio Settings -->
+          <div class="settings-input-group">
+            <div class="row">
+              <div class="column">
+                <label for="settings-bio">Bio</label>
+              </div>
+              <div class="column">
+                <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.biography is not none %}{{ user.settings.biography }}{% else %}{% endif %}</textarea>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- Save Button For Platforms -->
-        <div class="settings-input-group">
-          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SavePlatformSettings()">
-        </div>
-      </form>
-
-      <!-- Site settings -->
-      <form id="settings-site">
-        <h2 style="padding: 15px;">Site settings</h2>
-
-        <div class="settings-input-group">
-          <div class="row">
-            <div class="column">
-              <label for="settings-blacklist">Tag Blacklist (split by newlines)</label>
-            </div>
-            <div class="column">
-              <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off"
-                autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
-            </div>
+          <!-- Save Button For profile -->
+          <div class="settings-input-group">
+            <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveProfileSettings()">
           </div>
-        </div>
-        <div class="settings-input-group">
-          <div class="row">
-            <div class="column">
-              <label for="settings-custom-css">Custom CSS</label>
-            </div>
-            <div class="column">
-              <textarea name="settings-custom-css" id="profile-settings-custom-css" cols="30" rows="10"
-                autocorrect="off" autocapitalize="off"
-                spellcheck="false">{% if user.settings.custom_css is not none %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
-            </div>
-          </div>
-        </div>
-      <!-- Save Button For Site -->
-      <div class="settings-input-group">
-        <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveSiteSettings()">
+        </form>
       </div>
-    </form>
+
+      <div id="settings-platforms-tab" class="settings-tab-content">
+        <!-- Platform settings -->
+        <form id="settings-platforms">
+          <h2 style="padding: 15px;">Platform settings</h2>
+
+          <div class="settings-input-group">
+            <div class="row">
+              <div class="column">
+                <label for="settings-twitter">Twitter</label>
+                <label for="settings-pixiv">Pixiv</label>
+                <label for="settings-patreon">Patreon</label>
+                <label for="settings-deviantart">DeviantArt</label>
+                <label for="settings-discord">Discord</label>
+                <label for="settings-github" style="display: none;">GitHub</label>
+              </div>
+              <div class="column">
+                <input type="text" name="Twitter profile" id="settings-twitter"
+                  value="{{ user.settings.connections.get('twitter', '') }}"
+                  placeholder="Twitter Profile Link"
+                  pattern="{{ UserSettings.CONNECTION_REGEX['twitter'] }}"
+                  onkeyup="this.reportValidity();">
+
+                <input type="text" name="Pixiv profile" id="settings-pixiv"
+                  value="{{ user.settings.connections.get('pixiv', '') }}"
+                  placeholder="Pixiv Profile Link"
+                  pattern="{{ UserSettings.CONNECTION_REGEX['pixiv'] }}"
+                  onkeyup="this.reportValidity();">
+
+                <input type="text" name="Patreon Profile" id="settings-patreon"
+                  value="{{ user.settings.connections.get('patreon', '') }}"
+                  placeholder="Patreon Profile Link"
+                  pattern="{{ UserSettings.CONNECTION_REGEX['patreon'] }}"
+                  onkeyup="this.reportValidity();">
+
+                <input type="text" name="DeviantArt Profile" id="settings-deviantart"
+                  value="{{ user.settings.connections.get('deviantart', '') }}"
+                  placeholder="DeviantArt Profile Link"
+                  pattern="{{ UserSettings.CONNECTION_REGEX['deviantart'] }}"
+                  onkeyup="this.reportValidity();">
+
+                <input type="text" name="Discord Username#Discriminator" id="settings-discord"
+                  value="{{ user.settings.connections.get('discord', '') }}"
+                  placeholder="Discord Username#Discriminator" 
+                  pattern="{{ UserSettings.CONNECTION_REGEX['discord'] }}"
+                  onkeyup="this.reportValidity();">
+
+                <input type="text" name="Github Profile" id="settings-github"
+                  value="{{ user.settings.connections.get('github', '') }}"
+                  pattern="{{ UserSettings.CONNECTION_REGEX['github'] }}"
+                  placeholder="Github Profile Link" style="display: none;">
+              </div>
+            </div>
+          </div>
+          <!-- Save Button For Platforms -->
+          <div class="settings-input-group">
+            <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SavePlatformSettings()">
+          </div>
+        </form>
+      </div>
+
+      <div id="settings-site-tab" class="settings-tab-content">
+        <!-- Site settings -->
+        <form id="">
+          <h2 style="padding: 15px;">Site settings</h2>
+
+          <div class="settings-input-group">
+            <div class="row">
+              <div class="column">
+                <label for="settings-blacklist">Tag Blacklist (split by newlines)</label>
+              </div>
+              <div class="column">
+                <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off"
+                  autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
+              </div>
+            </div>
+          </div>
+          <div class="settings-input-group">
+            <div class="row">
+              <div class="column">
+                <label for="settings-custom-css">Custom CSS</label>
+              </div>
+              <div class="column">
+                <textarea name="settings-custom-css" id="profile-settings-custom-css" cols="30" rows="10"
+                  autocorrect="off" autocapitalize="off"
+                  spellcheck="false">{% if user.settings.custom_css %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
+              </div>
+            </div>
+          </div>
+        <!-- Save Button For Site -->
+        <div class="settings-input-group">
+          <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveSiteSettings()">
+        </div>
+      </form>
+    </div>
     {% endif %}
   </div>
   <script src="/static/javascript/profile.min.js"></script>

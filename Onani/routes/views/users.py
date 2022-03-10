@@ -2,38 +2,37 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 21:55:00
+# @Last Modified time: 2022-03-10 21:59:33
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
-from Onani.models import Tag, User
+from Onani.models import Tag, User, UserSettings
 
 from . import main
 
 
-@main.route("/users")
-@login_required
-def users():
-    page = request.args.get("p", "0")
-
-    # Convert the page to an int if it is a digit, if it is not, default to 0
-    page = int(page) if page.isdigit() else 0
-    users = User.query.order_by(User.id.desc()).paginate(
-        per_page=35, page=page, error_out=False
-    )
-
-    tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
-
-    return render_template(
-        "/users.jinja2",
-        users=users,
-        tags=tags,
-    )
-
-
+@main.route("/users/")
+# @main.route("/users")
 @main.route("/users/<user_id>")
 @login_required
-def user(user_id):
+def users(user_id=None):
+    if not user_id:
+        page = request.args.get("p", "0")
+
+        # Convert the page to an int if it is a digit, if it is not, default to 0
+        page = int(page) if page.isdigit() else 0
+        users = User.query.order_by(User.post_count.desc()).paginate(
+            per_page=10, page=page, error_out=False
+        )
+
+        tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
+
+        return render_template(
+            "/users.jinja2",
+            users=users,
+            tags=tags,
+        )
+
     # Check if it is a valid number
     if not user_id.isdigit():
         # abort, it's not a number
@@ -59,4 +58,5 @@ def user(user_id):
         "/profile.jinja2",
         user=user,
         tags=tags,
+        UserSettings=UserSettings,
     )

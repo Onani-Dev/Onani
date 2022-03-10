@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 15:25:37
+# @Last Modified time: 2022-03-10 17:17:12
 import random
 import string
 from datetime import datetime, timedelta
@@ -96,6 +96,26 @@ def drop_db():
 
 @app.cli.command("seed-db")
 def seed_db():
+    for _ in range(10):
+        user = random_user()
+        tag1 = random_tag()
+        user.tag_blacklist.append(tag1)
+        tag2 = random_tag()
+        tag1.aliases.append(tag2)
+        user.tag_blacklist.append(tag2)
+        user.ban = Ban(
+            user=user.id,
+            reason="Cockhead",
+            expires=datetime.utcnow() + timedelta(days=50),
+        )
+    for _ in range(10):
+        random_news(author=User.query.first())
+    db.session.commit()
+    print("Database has been seeded")
+
+
+@app.cli.command("create-root")
+def create_root():
     root = create_user(
         username="Root",
         password="Root1",
@@ -115,24 +135,7 @@ def seed_db():
         "paypal": "https://www.paypal.com/paypalme/onani",  # Disclaimer: i do not know this person. do not send them money.
     }
 
-    for _ in range(10):
-        random_news(author=root)
-
-    for _ in range(10):
-        user = random_user()
-        tag1 = random_tag()
-        user.tag_blacklist.append(tag1)
-        tag2 = random_tag()
-        tag1.aliases.append(tag2)
-        user.tag_blacklist.append(tag2)
-        user.ban = Ban(
-            user=user.id,
-            reason="Cockhead",
-            expires=datetime.utcnow() + timedelta(days=50),
-        )
-
     db.session.commit()
-    print("Database has been seeded")
 
 
 @app.cli.command("add-user")

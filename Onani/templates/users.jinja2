@@ -1,13 +1,26 @@
 {% set title = "Users - " %}
-{% set body_class = "profile" %}
-{% set header_style = "right: -390px;" %}
 
 {% extends "base.jinja2" %}
 
 {% block content %}
+<!-- Left pannel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+<!-- Right pannel/News -->
+{% include "elements/right_bar.jinja2" %}
+
+
 <div id="outlined-container" class="grid-container">
-    {% for user in users.items %}
-        <div class="grid-item"><a href="/users/{{ user.id }}" alt="{{ user.username }}"><img src="{{ user.settings.avatar }}" class="user-pfp">{{ user.username }}</a></div>
+  {% for user in users.items %}
+    <div class="grid-item"><img src="{{ user.settings.avatar }}" class="pfp-list"><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}</a></div>
+  {% endfor %}
+  <div class="page-navigation">
+    {% for page in users.iter_pages() %}
+      {% if page %}
+        <a href="/users?p={{ page }}">{{ page }}</a>
+      {% else %}
+        ...
+      {% endif %}
     {% endfor %}
+  </div>
 </div>
 {% endblock %}

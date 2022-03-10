@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 15:44:21
+# @Last Modified time: 2022-03-10 19:49:01
 
 import datetime
 import enum
@@ -54,6 +54,10 @@ class PostRating(enum.Enum):
     def __int__(self):
         return self.value
 
+    @classmethod
+    def get_all(self):
+        return {e.name: e.value for e in self}
+
 
 class PostStatus(enum.Enum):
     """
@@ -65,6 +69,10 @@ class PostStatus(enum.Enum):
 
     def __int__(self):
         return self.value
+
+    @classmethod
+    def get_all(self):
+        return {e.name: e.value for e in self}
 
 
 class Post(db.Model):
