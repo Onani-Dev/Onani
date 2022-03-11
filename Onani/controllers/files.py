@@ -2,13 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 03:28:23
+# @Last Modified time: 2022-03-12 03:53:49
 
-from fileinput import filename
 import hashlib
 import io
 import sys
 
+from flask_login import current_user
 from Onani.models import File, Post
 from PIL import Image
 
@@ -38,7 +38,7 @@ def create_file(post: Post, file_data: bytes) -> File:
     with open(url, "wb") as f:
         image_file.seek(0)
         f.write(image_file.read())
-
+    post.uploader = current_user.id
     file = File(
         url=url,
         hash=hash_md5,
