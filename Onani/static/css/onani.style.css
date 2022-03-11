@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-10 23:52:59
+ * @Last Modified time: 2022-03-12 03:45:27
 */
 
 
@@ -653,6 +653,10 @@ input.cr-slider {
   width: 50%;
 }
 
+.row {
+  max-width: 1000px;
+}
+
 .row:after {
   content: "";
   display: table;
@@ -666,7 +670,17 @@ div#profile-info-container i {
 
 /* Post container */
 div#posts-container {
-  padding-top: 50px;
+  border: 1px solid var(--ui-colour);
+  left: 0;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 70vw;
+  min-height: 100vh;
+  min-width: 65vw;
+  padding: 10px;
+  position: absolute;
+  right: 0;
+  width: fit-content;
 }
 
 /* Post thumbnail container */
@@ -697,15 +711,15 @@ img.post-thumbnail {
 
 /* Uploader box */
 div#uploader-container {
-  align-content: center;
   border: 1px solid var(--ui-colour);
-  display: flex;
-  margin-top: 30px;
+  left: 0;
+  margin-left: auto;
+  margin-right: auto;
   min-height: 100vh;
   padding-top: 50px;
   position: absolute;
-  width: 100%;
-  flex-direction: column;
+  right: 0;
+  width: fit-content;
 }
 
 /* uploader title */

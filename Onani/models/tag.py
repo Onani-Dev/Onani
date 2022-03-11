@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-10 19:49:05
+# @Last Modified time: 2022-03-12 01:17:48
 
 import enum
 
@@ -11,11 +11,11 @@ from sqlalchemy_utils import ChoiceType
 from . import db
 
 
-post_table = db.Table(
-    "tag_posts",
-    db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
-    db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
-)
+# tag_posts = db.Table(
+#     "tag_posts",
+#     db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
+#     db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
+# )
 
 
 class TagType(enum.Enum):
@@ -72,10 +72,8 @@ class Tag(db.Model):
         "Tag", backref=db.backref("tag_aliases", remote_side=[id], lazy="joined")
     )
 
-    # the posts with this tag will be here.
-    posts = db.relationship(
-        "Post", secondary=post_table, backref="tag_posts", lazy="dynamic"
-    )
+    # # the posts with this tag will be here.
+    # posts = db.relationship("Post", secondary=tag_posts)
 
     # The post count for this tag's posts
     post_count = db.Column(db.Integer, nullable=False, default=0)

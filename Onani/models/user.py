@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-10 20:12:08
+# @Last Modified time: 2022-03-12 00:23:06
 
 import datetime
 import enum
@@ -187,12 +187,13 @@ class User(UserMixin, db.Model):
 
     @validates("email")
     def validate_email(self, key, email):
-        if email is not None:
+        if email:
             if not re.match("[^@]+@[^@]+\.[^@]+", email):
                 raise ValueError("Provided email is not an email address")
             if User.query.filter(User.email == email).first():
                 raise ValueError("Email is already in use")
-        return html.escape(email)
+            return html.escape(email)
+        return None
 
     @property
     def is_banned(self):

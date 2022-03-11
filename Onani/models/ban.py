@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-17 02:37:00
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2021-01-17 03:02:14
+# @Last Modified time: 2022-03-12 02:22:13
 
 import datetime
 
@@ -31,4 +31,4 @@ class Ban(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<Ban {0!r}>".format(self.__dict__)
+        return f"<Ban {self.__dict__}>"

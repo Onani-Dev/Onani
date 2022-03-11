@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-06 20:17:50
+# @Last Modified time: 2022-03-12 03:27:28
 from . import db
 
 
@@ -14,10 +14,8 @@ class File(db.Model):
     __tablename__ = "files"
 
     id = db.Column(db.Integer, primary_key=True)
-    post = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
-    directory = db.Column(db.String)
-    filename = db.Column(db.String)
-    thumbnail = db.Column(db.String)
+    post = db.Column(db.Integer, db.ForeignKey("posts.id"))
+    url = db.Column(db.String)
     hash = db.Column(db.String)
     width = db.Column(db.Integer)
     height = db.Column(db.Integer)
@@ -28,4 +26,4 @@ class File(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<File {0!r}>".format(self.__dict__)
+        return f"<File {self.__dict__}>"

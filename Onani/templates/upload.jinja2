@@ -4,7 +4,7 @@
 {% block content %}
 <div id="uploader-container">
   <h1>Upload File</h1>
-  <div class="row" style="max-width: 1000px;align-self: center;">
+  <div class="row">
     <div class="column">
       <div id="preview-image-container"><img id="preview-image"></div>
     </div>
@@ -29,8 +29,8 @@
       <div style="display: inline-block;margin-left: 64px;">
         <input type="radio" id="upload-safe" name="rating" value="1">
         <label for="upload-safe">Safe</label><br>
-        <input type="radio" id="upload-questionable" name="rating" value="2" checked>
-        <label for="upload-questionable">Questionable</label><br>
+        <input type="radio" id="upload-unknown" name="rating" value="2" checked>
+        <label for="upload-unknown">Unknown</label><br>
         <input type="radio" id="upload-explicit" name="rating" value="3">
         <label for="upload-explicit">Explicit</label>
       </div>
@@ -47,6 +47,10 @@
         class="uploader-textarea" style="margin-left: 64px;"></textarea>
     </div> -->
   </div>
+
+  <div class="row">
+  </div>
+
   <script src="/static/javascript/uploader.min.js"></script>
 </div>
 

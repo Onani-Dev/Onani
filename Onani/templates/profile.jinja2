@@ -160,7 +160,7 @@
                 <label for="settings-bio">Bio</label>
               </div>
               <div class="column">
-                <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.biography is not none %}{{ user.settings.biography }}{% else %}{% endif %}</textarea>
+                <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.biography %}{{ user.settings.biography }}{% else %}{% endif %}</textarea>
               </div>
             </div>
           </div>
@@ -188,39 +188,40 @@
               </div>
               <div class="column">
                 <input type="text" name="Twitter profile" id="settings-twitter"
-                  value="{{ user.settings.connections.get('twitter', '') }}"
+                  value="{{ user.settings.connections.get('twitter', ' ') }}"
                   placeholder="Twitter Profile Link"
                   pattern="{{ UserSettings.CONNECTION_REGEX['twitter'] }}"
                   onkeyup="this.reportValidity();">
 
                 <input type="text" name="Pixiv profile" id="settings-pixiv"
-                  value="{{ user.settings.connections.get('pixiv', '') }}"
+                  value="{{ user.settings.connections.get('pixiv', ' ') }}"
                   placeholder="Pixiv Profile Link"
                   pattern="{{ UserSettings.CONNECTION_REGEX['pixiv'] }}"
                   onkeyup="this.reportValidity();">
 
                 <input type="text" name="Patreon Profile" id="settings-patreon"
-                  value="{{ user.settings.connections.get('patreon', '') }}"
+                  value="{{ user.settings.connections.get('patreon', ' ') }}"
                   placeholder="Patreon Profile Link"
                   pattern="{{ UserSettings.CONNECTION_REGEX['patreon'] }}"
                   onkeyup="this.reportValidity();">
 
                 <input type="text" name="DeviantArt Profile" id="settings-deviantart"
-                  value="{{ user.settings.connections.get('deviantart', '') }}"
+                  value="{{ user.settings.connections.get('deviantart', ' ') }}"
                   placeholder="DeviantArt Profile Link"
                   pattern="{{ UserSettings.CONNECTION_REGEX['deviantart'] }}"
                   onkeyup="this.reportValidity();">
 
                 <input type="text" name="Discord Username#Discriminator" id="settings-discord"
-                  value="{{ user.settings.connections.get('discord', '') }}"
+                  value="{{ user.settings.connections.get('discord', ' ') }}"
                   placeholder="Discord Username#Discriminator" 
                   pattern="{{ UserSettings.CONNECTION_REGEX['discord'] }}"
                   onkeyup="this.reportValidity();">
 
                 <input type="text" name="Github Profile" id="settings-github"
-                  value="{{ user.settings.connections.get('github', '') }}"
+                  value="{{ user.settings.connections.get('github', ' ') }}"
                   pattern="{{ UserSettings.CONNECTION_REGEX['github'] }}"
-                  placeholder="Github Profile Link" style="display: none;">
+                  placeholder="Github Profile Link"
+                  onkeyup="this.reportValidity();">
               </div>
             </div>
           </div>

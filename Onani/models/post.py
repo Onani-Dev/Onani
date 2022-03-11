@@ -2,17 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-10 19:49:01
+# @Last Modified time: 2022-03-12 02:24:01
 
 import datetime
 import enum
-from Onani.models.comment import PostComment
 
-from Onani.models.file import File
-from Onani.models.tag import Tag
-from Onani.models.note import Note
-from Onani.models.user import User
-from sqlalchemy.orm import backref, validates
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from . import db
@@ -108,53 +102,31 @@ class Post(db.Model):
     # the post's description
     description = db.Column(db.String)
 
-    # The post's file. has information on filesize etc
-    file = db.relationship(File, uselist=False, backref="post_file")
+    # The post's file(s). has information on filesizes etc
+    files = db.relationship("File", backref="post_files", lazy="joined")
 
     # The post's notes. those little thingys on the image over the japanese text :)
-    notes = db.relationship(Note, backref="post_notes", lazy="joined")
+    notes = db.relationship("Note", backref="post_notes", lazy="joined")
 
     # The post's uploader. is a user.
     uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     # The post's tags. will be a list of tags that can be appended to.
-    tags = db.relationship(
-        Tag,
-        secondary=post_tags,
-        primaryjoin=(post_tags.c.post_id == id),
-        secondaryjoin=(post_tags.c.tag_id == id),
-        backref="post_tags",
-        lazy="dynamic",
-    )
+    tags = db.relationship("Tag", secondary=post_tags, backref="posts")
 
     # Post's upvoters. users. contributes to the post's rating/score
     upvoters = db.relationship(
-        User,
-        secondary=post_upvotes,
-        primaryjoin=(post_upvotes.c.post_id == id),
-        secondaryjoin=(post_upvotes.c.user_id == id),
-        backref="post_upvoters",
-        lazy="dynamic",
+        "User", secondary=post_upvotes, backref="post_upvoters", lazy="dynamic"
     )
 
     # Post's downvoters. users. contributes to the post's rating/score (reddit moment)
     downvoters = db.relationship(
-        User,
-        secondary=post_downvotes,
-        primaryjoin=(post_downvotes.c.post_id == id),
-        secondaryjoin=(post_downvotes.c.user_id == id),
-        backref="post_downvoters",
-        lazy="dynamic",
+        "User", secondary=post_downvotes, backref="post_downvoters", lazy="dynamic"
     )
 
     # The post's comments. will be filtered for naughty words or other bad things.
     comments = db.relationship(
-        PostComment,
-        secondary=post_comments,
-        primaryjoin=(post_comments.c.post_id == id),
-        secondaryjoin=(post_comments.c.comment_id == id),
-        backref="post_comments",
-        lazy="dynamic",
+        "PostComment", secondary=post_comments, backref="post_comments", lazy="dynamic"
     )
 
     @property
