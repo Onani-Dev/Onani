@@ -2,19 +2,20 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-10 22:35:16
+# @Last Modified time: 2022-03-12 16:12:08
 
 import datetime
 import time
 
 import emoji
+import humanize
 from flask import Flask
+from flask_limiter import Limiter
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from flask_limiter import Limiter
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 csrf = CSRFProtect()
@@ -32,9 +33,11 @@ def init_app():
 
     app.config.from_pyfile("./config.py")
 
-    app.jinja_env.globals.update(datetime=datetime, time=time, emoji=emoji)
+    app.jinja_env.globals.update(
+        datetime=datetime, time=time, emoji=emoji, humanize=humanize
+    )
 
-    from .routes import main_api, main, admin, admin_api
+    from .routes import admin, admin_api, main, main_api
 
     app.register_blueprint(main)
     app.register_blueprint(main_api, url_prefix="/api")

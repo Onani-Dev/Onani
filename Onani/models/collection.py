@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-10 19:48:54
+# @Last Modified time: 2022-03-12 13:33:08
 import datetime
 import enum
 
@@ -10,7 +10,7 @@ from sqlalchemy_utils import ChoiceType
 
 from . import db
 
-collection_table = db.Table(
+collection_posts = db.Table(
     "collection_posts",
     db.Column("collection_id", db.Integer, db.ForeignKey("collections.id")),
     db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
@@ -31,7 +31,7 @@ class CollectionStatus(enum.Enum):
 
     @classmethod
     def get_all(self):
-        return {e.name: e.value for e in self}
+        return {e.name: e for e in self}
 
 
 class Collection(db.Model):
@@ -48,7 +48,7 @@ class Collection(db.Model):
     )
     posts = db.relationship(
         "Post",
-        secondary=collection_table,
+        secondary=collection_posts,
         backref="collection_posts",
         lazy="dynamic",
     )

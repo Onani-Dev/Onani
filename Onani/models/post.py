@@ -50,7 +50,7 @@ class PostRating(enum.Enum):
 
     @classmethod
     def get_all(self):
-        return {e.name: e.value for e in self}
+        return {e.name: e for e in self}
 
 
 class PostStatus(enum.Enum):
@@ -66,7 +66,7 @@ class PostStatus(enum.Enum):
 
     @classmethod
     def get_all(self):
-        return {e.name: e.value for e in self}
+        return {e.name: e for e in self}
 
 
 class Post(db.Model):

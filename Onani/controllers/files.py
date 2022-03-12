@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 03:53:49
+# @Last Modified time: 2022-03-12 12:52:42
 
 import hashlib
 import io
@@ -38,7 +38,9 @@ def create_file(post: Post, file_data: bytes) -> File:
     with open(url, "wb") as f:
         image_file.seek(0)
         f.write(image_file.read())
+
     post.uploader = current_user.id
+
     file = File(
         url=url,
         hash=hash_md5,

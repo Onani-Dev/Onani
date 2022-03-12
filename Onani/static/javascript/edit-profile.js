@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2020-10-11 22:41:33
+ * @Last Modified time: 2022-03-12 16:06:50
  */
 'use strict';
 
@@ -56,6 +56,7 @@ function SaveAccountSettings() {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
+      type: "account",
       username: editUsername.value,
       email: editEmail.value,
       current_password: curPassword.value,
@@ -70,8 +71,8 @@ function SaveAccountSettings() {
       } else {
         alert(json.error);
       }
-    })
-  })
+    });
+  });
 }
 
 function SaveProfileSettings() {
@@ -91,6 +92,7 @@ function SaveProfileSettings() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        type: "profile",
         bio: settingsBio.value,
         avatar: base64Img
       })
@@ -102,8 +104,8 @@ function SaveProfileSettings() {
         } else {
           alert(json.error);
         }
-      })
-    })
+      });
+    });
   });
 }
 
@@ -128,6 +130,7 @@ function SavePlatformSettings() {
       },
       body: JSON.stringify({
         platforms: {
+          type: "platforms",
           deviantart: deviantartProfile.value,
           discord: discordProfile.value,
           github: githubProfile.value,
@@ -144,8 +147,8 @@ function SavePlatformSettings() {
         } else {
           alert(json.error);
         }
-      })
-    })
+      });
+    });
   }
 }
 
@@ -156,6 +159,7 @@ function SaveSiteSettings() {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
+      type: "site",
       custom_css: customCss.value,
       tag_blacklist: tagBlacklist.value.split("\n")
     })
@@ -167,8 +171,8 @@ function SaveSiteSettings() {
       } else {
         alert(json.error);
       }
-    })
-  })
+    });
+  });
 }
 
 $('#profile-settings-profile-picture').on('change', function () { readFile(this); });

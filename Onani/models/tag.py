@@ -2,20 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 01:17:48
+# @Last Modified time: 2022-03-12 15:34:59
 
 import enum
 
 from sqlalchemy_utils import ChoiceType
 
 from . import db
-
-
-# tag_posts = db.Table(
-#     "tag_posts",
-#     db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
-#     db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
-# )
 
 
 class TagType(enum.Enum):
@@ -36,7 +29,7 @@ class TagType(enum.Enum):
 
     @classmethod
     def get_all(self):
-        return {e.name: e.value for e in self}
+        return {e.name: e for e in self}
 
 
 class Tag(db.Model):
@@ -72,11 +65,8 @@ class Tag(db.Model):
         "Tag", backref=db.backref("tag_aliases", remote_side=[id], lazy="joined")
     )
 
-    # # the posts with this tag will be here.
-    # posts = db.relationship("Post", secondary=tag_posts)
-
     # The post count for this tag's posts
-    post_count = db.Column(db.Integer, nullable=False, default=0)
+    post_count = db.Column(db.Integer, default=0)
 
     # The url that will be associated with this tag. only used for artists.
     url = db.Column(db.String)

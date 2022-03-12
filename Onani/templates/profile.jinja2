@@ -32,7 +32,7 @@
     <!-- Username -->
     <h1 id="profile-username-header" class="{{ username_class }}">{{ user.username }}</h1>
     <!-- Permission value -->
-    <h3 id="profile-user-permissions">{{ user.permissions.name }}</h3>
+    <h3 id="profile-user-role">{{ user.role.name }}</h3>
     <!-- User Platforms -->
     {% if user.settings.connections.get('twitter') %}
     <a href="{{ user.settings.connections.get('twitter') }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
@@ -41,14 +41,14 @@
     <a href="{{ user.settings.connections.get('pixiv') }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
     {% endif %}
     {% if user.settings.connections.get('patreon') %}
-    <a href="{{ user.settings.connections.get('patreon') }}" target="_blank"><i class="fa fa-patreon fa-2x"></i></a>
+    <a href="{{ user.settings.connections.get('patreon') }}" target="_blank"><i class="fa-brands fa-patreon fa-2x"></i></a>
     {% endif %}
     {% if user.settings.connections.get('deviantart') %}
     <a href="{{ user.settings.connections.get('deviantart') }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
     {% endif %}
     {% if user.settings.connections.get('discord') %}
     <a onclick="CopyText('{{ user.settings.connections.get('discord') }}')" style="cursor: pointer;">
-      <i class="fa fa-discord fa-2x" title="{{ user.settings.connections.get('discord') }}"></i>
+      <i class="fa-brands fa-discord fa-2x" title="{{ user.settings.connections.get('discord') }}"></i>
     </a>
     {% endif %}
     {% if user.settings.connections.get('paypal') %}

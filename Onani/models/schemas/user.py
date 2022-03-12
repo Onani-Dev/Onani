@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 18:30:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 18:44:56
+# @Last Modified time: 2022-03-13 01:16:06
 from Onani.models.user import User, UserSettings
 
 from . import ma

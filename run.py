@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-10 17:17:12
+# @Last Modified time: 2022-03-13 00:55:45
 import random
 import string
 from datetime import datetime, timedelta
@@ -11,10 +11,7 @@ import click
 
 from Onani import db, init_app
 from Onani.controllers import create_user
-from Onani.models import Ban, Tag, User
-from Onani.models.news import NewsPost
-from Onani.models.tag import TagType
-from Onani.models.user import UserPermissions
+from Onani.models import Ban, Tag, User, NewsPost, TagType, UserRoles
 
 app = init_app()
 
@@ -36,20 +33,11 @@ def random_user() -> User:
 
 
 def random_tag() -> Tag:
-    tagtypes = [
-        TagType.ARTIST,
-        TagType.BANNED,
-        TagType.CHARACTER,
-        TagType.COPYRIGHT,
-        TagType.GENERAL,
-        TagType.META,
-    ]
-    tag = Tag(
+    tagtypes = list(TagType.get_all().values())
+    return Tag(
         name="".join([random.choice(string.ascii_letters) for _ in range(7)]),
         type=random.choice(tagtypes),
     )
-    tag.save_to_db()
-    return tag
 
 
 def random_news(author: User) -> NewsPost:
@@ -59,13 +47,11 @@ def random_news(author: User) -> NewsPost:
         "Fatass don-chan in a Tuxedo, wtf??!",
         "Free sex for free no survey",
     ]
-    news = NewsPost(
+    return NewsPost(
         title=random.choice(news_posts),
         content="".join([random.choice(string.ascii_letters) for _ in range(2048)]),
         author=author.id,
     )
-    news.save_to_db()
-    return news
 
 
 @app.cli.command("init-db")
@@ -96,6 +82,8 @@ def drop_db():
 
 @app.cli.command("seed-db")
 def seed_db():
+    m = []
+
     for _ in range(10):
         user = random_user()
         tag1 = random_tag()
@@ -108,8 +96,11 @@ def seed_db():
             reason="Cockhead",
             expires=datetime.utcnow() + timedelta(days=50),
         )
-    for _ in range(10):
-        random_news(author=User.query.first())
+        m.extend([user, tag1, tag2])
+
+    m.extend(random_news(author=User.query.first()) for _ in range(10))
+
+    db.session.add_all(m)
     db.session.commit()
     print("Database has been seeded")
 
@@ -120,7 +111,7 @@ def create_root():
         username="Root",
         password="Root1",
         email="root@onanis.me",
-        permissions=UserPermissions.OWNER,
+        role=UserRoles.OWNER,
     )
 
     root.settings.biography = ":don::desuwa:"
@@ -134,7 +125,7 @@ def create_root():
         "twitter": "https://twitter.com/kapsikkum",
         "paypal": "https://www.paypal.com/paypalme/onani",  # Disclaimer: i do not know this person. do not send them money.
     }
-
+    db.session.add(root)
     db.session.commit()
 
 
@@ -148,7 +139,7 @@ def add_user(username, email, password, perms):
         username=username,
         email=email,
         password=password,
-        permissions=UserPermissions(int(perms)),
+        role=UserRoles(int(perms)),
     )
     print("User added to database")
 

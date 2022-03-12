@@ -7,4 +7,4 @@
 from .. import db
 from .database import *
 from .files import create_file
-from .permissions import permissions_required
+from .role import role_required

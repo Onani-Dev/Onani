@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:33:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:14:43
+# @Last Modified time: 2022-03-12 13:44:39
 import datetime
 from . import db
 
@@ -25,4 +25,4 @@ class NewsPost(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<NewsPost {0!r}>".format(self.__dict__)
+        return f"<NewsPost {self.__dict__}>"
