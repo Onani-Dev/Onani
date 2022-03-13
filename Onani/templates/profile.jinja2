@@ -71,14 +71,36 @@
       <p id="profile-bio-textarea">{{ user_bio }}</p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
-    {% if user.posts.all()|length <= 0 %}
-      <p id="profile-bio-textarea">User has no posts.</p>
-    {% endif %}
-    {% for post in user.posts.all() %}
-      <div class="post-thumbnail-container">
-        <a href="/post/{{ post.id }}"><img src="{{ post.files[0].url }}" class="post-thumbnail"></a>
-      </div>
-    {% endfor %}
+      {% if posts.items|length <= 0 %}
+        <p id="profile-bio-textarea">User has no posts.</p>
+      {% else %}
+        <div class="grid">
+          {% for post in posts.items %}
+            <div class="post-thumbnail-container">
+              <a href="/post/{{ post.id }}"><img src="{{ post.files[0].url }}" class="post-thumbnail"></a>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="page-navigation" style="margin-top: 15px;">
+          {% if posts.has_prev %}
+            <a class="fa-solid fa-chevron-left" href="/users/{{ user.id }}?t=posts&p={{ posts.prev_num }}"></a>
+          {% endif %}
+          {% for page in posts.iter_pages() %}
+            {% if page %}
+              {% if page == posts.page %}
+                <a href="/users/{{ user.id }}?t=posts&p={{ page }}" style="text-decoration: underline;">{{ page }}</a>
+              {% else %}
+                <a href="/users/{{ user.id }}?t=posts&p={{ page }}">{{ page }}</a>
+              {% endif %}
+            {% else %}
+              ...
+            {% endif %}
+          {% endfor %}
+          {% if posts.has_next %}
+            <a class="fa-solid fa-chevron-right" href="/users/{{ user.id }}?t=posts&p={{ posts.next_num }}"></a>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
     {% if current_user.id == user.id %}
     <div id="settings-tab" class="profile-tab-content">

@@ -1,15 +1,12 @@
 argon2_cffi>=20.1.0
 black>=19.10b0
 emoji>=0.6.0 
-eventlet>=0.24.1
 flask_sqlalchemy>=2.4.4
 Flask-Discord>=0.1.68 
 Flask-Limiter>=2.2.0
 Flask-Login>=0.5.0
 flask-marshmallow>=0.14.0 
 Flask-Migrate>=3.1.0
-Flask-SocketIO>=5.1.1 
-Flask-Sockets>=0.2.1
 Flask-Uploads>=0.2.1 
 Flask-WTF>=1.0.0 
 Flask>=1.1.2

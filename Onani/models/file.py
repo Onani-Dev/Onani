@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 03:27:28
+# @Last Modified time: 2022-03-14 00:52:20
 from . import db
 
 
@@ -15,8 +15,8 @@ class File(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     post = db.Column(db.Integer, db.ForeignKey("posts.id"))
-    url = db.Column(db.String)
-    hash = db.Column(db.String)
+    url = db.Column(db.String, unique=True)
+    hash = db.Column(db.String, unique=True, index=True)
     width = db.Column(db.Integer)
     height = db.Column(db.Integer)
     filesize = db.Column(db.Integer)

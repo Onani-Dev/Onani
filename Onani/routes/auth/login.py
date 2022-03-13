@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 02:53:12
+# @Last Modified time: 2022-03-13 22:44:10
 from datetime import datetime, timedelta
 
 import humanize
@@ -15,7 +15,7 @@ from Onani.models import User
 from . import db, main
 
 
-@main.route("/login", methods=["GET", "POST"])
+@main.route("/login/", methods=["GET", "POST"])
 def login():
     # Create the login form
     form = LoginForm(request.form)
@@ -68,7 +68,7 @@ def login():
         return redirect(url_for("main.login"))
 
 
-@main.route("/register", methods=["GET", "POST"])
+@main.route("/register/", methods=["GET", "POST"])
 def register():
     # The registration form object
     form = RegistrationForm(request.form)
@@ -98,7 +98,7 @@ def register():
         return redirect(url_for("main.login"))
 
 
-@main.route("/logout")
+@main.route("/logout/")
 @login_required
 def logout():
     logout_user()

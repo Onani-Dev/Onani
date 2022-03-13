@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 03:10:42
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 03:13:26
+# @Last Modified time: 2022-03-13 22:42:55
 import traceback
 
 from flask import request, flash, redirect
@@ -20,7 +20,7 @@ def error_handler(e):
 
     if isinstance(e, HTTPException) and e.code == 401:
         flash("You must login to do this.")
-        return redirect("/login")
+        return redirect("/login/")
 
     print(traceback.print_tb(e.__traceback__))  # DEBUG
     return str(e), code

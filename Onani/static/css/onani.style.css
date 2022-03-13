@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-12 19:13:30
+ * @Last Modified time: 2022-03-14 01:37:21
 */
 
 
@@ -96,6 +96,14 @@ input[type=text]:focus,
 input[type=email]:focus, 
 input[type=password]:focus {
   background-color: var(--input-focus);
+}
+
+footer {
+  bottom: -270px;
+  display: flex;
+  outline: 1px solid var(--ui-colour);
+  position: absolute;
+  width: 100%;
 }
 
 /* Navbar logo */
@@ -232,8 +240,8 @@ div.dropdown-content {
   opacity: 100%;
   overflow: visible;
   position: absolute;
-  right: 0;
-  top: 50px;
+  right: 10px;
+  top: 55px;
   z-index: 5;
 }
 
@@ -582,11 +590,9 @@ div.profile-tab-bar button.active {
 
 /* Tab content */
 div.profile-tab-content {
-  /* border: 1px solid var(--ui-colour); */
   border-top: none;
   display: none;
   min-height: 100%;
-  padding: 6px 12px;
   animation: fadein 0.5s;
 }
 
@@ -617,7 +623,7 @@ div.settings-input-group input[type=email],
 div.settings-input-group input[type=password],
 div.settings-input-group input[type=file] {
   padding: 5px;
-  width: 100%;
+  /* width: 100%; */
 }
 
 input.profile-settings-submit {
@@ -634,7 +640,7 @@ textarea#profile-settings-custom-css {
   max-width: 100%;
   padding: 5px;
   white-space: pre-wrap;
-  width: 100%;
+  /* width: 100%; */
 }
 
 #upload-image {
@@ -656,6 +662,7 @@ input.cr-slider {
 .column {
   float: left;
   width: 50%;
+  display: grid;
 }
 
 .row {
@@ -668,6 +675,19 @@ input.cr-slider {
   clear: both;
 }
 
+.row.uploader {
+ flex: 1 1 30%;
+ margin: 50px;
+ min-width: max-content;
+ width: fit-content;
+}
+
+.column.uploader {
+  float: none;
+  width: fit-content;
+  display: grid;
+}
+
 div#profile-info-container i {
   display: inline-block;
   padding: 5px;
@@ -676,25 +696,41 @@ div#profile-info-container i {
 /* Post container */
 div#posts-container {
   border: 1px solid var(--ui-colour);
+  /* display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); */
   left: 0;
   margin-left: auto;
   margin-right: auto;
   max-width: 70vw;
-  min-height: 50vh;
+  min-height: fit-content;
   min-width: 65vw;
-  padding: 10px;
+  /* padding: 10px; */
   position: absolute;
   right: 0;
   width: fit-content;
+  
+}
+
+div.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  width: 100%;
 }
 
 /* Post thumbnail container */
 div.post-thumbnail-container {
   border-bottom: 1px solid var(--ui-colour);
-  display: inline-block;
+  display: grid;
   height: 150px;
+  justify-content: center;
+  margin: 0 auto;
   padding: 10px;
+  transition: transform 0.2s ease;
   width: 140px;
+}
+
+div.post-thumbnail-container:hover {
+  transform: scale(1.1);
 }
 
 div.post-thumbnail-container a {
@@ -705,11 +741,10 @@ div.post-thumbnail-container a {
 /* Post Thumbnail */
 img.post-thumbnail {
   align-self: center;
-  display: block;
+  display: flex;
   margin: auto;
-  max-height: 100%;
-  max-width: 100%;
-  top: 0;
+  max-height: 150px;
+  max-width: 140px;
   user-select: none;
 }
 
@@ -724,11 +759,13 @@ div#uploader-container {
   position: absolute;
   right: 0;
   width: fit-content;
+  /* min-width: 80vw; */
 }
 
 /* uploader title */
 div#uploader-container h1 {
   text-align: center;
+  margin-bottom: -10px;
 }
 
 div#uploader-input-container {
@@ -741,7 +778,7 @@ input.uploader-input {
   margin-bottom: 15px;
   padding: 5px;
   text-align: left;
-  width: 360px;
+  width: 300px;
 }
 
 textarea.uploader-textarea {
@@ -749,10 +786,10 @@ textarea.uploader-textarea {
   border: 1px solid var(--ui-colour);
   height: 120px;
   margin-bottom: 15px;
-  max-width: 360px;
+  max-width: 300px;
   padding: 5px;
   text-align: left;
-  width: 360px;
+  width: 300px;
 }
 
 /* Labels for input */
@@ -763,7 +800,7 @@ label.uploader-label {
 }
 
 /* The upload button */
-button#upload-button {
+input#upload-button {
   display: inline-block;
   background-color: var(--ui-back-colour);
   border: 1px solid var(--ui-colour);
@@ -779,7 +816,7 @@ button#upload-button {
 div#preview-image-container {
   border: 1px solid var(--ui-colour);
   display: inline-block;
-  margin: 50px;
+  /* margin: 0px 50px 160px 50px; */
   padding: 10px;
   min-width: 350px;
   min-height: 350px;
@@ -797,6 +834,12 @@ img#preview-image {
   align-content: center;
   width: 350px;
   max-width: 350px;
+}
+
+select#rating {
+  background-color: var(--back-colour);
+  border: 1px solid var(--ui-colour);
+  width: 120px;
 }
 
 .page-navigation {

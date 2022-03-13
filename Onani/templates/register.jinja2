@@ -13,7 +13,7 @@
 <div class="login-box">
   <h1 class="login-bloody-header">Register</h1>
   <!-- Form -->
-  <form action="/register" method="POST">
+  <form action="/register/" method="POST">
     {{ form.csrf_token }}
     {{ form.username(placeholder="Username", autocapitalize="off") }}
     {{ form.email(placeholder="Email (Optional)", autocapitalize="off") }}

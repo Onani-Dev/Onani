@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:46:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 03:22:27
+# @Last Modified time: 2022-03-14 00:24:07
 from cgi import FieldStorage
 
 from flask import request
@@ -10,13 +10,13 @@ from flask_login import (
     current_user,
     login_required,
 )
-from Onani.controllers import create_file
+from Onani.controllers import create_files
 from Onani.models import File, Post, PostRating
 
 from . import csrf, db, main_api, make_api_response
 
 
-@main_api.route("/upload", methods=["POST"])
+@main_api.route("/upload/", methods=["POST"])
 @login_required
 @csrf.exempt
 def file_upload():
@@ -44,6 +44,7 @@ def file_upload():
         file = create_file(post, uploaded_file.read())
 
         db.session.add_all([file, post])
+        current_user.post_count += 1
         db.session.commit()
 
         return make_api_response({"path": f"/post/{post.id}"})

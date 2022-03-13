@@ -11,15 +11,37 @@
 {% include "elements/tag_bar.jinja2" %}
 
 <div id="posts-container">
-  {% if posts.total <= 0 %}
+  {% if posts.items|length <= 0 %}
     <h1>Sorry nothing</h1>
-  {% endif %}
-  {% for post in posts.items %}
-    <div class="post-thumbnail-container">
-      <a href="/posts/{{ post.id }}"><img src="{{ post.files[0].url }}" class="post-thumbnail"></a>
+  {% else %}
+    <div class="grid">
+      {% for post in posts.items %}
+        <div class="post-thumbnail-container">
+          <a href="/posts/{{ post.id }}"><img src="{{ post.files[0].url }}" class="post-thumbnail"></a>
+        </div>
+      {% endfor %}
     </div>
-  {% endfor %}
-  <div id="index-navigation"></div>
+    <div class="page-navigation" style="margin-top: 15px;">
+      {% if posts.has_prev %}
+        <a class="fa-solid fa-chevron-left" href="/posts/?p={{ posts.prev_num }}"></a>
+      {% endif %}
+      {% for page in posts.iter_pages() %}
+        {% if page %}
+          {% if page == posts.page %}
+            <a href="/posts/?p={{ page }}" style="text-decoration: underline;">{{ page }}</a>
+          {% else %}
+            <a href="/posts/?p={{ page }}">{{ page }}</a>
+          {% endif %}
+        {% else %}
+          ...
+        {% endif %}
+      {% endfor %}
+      {% if posts.has_next %}
+        <a class="fa-solid fa-chevron-right" href="/posts?p={{ posts.next_num }}"></a>
+      {% endif %}
+    </div>
+  {% endif %}
+
 </div>
 
 {% endblock %}

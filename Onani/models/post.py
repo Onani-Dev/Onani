@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 02:24:01
+# @Last Modified time: 2022-03-14 00:17:53
 
 import datetime
 import enum
@@ -41,16 +41,27 @@ class PostRating(enum.Enum):
     Ratings for Post objects
     """
 
-    SAFE = 1
-    UNKNOWN = 2
+    QUESTIONABLE = 1
+    SAFE = 2
     EXPLICIT = 3
-
-    def __int__(self):
-        return self.value
 
     @classmethod
     def get_all(self):
         return {e.name: e for e in self}
+
+    @classmethod
+    def choices(self):
+        return [(choice, choice.name) for choice in self]
+
+    @classmethod
+    def coerce(self, item):
+        return self(int(item)) if not isinstance(item, self) else item
+
+    def __int__(self):
+        return self.value
+
+    def __str__(self):
+        return str(self.value)
 
 
 class PostStatus(enum.Enum):
@@ -61,12 +72,27 @@ class PostStatus(enum.Enum):
     DELETED = 0
     ACTIVE = 1
 
-    def __int__(self):
-        return self.value
+    @classmethod
+    def get_all(self):
+        return {e.name: e for e in self}
 
     @classmethod
     def get_all(self):
         return {e.name: e for e in self}
+
+    @classmethod
+    def choices(self):
+        return [(choice, choice.name) for choice in self]
+
+    @classmethod
+    def coerce(self, item):
+        return self(int(item)) if not isinstance(item, self) else item
+
+    def __int__(self):
+        return self.value
+
+    def __str__(self):
+        return str(self.value)
 
 
 class Post(db.Model):
@@ -92,7 +118,7 @@ class Post(db.Model):
     # The explicitness rating of a post. will be manually set by uploader and can be changed by an admin or moderator.
     rating = db.Column(
         ChoiceType(PostRating, impl=db.Integer()),
-        default=PostRating.UNKNOWN,
+        default=PostRating.QUESTIONABLE,
         nullable=False,
     )
 
@@ -112,7 +138,7 @@ class Post(db.Model):
     uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     # The post's tags. will be a list of tags that can be appended to.
-    tags = db.relationship("Tag", secondary=post_tags, backref="posts")
+    tags = db.relationship("Tag", secondary=post_tags, backref="posts", lazy="joined")
 
     # Post's upvoters. users. contributes to the post's rating/score
     upvoters = db.relationship(

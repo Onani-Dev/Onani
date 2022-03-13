@@ -17,18 +17,18 @@
   {% block meta %}
   {% endblock %}
   <!-- STYLES -->
-  <link rel="stylesheet" href="/static/css/onani.style.min.css">
-  <link rel="stylesheet" href="/static/css/icomoon.style.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost&display=swap">
+  <link rel="stylesheet" type="text/css" href="/static/css/onani.style.min.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/icomoon.style.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Jost&display=swap">
   {% block styles %}
   {% endblock %}
   <!-- SCRIPTS -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://twemoji.maxcdn.com/v/14.0.0/twemoji.min.js" integrity="sha384-L1ViA0v9uyiBlZsOGT/z9RVgs+Gku2SDCuzaAoLco0hEgfYZYiztb+pRgWYHkDwb" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js" integrity="sha512-Gs+PsXsGkmr+15rqObPJbenQ2wB3qYvTHuJO6YJzPe/dTLvhy0fmae2BcnaozxDo5iaF8emzmCZWbQ1XXiX2Ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.0.3/showdown.min.js" integrity="sha512-vx8rJNrYIZPDr290AV2tL04x0CKjLHSnTXrHMeb1kqbhfGwBnclPDOWIWxRiVS6Oe1oGzk5MzNz/eLzVku30kg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://kit.fontawesome.com/2eaffbb37a.js" crossorigin="anonymous"></script>
   {% block top_scripts %}
   {% endblock %}
@@ -37,16 +37,25 @@
       <style type="text/css">{{ current_user.settings.custom_css }}</style>
     {% endif %}
   {% endif %}
+  <script>
+    document.onkeyup = function (e) {
+      if (e.keyCode == 27) {
+        document.body.innerHTML = "";
+        location.href = "https://en.wikipedia.org/wiki/Taiko_no_Tatsujin";
+      }
+    }
+  </script>
 </head>
 
 <body>
   <!-- Navbar/header -->
-  <header class="navbar {{ header_class }}" style="{{ header_style }}">
+  <header class="navbar">
     <!-- logo -->
     <div id="logo" onclick="location.href='/'">Onani</div>
     <!-- Navbar links -->
     <a href="/posts/">Posts</a>
     <a href="/collections/">Collections</a>
+    <a href="/users/">Users</a>
     <a href="/upload/">Upload</a>
     <!-- Search Box -->
     <div id="search-box">
@@ -66,7 +75,6 @@
           <a onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}">Logout</a>
         </div>
       </div>
-
     </div>
     {% else %}
     <div id="login-register-buttons">
@@ -75,21 +83,12 @@
     </div>
     {% endif %}
   </header>
-  <script>
-    document.onkeyup = function (e) {
-      if (e.keyCode == 27) {
-        document.body.innerHTML = "";
-        location.href = "https://en.wikipedia.org/wiki/Taiko_no_Tatsujin";
-      }
-    }
-  </script>
   {% block content %}
   {% endblock %}
   {% block bottom_scripts %}
   {% endblock %}
-
-  <footer>
-  </footer>
+  {# <footer>
+  </footer> #}
 </body>
 
 </html>

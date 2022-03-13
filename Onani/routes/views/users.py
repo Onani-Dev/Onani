@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-10 21:59:33
+# @Last Modified time: 2022-03-13 18:00:40
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
@@ -50,6 +50,10 @@ def users(user_id=None):
         # Query for the user, if not found throw a 404
         user = User.query.filter_by(id=user_id).first_or_404()
 
+    page = request.args.get("p", "0")
+    page = int(page) if page.isdigit() else 0
+    posts = user.posts.paginate(per_page=20, page=page, error_out=False)
+
     # Get the tags sorted by the post count
     tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
 
@@ -58,5 +62,6 @@ def users(user_id=None):
         "/profile.jinja2",
         user=user,
         tags=tags,
+        posts=posts,
         UserSettings=UserSettings,
     )
