@@ -25,4 +25,4 @@ def make_api_response(
     )
 
 
-from . import _admin, index, news, profile, upload
+from . import _admin, index, news, profile, upload, users
