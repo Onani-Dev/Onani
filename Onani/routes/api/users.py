@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 18:26:01
 # @Last Modified by:   dirt3009
-# @Last Modified time: 2022-03-14 21:10:46
+# @Last Modified time: 2022-03-14 21:31:47
 
 import json
 
@@ -15,7 +15,6 @@ from flask_login import (
     logout_user,
 )
 from Onani.models import User, UserSchema
-from Onani.models.schemas import user
 
 from . import admin_api, db, main_api, make_api_response
 
