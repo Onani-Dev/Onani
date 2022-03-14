@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 18:26:01
 # @Last Modified by:   dirt3009
-# @Last Modified time: 2022-03-14 19:23:32
+# @Last Modified time: 2022-03-14 21:10:46
 
 import json
 
@@ -15,6 +15,7 @@ from flask_login import (
     logout_user,
 )
 from Onani.models import User, UserSchema
+from Onani.models.schemas import user
 
 from . import admin_api, db, main_api, make_api_response
 
@@ -28,6 +29,7 @@ from . import admin_api, db, main_api, make_api_response
 
 
 @main_api.route("/users", methods=["GET"])
+@login_required
 def get_users():
     page = request.args.get("page", "0")
     per_page = request.args.get("per_page", "10")
@@ -39,7 +41,6 @@ def get_users():
 
     user_schema = UserSchema(many=True)
 
-    # hold up, this ain't no hot tub !!!!!!!!!
     return make_api_response(
         {
             "users": user_schema.dump(users.items),
@@ -48,3 +49,14 @@ def get_users():
             "total": users.total,
         }
     )
+
+
+# @main_api.route("/user/<user_id>", methods=["GET"])
+# @login_required
+# def get_user(user_id):
+#     user = User.query.filter_by(id=user_id).first()
+#     user_schema = UserSchema(many=True)
+#     if user == None:
+#         return make_api_response("", "User not found.")
+#     else:
+#         return make_api_response(user)
