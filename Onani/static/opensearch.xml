@@ -1,0 +1,14 @@
+<!-- 
+  @Author: dirt3009
+  @Date:   2022-03-15 21:30:48
+  @Last Modified by:   dirt3009
+  @Last Modified time: 2022-03-15 21:33:21
+-->
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
+<ShortName>Onani</ShortName>
+<Description>Search Onani</Description>
+<InputEncoding>UTF-8</InputEncoding>
+<Image width="16" height="16" type="image/png">/static/favicon-16x16.png</Image>
+<Url type="text/html" method="get" template="/search?q={searchTerms}"/>
+<moz:SearchForm>/search</moz:SearchForm>
+</OpenSearchDescription>

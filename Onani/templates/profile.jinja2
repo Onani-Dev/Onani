@@ -1,5 +1,7 @@
 {% set title = user.username + " - " %}
-
+{% set ogtitle = user.username %}
+{% set ogdesc = "Check out " + user.username + "'s profile on Onani!" %}
+{% set ogimage = user.settings.avatar %}
 {% extends "base.jinja2" %}
 
 {% if user.ban %}
