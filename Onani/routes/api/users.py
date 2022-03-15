@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-09 18:26:01
-# @Last Modified by:   dirt3009
-# @Last Modified time: 2022-03-14 21:31:47
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-03-16 00:08:33
 
 import json
 
@@ -18,13 +18,22 @@ from Onani.models import User, UserSchema
 
 from . import admin_api, db, main_api, make_api_response
 
-# @main_api.route("/user/<user_id>", methods=["GET"])
-# @login_required
-# def view_profile(user_id):
-#     if not user_id.isdigit():
-#         abort(404)
 
-#     user_id = int(user_id)
+@main_api.route("/user", methods=["GET"])
+@login_required
+def get_user():
+    if id := request.args.get("id"):
+        if not id.isdigit():
+            abort(400)
+        user = User.query.filter_by(id=int(id)).first_or_404()
+
+    elif username := request.args.get("username"):
+        if len(username) > 32:
+            abort(400)
+        user = User.query.filter_by(username=username).first_or_404()
+    else:
+        abort(400)
+    return make_api_response({"data": UserSchema().dump(user)})
 
 
 @main_api.route("/users", methods=["GET"])
@@ -38,24 +47,11 @@ def get_users():
 
     users = User.query.paginate(per_page=per_page, page=page, error_out=False)
 
-    user_schema = UserSchema(many=True)
-
     return make_api_response(
         {
-            "users": user_schema.dump(users.items),
+            "data": UserSchema(many=True).dump(users.items),
             "next_page": users.next_num,
             "prev_page": users.prev_num,
             "total": users.total,
         }
     )
-
-
-# @main_api.route("/user/<user_id>", methods=["GET"])
-# @login_required
-# def get_user(user_id):
-#     user = User.query.filter_by(id=user_id).first()
-#     user_schema = UserSchema(many=True)
-#     if user == None:
-#         return make_api_response("", "User not found.")
-#     else:
-#         return make_api_response(user)

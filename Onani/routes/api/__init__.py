@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:42:18
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 03:16:02
+# @Last Modified time: 2022-03-16 01:11:14
 
 
 from json import dumps
@@ -25,4 +25,4 @@ def make_api_response(
     )
 
 
-from . import _admin, index, news, profile, upload, users
+from . import _admin, index, news, posts, profile, tags, users

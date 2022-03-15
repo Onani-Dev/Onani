@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:59:30
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-14 01:35:01
+# @Last Modified time: 2022-03-16 00:53:28
 from flask import render_template, request
 from Onani.models import Ban, Post, Tag
 
@@ -32,7 +32,7 @@ def posts():
         )
 
     # Get the tags sorted by the post count
-    tags = Tag.query.order_by(Tag.post_count.desc()).limit(25).all()
+    tags = Tag.query.order_by(Tag.post_count.desc(), Tag.type.desc()).limit(25).all()
 
     # render the index template
     return render_template(

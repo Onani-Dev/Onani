@@ -2,11 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 01:21:54
+# @Last Modified time: 2022-03-15 23:20:15
 
 import datetime
 import html
 import secrets
+import uuid
 
 import regex as re
 from flask_login import UserMixin
@@ -91,6 +92,14 @@ class User(UserMixin, db.Model):
     # Amount of posts this user has uploaded.
     post_count = db.Column(db.Integer, default=0, nullable=False)
 
+    # ULTRA SECRET LOGIN UUID FOR INTERNAL LOGGING IN!!!!1!!!1 (hidden value for securely logging in users with flask-login)
+    login_id = db.Column(
+        db.String, index=True, unique=True, default=lambda: str(uuid.uuid4())
+    )
+
+    # If the user deletes their account, this will become true.
+    is_deleted = db.Column(db.Boolean, default=False)
+
     @validates("username")
     def validate_username(self, key, username):
         if not username:
@@ -111,15 +120,6 @@ class User(UserMixin, db.Model):
             return html.escape(email)
         return None
 
-    @property
-    def is_banned(self):
-        """Check if this user is banned.
-
-        Returns:
-            bool: True if this user is banned and False if not.
-        """
-        return self.ban is not None
-
     def set_password(self, password):
         """Set this User's password. It will create an argon2 hash from the specified string.
 
@@ -128,13 +128,12 @@ class User(UserMixin, db.Model):
 
         Raises:
             ValueError: Password not provided
-            ValueError: Password must contain 1 capital letter and 1 number
             ValueError: Password must be between 5 and 50 characters
         """
         if not password:
             raise ValueError("Password not provided")
-        if not re.match("\d.*[A-Z]|[A-Z].*\d", password):
-            raise ValueError("Password must contain 1 capital letter and 1 number")
+        # if not re.match("\d.*[A-Z]|[A-Z].*\d", password):
+        #     raise ValueError("Password must contain 1 capital letter and 1 number")
         if len(password) < 5 or len(password) > 50:
             raise ValueError("Password must be between 5 and 50 characters")
 
@@ -167,6 +166,33 @@ class User(UserMixin, db.Model):
             )
         db.session.add(self)
         db.session.commit()
+
+    def get_id(self):
+        """Flask-login function
+
+        Returns:
+            str: Secret login ID
+        """
+        return self.login_id
+
+    @property
+    def is_active(self):
+        """Flask-login property
+
+        Returns:
+            bool: True if user is neither banned nor is_deleted
+        """
+        active = True
+        if self.ban:
+            if self.ban.has_expired:
+                # their ban has expired, continue login
+                self.ban = None
+                db.session.commit()
+            else:
+                active = False
+        if self.is_deleted:
+            active = False
+        return active
 
     def __repr__(self):
         return f"<User {self.__dict__}>"

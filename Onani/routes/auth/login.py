@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 22:44:10
+# @Last Modified time: 2022-03-15 23:00:50
 from datetime import datetime, timedelta
 
 import humanize
@@ -17,22 +17,20 @@ from . import db, main
 
 @main.route("/login/", methods=["GET", "POST"])
 def login():
-    # Create the login form
-    form = LoginForm(request.form)
-
     # We don't need to login again!
     if current_user.is_authenticated:
         return redirect(f"/users/{current_user.id}")
 
-    # Render the login page when visited.
-    if request.method == "GET":
-        return render_template("/login.jinja2", form=form)
+    # Create the login form
+    form = LoginForm(request.form)
 
     # The credentials have been posted
     if request.method == "POST" and form.validate():
+
         # Try to get the user
         user = User.query.filter_by(username=form.username.data).first()
-        if user is None:
+
+        if not user:
             # user doesn't exist here
             flash("Account does not exist.")
             return redirect(url_for("main.login"))
@@ -42,30 +40,31 @@ def login():
             # Authentication passed
 
             # Login to flask login
-            login = login_user(user, duration=timedelta(days=60), remember=True)
-            if login:
-                # User is active
-                if current_user.is_banned:
-                    # They banned doe :flushed:
+            login = login_user(user, duration=timedelta(days=7))
 
-                    if user.ban.has_expired:
-                        # their ban has expired, continue login
-                        current_user.ban = None
-                        db.session.commit()
-                        return redirect(f"/users/{current_user.id}")
+            if not login:
+                # The login failed for some reason
 
-                    # They are still banned, logout and show message
-                    logout_user()
+                if user.ban:
+                    # The user is banned. They cannot login.
                     flash(
                         f"This account has been banned.\nReason: {user.ban.reason}\nExpires: {humanize.naturaltime(datetime.utcnow().replace(tzinfo=tz.tzutc()) - user.ban.expires.astimezone(tz.tzlocal()))} ({user.ban.expires.strftime('%d/%m/%Y %H:%M:%S')} UTC)"
                     )
                     return redirect(url_for("main.login"))
 
-                return redirect(f"/users/{current_user.id}")
+                if user.is_deleted:
+                    # The user is deleted. They can never login again.
+                    flash("User is deleted.")
+                    return redirect(url_for("main.login"))
+
+            return redirect(f"/users/{current_user.id}")
 
         # Password was wrong, show message
         flash("Invalid Login.")
         return redirect(url_for("main.login"))
+
+    # Render the login page when visited.
+    return render_template("/login.jinja2", form=form)
 
 
 @main.route("/register/", methods=["GET", "POST"])
@@ -76,10 +75,6 @@ def register():
     # Logged in users don't need to register again.
     if current_user.is_authenticated:
         return redirect(f"/users/{current_user.id}")
-
-    # Render the registration page
-    if request.method == "GET":
-        return render_template("/register.jinja2", form=form)
 
     #
     if request.method == "POST" and form.validate():
@@ -96,6 +91,9 @@ def register():
         # Account created.
         flash("Account created, You can now login.")
         return redirect(url_for("main.login"))
+
+    # Render the registration page
+    return render_template("/register.jinja2", form=form)
 
 
 @main.route("/logout/")
