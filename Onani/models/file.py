@@ -2,7 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-14 00:52:20
+# @Last Modified time: 2022-03-17 14:42:39
+import os
+
 from . import db
 
 
@@ -21,8 +23,14 @@ class File(db.Model):
     height = db.Column(db.Integer)
     filesize = db.Column(db.Integer)
 
-    def save_to_db(self):
-        db.session.add(self)
+    def delete(self):
+        """Delete this file from the database and the disk.
+
+        Raises:
+            Exception: The file couldn't be deleted.
+        """
+        os.remove(self.url)
+        db.session.delete(self)
         db.session.commit()
 
     def __repr__(self):
