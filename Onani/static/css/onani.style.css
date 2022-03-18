@@ -205,7 +205,7 @@ input#search-input {
 }
 
 /* Tags bar */
-div#left-pannel {
+div#left-panel {
   font-size: 16px;
   padding-left: 25px;
   position: absolute;
@@ -269,7 +269,7 @@ header.navbar a:hover, div.dropdown:hover button.dropbtn {
 }
 
 /* News and chat */
-div#right-pannel {
+div#right-panel {
   right: 0;
   /* margin-top: 30px; */
   padding-right: 25px;
@@ -381,7 +381,7 @@ a#register-user-button {
 }
 
 /* Tag list items */
-div#left-pannel li{
+div#left-panel li{
   list-style-type: none;
 }
 
