@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-14 00:23:33
+# @Last Modified time: 2022-03-19 00:59:29
 
 import hashlib
 import io
@@ -36,20 +36,21 @@ def create_files(post: Post, file_datas: List[bytes]) -> List[File]:
         # The files URL to write to
         url = f"/images/{hash_md5}.{file_type}"
 
+        # File is here to prevent writing to disk if this fails.
+        file = File(
+            url=url,
+            hash=hash_md5,
+            width=width,
+            height=height,
+            filesize=filesize,
+        )
+
         # write to file
         with open(url, "wb") as f:
             image_file.seek(0)
             f.write(image_file.read())
 
-        post.files.append(
-            File(
-                url=url,
-                hash=hash_md5,
-                width=width,
-                height=height,
-                filesize=filesize,
-            )
-        )
+        post.files.append(file)
 
     # Return the files
     return post.files

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 00:55:57
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-16 01:31:05
+# @Last Modified time: 2022-03-18 23:53:52
 from flask import abort, request
 from flask_login import login_required
 from Onani.models import Tag, TagSchema
@@ -12,7 +12,7 @@ from . import main_api, make_api_response
 
 
 @main_api.route("/tags", methods=["GET"])
-@login_required
+# @login_required
 def get_tags():
     page = request.args.get("page", "0")
     per_page = request.args.get("per_page", "25")

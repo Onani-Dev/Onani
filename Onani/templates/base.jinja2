@@ -12,8 +12,8 @@
   <link rel="manifest" href="/site.webmanifest">
   <meta name="apple-mobile-web-app-title" content="Onani">
   <meta name="application-name" content="Onani">
-  <meta name="msapplication-TileColor" content="#000000">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="msapplication-TileColor" content="#ed0009">
+  <meta name="theme-color" content="#ed0009">
   <meta name="description" content="{{ ogdesc }}">
   <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="Onani">
   <meta name="twitter:image:src" content="{{ ogimage }}" />
@@ -78,9 +78,7 @@
     {% if current_user.is_authenticated %}
     <div id="user-pfp-container">
       <div class="dropdown">
-        <img id="user-pfp"
-          src="{{ current_user.settings.avatar }}"
-          alt="{{ current_user.username }}">
+        <img id="user-pfp" src="{{ current_user.settings.avatar }}" alt="{{ current_user.username }}">
         <div class="dropdown-content">
           <a href="/users/{{ current_user.id }}">Profile</a>
           <a onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}">Logout</a>

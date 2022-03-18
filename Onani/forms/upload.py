@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-14 00:49:05
+# @Last Modified time: 2022-03-19 00:39:40
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileRequired
@@ -60,7 +60,7 @@ class UploadForm(FlaskForm):
     tags = StringField(
         "Tags",
         render_kw={
-            "placeholder": "Add the tags for this post (Split with spaces)",
+            "placeholder": "Add the tags for this post (Split with commas)",
             "id": "file-tags",
             "class": "uploader-textarea",
         },

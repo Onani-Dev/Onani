@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-18 22:08:18
+# @Last Modified time: 2022-03-19 00:03:30
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
@@ -15,7 +15,7 @@ from . import main
 @main.route("/users/")
 # @main.route("/users")
 @main.route("/users/<user_id>")
-@login_required
+# @login_required
 def users(user_id=None):
     if not user_id:
         page = request.args.get("p", "0")
@@ -43,7 +43,7 @@ def users(user_id=None):
     user_id = int(user_id)
 
     # Check If the user's id is the same as the logged in user
-    if user_id == current_user.id:
+    if not current_user.is_anonymous and user_id == current_user.id:
         # We can save a database query by using the currently logged in user object
         user = current_user
 

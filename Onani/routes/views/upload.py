@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-10 22:13:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-14 01:40:50
+# @Last Modified time: 2022-03-19 01:22:41
 from cgi import FieldStorage
 
 from flask import redirect, render_template, request
@@ -10,6 +10,7 @@ from flask_login import current_user, login_required
 from Onani.controllers import create_files
 from Onani.forms import UploadForm
 from Onani.models import File, Post, PostRating, Tag, User, UserSettings
+from PIL import UnidentifiedImageError
 
 from . import db, main
 
@@ -33,7 +34,10 @@ def upload():
         # Turn the files into bytes.
         datas = (f.stream.read() for f in files)
 
-        for t in set(form.tags.data.split(" ")):
+        # Delete duplicate tags and replace spaces with underscores + split the tags
+        tags = set(form.tags.data.replace(" ", "_").split(","))
+
+        for t in tags:
             if t:
                 # Check if the tag exists
                 tag = Tag.query.filter_by(name=t).first()
@@ -49,18 +53,21 @@ def upload():
                 tag.post_count += 1
 
         # save the files and add them to the post
-        create_files(post, datas)
+        try:
+            create_files(post, datas)
+        except UnidentifiedImageError as e:
+            form.files.errors.append("The image file could not be opened.")
+        else:
+            # increase the user's post count
+            current_user.post_count = len(current_user.posts.all())
 
-        # increase the user's post count
-        current_user.post_count += 1
+            # Add post to session
+            db.session.add(post)
 
-        # commit the data to the database
-        db.session.commit()
+            # commit the data to the database
+            db.session.commit()
 
-        # redirect to the post
-        return redirect(f"/post/{post.id}")
-
-    for error in form.errors:
-        print(error)
+            # redirect to the post
+            return redirect(f"/posts/{post.id}")
 
     return render_template("/upload.jinja2", form=form)

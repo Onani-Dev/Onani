@@ -16,24 +16,8 @@
   {% for user in users.items %}
     <div class="grid-item"><img src="{{ user.settings.avatar }}" class="pfp-list"><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}<h6>({{ user.role.name }} | {{ user.post_count }} posts)</h6></a></div>
   {% endfor %}
-  <div class="page-navigation">
-    {% if users.has_prev %}
-      <a class="fa-solid fa-chevron-left" href="/users/?p={{ users.prev_num }}"></a>
-    {% endif %}
-    {% for page in users.iter_pages() %}
-      {% if page %}
-        {% if page == users.page %}
-          <a href="/users/?p={{ page }}" style="text-decoration: underline;">{{ page }}</a>
-        {% else %}
-          <a href="/users/?p={{ page }}">{{ page }}</a>
-        {% endif %}
-      {% else %}
-        ...
-      {% endif %}
-    {% endfor %}
-    {% if users.has_next %}
-      <a class="fa-solid fa-chevron-right" href="/users/?p={{ users.next_num }}"></a>
-    {% endif %}
-  </div>
+  {% set pagination = users %}
+  {% set page_url = "/users/" %}
+  {% include "elements/pagination.jinja2" %}
 </div>
 {% endblock %}

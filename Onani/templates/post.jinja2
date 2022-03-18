@@ -1,0 +1,83 @@
+{% set title = "Post - " %}
+
+{% if post.description %}
+  {% set ogtitle = post.description  %}
+{% else %}
+  {% set ogtitle = "Post"  %}
+{% endif %}
+
+{% set ogdesc = "View on Onani." %}
+{% set ogimage = "{{ post.files[0].url }}" %}
+
+{% extends "base.jinja2" %}
+
+{% block meta %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ post.files[0].url }}">
+{% endblock %}
+
+{% block content %}
+<!-- Left pannel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+<style>
+table {
+  border-collapse: collapse;
+  padding: 50px 50px 50px 50px;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid var(--ui-colour);
+  text-align: left;
+  padding: 8px;
+}
+
+th {
+  font-weight: 700;
+}
+
+tr:nth-child(even) {
+  background-color: #1c0000;
+}
+
+.main-image {
+  width: 500px;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+</style>
+<div id="posts-container">
+  <a href="{{ post.files[0].url }}"><img class="main-image" src="{{ post.files[0].url }}" style="width:500px;height:auto"></a>
+  <table>
+    <tr>
+    	<th>Uploaded At</th>
+        <td>{{ post.uploaded_at }}</td>
+    </tr>
+    <tr>
+    	<th>Status</th>
+        <td>{{ post.status }}</td>
+    </tr>
+    <tr>
+    	<th>Rating</th>
+        <td>{{ post.rating }}</td>
+    </tr>
+    <tr>
+    	<th>Source</th>
+        <td><a href="{{ post.source }}" style="width:500px;height:auto">{{ post.source }}</a></td>
+    </tr>
+    <tr>
+    	<th>Description</th>
+        <td>{{ post.description }}</td>
+    </tr>
+    <tr>
+    	<th>Uploader</th>
+        <td><a href="{{ post.uploader }}">{{ post.uploader }}</a></td>
+    </tr>
+  </table>
+</div>
+
+{% endblock %}
