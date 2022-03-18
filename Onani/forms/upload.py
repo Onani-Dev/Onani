@@ -17,14 +17,14 @@ class UploadForm(FlaskForm):
         "Files",
         render_kw={
             "id": "file-upload",
-            "accept": "image/gif, image/jpeg, image/png",
+            "accept": "image/gif, image/jpeg, image/png, image/tiff, image/bmp, image/webp",
             "onchange": "displayImage(this)",
             "class": "uploader-input",
         },
         validators=[
             # FileRequired(),
             FileAllowed(
-                ["jpeg", "jpg", "gif", "png", "webp", "jfif"], "Image Files only."
+                ["jpeg", "jpg", "gif", "png", "webp", "jfif", "pjpeg", "pjp", "tiff", "webp"], "Image Files only."
             ),
         ],
     )
