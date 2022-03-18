@@ -114,19 +114,19 @@
       </div>
       <!-- Account settings -->
       <div id="settings-account-tab" class="settings-tab-content">
-        <form id="settings-account">
+        <form id="settings-account" action="/settings/account/" method="POST">
           <h2 style="padding: 15px;">Account settings</h2>
 
           <!-- User Info Settings -->
           <div class="settings-input-group">
             <div class="row">
               <div class="column">
-                <label for="settings-name">Change Username</label>
-                <label for="settings-email">Change Email</label>
+                {{ account_form.username.label }}
+                {{ account_form.email.label }}
               </div>
               <div class="column">
-                <input type="text" placeholder="{{ user.username }}" name="settings-name" id="profile-settings-name">
-                <input type="email" placeholder="{{ user.email }}" name="settings-email" id="profile-settings-email">
+                {{ account_form.username(placeholder=user.username) }}
+                {{ account_form.email(placeholder=user.email) }}
               </div>
             </div>
           </div>
@@ -135,22 +135,20 @@
           <div class="settings-input-group">
             <div class="row">
               <div class="column">
-                <label for="settings-current-password">Current password</label>
-                <label for="settings-password">New Password</label>
-                <label for="settings-password-confirm">Confirm password</label>
+                {{ account_form.current_password.label }}
+                {{ account_form.new_password.label }}
+                {{ account_form.confirm_new_password.label }}
               </div>
               <div class="column">
-                <input type="password" placeholder="Current Password" name="settings-current-password"
-                  id="profile-settings-current-password">
-                <input type="password" placeholder="New Password" name="settings-password" id="profile-settings-password">
-                <input type="password" placeholder="Confrim New Password" name="settings-password-confirm"
-                  id="profile-settings-password-confirm">
+                {{ account_form.current_password() }}
+                {{ account_form.new_password() }}
+                {{ account_form.confirm_new_password() }}
               </div>
             </div>
           </div>
           <!-- Save Button For account -->
           <div class="settings-input-group">
-            <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveAccountSettings()">
+            {{ account_form.submit() }}
           </div>
         </form>
       </div>

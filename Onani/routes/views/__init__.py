@@ -4,4 +4,4 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-03-12 03:16:05
 from .. import admin, db, main
-from . import _admin, eggs, index, upload, users
+from . import _admin, eggs, index, upload, users, news

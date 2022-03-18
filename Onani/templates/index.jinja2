@@ -1,7 +1,8 @@
 {% set title = "Posts - " %}
 {% set ogtitle = "Onani" %}
 {% set ogdesc = "See the latest posts on Onani." %}
-{% set ogimage = "../static/android-chrome-512x512.png" %}
+{% set ogimage = "/static/android-chrome-512x512.png" %}
+
 {% if request.args.get("tags") %}
   {% set search_box_value = request.args.get("tags") %}
 {% else %}

@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 18:00:40
+# @Last Modified time: 2022-03-18 22:08:18
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
+from Onani.forms import AccountSettingsForm
 from Onani.models import Tag, User, UserSettings
 
 from . import main
@@ -64,4 +65,5 @@ def users(user_id=None):
         tags=tags,
         posts=posts,
         UserSettings=UserSettings,
+        account_form=AccountSettingsForm(),
     )

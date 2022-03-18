@@ -1,7 +1,7 @@
 {% set title = "Register - " %}
 {% set ogtitle = "Register" %}
 {% set ogdesc = "Get on Onani, not like there's any better site anyway." %}
-{% set ogimage = "../static/android-chrome-512x512.png" %}
+{% set ogimage = "/static/android-chrome-512x512.png" %}
 {% extends "base.jinja2" %}
 
 {% block content %}
@@ -18,16 +18,15 @@
   <!-- Form -->
   <form action="/register/" method="POST">
     {{ form.csrf_token }}
-    {{ form.username(placeholder="Username", autocapitalize="off") }}
-    {{ form.email(placeholder="Email (Optional)", autocapitalize="off") }}
-    {{ form.password(placeholder="Password", autocomplete="off") }}
-    {{ form.confirm(placeholder="Confirm Password", autocomplete="off") }}
-    <input id="submit" type="submit" value="Register">
+    {{ form.username() }}
+    {{ form.email() }}
+    {{ form.password() }}
+    {{ form.confirm() }}
+    {{ form.submit() }}
   </form>
   <script>
     const password = document.getElementById("password"),
-      confirmPassword = document.getElementById("confirm-password"),
-      flashMessages = document.getElementsByClassName("flash-message");
+      confirmPassword = document.getElementById("confirm-password");
     function validatePassword() {
       if (password.value != confirmPassword.value) {
         confirmPassword.setCustomValidity("Password doesn't match!");
@@ -37,9 +36,6 @@
     }
     password.onchange = validatePassword;
     confirmPassword.onkeyup = validatePassword;
-    for (var i = 0; i < flashMessages.length; i++) {
-      twemoji.parse(flashMessages[i]);
-    }
   </script>
 </div>
 {% endblock %}
