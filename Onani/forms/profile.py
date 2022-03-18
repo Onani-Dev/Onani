@@ -52,7 +52,7 @@ class AccountSettingsForm(FlaskForm):
     confirm_new_password = PasswordField(
         "Confirm Password",
         render_kw={
-            "placeholder": "Confrim New Password",
+            "placeholder": "Confirm New Password",
             "id": "profile-settings-password-confirm",
             "autocapitalize": "off",
         },
