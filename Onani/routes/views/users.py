@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 03:44:43
+# @Last Modified time: 2022-03-20 03:52:46
 
 import html
 
@@ -59,7 +59,8 @@ def users(user_id=None):
     # tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
     account_form = AccountSettingsForm()
     profile_form = AccountProfileForm()
-    profile_form.biography.data = html.unescape(user.settings.biography)
+    if user.settings.biography:
+        profile_form.biography.data = html.unescape(user.settings.biography)
 
     # Render the user page
     return render_template(
