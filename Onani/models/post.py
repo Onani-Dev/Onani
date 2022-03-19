@@ -128,7 +128,7 @@ class Post(db.Model):
     # the post's description
     description = db.Column(db.String)
 
-    # The post's file(s). has information on filesizes etc
+    # The post's file(s). has information on file sizes etc
     files = db.relationship("File", backref="post_files", lazy="joined")
 
     # The post's notes. those little thingys on the image over the japanese text :)
