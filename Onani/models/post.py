@@ -2,11 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-14 00:17:53
+# @Last Modified time: 2022-03-20 01:19:03
 
 import datetime
 import enum
+import html
 
+from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from . import db
@@ -154,6 +156,14 @@ class Post(db.Model):
     comments = db.relationship(
         "PostComment", secondary=post_comments, backref="post_comments", lazy="dynamic"
     )
+
+    @validates("description")
+    def validate_description(self, key, description):
+        return html.escape(description)
+
+    @validates("source")
+    def validate_source(self, key, source):
+        return html.escape(source)
 
     @property
     def score(self) -> int:

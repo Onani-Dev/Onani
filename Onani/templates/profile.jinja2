@@ -86,7 +86,8 @@
           {% endfor %}
         </div>
         {% set pagination = posts %}
-        {% set page_url = "/users/{user_id}?t=posts".format(user_id=user.id) %}
+        {% set extra_params = "&t=posts"%}
+        {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
         {% include "elements/pagination.jinja2" %}
       {% endif %}
     </div>
@@ -102,6 +103,7 @@
         <!-- Account settings -->
         <div id="settings-account-tab" class="settings-tab-content">
           <form id="settings-account" action="/settings/account/" method="POST">
+            {{ account_form.csrf_token }}
             <h2 style="padding: 15px;">Account settings</h2>
 
             <!-- User Info Settings -->
@@ -144,18 +146,20 @@
 
         <!-- Profile settings -->
         <div id="settings-profile-tab" class="settings-tab-content">
-          <form id="settings-profile">
+          <form id="settings-profile" action="/settings/profile/" method="POST">
+            {{ profile_form.csrf_token }}
             <h2 style="padding: 15px;">Profile settings</h2>
 
             <!-- Profile Picture Settings -->
             <div class="settings-input-group">
               <div class="row">
                 <div class="column">
-                  <label for="settings-profile-picture">Profile Picture</label>
+                  {{ profile_form.profile_picture.label }}
                 </div>
                 <div class="column">
                   <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture"
                     accept="image/png, image/jpeg">
+                  {{ profile_form.profile_picture() }}
                   <!-- Croppie container -->
                   <div id="upload-image"></div>
                 </div>
@@ -166,16 +170,16 @@
             <div class="settings-input-group">
               <div class="row">
                 <div class="column">
-                  <label for="settings-bio">Bio</label>
+                  {{ profile_form.biography.label}}
                 </div>
                 <div class="column">
-                  <textarea name="settings-bio" id="profile-settings-bio" cols="30" rows="10">{% if user.settings.biography %}{{ user.settings.biography }}{% else %}{% endif %}</textarea>
+                  {{ profile_form.biography()}}
                 </div>
               </div>
             </div>
             <!-- Save Button For profile -->
             <div class="settings-input-group">
-              <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveProfileSettings()">
+              {{ profile_form.submit() }}
             </div>
           </form>
         </div>
@@ -282,6 +286,7 @@
   <script src="/static/javascript/edit-profile.min.js"></script>
 </div>
 <script>
+  let converter = new showdown.Converter();
   const customEmotes = /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g,
     emojiTable = {
       don: "/static/svg/don.svg",
@@ -296,5 +301,6 @@
   bioText.innerHTML = bioText.innerHTML.replace(customEmotes, (current) => {
     return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji' draggable='false' alt='${current}'></img>`
   });
+  bioText.innerHTML = converter.makeHtml(bioText.innerHTML);
 </script>
 {% endblock %}

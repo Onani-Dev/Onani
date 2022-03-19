@@ -2,10 +2,10 @@
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-18 22:12:09
+# @Last Modified time: 2022-03-20 02:52:55
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, SubmitField
-from wtforms.validators import DataRequired, Length, Optional, Email, EqualTo
+from wtforms import HiddenField, PasswordField, StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
 
 class AccountSettingsForm(FlaskForm):
@@ -34,7 +34,7 @@ class AccountSettingsForm(FlaskForm):
             "id": "profile-settings-current-password",
             "autocapitalize": "off",
         },
-        validators=[Optional(), DataRequired()],
+        validators=[Optional()],
     )
     new_password = PasswordField(
         "New Password",
@@ -45,7 +45,6 @@ class AccountSettingsForm(FlaskForm):
         },
         validators=[
             Optional(),
-            DataRequired(),
             EqualTo("confirm", message="Passwords must match"),
         ],
     )
@@ -56,8 +55,33 @@ class AccountSettingsForm(FlaskForm):
             "id": "profile-settings-password-confirm",
             "autocapitalize": "off",
         },
-        validators=[Optional(), DataRequired()],
+        validators=[Optional()],
     )
+    submit = SubmitField(
+        "Submit",
+        render_kw={
+            "value": "Save Changes",
+            "id": "submit",
+            "class": "profile-settings-submit",
+        },
+    )
+
+
+class AccountProfileForm(FlaskForm):
+    profile_picture = HiddenField(
+        "Profile Picture",
+        validators=[Optional()],
+        render_kw={
+            "id": "hidden-base64-profile-picture",
+        },
+    )
+
+    biography = TextAreaField(
+        "Biography",
+        validators=[Optional()],
+        render_kw={"id": "profile-settings-bio", "cols": "30", "rows": "10"},
+    )
+
     submit = SubmitField(
         "Submit",
         render_kw={

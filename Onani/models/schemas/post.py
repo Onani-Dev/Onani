@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 18:45:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 20:06:14
+# @Last Modified time: 2022-03-20 00:37:14
 from marshmallow import fields
 from Onani.models.post import Post
 
@@ -10,7 +10,7 @@ from . import ma
 
 
 class PostSchema(ma.SQLAlchemyAutoSchema):
-    file = ma.Nested("FileSchema")
+    files = ma.Nested("FileSchema", many=True)
 
     class Meta:
         model = Post

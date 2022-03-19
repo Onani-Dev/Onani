@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 21:13:32
+# @Last Modified time: 2022-03-20 00:57:10
 
 from flask import abort, render_template, request
 from flask_login import current_user
@@ -36,6 +36,7 @@ def get_posts(post_id=None):
             .filter(Tag.name.in_(tags))
             .group_by(Post)
             .having(func.count(distinct(Tag.id)) == len(tags))
+            .order_by(Post.id.desc())
             .paginate(per_page=35, page=page, error_out=False)
         )
     else:

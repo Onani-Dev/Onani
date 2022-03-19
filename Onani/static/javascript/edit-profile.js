@@ -2,33 +2,11 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-19 14:57:26
+ * @Last Modified time: 2022-03-20 03:32:16
  */
 "use strict";
 
-const curPassword = document.getElementById(
-    "profile-settings-current-password"
-  ),
-  deviantartProfile = document.getElementById("settings-deviantart"),
-  discordProfile = document.getElementById("settings-discord"),
-  editEmail = document.getElementById("profile-settings-email"),
-  editUsername = document.getElementById("profile-settings-name"),
-  formAccountSettings = document.getElementById("settings-account"),
-  formPlatformSettings = document.getElementById("settings-platforms"),
-  formProfileSettings = document.getElementById("settings-profile"),
-  formSiteSettings = document.getElementById("settings-site"),
-  githubProfile = document.getElementById("settings-github"),
-  newConfirmPass = document.getElementById("profile-settings-password-confirm"),
-  newPassword = document.getElementById("profile-settings-password"),
-  patreonProfile = document.getElementById("settings-patreon"),
-  pixivProfile = document.getElementById("settings-pixiv"),
-  profilePicSelect = document.getElementById(
-    "profile-settings-profile-picture"
-  ),
-  settingsBio = document.getElementById("profile-settings-bio"),
-  twitterProfile = document.getElementById("settings-twitter"),
-  tagBlacklist = document.getElementById("profile-settings-blacklist"),
-  customCss = document.getElementById("profile-settings-custom-css");
+const hiddenPfpField = document.getElementById("hidden-base64-profile-picture");
 
 let $uploadCrop;
 
@@ -52,32 +30,6 @@ $uploadCrop = $("#upload-image").croppie({
     type: "square",
   },
 });
-
-function SaveAccountSettings() {
-  fetch("/api/profile/edit", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      type: "account",
-      username: editUsername.value,
-      email: editEmail.value,
-      current_password: curPassword.value,
-      new_password: newPassword.value,
-      confirm_password: newConfirmPass.value,
-    }),
-  }).then((response) => {
-    response.json().then((json) => {
-      if (json.ok) {
-        formAccountSettings.reset();
-        location.reload();
-      } else {
-        alert(json.error);
-      }
-    });
-  });
-}
 
 function SaveProfileSettings() {
   let base64Img;
@@ -190,6 +142,22 @@ function SaveSiteSettings() {
 
 $("#profile-settings-profile-picture").on("change", function () {
   readFile(this);
+});
+
+$("#settings-profile").submit(function () {
+  let base64Img;
+  $uploadCrop
+    .croppie("result", {
+      type: "canvas",
+      size: "viewport",
+    })
+    .then(function (resp) {
+      base64Img = resp;
+      if (base64Img.length == 6) {
+        base64Img = null;
+      }
+      hiddenPfpField.value = base64Img;
+    });
 });
 
 // const twitterRegex = /\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g,

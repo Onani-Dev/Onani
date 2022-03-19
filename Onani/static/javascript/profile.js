@@ -2,15 +2,15 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-19 14:57:09
+ * @Last Modified time: 2022-03-20 00:49:05
  */
 "use strict";
 const tabcontent = document.getElementsByClassName("profile-tab-content"),
   tablinks = document.getElementsByClassName("profile-tab-link"),
   settingsTabContent = document.getElementsByClassName("settings-tab-content"),
-  settingsTabLinks = document.getElementsByClassName("settings-tab-link");
-// const pageURL = new URL(window.location.href);
-const windowParams = new URLSearchParams(window.location.search);
+  settingsTabLinks = document.getElementsByClassName("settings-tab-link"),
+  pageURL = new URL(window.location.href),
+  windowParams = new URLSearchParams(window.location.search);
 
 if (
   windowParams.get("t") != "" &&

@@ -2,18 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 15:29:30
+# @Last Modified time: 2022-03-20 03:44:43
+
+import html
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
-from Onani.forms import AccountSettingsForm
-from Onani.models import Tag, User, UserSettings
+from Onani.forms import AccountProfileForm, AccountSettingsForm
+from Onani.models import Post, Tag, User, UserSettings
 
 from . import main
 
 
 @main.route("/users/")
-# @main.route("/users")
 @main.route("/users/<user_id>")
 # @login_required
 def users(user_id=None):
@@ -26,12 +27,9 @@ def users(user_id=None):
             per_page=10, page=page, error_out=False
         )
 
-        tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
-
         return render_template(
             "/users.jinja2",
             users=users,
-            tags=tags,
         )
 
     # Check if it is a valid number
@@ -53,10 +51,15 @@ def users(user_id=None):
 
     page = request.args.get("p", "0")
     page = int(page) if page.isdigit() else 0
-    posts = user.posts.paginate(per_page=20, page=page, error_out=False)
+    posts = user.posts.order_by(Post.id.desc()).paginate(
+        per_page=20, page=page, error_out=False
+    )
 
     # # Get the tags sorted by the post count
     # tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
+    account_form = AccountSettingsForm()
+    profile_form = AccountProfileForm()
+    profile_form.biography.data = html.unescape(user.settings.biography)
 
     # Render the user page
     return render_template(
@@ -64,5 +67,6 @@ def users(user_id=None):
         user=user,
         posts=posts,
         UserSettings=UserSettings,
-        account_form=AccountSettingsForm(),
+        account_form=account_form,
+        profile_form=profile_form,
     )
