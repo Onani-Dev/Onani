@@ -7,7 +7,7 @@
 import html
 
 from flask import abort, render_template, request
-from flask_login import current_user, login_required
+from flask_login import current_user
 from Onani.forms import AccountProfileForm, AccountSettingsForm
 from Onani.models import Post, Tag, User, UserSettings
 
