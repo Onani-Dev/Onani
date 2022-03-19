@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-14 01:37:21
+ * @Last Modified time: 2022-03-19 14:27:35
 */
 
 
@@ -734,8 +734,10 @@ div.post-thumbnail-container:hover {
 }
 
 div.post-thumbnail-container a {
-  user-select: none;
+  display: flex;
+  justify-content: center;
   text-decoration: none;
+  user-select: none;
 }
 
 /* Post Thumbnail */
@@ -744,7 +746,7 @@ img.post-thumbnail {
   display: flex;
   margin: auto;
   max-height: 150px;
-  max-width: 140px;
+  max-width: 150px;
   user-select: none;
 }
 
@@ -842,15 +844,18 @@ select#rating {
   width: 120px;
 }
 
+/* Pagination */
 .page-navigation {
   align-content: center;
   align-items: center;
   display: flex;
   justify-content: center;
+  margin-top: 15px;
   outline: 1px solid var(--ui-colour);
   padding: 5px;
 }
 
+/* Pagination link */
 .page-navigation a {
   padding: 1px 5px 1px 5px;
   font-size: large;
@@ -875,6 +880,39 @@ select#rating {
 .grid-item a {
   align-self: center;
   padding-left: 10px;
+}
+
+/* Dirt's table thing */
+table {
+  border-collapse: collapse;
+  padding: 50px 50px 50px 50px;
+  width: 100%;
+}
+
+td,
+th {
+  border: 1px solid var(--ui-colour);
+  text-align: left;
+  padding: 8px;
+}
+
+th {
+  font-weight: 700;
+}
+
+tr:nth-child(even) {
+  background-color: #1c0000;
+}
+
+/* Main post Image */
+.main-image {
+  width: 500px;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 50px;
+  padding-bottom: 50px;
 }
 
 /* FONTS */

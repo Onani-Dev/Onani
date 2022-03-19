@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 00:03:30
+# @Last Modified time: 2022-03-19 15:29:30
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
@@ -55,14 +55,13 @@ def users(user_id=None):
     page = int(page) if page.isdigit() else 0
     posts = user.posts.paginate(per_page=20, page=page, error_out=False)
 
-    # Get the tags sorted by the post count
-    tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
+    # # Get the tags sorted by the post count
+    # tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
 
     # Render the user page
     return render_template(
         "/profile.jinja2",
         user=user,
-        tags=tags,
         posts=posts,
         UserSettings=UserSettings,
         account_form=AccountSettingsForm(),

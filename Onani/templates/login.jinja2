@@ -5,13 +5,6 @@
 {% extends "base.jinja2" %}
 
 {% block content %}
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    {% for message in messages %}
-    <div class="flash-message">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
 <!-- Login box -->
 <div class="login-box">
   <h1 class="login-bloody-header">Login</h1>
@@ -23,4 +16,6 @@
     {{ form.submit() }}
   </form>
 </div>
+{% include "elements/form_errors.jinja2" %}
+{% include "elements/flashed_messages.jinja2" %}
 {% endblock %}

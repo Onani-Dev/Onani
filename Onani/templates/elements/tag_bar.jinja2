@@ -1,7 +1,11 @@
 <div id="left-pannel">
   <h2>Tags</h2>
-  {% for tag in tags %}
-  <li><a href="/posts/?tags={{ tag.name }}"
-      class="tag-list-item {{ tag.type.name.lower() }}">{{ tag.name[:15] }}{{'...' if tag.name|length > 15 else ''}} {{ tag.post_count }}</a></li>
-  {% endfor %}
+  <div id="tag-container">
+    {# {% for tag in tags %}
+      <li>
+        <a href="/posts/?tags={{ tag.name }}" class="tag-list-item {{ tag.type.name.lower() }}">{{ tag.name[:15] }}{{'...' if tag.name|length > 15 else ''}} {{ tag.post_count }}</a>
+      </li>
+    {% endfor %} #}
+  </div>
+  <script src="/static/javascript/tags.min.js"></script>
 </div>

@@ -10,27 +10,14 @@
 {% include "elements/tag_bar.jinja2" %}
 
 <div id="outlined-container" class="grid-container">
-    {% for news in news.items %}
-    <div class="grid-item"><img src="/static/android-chrome-512x512.png" class="pfp-list"><a href="/news/{{ news.id }}">{{ news.title }}<h6>{{ news.content[:15] }}{{'...' if news.content|length > 15 else ''}}</h6></a></div>
+  {% for news in news.items %}
+    <div class="grid-item">
+      <img src="/static/android-chrome-512x512.png" class="pfp-list">
+      <a href="/news/{{ news.id }}">{{ news.title }}<h6>{{ news.content[:15] }}{{'...' if news.content|length > 15 else ''}}</h6></a>
+    </div>
   {% endfor %}
-  <div class="page-navigation">
-    {% if news.has_prev %}
-      <a class="fa-solid fa-chevron-left" href="/news/?p={{ news.prev_num }}"></a>
-    {% endif %}
-    {% for page in news.iter_pages() %}
-      {% if page %}
-        {% if page == news.page %}
-          <a href="/news/?p={{ page }}" style="text-decoration: underline;">{{ page }}</a>
-        {% else %}
-          <a href="/news/?p={{ page }}">{{ page }}</a>
-        {% endif %}
-      {% else %}
-        ...
-      {% endif %}
-    {% endfor %}
-    {% if news.has_next %}
-      <a class="fa-solid fa-chevron-right" href="/news/?p={{ news.next_num }}"></a>
-    {% endif %}
-  </div>
+  {% set pagination = news %}
+  {% set page_url = "/news/" %}
+  {% include "elements/pagination.jinja2" %}
 </div>
 {% endblock %}

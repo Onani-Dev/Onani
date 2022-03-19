@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-18 23:54:12
+# @Last Modified time: 2022-03-19 15:29:28
 
 from flask import abort, render_template, request
 from flask_login import current_user
@@ -39,11 +39,10 @@ def get_posts(post_id=None):
         )
 
     # Get the tags sorted by the post count
-    tags = Tag.query.order_by(Tag.post_count.desc(), Tag.type.desc()).limit(25).all()
+    # tags = Tag.query.order_by(Tag.post_count.desc(), Tag.type.desc()).limit(25).all()
 
     # render the index template
     return render_template(
         "/posts.jinja2",
-        tags=tags,
         posts=posts,
     )

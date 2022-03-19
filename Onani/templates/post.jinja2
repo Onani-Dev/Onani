@@ -19,37 +19,7 @@
 {% block content %}
 <!-- Left pannel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
-<style>
-table {
-  border-collapse: collapse;
-  padding: 50px 50px 50px 50px;
-  width: 100%;
-}
 
-td, th {
-  border: 1px solid var(--ui-colour);
-  text-align: left;
-  padding: 8px;
-}
-
-th {
-  font-weight: 700;
-}
-
-tr:nth-child(even) {
-  background-color: #1c0000;
-}
-
-.main-image {
-  width: 500px;
-  height: auto;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 50px;
-  padding-bottom: 50px;
-}
-</style>
 <div id="posts-container">
   <a href="{{ post.files[0].url }}"><img class="main-image" src="{{ post.files[0].url }}" style="width:500px;height:auto"></a>
   <table>

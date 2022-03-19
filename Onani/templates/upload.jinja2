@@ -44,9 +44,6 @@
     <script src="/static/javascript/uploader.min.js"></script>
   </form>
 </div>
-{% for field, errors in form.errors.items() %}
-<script>
-  alert("{{ form[field].name }}: {{ ', '.join(errors) }}");
-</script>
-{% endfor %}
+{% include "elements/form_errors.jinja2" %}
+{% include "elements/flashed_messages.jinja2" %}
 {% endblock %}

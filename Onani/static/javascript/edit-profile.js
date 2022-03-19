@@ -2,11 +2,13 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-12 16:06:50
+ * @Last Modified time: 2022-03-19 14:57:26
  */
-'use strict';
+"use strict";
 
-const curPassword = document.getElementById("profile-settings-current-password"),
+const curPassword = document.getElementById(
+    "profile-settings-current-password"
+  ),
   deviantartProfile = document.getElementById("settings-deviantart"),
   discordProfile = document.getElementById("settings-discord"),
   editEmail = document.getElementById("profile-settings-email"),
@@ -20,7 +22,9 @@ const curPassword = document.getElementById("profile-settings-current-password")
   newPassword = document.getElementById("profile-settings-password"),
   patreonProfile = document.getElementById("settings-patreon"),
   pixivProfile = document.getElementById("settings-pixiv"),
-  profilePicSelect = document.getElementById("profile-settings-profile-picture"),
+  profilePicSelect = document.getElementById(
+    "profile-settings-profile-picture"
+  ),
   settingsBio = document.getElementById("profile-settings-bio"),
   twitterProfile = document.getElementById("settings-twitter"),
   tagBlacklist = document.getElementById("profile-settings-blacklist"),
@@ -32,20 +36,20 @@ function readFile(input) {
   if (input.files && input.files[0]) {
     let reader = new FileReader();
     reader.onload = function (e) {
-      $('#upload-image').addClass('ready');
-      $uploadCrop.croppie('bind', {
-        url: e.target.result
+      $("#upload-image").addClass("ready");
+      $uploadCrop.croppie("bind", {
+        url: e.target.result,
       });
-    }
+    };
     reader.readAsDataURL(input.files[0]);
   }
 }
 
-$uploadCrop = $('#upload-image').croppie({
+$uploadCrop = $("#upload-image").croppie({
   viewport: {
     width: 220,
     height: 220,
-    type: "square"
+    type: "square",
   },
 });
 
@@ -53,7 +57,7 @@ function SaveAccountSettings() {
   fetch("/api/profile/edit", {
     method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       type: "account",
@@ -62,9 +66,9 @@ function SaveAccountSettings() {
       current_password: curPassword.value,
       new_password: newPassword.value,
       confirm_password: newConfirmPass.value,
-    })
-  }).then(response => {
-    response.json().then(json => {
+    }),
+  }).then((response) => {
+    response.json().then((json) => {
       if (json.ok) {
         formAccountSettings.reset();
         location.reload();
@@ -78,40 +82,49 @@ function SaveAccountSettings() {
 function SaveProfileSettings() {
   let base64Img;
 
-  $uploadCrop.croppie('result', {
-    type: 'canvas',
-    size: 'viewport'
-  }).then(function (resp) {
-    base64Img = resp;
-    if (base64Img.length == 6) {
-      base64Img = null;
-    }
-    fetch("/api/profile/edit", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        type: "profile",
-        bio: settingsBio.value,
-        avatar: base64Img
-      })
-    }).then(response => {
-      response.json().then(json => {
-        if (json.ok) {
-          formProfileSettings.reset();
-          location.reload();
-        } else {
-          alert(json.error);
-        }
+  $uploadCrop
+    .croppie("result", {
+      type: "canvas",
+      size: "viewport",
+    })
+    .then(function (resp) {
+      base64Img = resp;
+      if (base64Img.length == 6) {
+        base64Img = null;
+      }
+      fetch("/api/profile/edit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "profile",
+          bio: settingsBio.value,
+          avatar: base64Img,
+        }),
+      }).then((response) => {
+        response.json().then((json) => {
+          if (json.ok) {
+            formProfileSettings.reset();
+            location.reload();
+          } else {
+            alert(json.error);
+          }
+        });
       });
     });
-  });
 }
 
 function SavePlatformSettings() {
   let success = true;
-  let elements = [deviantartProfile, discordProfile, githubProfile, patreonProfile, pixivProfile, twitterProfile];
+  let elements = [
+    deviantartProfile,
+    discordProfile,
+    githubProfile,
+    patreonProfile,
+    pixivProfile,
+    twitterProfile,
+  ];
 
   for (let el in elements) {
     el = elements[el];
@@ -126,7 +139,7 @@ function SavePlatformSettings() {
     fetch("/api/profile/edit", {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         platforms: {
@@ -137,10 +150,10 @@ function SavePlatformSettings() {
           patreon: patreonProfile.value,
           pixiv: pixivProfile.value,
           twitter: twitterProfile.value,
-        }
-      })
-    }).then(response => {
-      response.json().then(json => {
+        },
+      }),
+    }).then((response) => {
+      response.json().then((json) => {
         if (json.ok) {
           formPlatformSettings.reset();
           location.reload();
@@ -156,15 +169,15 @@ function SaveSiteSettings() {
   fetch("/api/profile/edit", {
     method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       type: "site",
       custom_css: customCss.value,
-      tag_blacklist: tagBlacklist.value.split("\n")
-    })
-  }).then(response => {
-    response.json().then(json => {
+      tag_blacklist: tagBlacklist.value.split("\n"),
+    }),
+  }).then((response) => {
+    response.json().then((json) => {
       if (json.ok) {
         formSiteSettings.reset();
         location.reload();
@@ -175,7 +188,9 @@ function SaveSiteSettings() {
   });
 }
 
-$('#profile-settings-profile-picture').on('change', function () { readFile(this); });
+$("#profile-settings-profile-picture").on("change", function () {
+  readFile(this);
+});
 
 // const twitterRegex = /\b((http[s]?:\/\/)?twitter\.com\/[A-z0-9!'#S%&'()*+,\-\./:;<=>?@[/\]^_{|}~]{1,})\b/g,
 //   pixivRegex = /\b((http[s]?:\/\/)?(www\.)?pixiv\.net\/[A-z]{1,}\/users\/[\d]{1,})\b/g,

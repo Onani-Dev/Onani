@@ -5,13 +5,7 @@
 {% extends "base.jinja2" %}
 
 {% block content %}
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    {% for message in messages %}
-      <div class="flash-message">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+
 <!-- Register box -->
 <div class="login-box">
   <h1 class="login-bloody-header">Register</h1>
@@ -38,4 +32,6 @@
     confirmPassword.onkeyup = validatePassword;
   </script>
 </div>
+{% include "elements/form_errors.jinja2" %}
+{% include "elements/flashed_messages.jinja2" %}
 {% endblock %}

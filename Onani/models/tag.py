@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 15:34:59
+# @Last Modified time: 2022-03-19 15:07:11
 
 import enum
 
@@ -26,6 +26,9 @@ class TagType(enum.Enum):
 
     def __int__(self):
         return self.value
+
+    def __str__(self):
+        return self.name.lower()
 
     @classmethod
     def get_all(self):

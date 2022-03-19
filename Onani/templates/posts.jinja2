@@ -25,25 +25,9 @@
         </div>
       {% endfor %}
     </div>
-    <div class="page-navigation" style="margin-top: 15px;">
-      {% if posts.has_prev %}
-        <a class="fa-solid fa-chevron-left" href="/posts/?p={{ posts.prev_num }}"></a>
-      {% endif %}
-      {% for page in posts.iter_pages() %}
-        {% if page %}
-          {% if page == posts.page %}
-            <a href="/posts/?p={{ page }}" style="text-decoration: underline;">{{ page }}</a>
-          {% else %}
-            <a href="/posts/?p={{ page }}">{{ page }}</a>
-          {% endif %}
-        {% else %}
-          ...
-        {% endif %}
-      {% endfor %}
-      {% if posts.has_next %}
-        <a class="fa-solid fa-chevron-right" href="/posts?p={{ posts.next_num }}"></a>
-      {% endif %}
-    </div>
+    {% set pagination = posts %}
+    {% set page_url = "/posts/" %}
+    {% include "elements/pagination.jinja2" %}
   {% endif %}
 
 </div>
