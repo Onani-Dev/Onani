@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-15 23:00:50
+# @Last Modified time: 2022-03-19 16:16:33
 from datetime import datetime, timedelta
 
 import humanize
@@ -76,14 +76,18 @@ def register():
     if current_user.is_authenticated:
         return redirect(f"/users/{current_user.id}")
 
-    #
     if request.method == "POST" and form.validate():
-        user = User(username=form.username.data)
+        user = User()
+        try:
+            user.username = form.username.data
+        except ValueError as e:
+            flash(str(e))
+            return redirect(url_for("main.register"))
         if form.email.data:
             try:
                 user.email = form.email.data
             except ValueError as e:
-                flash("Invalid Email.")
+                flash(str(e))
                 return redirect(url_for("main.register"))
         user.set_password(form.password.data)
         user.save_to_db()

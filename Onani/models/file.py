@@ -2,8 +2,10 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-17 14:42:39
+# @Last Modified time: 2022-03-19 16:47:46
 import os
+
+from sqlalchemy.orm import validates
 
 from . import db
 
@@ -22,6 +24,14 @@ class File(db.Model):
     width = db.Column(db.Integer)
     height = db.Column(db.Integer)
     filesize = db.Column(db.Integer)
+
+    @validates("hash")
+    def validate_hash(self, key, hash):
+        if hash:
+            if File.query.filter(File.hash == hash).first():
+                raise ValueError("File already exists.")
+            return hash
+        return None
 
     def delete(self):
         """Delete this file from the database and the disk.

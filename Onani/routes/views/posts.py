@@ -2,11 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 15:29:28
+# @Last Modified time: 2022-03-19 21:13:32
 
 from flask import abort, render_template, request
 from flask_login import current_user
 from Onani.models import Post, PostSchema, Tag
+from sqlalchemy import func, distinct
 
 from . import main
 
@@ -30,16 +31,17 @@ def get_posts(post_id=None):
 
     # if there is tags get the posts by them
     if tags:
-        posts = Post.query.filter(
-            Post.tags.any(Tag.posts.any(Tag.name.in_(tags)))
-        ).paginate(per_page=36, page=page, error_out=False)
+        posts = (
+            Post.query.join(Post.tags)
+            .filter(Tag.name.in_(tags))
+            .group_by(Post)
+            .having(func.count(distinct(Tag.id)) == len(tags))
+            .paginate(per_page=35, page=page, error_out=False)
+        )
     else:
         posts = Post.query.order_by(Post.id.desc()).paginate(
-            per_page=36, page=page, error_out=False
+            per_page=35, page=page, error_out=False
         )
-
-    # Get the tags sorted by the post count
-    # tags = Tag.query.order_by(Tag.post_count.desc(), Tag.type.desc()).limit(25).all()
 
     # render the index template
     return render_template(

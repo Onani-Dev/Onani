@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 23:17:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-18 21:35:10
+# @Last Modified time: 2022-03-19 16:24:47
 
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, SubmitField
@@ -16,7 +16,7 @@ class RegistrationForm(FlaskForm):
             "placeholder": "Username",
             "autocapitalize": "off",
         },
-        validators=[Length(min=4, max=32)],
+        validators=[DataRequired(), Length(min=4, max=32)],
     )
     email = StringField(
         "Email",

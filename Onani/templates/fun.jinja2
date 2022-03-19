@@ -10,11 +10,17 @@
   <meta property="og:description" content="セガ・エンタープライゼス" />
   <meta property="og:image" content="/static/image/sonic_fun.png" />
   <meta name="theme-color" content="#000080">
+  <script>
+    function unmuteAudio(){
+      var audio = document.getElementById("infinite-fun");
+      audio.muted = false;
+    }
+  </script>
 </head>
 
-<body onbeforeunload="while(true){window.alert(0);} return false;" class="sonic">
+<body onload="unmuteAudio();" onbeforeunload="while(true){window.alert(0);} return false;" class="sonic">
   <iframe src="/static/audio/s.mp3" allow="autoplay" id="audio" style="display:none"></iframe>
-  <audio autoplay loop>
+  <audio id="infinite-fun" autoplay muted loop>
     <source src="/static/audio/funisinfinite.mp3" type="audio/mp3">
   </audio>
   <div class="center sonic">

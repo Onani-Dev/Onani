@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-19 14:27:35
+ * @Last Modified time: 2022-03-19 16:35:28
 */
 
 
@@ -906,7 +906,7 @@ tr:nth-child(even) {
 
 /* Main post Image */
 .main-image {
-  width: 500px;
+  max-width: 500px;
   height: auto;
   display: block;
   margin-left: auto;

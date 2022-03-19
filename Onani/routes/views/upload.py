@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-10 22:13:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 01:22:41
+# @Last Modified time: 2022-03-19 16:48:24
 from cgi import FieldStorage
 
 from flask import redirect, render_template, request
@@ -11,6 +11,7 @@ from Onani.controllers import create_files
 from Onani.forms import UploadForm
 from Onani.models import File, Post, PostRating, Tag, User, UserSettings
 from PIL import UnidentifiedImageError
+from psycopg2.errors import UniqueViolation
 
 from . import db, main
 
@@ -56,7 +57,9 @@ def upload():
         try:
             create_files(post, datas)
         except UnidentifiedImageError as e:
-            form.files.errors.append("The image file could not be opened.")
+            form.files.errors.append("Image file could not be opened.")
+        except ValueError as e:
+            form.files.errors.append(str(e))
         else:
             # increase the user's post count
             current_user.post_count = len(current_user.posts.all())
