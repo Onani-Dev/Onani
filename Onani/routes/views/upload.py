@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-10 22:13:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 16:48:24
+# @Last Modified time: 2022-03-20 23:11:38
 from cgi import FieldStorage
 
 from flask import redirect, render_template, request
@@ -26,7 +26,7 @@ def upload():
 
         post.source = form.source.data
         post.description = form.description.data
-        post.uploader = current_user.id
+        post.uploader = current_user
         post.rating = form.rating.data
 
         # Get the files

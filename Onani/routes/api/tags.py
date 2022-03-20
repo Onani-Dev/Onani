@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 00:55:57
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-18 23:53:52
+# @Last Modified time: 2022-03-20 21:37:05
 from flask import abort, request
 from flask_login import login_required
 from Onani.models import Tag, TagSchema
@@ -43,7 +43,9 @@ def get_tags():
 
     return make_api_response(
         {
-            "data": TagSchema(many=True, exclude=("posts",)).dump(tags.items),
+            "data": TagSchema(many=True, exclude=("posts",)).dump(
+                sorted(tags.items, key=lambda t: (t.type.name, t.name))
+            ),
             "next_page": tags.next_num,
             "prev_page": tags.prev_num,
             "total": tags.total,

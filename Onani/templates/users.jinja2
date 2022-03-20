@@ -14,7 +14,7 @@
 
 <div id="outlined-container" class="grid-container">
   {% for user in users.items %}
-    <div class="grid-item"><img src="{{ user.settings.avatar }}" class="pfp-list"><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}<h6>({{ user.role.name }} | {{ user.post_count }} posts)</h6></a></div>
+    <div class="grid-item"><img src="{{ user.get_avatar(size=50) }}" class="pfp-list"><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}<h6>({{ user.role.name }} | {{ user.post_count }} posts)</h6></a></div>
   {% endfor %}
   {% set pagination = users %}
   {% set page_url = "/users/" %}

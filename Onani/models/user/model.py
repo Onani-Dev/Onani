@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-15 23:20:15
+# @Last Modified time: 2022-03-20 23:13:39
 
 import datetime
 import html
@@ -37,7 +37,7 @@ class User(UserMixin, db.Model):
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if not self.settings:
-            self.settings = UserSettings(avatar="/static/image/default.png")
+            self.settings = UserSettings()
 
     # Users ID, obviously unique as it is the primary key
     id = db.Column(db.Integer, primary_key=True)
@@ -194,5 +194,20 @@ class User(UserMixin, db.Model):
             active = False
         return active
 
+    def get_avatar(self, size: int = None) -> str:
+        """Return the avatar for this user.
+
+        Args:
+            size (int, optional): The size to resize the avatar to. Does not work if the user has no avatar. Defaults to None.
+
+        Returns:
+            str: The avatar url
+        """
+        if not self.settings.avatar:
+            return "/static/image/default.png"
+        if size:
+            return f"/thumbnail/{size}x{size}{self.settings.avatar}"
+        return self.settings.avatar
+
     def __repr__(self):
-        return f"<User {self.__dict__}>"
+        return f"<User {self.username}>"

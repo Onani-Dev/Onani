@@ -2,9 +2,10 @@
 # @Author: kapsikkum
 # @Date:   2022-03-20 01:04:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 03:02:06
+# @Last Modified time: 2022-03-20 23:53:04
 from flask import redirect, render_template, request
 from flask_login import current_user
+from Onani.controllers import create_avatar
 from Onani.forms import AccountProfileForm, AccountSettingsForm
 from Onani.models import Ban, Post, Tag
 
@@ -39,7 +40,7 @@ def settings_profile():
             current_user.settings.biography = form.biography.data
 
         if form.profile_picture.data:
-            print(form.profile_picture.data)
+            create_avatar(current_user, form.profile_picture.data)
 
         db.session.commit()
 

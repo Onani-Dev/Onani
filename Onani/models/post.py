@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 01:19:03
+# @Last Modified time: 2022-03-20 23:10:57
 
 import datetime
 import enum
@@ -57,7 +57,7 @@ class PostRating(enum.Enum):
 
     @classmethod
     def coerce(self, item):
-        return self(int(item)) if not isinstance(item, self) else item
+        return item if isinstance(item, self) else self(int(item))
 
     def __int__(self):
         return self.value
@@ -88,7 +88,7 @@ class PostStatus(enum.Enum):
 
     @classmethod
     def coerce(self, item):
-        return self(int(item)) if not isinstance(item, self) else item
+        return item if isinstance(item, self) else self(int(item))
 
     def __int__(self):
         return self.value
@@ -137,7 +137,9 @@ class Post(db.Model):
     notes = db.relationship("Note", backref="post_notes", lazy="joined")
 
     # The post's uploader. is a user.
-    uploader = db.Column(db.Integer, db.ForeignKey("users.id"))
+    uploader_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+    uploader = db.relationship("User", backref="uploads", lazy="joined", uselist=False)
 
     # The post's tags. will be a list of tags that can be appended to.
     tags = db.relationship("Tag", secondary=post_tags, backref="posts", lazy="joined")
