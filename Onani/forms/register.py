@@ -2,11 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 23:17:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 16:24:47
+# @Last Modified time: 2022-03-20 19:37:53
 
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import PasswordField, StringField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo, Optional, Email
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
 
 class RegistrationForm(FlaskForm):
@@ -46,6 +46,9 @@ class RegistrationForm(FlaskForm):
         },
         validators=[DataRequired(), Length(min=4, max=32)],
     )
+
+    recaptcha = RecaptchaField()
+
     submit = SubmitField(
         "Submit",
         render_kw={

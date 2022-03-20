@@ -2,9 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 00:39:40
+# @Last Modified time: 2022-03-20 19:38:53
 
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm, RecaptchaField
 from flask_wtf.file import FileAllowed, FileRequired
 from Onani.models import PostRating
 from wtforms import MultipleFileField, SelectField, StringField, SubmitField
@@ -24,7 +24,19 @@ class UploadForm(FlaskForm):
         validators=[
             # FileRequired(),
             FileAllowed(
-                ["jpeg", "jpg", "gif", "png", "webp", "jfif", "pjpeg", "pjp", "tiff", "webp"], "Image Files only."
+                [
+                    "jpeg",
+                    "jpg",
+                    "gif",
+                    "png",
+                    "webp",
+                    "jfif",
+                    "pjpeg",
+                    "pjp",
+                    "tiff",
+                    "webp",
+                ],
+                "Image Files only.",
             ),
         ],
     )
@@ -67,6 +79,8 @@ class UploadForm(FlaskForm):
         validators=[Optional()],
         widget=TextArea(),
     )
+
+    recaptcha = RecaptchaField()
 
     submit = SubmitField(
         "Submit",

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 18:12:50
+# @Last Modified time: 2022-03-20 19:43:15
 import os
 
 # Flask Config
@@ -20,7 +20,14 @@ SQLALCHEMY_DATABASE_URI = (
 )
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-
 if os.environ.get("FLASK_SQLALCHEMY_ECHO"):
     print("SQLALCHEMY_ECHO enabled.")
     SQLALCHEMY_ECHO = True
+
+
+# Recaptcha
+RECAPTCHA_PUBLIC_KEY = os.environ["RECAPTCHA_PUBLIC_KEY"]
+RECAPTCHA_PRIVATE_KEY = os.environ["RECAPTCHA_PRIVATE_KEY"]
+RECAPTCHA_DATA_ATTRS = {"theme": "dark"}
+
+print(RECAPTCHA_PUBLIC_KEY)

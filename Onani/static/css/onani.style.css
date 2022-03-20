@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-19 16:35:28
+ * @Last Modified time: 2022-03-20 20:09:51
 */
 
 
@@ -363,6 +363,14 @@ img.emoji {
   width: 1em;
   margin: 0 .05em 0 .1em;
   vertical-align: -0.1em;
+}
+
+/* Register form container */
+div.login-box form {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
 }
 
 /* Login/register button group */

@@ -2,9 +2,8 @@
  * @Author: kapsikkum
  * @Date:   2022-03-19 14:50:20
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-19 15:52:22
+ * @Last Modified time: 2022-03-20 21:00:54
  */
-("use strict");
 const tagContainer = document.getElementById("tag-container");
 
 fetch("/api/tags?sort=post_count&order=desc").then((response) => {

@@ -2,9 +2,8 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-20 00:49:05
+ * @Last Modified time: 2022-03-20 19:46:11
  */
-"use strict";
 const tabcontent = document.getElementsByClassName("profile-tab-content"),
   tablinks = document.getElementsByClassName("profile-tab-link"),
   settingsTabContent = document.getElementsByClassName("settings-tab-content"),

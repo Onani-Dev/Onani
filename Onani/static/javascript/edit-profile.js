@@ -2,10 +2,8 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 00:47:49
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-20 03:32:16
+ * @Last Modified time: 2022-03-20 19:46:02
  */
-"use strict";
-
 const hiddenPfpField = document.getElementById("hidden-base64-profile-picture");
 
 let $uploadCrop;
