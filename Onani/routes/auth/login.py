@@ -2,8 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 16:16:33
-from datetime import datetime, timedelta
+# @Last Modified time: 2022-03-21 21:17:50
+from datetime import datetime, timedelta, timezone
 
 import humanize
 from dateutil import tz
@@ -48,8 +48,9 @@ def login():
                 if user.ban:
                     # The user is banned. They cannot login.
                     flash(
-                        f"This account has been banned.\nReason: {user.ban.reason}\nExpires: {humanize.naturaltime(datetime.utcnow().replace(tzinfo=tz.tzutc()) - user.ban.expires.astimezone(tz.tzlocal()))} ({user.ban.expires.strftime('%d/%m/%Y %H:%M:%S')} UTC)"
+                        f"This account has been banned.\nReason: {user.ban.reason}\nExpires: {humanize.naturaltime(datetime.now(timezone.utc) - user.ban.expires)} ({user.ban.expires.strftime('%d/%m/%Y %H:%M:%S')} UTC)"
                     )
+
                     return redirect(url_for("main.login"))
 
                 if user.is_deleted:

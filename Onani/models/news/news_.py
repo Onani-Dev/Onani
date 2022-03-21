@@ -2,13 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:33:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 01:56:42
+# @Last Modified time: 2022-03-22 00:18:10
 import datetime
 import html
 
 from sqlalchemy.orm import validates
 
-from . import db
+from .. import db
 
 
 class NewsPost(db.Model):
@@ -20,7 +20,9 @@ class NewsPost(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     author = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+    )
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.UnicodeText, nullable=False)
 

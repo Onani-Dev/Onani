@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 23:13:39
+# @Last Modified time: 2022-03-22 00:11:54
 
 import datetime
 import html
@@ -11,13 +11,12 @@ import uuid
 
 import regex as re
 from flask_login import UserMixin
-from Onani.models.ban import Ban
 from passlib.hash import argon2
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType
 
-from . import db
-from .role import UserRoles
+from . import Ban, db
+from .roles import UserRoles
 from .settings import UserSettings
 
 tag_blacklist = db.Table(
@@ -52,7 +51,9 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String, nullable=False)
 
     # The time this user was created. it doesn't need to be touched.
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+    )
 
     # The User's role. this affects what the user can do.
     role = db.Column(

@@ -12,10 +12,23 @@
 {% include "elements/right_bar.jinja2" %}
 
 
-<div id="outlined-container" class="grid-container">
-  {% for user in users.items %}
-    <div class="grid-item"><img src="{{ user.get_avatar(size=50) }}" class="pfp-list"><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}<h6>({{ user.role.name }} | {{ user.post_count }} posts)</h6></a></div>
-  {% endfor %}
+<div id="outlined-container">
+  <table>
+    <tr>
+      <th class="profile-picture-cell"></th>
+      <th>Username</th>
+      <th>Role</th>
+      <th>Posts</th>
+    </tr>
+    {% for user in users.items %}
+        <tr>
+          <td class="profile-picture-cell"><a href="/users/{{ user.id }}" alt="{{ user.username }}"><img src="{{ user.get_avatar(size=50) }}"></a></td>
+          <td><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}</a></td>
+          <td>{{ user.role.name }}</td>
+          <td>{{ user.post_count }} post{% if user.post_count == 1 %}{% else %}s{% endif %}</td>
+        </tr>
+    {% endfor %}
+  </table>
   {% set pagination = users %}
   {% set page_url = "/users/" %}
   {% include "elements/pagination.jinja2" %}

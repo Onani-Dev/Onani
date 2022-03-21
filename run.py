@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 00:55:45
+# @Last Modified time: 2022-03-21 21:09:57
 import random
 import string
 from datetime import datetime, timedelta
@@ -13,23 +13,16 @@ from Onani import db, init_app
 from Onani.controllers import create_user
 from Onani.models import Ban, Tag, User, NewsPost, TagType, UserRoles
 
+from datetime import timezone
+
 app = init_app()
 
 
 def random_user() -> User:
-    pfps = [
-        "/static/image/armagan.gif",
-        "/static/image/default.png",
-        "/static/image/dirt.gif",
-        "/static/image/looking.png",
-        "/static/image/sonic_fun.png",
-    ]
-    user = create_user(
+    return create_user(
         username="".join([random.choice(string.ascii_letters) for _ in range(8)]),
         password="Onani1",
     )
-    user.settings.avatar = random.choice(pfps)
-    return user
 
 
 def random_tag() -> Tag:
@@ -94,8 +87,9 @@ def seed_db():
         user.ban = Ban(
             user=user.id,
             reason="Cockhead",
-            expires=datetime.utcnow() + timedelta(days=50),
+            expires=datetime.now(timezone.utc) + timedelta(days=50),
         )
+
         m.extend([user, tag1, tag2])
 
     m.extend(random_news(author=User.query.first()) for _ in range(10))

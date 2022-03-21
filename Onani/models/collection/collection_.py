@@ -2,36 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 13:33:08
+# @Last Modified time: 2022-03-21 23:20:04
 import datetime
 import enum
 
 from sqlalchemy_utils import ChoiceType
 
-from . import db
+from . import CollectionStatus, db
 
 collection_posts = db.Table(
     "collection_posts",
     db.Column("collection_id", db.Integer, db.ForeignKey("collections.id")),
     db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
 )
-
-
-class CollectionStatus(enum.Enum):
-    """
-    Status for collections
-    """
-
-    BANNED = 0
-    PENDING = 1
-    ACCEPTED = 2
-
-    def __int__(self):
-        return self.value
-
-    @classmethod
-    def get_all(self):
-        return {e.name: e for e in self}
 
 
 class Collection(db.Model):
@@ -57,7 +40,9 @@ class Collection(db.Model):
         default=CollectionStatus.PENDING,
         nullable=False,
     )
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+    )
     creator = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     def __repr__(self):

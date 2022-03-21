@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:20:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-06 20:18:03
+# @Last Modified time: 2022-03-21 23:34:34
 from . import db
 
 
@@ -26,4 +26,4 @@ class Note(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<Note {0!r}>".format(self.__dict__)
+        return f"<Note {self.__dict__}>"

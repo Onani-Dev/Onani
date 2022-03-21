@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-10 22:13:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 23:11:38
+# @Last Modified time: 2022-03-21 18:23:01
 from cgi import FieldStorage
 
 from flask import redirect, render_template, request
@@ -36,7 +36,10 @@ def upload():
         datas = (f.stream.read() for f in files)
 
         # Delete duplicate tags and replace spaces with underscores + split the tags
-        tags = set(form.tags.data.replace(" ", "_").split(","))
+        tags = {
+            (t.lower().strip().replace(" ", "_") if t else None)
+            for t in form.tags.data.split(",")
+        }
 
         for t in tags:
             if t:

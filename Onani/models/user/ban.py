@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-17 02:37:00
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-12 02:22:13
+# @Last Modified time: 2022-03-21 23:04:50
 
 import datetime
 
@@ -18,13 +18,13 @@ class Ban(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.Integer, db.ForeignKey("users.id"))
-    since = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    since = db.Column(db.DateTime, default=lambda: datetime.now(datetime.timezone.utc))
     expires = db.Column(db.DateTime, nullable=False)
     reason = db.Column(db.UnicodeText)
 
     @property
     def has_expired(self):
-        return datetime.datetime.utcnow() >= self.expires
+        return datetime.datetime.now(datetime.timezone.utc) >= self.expires
 
     def save_to_db(self):
         db.session.add(self)

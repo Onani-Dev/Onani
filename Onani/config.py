@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 19:43:15
+# @Last Modified time: 2022-03-22 00:16:09
 import os
 
 # Flask Config
@@ -29,5 +29,3 @@ if os.environ.get("FLASK_SQLALCHEMY_ECHO"):
 RECAPTCHA_PUBLIC_KEY = os.environ["RECAPTCHA_PUBLIC_KEY"]
 RECAPTCHA_PRIVATE_KEY = os.environ["RECAPTCHA_PRIVATE_KEY"]
 RECAPTCHA_DATA_ATTRS = {"theme": "dark"}
-
-print(RECAPTCHA_PUBLIC_KEY)

@@ -2,37 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 15:07:11
+# @Last Modified time: 2022-03-22 00:03:57
 
 import enum
 
 from sqlalchemy_utils import ChoiceType
 
-from . import db
-
-
-class TagType(enum.Enum):
-    """
-    Types for Tag Objects
-    Can be: ARTIST, CHARACTER, COPYRIGHT, GENERAL, META
-    """
-
-    BANNED = 0
-    GENERAL = 1
-    ARTIST = 2
-    CHARACTER = 3
-    COPYRIGHT = 4
-    META = 5
-
-    def __int__(self):
-        return self.value
-
-    def __str__(self):
-        return self.name.lower()
-
-    @classmethod
-    def get_all(self):
-        return {e.name: e for e in self}
+from . import TagType, db
 
 
 class Tag(db.Model):

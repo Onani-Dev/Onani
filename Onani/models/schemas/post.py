@@ -2,9 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 18:45:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 00:37:14
+# @Last Modified time: 2022-03-21 23:31:38
 from marshmallow import fields
-from Onani.models.post import Post
+from Onani.models import Post
 
 from . import ma
 

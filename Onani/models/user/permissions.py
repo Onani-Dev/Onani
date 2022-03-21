@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 15:16:39
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-16 20:23:58
+# @Last Modified time: 2022-03-21 23:25:37
 from enum import Flag, auto
 from functools import reduce
 from operator import or_ as _or_
@@ -26,7 +26,7 @@ class UserPermissions(Flag):
     def all(cls):
         cls_name = cls.__name__
         if not len(cls):
-            raise AttributeError("empty %s does not have an ALL value" % cls_name)
+            raise AttributeError(f"Empty {cls_name} does not have an ALL value")
         value = cls(reduce(_or_, cls))
         cls._member_map_["ALL"] = value
         return value

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-19 16:47:46
+# @Last Modified time: 2022-03-21 23:35:44
 import os
 
 from sqlalchemy.orm import validates

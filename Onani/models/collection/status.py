@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
-# @Date:   2022-03-13 00:37:46
+# @Date:   2022-03-21 23:10:46
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 00:55:06
+# @Last Modified time: 2022-03-21 23:11:34
 import enum
 
 
-class UserRoles(enum.Enum):
+class CollectionStatus(enum.Enum):
     """
-    role for User models.
+    Status for collections
     """
 
-    MEMBER = 1
-    ARTIST = 2
-    PREMIUM = 3
-    HELPER = 4
-    MODERATOR = 5
-    ADMIN = 6
-    OWNER = 666
+    BANNED = 0
+    PENDING = 1
+    ACCEPTED = 2
 
     def __int__(self):
         return self.value

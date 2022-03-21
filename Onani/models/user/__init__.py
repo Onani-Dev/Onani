@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-13 00:38:28
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-17 00:07:16
+# @Last Modified time: 2022-03-22 00:13:11
 from .. import db
-from .role import UserRoles
-from .settings import UserSettings
+from .ban import Ban
 from .permissions import UserPermissions
+from .roles import UserRoles
+from .settings import UserSettings
 
-from .model import User
+from .user_ import User

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 23:10:57
+# @Last Modified time: 2022-03-21 23:09:31
 
 import datetime
 import enum
@@ -11,7 +11,7 @@ import html
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
-from . import db
+from . import PostRating, PostStatus, db
 
 post_upvotes = db.Table(
     "post_upvotes",
@@ -38,65 +38,6 @@ post_comments = db.Table(
 )
 
 
-class PostRating(enum.Enum):
-    """
-    Ratings for Post objects
-    """
-
-    QUESTIONABLE = 1
-    SAFE = 2
-    EXPLICIT = 3
-
-    @classmethod
-    def get_all(self):
-        return {e.name: e for e in self}
-
-    @classmethod
-    def choices(self):
-        return [(choice, choice.name) for choice in self]
-
-    @classmethod
-    def coerce(self, item):
-        return item if isinstance(item, self) else self(int(item))
-
-    def __int__(self):
-        return self.value
-
-    def __str__(self):
-        return str(self.value)
-
-
-class PostStatus(enum.Enum):
-    """
-    Status for Post objects
-    """
-
-    DELETED = 0
-    ACTIVE = 1
-
-    @classmethod
-    def get_all(self):
-        return {e.name: e for e in self}
-
-    @classmethod
-    def get_all(self):
-        return {e.name: e for e in self}
-
-    @classmethod
-    def choices(self):
-        return [(choice, choice.name) for choice in self]
-
-    @classmethod
-    def coerce(self, item):
-        return item if isinstance(item, self) else self(int(item))
-
-    def __int__(self):
-        return self.value
-
-    def __str__(self):
-        return str(self.value)
-
-
 class Post(db.Model):
     """
     Post object model
@@ -108,7 +49,9 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # The time the post was created.
-    uploaded_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    uploaded_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+    )
 
     # The status of the post. if it is deleted for any reason it will become PostStatus.DELETED
     status = db.Column(
@@ -139,7 +82,9 @@ class Post(db.Model):
     # The post's uploader. is a user.
     uploader_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-    uploader = db.relationship("User", backref="uploads", lazy="joined", uselist=False)
+    uploader = db.relationship(
+        "User", backref="uploads", lazy="joined", uselist=False, viewonly=True
+    )
 
     # The post's tags. will be a list of tags that can be appended to.
     tags = db.relationship("Tag", secondary=post_tags, backref="posts", lazy="joined")

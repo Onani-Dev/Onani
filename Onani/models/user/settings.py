@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-13 00:59:27
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 01:00:16
+# @Last Modified time: 2022-03-21 21:33:05
 import html
 
 import regex as re
@@ -18,13 +18,13 @@ class UserSettings(db.Model):
 
     __tablename__ = "settings"
     CONNECTION_REGEX = {
-        "deviantart": r"\bhttps:\/\/www\.deviantart\.com\/[.\S]{1,}\b",
-        "discord": r"\b[.\S]{1,32}#[\d]{4,}\b",
-        "github": r"\bhttps:\/\/github\.com\/[.\S]{1,}\b",
-        "patreon": r"\bhttps:\/\/www\.patreon\.com\/[.\S]{1,}(?:\/)?(?:posts)?\b",
-        "paypal": r"\bhttps:\/\/(paypal\.me|www\.paypal\.com\/paypalme)\/[.\S]{1,}\b",
-        "pixiv": r"\bhttps:\/\/www\.pixiv\.net(?:\/[.\S]{2,4})?\/users\/[\d\S]{1,}\b",
-        "twitter": r"\bhttps:\/\/twitter\.com\/[.\S]{1,}\b",
+        "deviantart": r"^https:\/\/www\.deviantart\.com\/[.\S]{1,}",
+        "discord": r"^[.\S]{1,32}#[\d]{4}",
+        "github": r"^https:\/\/github\.com\/[.\S]{1,}",
+        "patreon": r"^https:\/\/www\.patreon\.com\/[.\S]{1,}(?:\/)?(?:posts)?",
+        "paypal": r"^https:\/\/(paypal\.me|www\.paypal\.com\/paypalme)\/[.\S]{1,}",
+        "pixiv": r"^https:\/\/www\.pixiv\.net(?:\/[.\S]{2,4})?\/users\/[\d\S]{1,}",
+        "twitter": r"(?:^https:\/\/twitter\.com\/[\w]{1,15}|^@(\w){1,15})",
     }
 
     id = db.Column(db.Integer, primary_key=True)
@@ -57,8 +57,8 @@ class UserSettings(db.Model):
 
     @validates("biography")
     def validate_biography(self, key, biography):
-        if len(biography) > 1024:
-            raise ValueError("Biography is too large. (Max 1024)")
+        if len(biography) > 5120:
+            raise ValueError("Biography is too large. (Max 5120)")
         return html.escape(biography)
 
     @validates("connections")
