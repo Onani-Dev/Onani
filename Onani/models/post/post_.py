@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 23:09:31
+# @Last Modified time: 2022-03-22 03:16:02
 
 import datetime
 import enum
@@ -50,7 +50,7 @@ class Post(db.Model):
 
     # The time the post was created.
     uploaded_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+        db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
 
     # The status of the post. if it is deleted for any reason it will become PostStatus.DELETED
@@ -82,9 +82,7 @@ class Post(db.Model):
     # The post's uploader. is a user.
     uploader_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-    uploader = db.relationship(
-        "User", backref="uploads", lazy="joined", uselist=False, viewonly=True
-    )
+    uploader = db.relationship("User", backref="uploads", lazy="joined", uselist=False)
 
     # The post's tags. will be a list of tags that can be appended to.
     tags = db.relationship("Tag", secondary=post_tags, backref="posts", lazy="joined")

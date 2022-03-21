@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 23:20:04
+# @Last Modified time: 2022-03-22 03:12:22
 import datetime
 import enum
 
@@ -41,7 +41,7 @@ class Collection(db.Model):
         nullable=False,
     )
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+        db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
     creator = db.Column(db.Integer, db.ForeignKey("users.id"))
 

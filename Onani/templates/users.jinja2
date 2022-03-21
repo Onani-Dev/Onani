@@ -27,7 +27,7 @@
           <td><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}</a></td>
           <td>{{ user.role.name }}</td>
           <td><a href="/users/{{ user.id }}?t=posts">{{ user.post_count }} post{% if user.post_count == 1 %}{% else %}s{% endif %}</a></td>
-          <td>{{ user.created_at }}</td>
+          <td>{{ user.created_at.strftime('%d/%m/%Y %H:%M:%S') }} UTC</td>
         </tr>
     {% endfor %}
   </table>

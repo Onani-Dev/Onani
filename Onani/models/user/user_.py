@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:45:20
+# @Last Modified time: 2022-03-22 03:16:25
 
 import datetime
 import html
@@ -52,7 +52,7 @@ class User(UserMixin, db.Model):
 
     # The time this user was created. it doesn't need to be touched.
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+        db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
 
     # The User's role. this affects what the user can do.
@@ -88,7 +88,7 @@ class User(UserMixin, db.Model):
     comments = db.relationship("PostComment", backref="user_comments", lazy="dynamic")
 
     # The users uploaded posts.
-    posts = db.relationship("Post", backref="user_posts", lazy="dynamic")
+    posts = db.relationship("Post", backref="user_posts", lazy="dynamic", viewonly=True)
 
     # Amount of posts this user has uploaded.
     post_count = db.Column(db.Integer, default=0, nullable=False)

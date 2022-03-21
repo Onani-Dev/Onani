@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:33:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:18:10
+# @Last Modified time: 2022-03-22 03:12:21
 import datetime
 import html
 
@@ -21,7 +21,7 @@ class NewsPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     author = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(datetime.timezone.utc)
+        db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.UnicodeText, nullable=False)
