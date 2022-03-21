@@ -25,7 +25,7 @@ class UserPermissions(Flag):
     @classmethod
     def all(cls):
         cls_name = cls.__name__
-        if not len(cls):
+        if not cls:
             raise AttributeError(f"Empty {cls_name} does not have an ALL value")
         value = cls(reduce(_or_, cls))
         cls._member_map_["ALL"] = value
