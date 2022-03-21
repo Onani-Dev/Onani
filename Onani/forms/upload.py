@@ -22,7 +22,6 @@ class UploadForm(FlaskForm):
             "class": "uploader-input",
         },
         validators=[
-            # FileRequired(),
             FileAllowed(
                 [
                     "jpeg",
