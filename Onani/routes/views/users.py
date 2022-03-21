@@ -55,8 +55,6 @@ def users(user_id=None):
         per_page=20, page=page, error_out=False
     )
 
-    # # Get the tags sorted by the post count
-    # tags = Tag.query.order_by(Tag.post_count.desc()).limit(25)
     account_form = AccountSettingsForm()
     profile_form = AccountProfileForm()
     if user.settings.biography:

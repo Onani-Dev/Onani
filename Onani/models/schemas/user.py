@@ -18,7 +18,6 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 
     ban = ma.Nested("BanSchema")
     settings = ma.Nested("SettingsSchema")
-    # tag_blacklist = ma.Nested("TagSchema", many=True)
 
     class Meta:
         model = User
