@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-13 00:59:27
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 21:33:05
+# @Last Modified time: 2022-03-22 02:57:08
 import html
 
 import regex as re
@@ -67,6 +67,8 @@ class UserSettings(db.Model):
             if len(connections[c]) > 64:
                 raise ValueError(f"{c} connection is too long. (Max 64)")
             if regex := self.CONNECTION_REGEX.get(c):
+                if not connections[c]:
+                    continue
                 if not re.match(regex, connections[c]):
                     raise ValueError(
                         f"{c} connection did not match the required regex."

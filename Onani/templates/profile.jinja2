@@ -186,61 +186,33 @@
 
         <div id="settings-platforms-tab" class="settings-tab-content">
           <!-- Platform settings -->
-          <form id="settings-platforms">
+          <form id="settings-platforms" action="/settings/platforms/" method="POST">
+            {{ platform_form.csrf_token }}
             <h2 style="padding: 15px;">Platform settings</h2>
 
             <div class="settings-input-group">
               <div class="row">
                 <div class="column">
-                  <label for="settings-twitter">Twitter</label>
-                  <label for="settings-pixiv">Pixiv</label>
-                  <label for="settings-patreon">Patreon</label>
-                  <label for="settings-deviantart">DeviantArt</label>
-                  <label for="settings-discord">Discord</label>
-                  <label for="settings-github" style="display: none;">GitHub</label>
+                  {{ platform_form.twitter.label }}
+                  {{ platform_form.pixiv.label }}
+                  {{ platform_form.patreon.label }}
+                  {{ platform_form.deviantart.label }}
+                  {{ platform_form.discord.label }}
+                  {{ platform_form.github.label }}
                 </div>
                 <div class="column">
-                  <input type="text" name="Twitter profile" id="settings-twitter"
-                    value="{{ user.settings.connections.get('twitter', ' ') }}"
-                    placeholder="Twitter Profile Link"
-                    pattern="{{ UserSettings.CONNECTION_REGEX['twitter'] }}"
-                    onkeyup="this.reportValidity();">
-
-                  <input type="text" name="Pixiv profile" id="settings-pixiv"
-                    value="{{ user.settings.connections.get('pixiv', ' ') }}"
-                    placeholder="Pixiv Profile Link"
-                    pattern="{{ UserSettings.CONNECTION_REGEX['pixiv'] }}"
-                    onkeyup="this.reportValidity();">
-
-                  <input type="text" name="Patreon Profile" id="settings-patreon"
-                    value="{{ user.settings.connections.get('patreon', ' ') }}"
-                    placeholder="Patreon Profile Link"
-                    pattern="{{ UserSettings.CONNECTION_REGEX['patreon'] }}"
-                    onkeyup="this.reportValidity();">
-
-                  <input type="text" name="DeviantArt Profile" id="settings-deviantart"
-                    value="{{ user.settings.connections.get('deviantart', ' ') }}"
-                    placeholder="DeviantArt Profile Link"
-                    pattern="{{ UserSettings.CONNECTION_REGEX['deviantart'] }}"
-                    onkeyup="this.reportValidity();">
-
-                  <input type="text" name="Discord Username#Discriminator" id="settings-discord"
-                    value="{{ user.settings.connections.get('discord', ' ') }}"
-                    placeholder="Discord Username#Discriminator" 
-                    pattern="{{ UserSettings.CONNECTION_REGEX['discord'] }}"
-                    onkeyup="this.reportValidity();">
-
-                  <input type="text" name="Github Profile" id="settings-github"
-                    value="{{ user.settings.connections.get('github', ' ') }}"
-                    pattern="{{ UserSettings.CONNECTION_REGEX['github'] }}"
-                    placeholder="Github Profile Link"
-                    onkeyup="this.reportValidity();">
+                  {{ platform_form.twitter() }}
+                  {{ platform_form.pixiv() }}
+                  {{ platform_form.patreon() }}
+                  {{ platform_form.deviantart() }}
+                  {{ platform_form.discord() }}
+                  {{ platform_form.github() }}
                 </div>
               </div>
             </div>
             <!-- Save Button For Platforms -->
             <div class="settings-input-group">
-              <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SavePlatformSettings()">
+              {{ platform_form.submit() }}
             </div>
           </form>
         </div>

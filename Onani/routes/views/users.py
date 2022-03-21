@@ -2,14 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 03:52:46
+# @Last Modified time: 2022-03-22 02:47:04
 
 import html
 
 from flask import abort, render_template, request
 from flask_login import current_user
-from Onani.forms import AccountProfileForm, AccountSettingsForm
-from Onani.models import Post, Tag, User, UserSettings
+from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
+from Onani.models import Post, User
 
 from . import main
 
@@ -57,15 +57,36 @@ def users(user_id=None):
 
     account_form = AccountSettingsForm()
     profile_form = AccountProfileForm()
-    if user.settings.biography:
-        profile_form.biography.data = html.unescape(user.settings.biography)
+    platform_form = AccountPlatformForm()
+
+    if not current_user.is_anonymous and user_id == current_user.id:
+        if user.settings.biography:
+            profile_form.biography.data = html.unescape(user.settings.biography)
+
+        if user.settings.connections.get("twitter"):
+            platform_form.twitter.data = user.settings.connections.get("twitter")
+
+        if user.settings.connections.get("pixiv"):
+            platform_form.pixiv.data = user.settings.connections.get("pixiv")
+
+        if user.settings.connections.get("patreon"):
+            platform_form.patreon.data = user.settings.connections.get("patreon")
+
+        if user.settings.connections.get("deviantart"):
+            platform_form.deviantart.data = user.settings.connections.get("deviantart")
+
+        if user.settings.connections.get("discord"):
+            platform_form.discord.data = user.settings.connections.get("discord")
+
+        if user.settings.connections.get("github"):
+            platform_form.github.data = user.settings.connections.get("github")
 
     # Render the user page
     return render_template(
         "/profile.jinja2",
         user=user,
         posts=posts,
-        UserSettings=UserSettings,
         account_form=account_form,
+        platform_form=platform_form,
         profile_form=profile_form,
     )

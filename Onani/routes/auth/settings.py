@@ -2,11 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-20 01:04:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 23:53:04
+# @Last Modified time: 2022-03-22 02:53:32
 from flask import redirect, render_template, request
 from flask_login import current_user
 from Onani.controllers import create_avatar
-from Onani.forms import AccountProfileForm, AccountSettingsForm
+from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
 from Onani.models import Ban, Post, Tag
 
 from . import db, main
@@ -41,6 +41,24 @@ def settings_profile():
 
         if form.profile_picture.data:
             create_avatar(current_user, form.profile_picture.data)
+
+        db.session.commit()
+
+    return redirect(f"/users/{current_user.id}?t=settings")
+
+
+@main.route("/settings/platforms/", methods=["POST"])
+def settings_platforms():
+    form = AccountPlatformForm()
+    if form.validate():
+        current_user.settings.connections = {
+            "twitter": form.twitter.data,
+            "pixiv": form.pixiv.data,
+            "patreon": form.patreon.data,
+            "deviantart": form.deviantart.data,
+            "discord": form.discord.data,
+            "github": form.github.data,
+        }
 
         db.session.commit()
 
