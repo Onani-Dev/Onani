@@ -14,7 +14,7 @@ from .. import admin_api, csrf, db, main_api
 
 
 def make_api_response(
-    data: dict = dict(), error: str = None, code: int = 200
+    data: dict = {}, error: str = None, code: int = 200
 ) -> Tuple[Response, int]:
     ok = code not in range(400, 600)
     data["ok"] = ok
