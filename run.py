@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 21:09:57
+# @Last Modified time: 2022-03-22 01:52:51
 import random
 import string
 from datetime import datetime, timedelta
@@ -136,7 +136,3 @@ def add_user(username, email, password, perms):
         role=UserRoles(int(perms)),
     )
     print("User added to database")
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
