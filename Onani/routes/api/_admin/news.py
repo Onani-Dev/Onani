@@ -27,5 +27,5 @@ def create_article():
         )
         article.save_to_db()
         return make_api_response()
-    elif request.method == "DELETE":
+    if request.method == "DELETE":
         return make_api_response(error="Not implemented yet.", code=501) # why does this not work properly when i add code=501 part?
