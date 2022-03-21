@@ -26,9 +26,6 @@ def get_file_data(file_data: bytes, path: str = "/images/"):
     # Get filesize
     filesize = sys.getsizeof(file_data)
 
-    # Delete file_data to save memory
-    del file_data
-
     # Get MD5 hash
     hash_md5 = hashlib.md5(image_file.getbuffer()).hexdigest()
 
