@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 23:35:44
+# @Last Modified time: 2022-03-22 00:47:50
 import os
 
 from sqlalchemy.orm import validates
@@ -26,11 +26,11 @@ class File(db.Model):
     filesize = db.Column(db.Integer)
 
     @validates("hash")
-    def validate_hash(self, key, hash):
-        if hash:
-            if File.query.filter(File.hash == hash).first():
+    def validate_hash(self, key, hash_):
+        if hash_:
+            if File.query.filter(File.hash == hash_).first():
                 raise ValueError("File already exists.")
-            return hash
+            return hash_
         return None
 
     def delete(self):

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-21 23:07:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 23:29:25
+# @Last Modified time: 2022-03-22 00:46:56
 from enum import Enum, auto
 
 
@@ -16,16 +16,16 @@ class PostRating(Enum):
     EXPLICIT = auto()
 
     @classmethod
-    def get_all(self):
-        return {e.name: e for e in self}
+    def get_all(cls):
+        return {e.name: e for e in cls}
 
     @classmethod
-    def choices(self):
-        return [(choice, choice.name) for choice in self]
+    def choices(cls):
+        return [(choice, choice.name) for choice in cls]
 
     @classmethod
-    def coerce(self, item):
-        return item if isinstance(item, self) else self(int(item))
+    def coerce(cls, item):
+        return item if isinstance(item, cls) else cls(int(item))
 
     def __int__(self):
         return self.value

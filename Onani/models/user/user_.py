@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:11:54
+# @Last Modified time: 2022-03-22 00:45:20
 
 import datetime
 import html
@@ -114,7 +114,7 @@ class User(UserMixin, db.Model):
     @validates("email")
     def validate_email(self, key, email):
         if email:
-            if not re.match("[^@]+@[^@]+\.[^@]+", email):
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
                 raise ValueError("Provided email is not an email address")
             if User.query.filter(User.email == email).first():
                 raise ValueError("Email is already in use")
@@ -133,8 +133,6 @@ class User(UserMixin, db.Model):
         """
         if not password:
             raise ValueError("Password not provided")
-        # if not re.match("\d.*[A-Z]|[A-Z].*\d", password):
-        #     raise ValueError("Password must contain 1 capital letter and 1 number")
         if len(password) < 5 or len(password) > 50:
             raise ValueError("Password must be between 5 and 50 characters")
 
