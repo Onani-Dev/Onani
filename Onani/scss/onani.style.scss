@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-23 00:03:55
+ * @Last Modified time: 2022-03-23 02:05:14
 */
 
 @import "animations";
@@ -14,6 +14,17 @@
 @import "routes/upload";
 @import "routes/users";
 
+* {
+    -webkit-font-smoothing: subpixel-antialiased;
+    color: var(--ui-colour);
+    font-family: 'Jost', sans-serif;
+    font-weight: 100;
+    margin: 0;
+    padding: 0;
+    scrollbar-color: var(--ui-scrollbar-foreg) var(--ui-scrollbar-backg);
+    scrollbar-width: thin;
+    // border-radius: 15px;
+}
 
 ::-webkit-scrollbar-thumb {
     width: 5px;

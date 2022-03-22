@@ -1,0 +1,16 @@
+<div id="left-panel">
+  <div id="tag-container">
+    {% set sorted_tags = post.sorted_tags %}
+    {% if sorted_tags|length == 0 %}
+      No tags on this post.
+    {% endif %}
+    {% for t in sorted_tags %}
+      <h2>{{ t }}</h2>
+      {% for tag in sorted_tags[t] %}
+        <li>
+          <a href="/posts/?tags={{ tag.name }}" class="tag-list-item {{ tag.type.name.lower() }}">{{ tag.name[:20] }}{{'...' if tag.name|length > 20 else ''}}</a>
+        </li>
+      {% endfor %}
+    {% endfor %}
+  </div>
+</div>

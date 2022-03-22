@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 18:58:59
+# @Last Modified time: 2022-03-23 01:24:34
 
 import datetime
 import enum
@@ -50,7 +50,8 @@ class Post(db.Model):
 
     # The time the post was created.
     uploaded_at = db.Column(
-        db.DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        db.DateTime(timezone=True),
+        default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
 
     # The status of the post. if it is deleted for any reason it will become PostStatus.DELETED
@@ -118,6 +119,26 @@ class Post(db.Model):
             int: The Score.
         """
         return len(self.upvoters) - len(self.downvoters)
+
+    @property
+    def sorted_tags(self) -> dict:
+        # Dictionary we are going to add the types as keys to lists for the tags
+        sorted_tags = {}
+
+        # Get all tags in self
+        for tag in sorted(self.tags, key=lambda t: t.type.name.capitalize()):
+            # Make the tag type nicer and readable
+            tag_type = tag.type.name.capitalize()
+
+            # Make the list if not already
+            if not sorted_tags.get(tag_type):
+                sorted_tags[tag_type] = []
+
+            # append the tag to the type list
+            sorted_tags[tag_type].append(tag)
+
+        # Return the sorted dict
+        return {x: sorted(sorted_tags[x], key=lambda t: t.name) for x in sorted_tags}
 
     def __repr__(self):
         return f"<Post {self.__dict__}>"
