@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-21 20:55:16
+ * @Last Modified time: 2022-03-22 19:40:42
 */
 
 
@@ -39,7 +39,7 @@
 /* All elements */
 * {
   -webkit-font-smoothing: subpixel-antialiased;
-  backface-visibility: hidden;
+  /* backface-visibility: hidden; */
   color: var(--ui-colour);
   font-family: 'Jost', sans-serif;
   font-weight: 100;

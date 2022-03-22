@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 03:16:02
+# @Last Modified time: 2022-03-22 18:58:59
 
 import datetime
 import enum
@@ -50,7 +50,7 @@ class Post(db.Model):
 
     # The time the post was created.
     uploaded_at = db.Column(
-        db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        db.DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
 
     # The status of the post. if it is deleted for any reason it will become PostStatus.DELETED

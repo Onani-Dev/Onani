@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 03:16:25
+# @Last Modified time: 2022-03-22 18:58:51
 
 import datetime
 import html
@@ -52,7 +52,8 @@ class User(UserMixin, db.Model):
 
     # The time this user was created. it doesn't need to be touched.
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        db.DateTime(timezone=True),
+        default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
 
     # The User's role. this affects what the user can do.

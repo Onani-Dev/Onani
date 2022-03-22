@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 23:34:00
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 03:12:26
+# @Last Modified time: 2022-03-22 18:59:01
 import datetime
 import html
 
@@ -23,7 +23,7 @@ class PostComment(db.Model):
     author = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     post = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        db.DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
     content = db.Column(db.UnicodeText, nullable=False)
 
