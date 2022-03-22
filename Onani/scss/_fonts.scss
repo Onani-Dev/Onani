@@ -1,0 +1,29 @@
+/**
+ * @Author: kapsikkum
+ * @Date:   2022-03-22 22:47:07
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-03-22 22:48:34
+ */
+// Title Font
+@font-face {
+    font-family: 'Bloody';
+    src: url('/static/fonts/Bloody.woff2') format('woff2'), url('/static/fonts/Bloody.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+// Interface Font
+@font-face {
+    font-family: "MADEEvolveSans";
+    src: url("/static/fonts/MADEEvolveSansRegular.woff") format("woff"), url("/static/fonts/MADEEvolveSansRegular.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+// Funny meme font
+@font-face {
+    font-family: "Consolas";
+    src: url("/static/fonts/Consolas.woff") format("woff"), url("/static/fonts/Consolas.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}

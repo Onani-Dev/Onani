@@ -1,0 +1,37 @@
+/**
+ * @Author: kapsikkum
+ * @Date:   2022-03-22 22:50:21
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-03-22 22:50:51
+ */
+// Floating Animation
+@keyframes float {
+
+    0%,
+    20%,
+    40%,
+    60%,
+    80%,
+    100% {
+        transform: translateY(-3px);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateY(3px);
+    }
+}
+
+// Fade-In animation
+@keyframes fadein {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}

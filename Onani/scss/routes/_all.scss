@@ -1,0 +1,432 @@
+/**
+ * @Author: kapsikkum
+ * @Date:   2022-03-22 23:06:35
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-03-22 23:23:03
+ */
+
+// Main Onani logo
+#logo {
+    color: var(--ui-colour);
+    cursor: pointer;
+    display: inline-block;
+    font-family: "Bloody";
+    font-size: 36px;
+    padding: 14px 16px;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    vertical-align: middle;
+    font-weight: normal;
+    font-style: normal;
+    background: -webkit-linear-gradient(90deg, var(--logo-colour-1) 0%, var(--logo-colour-2) 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+// Navbar on top of page
+header.navbar {
+    display: flex;
+    height: 65px;
+    justify-content: left;
+    margin-bottom: 25px;
+    max-height: 65px;
+    outline-offset: -1px;
+    outline: 1px solid var(--ui-colour);
+    text-align: left;
+
+    // Link inside the navbar
+    a {
+        align-self: center;
+        color: var(--ui-colour);
+        display: inline-flex;
+        font-size: 16px;
+        padding: 14px 16px;
+        text-align: center;
+        text-decoration: none;
+        vertical-align: middle;
+        
+        // The hovering over a link that changes the colour.
+        &:hover {
+            background-color: var(--ui-item-hover);
+            display: block;
+        }
+    }
+}
+
+// Dropdown content, used for users
+div.dropdown {
+    align-self: center;
+    color: var(--ui-colour);
+    display: inline-flex;
+    font-size: 16px;
+    max-height: 50px;
+    max-width: 50px;
+    min-height: 50px;
+    min-width: 50px;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+
+    &:hover {
+        div.dropdown-content {
+            display: block;
+        }
+
+        button.dropbtn {
+            background-color: var(--ui-item-hover);
+            display: block;
+        }
+    }
+}
+
+// Onani search box
+div#search-box {
+    align-self: center;
+    display: inline-flex;
+    font-size: 16px;
+    margin-left: 15px;
+    outline: 1px solid var(--ui-colour);
+    padding: 11px 16px 11px 6px;
+    width: min-content;
+    height: 20px;
+}
+
+// Magnifying glass icon
+#search-icon {
+    cursor: pointer;
+    transition: all 0.5s ease;
+    width: 20px;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+// Search box input
+input#search-input {
+    background-color: var(--ui-back-colour);
+    border: 0;
+    display: inline-flex;
+    font-size: 16px;
+    padding: 0px 15px 0px 15px;
+    text-align: start;
+    vertical-align: middle;
+    width: 215px;
+}
+
+// Tag/left panel
+div#left-panel {
+    font-size: 16px;
+    padding-left: 25px;
+    position: absolute;
+    width: 160px;
+    word-break: break-all;
+
+    li {
+        list-style-type: none;
+    }
+}
+
+// User Profile picture
+div#user-pfp-container {
+    align-self: center;
+    cursor: pointer;
+    display: inline-flex;
+    margin-left: auto;
+    margin-right: 15px;
+    max-height: 50px;
+    max-width: 50px;
+    outline: 1px solid var(--ui-colour);
+}
+
+// image inside the profile picture
+img#user-pfp {
+    max-width: 50px;
+    object-fit: contain;
+}
+
+div.dropdown-content {
+    animation: fadein 0.2s;
+    background-color: var(--ui-back-colour);
+    border: 1px solid var(--ui-colour);
+    box-shadow: 0px 8px 16px 0px var(--ui-box-shadow);
+    display: none;
+    min-width: 50px;
+    opacity: 100%;
+    overflow: visible;
+    position: absolute;
+    right: 10px;
+    top: 55px;
+    z-index: 5;
+
+    a {
+        color: var(--ui-colour);
+        background-color: var(--ui-back-colour);
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        position: relative;
+        z-index: 6;
+
+        &:hover {
+            background-color: var(--ui-item-hover);
+        }
+    }
+}
+
+div#right-panel {
+    right: 0;
+    padding-right: 25px;
+    position: absolute;
+}
+
+div#news-container {
+    width: 350px;
+    height: 200px;
+    border: 1px solid var(--ui-colour);
+    overflow-y: scroll;
+
+    li {
+        padding: 3px;
+        font-size: 1.2em;
+        list-style-type: none;
+
+        a {
+            text-decoration: none;
+        }
+    }
+}
+
+div#chatbox {
+    padding-top: 50px;
+}
+
+div#chat-container {
+    border: 1px solid var(--ui-colour);
+    height: 300px;
+    width: 350px;
+}
+
+div#chat-message-area {
+    height: 265px;
+    overflow-y: scroll;
+    width: 100%;
+    word-break: break-all;
+
+    li {
+        color: var(--ui-colour-2);
+        padding: 5px;
+        font-size: 1em;
+        list-style-type: none;
+        vertical-align: middle;
+    }
+}
+
+div#chat-message-input-container {
+    display: flex;
+    border-top: 1px solid var(--ui-colour);
+    height: 35px;
+    width: 100%;
+}
+
+input#chat-box-textarea {
+    border: 0px solid var(--ui-colour);
+    display: inline-flex;
+    font-size: 16px;
+    padding: 0 15px 0 15px;
+    text-align: start;
+    vertical-align: middle;
+    width: 82.5%;
+    height: 95%;
+
+    &:focus {
+        background-color: var(--ui-back-colour);
+    }
+}
+
+i#chat-box-send {
+    align-self: center;
+    cursor: pointer;
+}
+
+img.emoji {
+    height: 1em;
+    width: 1em;
+    margin: 0 .05em 0 .1em;
+    vertical-align: -0.1em;
+}
+
+div.flash-message {
+    animation: fadein 0.5s;
+    font-size: 1.7em;
+    left: 0;
+    margin-top: 10vh;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    white-space: pre;
+    font-size: 95%;
+}
+
+div#outlined-container {
+    border: 1px solid var(--ui-colour);
+    margin-left: 200px;
+    margin-right: 400px;
+}
+
+div.login-box {
+    form {
+        display: flex;
+        flex-direction: column;
+        align-content: center;
+        align-items: center;
+    }
+
+    border: 1px solid var(--ui-colour);
+    background-color: var(--ui-back-colour);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -65px;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-sizing: content-box;
+    display: flex;
+    padding: 80px 80px 20px 80px;
+}
+
+div#login-register-buttons {
+    align-self: center;
+    cursor: pointer;
+    display: inline-flex;
+    margin-left: auto;
+    margin-right: 15px;
+}
+
+a#login-user-button {
+    cursor: pointer;
+}
+
+a#register-user-button {
+    cursor: pointer;
+}
+
+a.tag-list-item {
+    text-decoration: none;
+}
+
+a.tag-list-item.banned {
+    color: var(--tag-banned);
+    cursor: not-allowed;
+}
+
+a.tag-list-item.general {
+    color: var(--tag-general);
+}
+
+a.tag-list-item.artist {
+    color: var(--tag-artist);
+}
+
+a.tag-list-item.character {
+    color: var(--tag-character);
+}
+
+a.tag-list-item.copyright {
+    color: var(--tag-copyright);
+}
+
+a.tag-list-item.meta {
+    color: var(--tag-meta);
+}
+
+h1.login-bloody-header {
+    flex-direction: column;
+    font-family: 'Bloody';
+    font-size: 2.5em;
+    left: 25%;
+    margin-top: 30px;
+    position: absolute;
+    right: 25%;
+    top: 0;
+    user-select: none;
+    background: -webkit-linear-gradient(90deg, var(--logo-colour-1) 0%, var(--logo-colour-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+input#username,
+input#password,
+input#email,
+input#confirm {
+    display: flex;
+    font-size: medium;
+    margin: 5px;
+    padding: 5px 10px 5px 10px;
+    text-align: center;
+    width: 210px;
+}
+
+input#submit {
+    cursor: pointer;
+    display: inline-flex;
+    margin: 5px;
+    padding: 5px 10px 5px 10px;
+}
+
+.column {
+    float: left;
+    width: 50%;
+    display: grid;
+}
+
+.row {
+    max-width: 1000px;
+
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+.page-navigation {
+    align-content: center;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    outline: 1px solid var(--ui-colour);
+    padding: 5px;
+
+    a {
+        padding: 1px 5px 1px 5px;
+        font-size: large;
+    }
+}
+
+.grid-container {
+    display: grid;
+    outline: none;
+}
+
+.grid-item {
+    border: 1px solid var(--ui-colour);
+    display: flex;
+    max-height: 50px;
+
+    img.pfp-list {
+        width: 50px;
+        border-right: 1px solid var(--ui-colour);
+    }
+
+    a {
+        align-self: center;
+        padding-left: 10px;
+    }
+}
