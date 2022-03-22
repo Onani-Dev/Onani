@@ -21,10 +21,12 @@
 {% include "elements/tag_bar.jinja2" %}
 
 <div id="posts-container">
-  <div class="images">
-    {% for file in post.files %}
-      <a href="{{ file.url }}"><img class="main-image" src="{{ file.url }}"></a>
-    {% endfor %}
+  <div class="images-container">
+    <div class="images">
+      {% for file in post.files %}
+        <a href="{{ file.url }}"><img class="main-image" src="{{ file.url }}"></a>
+      {% endfor %}
+    </div>
   </div>
   <table>
     <tr>
@@ -55,7 +57,7 @@
 </div>
 
 <script type="text/javascript">
-$(document).ready(function(){$('.images').slick({dots: true, infinite: false});});
+  $(document).ready(function(){$('.images').slick({dots: true, infinite: false});});
 </script>
 
 {% endblock %}
