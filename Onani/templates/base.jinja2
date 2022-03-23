@@ -27,6 +27,7 @@
   <meta property="og:description" content="{{ ogdesc }}" />
   {% block meta %}
   {% endblock %}
+
   <!-- STYLES -->
   <link rel="stylesheet" type="text/css" href="/static/css/onani.style.min.css">
   <link rel="stylesheet" type="text/css" href="/static/css/icomoon.style.min.css">
@@ -36,6 +37,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css" integrity="sha512-wR4oNhLBHf7smjy0K4oqzdWumd+r5/+6QO/vDda76MW5iug4PT7v86FoEkySIJft3XA0Ae6axhIvHrqwm793Nw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   {% block styles %}
   {% endblock %}
+
   <!-- SCRIPTS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/3.3.2/jquery-migrate.min.js" integrity="sha512-3fMsI1vtU2e/tVxZORSEeuMhXnT9By80xlmXlsOku7hNwZSHJjwcOBpmy+uu+fyWwGCLkMvdVbHkeoXdAzBv+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -47,11 +49,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js" integrity="sha512-XtmMtDEcNz2j7ekrtHvOVR4iwwaD6o/FUJe6+Zq+HgcCsk3kj4uSQQR8weQ2QVj1o0Pk6PwYLohm206ZzNfubg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   {% block top_scripts %}
   {% endblock %}
+
   {% if current_user.is_authenticated %}
     {% if current_user.settings.custom_css %}
       <style type="text/css">{{ current_user.settings.custom_css }}</style>
     {% endif %}
   {% endif %}
+
   <script>
     document.onkeyup = function (e) {
       if (e.keyCode == 27) {
@@ -60,42 +64,54 @@
       }
     }
   </script>
+
 </head>
 
 <body>
   <!-- Navbar/header -->
   <header class="navbar">
+
     <!-- logo -->
     <div id="logo" onclick="location.href='/'">Onani</div>
+  
     <!-- Navbar links -->
     <a href="/posts/">Posts</a>
     <a href="/collections/">Collections</a>
     <a href="/news/">News</a>
     <a href="/users/">Users</a>
     <a href="/upload/">Upload</a>
+    
+    <!-- we have a load of fun :) -->
+    <a style="display:none;" href="/fun">Fun</a> 
+
     <!-- Search Box -->
     <div id="search-box">
       <input id="search-input" type="text" placeholder="Search" spellcheck="false" autocapitalize="off" value="{{ search_box_value }}">
       <i class="fas fa-search" id="search-icon"></i>
+      <script src="/static/javascript/search.min.js"></script>
     </div>
-    <script src="/static/javascript/search.min.js"></script>
+    
     <!-- User Profile Picture -->
     {% if current_user.is_authenticated %}
-    <div id="user-pfp-container">
-      <div class="dropdown">
-        <img id="user-pfp" src="{{ current_user.get_avatar(size=50) }}" alt="{{ current_user.username }}">
-        <div class="dropdown-content">
-          <a href="/users/{{ current_user.id }}">Profile</a>
-          <a onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}">Logout</a>
+      <div id="user-pfp-container">
+        <div class="user-container" style="background-color:{{ current_user.profile_colour }};">
+          <img id="user-pfp" src="{{ current_user.get_avatar(size=40) }}" alt="{{ current_user.username }}" title="Wow look at you :)">
+          <div class="user-profile-link" onclick="location.href='/users/{{ current_user.id }}'" title="View your profile">
+            <h5>{{ current_user.username }}</h5>
+            <h6>{{ current_user.role.name.capitalize() }}</h6>
+          </div>
+          <div class="logout-button" onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </div>
         </div>
       </div>
-    </div>
     {% else %}
-    <div id="login-register-buttons">
-      <a id="register-user-button" href="/register">Register</a>
-      <a id="login-user-button" href="/login">Login</a>
-    </div>
+      <div id="login-register-buttons">
+        <a id="register-user-button" href="/register">Register</a>
+        <a id="login-user-button" href="/login">Login</a>
+      </div>
     {% endif %}
+
   </header>
   {% block content %}
   {% endblock %}

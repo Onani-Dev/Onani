@@ -24,7 +24,9 @@
   <div class="images-container">
     <div class="images">
       {% for file in post.files %}
-        <a href="{{ file.url }}"><img class="main-image" src="{{ file.url }}"></a>
+        <div class="file-container">
+          <a href="{{ file.url }}"><img class="main-image" src="{{ file.url }}"></a>
+        </div>
       {% endfor %}
     </div>
   </div>

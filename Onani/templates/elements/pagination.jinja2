@@ -5,7 +5,7 @@
   {% for page in pagination.iter_pages() %}
     {% if page %}
       {% if page == pagination.page %}
-        <a href="{{ page_url }}?p={{ page }}{{ extra_params }}" style="text-decoration: underline;">{{ page }}</a>
+        <a href="{{ page_url }}?p={{ page }}{{ extra_params }}" class="focused">{{ page }}</a>
       {% else %}
         <a href="{{ page_url }}?p={{ page }}{{ extra_params }}">{{ page }}</a>
       {% endif %}

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 18:58:51
+# @Last Modified time: 2022-03-23 16:16:39
 
 import datetime
 import html
@@ -208,6 +208,10 @@ class User(UserMixin, db.Model):
         if size:
             return f"/thumbnail/{size}x{size}{self.settings.avatar}"
         return self.settings.avatar
+
+    @property
+    def profile_colour(self):
+        return self.settings.profile_colour or "#4a4a4a"
 
     def __repr__(self):
         return f"<User {self.username}>"

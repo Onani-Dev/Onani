@@ -2,28 +2,48 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:16
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-22 23:04:26
+ * @Last Modified time: 2022-03-23 23:48:50
  */
 :root {
-    --logo-colour-1: black;
-    --logo-colour-2: red;
-    --ui-colour: red;
-    --ui-colour-2: #cc2b2b;
-    --ui-colour-3: #949494;
-    --ui-colour-transparent: #3b010150;
-    --ui-back-colour: black;
-    --ui-box-shadow: #fd000033;
+    // UI Colours
+    --ui-foreground-header: #4a4a4a;
+    --ui-foreground-1: #2b2b2b;
+    --ui-foreground-2: #101010;
+    --ui-background-colour: #000000;
+    --ui-border-colour: #5a5a5a;
+
+    // Text
+    --text-logo-colour-1: #000000;
+    --text-logo-colour-2: #ff0000;
+    --text-colour-1: #ffffff;
+    --text-colour-2: #7c7c7c;
+
+    // Hover/active item
     --ui-item-hover: #252525;
-    --ui-item-active: #1d1d1d;
-    --ui-scrollbar-foreg: red;
-    --ui-scrollbar-backg: black;
+    --ui-item-active: #656565;
     --input-slider: #1d1d1d;
     --input-focus: #0f0f0f;
+
+    // Tag colours
     --tag-banned: #ff000042;
-    --tag-general: #d61212;
-    --tag-artist: #CCCC00;
-    --tag-circle: #12BBBB;
-    --tag-character: #00AA12;
-    --tag-copyright: #D100D1;
-    --tag-meta: #B97B87;
+    --tag-general: #9e090949;
+    --tag-artist: #cccc0015;
+    --tag-circle: #12BBBB15;
+    --tag-character: #00AA1215;
+    --tag-copyright: #D100D115;
+    --tag-meta: #B97B8715;
 }
+// Old
+// --ui-colour: red;
+// --ui-colour-2: #cc2b2b;
+// --ui-colour-3: #949494;
+// --ui-colour-transparent: #3b010150;
+// --ui-back-colour: black;
+// --ui-box-shadow: #fd000033;
+// --ui-item-hover: #252525;
+// --ui-item-active: #1d1d1d;
+// --ui-scrollbar-foreg: red;
+// --ui-scrollbar-backg: black;
+// --input-slider: #1d1d1d;
+// --input-focus: #0f0f0f;
+

@@ -2,10 +2,11 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-23 02:05:14
+ * @Last Modified time: 2022-03-23 22:58:14
 */
 
 @import "animations";
+@import "base";
 @import "colours";
 @import "elements";
 @import "fonts";
@@ -16,23 +17,24 @@
 
 * {
     -webkit-font-smoothing: subpixel-antialiased;
-    color: var(--ui-colour);
+    color: var(--text-colour-1);
     font-family: 'Jost', sans-serif;
     font-weight: 100;
     margin: 0;
     padding: 0;
-    scrollbar-color: var(--ui-scrollbar-foreg) var(--ui-scrollbar-backg);
+    scrollbar-color: var(--ui-foreground-header) var(--ui-background-colour);
     scrollbar-width: thin;
-    // border-radius: 15px;
+    border-radius: 15px;
 }
 
 ::-webkit-scrollbar-thumb {
     width: 5px;
-    background-color: var(--ui-scrollbar-foreg);
+    background-color: var(--ui-foreground-header);
 }
 
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px var(--ui-scrollbar-backg);
+    box-shadow: inset 0 0 6px var(--ui-background-colour);
+    -webkit-box-shadow: inset 0 0 6px var(--ui-background-colour);
 }
 
 ::-webkit-scrollbar {
@@ -41,13 +43,12 @@
 }
 
 ::selection {
-    color: var(--ui-back-colour);
-    background: var(--ui-colour);
+    color: var(--ui-background-colour);
+    background: var(--text-colour-1);
 }
 
 ::-moz-selection {
-    color: var(--ui-back-colour);
-    background: var(--ui-colour);
+    @extend ::selection;
 }
 
 ::placeholder {

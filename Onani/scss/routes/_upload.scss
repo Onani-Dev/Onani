@@ -2,92 +2,94 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:19:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-22 23:21:11
+ * @Last Modified time: 2022-03-23 23:26:30
  */
  div#uploader-container {
-     border: 1px solid var(--ui-colour);
-     left: 0;
-     margin-left: auto;
-     margin-right: auto;
-     min-height: 100vh;
-     padding-top: 50px;
-     position: absolute;
-     right: 0;
-     width: fit-content;
+    background-color: var(--ui-foreground-1);
+    left: 0;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 100vh;
+    padding-top: 50px;
+    position: absolute;
+    right: 0;
+    width: fit-content;
 
-     h1 {
-         text-align: center;
-         margin-bottom: -10px;
-     }
+    h1 {
+        text-align: center;
+        margin-bottom: -10px;
+    }
  }
 
  div#uploader-input-container {
-     display: inline-block;
-     margin-top: 50px;
+    display: inline-block;
+    margin-top: 50px;
  }
 
  input.uploader-input {
-     margin-bottom: 15px;
-     padding: 5px;
-     text-align: left;
-     width: 300px;
+    display: block;
+    margin-bottom: 15px;
+    padding: 10px;
+    text-align: left;
+    width: 300px;
  }
 
  textarea.uploader-textarea {
-     background-color: var(--ui-back-colour);
-     border: 1px solid var(--ui-colour);
-     height: 120px;
-     margin-bottom: 15px;
-     max-width: 300px;
-     padding: 5px;
-     text-align: left;
-     width: 300px;
+    background-color: var(--ui-foreground-2);
+    border: none;
+    color: var(--ui-colour);
+    height: 120px;
+    margin-bottom: 15px;
+    max-width: 300px;
+    padding: 10px;
+    text-align: left;
+    white-space: pre-wrap;
+    width: 300px;
  }
 
- label.uploader-label {
-     display: inline-block;
-     padding-right: 10px;
-     width: 50px;
- }
+label.uploader-label {
+    display: inline-block;
+    padding-right: 10px;
+    width: 50px;
+}
 
- input#upload-button {
-     display: inline-block;
-     background-color: var(--ui-back-colour);
-     border: 1px solid var(--ui-colour);
-     cursor: pointer;
-     font-size: 1.1em;
-     padding: 3px;
-     width: 100px;
-     margin-top: 30px;
-     margin-right: 30px;
- }
+input#upload-button {
+    display: inline-block;
+    cursor: pointer;
+    font-size: 1.1em;
+    padding: 3px;
+    width: 100px;
+    margin-top: 30px;
+    margin-right: 30px;
+}
 
- div#preview-image-container {
-     border: 1px solid var(--ui-colour);
-     display: inline-block;
-     padding: 10px;
-     min-width: 350px;
-     min-height: 350px;
-     max-width: 350px;
-     max-height: min-content;
- }
+div#preview-image-container {
+    border: 1px solid var(--border-colour);
+    display: inline-block;
+    padding: 10px;
+    min-width: 350px;
+    min-height: 350px;
+    max-width: 350px;
+    max-height: min-content;
+    background-color: var(--ui-foreground-2);
+}
 
- img#preview-image {
-     top: 50%;
-     left: 50%;
-     margin-left: auto;
-     margin-right: auto;
-     text-align: center;
-     align-content: center;
-     width: 350px;
-     max-width: 350px;
- }
+img#preview-image {
+    top: 50%;
+    left: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    align-content: center;
+    width: 350px;
+    max-width: 350px;
+}
 
- select#rating {
-     background-color: var(--back-colour);
-     border: 1px solid var(--ui-colour);
-     width: 120px;
- }
+select#rating {
+    background-color: var(--ui-foreground-2);
+    width: 140px;
+    padding: 10px;
+}
 
 .row.uploader {
     flex: 1 1 30%;
@@ -100,4 +102,12 @@
     float: none;
     width: fit-content;
     display: grid;
+
+    div.g-recaptcha {
+        margin-top: 30px;
+        margin-right: 30px;
+        border-radius: 0;
+        border: none;
+    }
+
 }

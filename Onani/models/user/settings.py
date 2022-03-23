@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-13 00:59:27
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 02:57:08
+# @Last Modified time: 2022-03-23 16:08:40
 import html
 
 import regex as re
@@ -40,6 +40,9 @@ class UserSettings(db.Model):
 
     # The user's custom css. overrides the default css that i worked so hard on :(
     custom_css = db.Column(db.UnicodeText)
+
+    # Custom colour for user profile
+    profile_colour = db.Column(db.String)
 
     # The user's connections to other website's accounts
     connections = db.Column(

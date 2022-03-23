@@ -2,16 +2,17 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-23 00:41:52
+ * @Last Modified time: 2022-03-23 21:40:09
  */
 div#posts-container {
-    border: 1px solid var(--ui-colour);
+    background-color: var(--ui-foreground-1);
     left: 0;
     margin-left: auto;
     margin-right: auto;
-    max-width: 70vw;
-    min-height: fit-content;
-    min-width: 65vw;
+    max-width: 50vw;
+    min-height: 100px;
+    min-width: 50vw;
+    padding: 10px;
     position: absolute;
     right: 0;
     width: fit-content;
@@ -24,7 +25,6 @@ div.grid {
 }
 
 div.post-thumbnail-container {
-    border-bottom: 1px solid var(--ui-colour);
     display: grid;
     height: 150px;
     justify-content: center;
@@ -67,4 +67,17 @@ img.post-thumbnail {
     padding: 50px;
     text-decoration: none;
     user-select: none;
+
+    div.file-container {
+        display: grid;
+        height: 100%;
+        justify-content: center;
+        margin: 0 auto;
+        padding: 10px;
+        transition: transform 0.2s ease;
+        width: 140px;
+        margin-top: auto;
+        margin-bottom: auto;
+    }
 }
+

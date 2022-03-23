@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-23 01:00:52
+# @Last Modified time: 2022-03-24 01:53:39
 
+from email.policy import default
 import enum
 
 from sqlalchemy_utils import ChoiceType
@@ -35,6 +36,12 @@ class Tag(db.Model):
     description = db.Column(
         db.String, default="No description has been added to this tag."
     )
+
+    # If a post has this tag, automatically mark as explicit.
+    explicit = db.Column(db.Boolean, default=False)
+
+    # IF this post is restricted, it will only be available to premium and above
+    restricted = db.Column(db.Boolean, default=False)
 
     # If this tag is an Alias of another tag this value will be that tag's ID
     alias_of = db.Column(db.Integer, db.ForeignKey("tags.id"))

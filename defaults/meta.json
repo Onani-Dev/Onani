@@ -1,0 +1,40 @@
+[{
+    "name": "low_resolution",
+    "type": 5,
+    "description": "Posts with files with low resolutions. (500x500 or smaller)"
+},
+{
+    "name": "high_resolution",
+    "type": 5,
+    "description": "Posts with files with high resolutions. (1600x1200 or larger)"
+},
+{
+    "name": "very_high_resolution",
+    "type": 5,
+    "description": "Posts with files with very high resolutions. (3200x2400 or larger)"
+},
+{
+    "name": "extremely_high_resolution",
+    "type": 5,
+    "description": "Posts with files with massive resolutions. (10000x10000 or larger)"
+},
+{
+    "name": "long",
+    "type": 5,
+    "description": "Posts with files with very tall or wide images."
+},
+{
+    "name": "large_filesize",
+    "type": 5,
+    "description": "Posts with files with big filesizes. (5 MB or larger)"
+},
+{
+    "name": "extremely_large_filesize",
+    "type": 5,
+    "description": "Posts with files with massive filesizes. (15 MB or larger)"
+},
+{
+    "name": "potential_duplicate",
+    "type": 5,
+    "description": "Posts that may be a duplicate."
+}]
