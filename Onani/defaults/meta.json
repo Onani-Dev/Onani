@@ -37,4 +37,10 @@
     "name": "potential_duplicate",
     "type": 5,
     "description": "Posts that may be a duplicate."
-}]
+},
+{
+    "name": "animated",
+    "type": 5,
+    "description": "Posts with GIFs"
+}
+]

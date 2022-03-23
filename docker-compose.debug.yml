@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 19:55:19
+# @Last Modified time: 2022-03-24 02:22:01
 version: '3.8'
 
 services:
@@ -56,8 +56,8 @@ services:
       timeout: 5s
       retries: 5
     
-  redis:
-    image: redis:alpine
+  # redis:
+  #   image: redis:alpine
 
 volumes:
   database:

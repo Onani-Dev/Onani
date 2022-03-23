@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 01:35:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 01:52:51
+# @Last Modified time: 2022-03-24 02:19:43
 import random
 import string
 from datetime import datetime, timedelta
@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import click
 
 from Onani import db, init_app
-from Onani.controllers import create_user
+from Onani.controllers import create_user, create_default_tags
 from Onani.models import Ban, Tag, User, NewsPost, TagType, UserRoles
 
 from datetime import timezone
@@ -136,3 +136,10 @@ def add_user(username, email, password, perms):
         role=UserRoles(int(perms)),
     )
     print("User added to database")
+
+
+@app.cli.command("default-tags")
+@click.option("--filename")
+def default_tags(filename):
+    tags = create_default_tags(filename=filename)
+    print(f"Added {len(tags)} tags from {filename} to database")
