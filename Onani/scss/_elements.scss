@@ -2,11 +2,14 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-24 00:05:42
+ * @Last Modified time: 2022-03-25 01:13:07
  */
 
 html {
     background-color: var(--ui-background-colour);
+    @include for-mobile-only {
+        overflow-x: hidden;
+    }
 }
 
 a {

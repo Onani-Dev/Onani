@@ -2,8 +2,9 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-23 22:58:14
+ * @Last Modified time: 2022-03-25 01:00:00
 */
+@import "mixins";
 
 @import "animations";
 @import "base";
@@ -52,5 +53,5 @@
 }
 
 ::placeholder {
-    opacity: 0.7;
+    opacity: 0.4;
 }

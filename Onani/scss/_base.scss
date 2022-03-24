@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-23 23:09:14
+ * @Last Modified time: 2022-03-25 01:05:00
  */
 // Main Onani logo
 #logo {
@@ -35,23 +35,52 @@ header.navbar {
     outline-offset: -1px;
     text-align: left;
 
-    // Link inside the navbar
-    a {
+    div#login-register-buttons {
         align-self: center;
-        color: var(--ui-colour);
+        cursor: pointer;
         display: inline-flex;
-        font-size: 16px;
-        padding: 14px 16px;
-        text-align: center;
-        text-decoration: none;
-        vertical-align: middle;
+        margin-left: auto;
+        margin-right: 15px;
 
-        // The hovering over a link that changes the colour.
-        &:hover {
-            background-color: var(--ui-item-hover);
-            display: block;
+        a {
+            align-self: center;
+            color: var(--ui-colour);
+            display: inline-flex;
+            font-size: 16px;
+            padding: 14px 16px;
+            text-align: center;
+            text-decoration: none;
+            vertical-align: middle;
+
+            &:hover {
+                background-color: var(--ui-item-hover);
+                display: block;
+            }
         }
     }
+
+    div.site-links {
+        @extend header, .navbar;
+        @include for-mobile-only {
+            display: none;
+        }
+        a {
+            align-self: center;
+            color: var(--ui-colour);
+            display: inline-flex;
+            font-size: 16px;
+            padding: 14px 16px;
+            text-align: center;
+            text-decoration: none;
+            vertical-align: middle;
+
+            &:hover {
+                background-color: var(--ui-item-hover);
+                display: block;
+            }
+        }
+    }
+    
 }
 
 // Dropdown content, used for users
@@ -90,6 +119,10 @@ div#search-box {
     background-color: var(--ui-foreground-1);
     padding: 11px 16px 11px 6px;
     width: min-content;
+
+    @include for-mobile-only {
+        display: none;
+    }
 }
 
 // Magnifying glass icon
@@ -193,6 +226,10 @@ div#left-panel {
     position: absolute;
     width: 18vw;
     word-break: break-all;
+
+    @include for-mobile-only {
+        display: none;
+    }
     
     div#tag-container {
         background-color: var(--ui-foreground-2);
@@ -221,6 +258,9 @@ div#right-panel {
     margin-right: 25px;
     position: absolute;
     width: 18vw;
+    @include for-mobile-only {
+        display: none;
+    }
 }
 
 div#news-container {

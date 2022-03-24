@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-23 21:40:09
+ * @Last Modified time: 2022-03-25 00:45:28
  */
 div#posts-container {
     background-color: var(--ui-foreground-1);
@@ -16,12 +16,21 @@ div#posts-container {
     position: absolute;
     right: 0;
     width: fit-content;
+
+    @include for-mobile-only {
+        max-width: 90vw;
+        min-width: 90vw;
+    }
 }
 
 div.grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     width: 100%;
+
+    @include for-mobile-only {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
 }
 
 div.post-thumbnail-container {
@@ -32,6 +41,11 @@ div.post-thumbnail-container {
     padding: 10px;
     transition: transform 0.2s ease;
     width: 140px;
+
+    @include for-mobile-only {
+        height: 90px;
+        width: 90px;
+    }
 
     &:hover {
         transform: scale(1.1);
@@ -52,6 +66,13 @@ img.post-thumbnail {
     max-height: 150px;
     max-width: 150px;
     user-select: none;
+
+    @include for-mobile-only {
+        max-height: 90px;
+        max-width: 90px;
+        min-width: 50px;
+        min-height: 50px;
+    }
 }
 
 .main-image {

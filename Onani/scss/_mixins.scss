@@ -1,0 +1,35 @@
+/**
+ * @Author: kapsikkum
+ * @Date:   2022-03-25 00:15:48
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-03-25 00:41:30
+ */
+@mixin for-mobile-only {
+    @media (max-width: 599px) {
+        @content;
+    }
+}
+
+@mixin for-tablet-portrait-only {
+    @media (max-width: 600px) {
+        @content;
+    }
+}
+
+@mixin for-tablet-landscape-only {
+    @media (max-width: 900px) {
+        @content;
+    }
+}
+
+@mixin for-desktop-only {
+    @media (max-width: 1200px) {
+        @content;
+    }
+}
+
+@mixin for-big-desktop-only {
+    @media (max-width: 1800px) {
+        @content;
+    }
+}
