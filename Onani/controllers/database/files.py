@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-24 03:26:15
+# @Last Modified time: 2022-03-24 15:10:37
 
 import hashlib
 import io
@@ -22,27 +22,30 @@ from . import db
 def determine_meta_tags(width, height, filesize, file_type) -> list:
     meta_tags = []
 
-    if width <= 500 and height <= 500:
-        meta_tags.append("low_resolution")
-
-    elif width >= 1600 and height >= 1200:
-        meta_tags.append("high_resolution")
-
-    elif width >= 3200 and height >= 2400:
-        meta_tags.append("very_high_resolution")
+    # Determine width
+    if width >= 5400 and height <= 512 or width <= 512 and height >= 5400:
+        meta_tags.append("long")
 
     elif width >= 10000 and height >= 10000:
         meta_tags.append("extremely_high_resolution")
 
-    elif width >= 5400 and height <= 512 or width <= 512 and height >= 5400:
-        meta_tags.append("long")
+    elif width >= 3200 and height >= 2400:
+        meta_tags.append("very_high_resolution")
 
-    if filesize >= 5242880:
-        meta_tags.append("large_filesize")
+    elif width >= 1600 and height >= 1200:
+        meta_tags.append("high_resolution")
 
-    elif filesize >= 15728640:
+    elif width <= 500 and height <= 500:
+        meta_tags.append("low_resolution")
+
+    # Determine filesize
+    if filesize >= 15728640:
         meta_tags.append("extremely_large_filesize")
 
+    elif filesize >= 5242880:
+        meta_tags.append("large_filesize")
+
+    # Determine file type
     if file_type == "gif":
         meta_tags.append("animated")
 
