@@ -16,4 +16,4 @@ name = "javascript"
 enabled = true
 
   [analyzers.meta]
-  environment = ["jquery", "showdown", "twemoji"]
+  environment = ["jquery"]
