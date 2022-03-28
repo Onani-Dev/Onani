@@ -2,16 +2,14 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-25 01:05:00
+ * @Last Modified time: 2022-03-29 00:27:49
  */
 // Main Onani logo
 #logo {
     cursor: pointer;
     display: inline-block;
-    font-family: "Bloody";
+    font-family: 'Megrim', cursive;
     font-size: 36px;
-    font-style: normal;
-    font-weight: normal;
     margin-bottom: auto;
     margin-left: 10px;
     margin-right: 10px;
@@ -19,10 +17,17 @@
     text-align: center;
     text-decoration: none;
     user-select: none;
+    text-transform: uppercase;
     background: -webkit-linear-gradient(90deg, var(--text-logo-colour-1) 0%, var(--text-logo-colour-2) 80%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    font-weight: 900;
+
+    @include for-mobile-only {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
 }
 
 // Navbar on top of page
@@ -35,12 +40,36 @@ header.navbar {
     outline-offset: -1px;
     text-align: left;
 
-    div#login-register-buttons {
+    div.mobile-sidebar-open {
+        display: none;
+
+        @include for-mobile-only {
+            display: block;
+            margin-left: auto;
+            margin-right: 15px;
+            margin-top: auto;
+            margin-bottom: auto;
+            padding: 14px 16px;
+        }
+    }
+
+    div.login-register-buttons {
         align-self: center;
         cursor: pointer;
         display: inline-flex;
         margin-left: auto;
         margin-right: 15px;
+
+        @include for-mobile-only {
+            display: none;
+        }
+
+        &.sidenav-menu {
+            // display: inline;
+            position: absolute;
+            // display: block;
+            bottom: 15px;
+        }
 
         a {
             align-self: center;
@@ -55,6 +84,53 @@ header.navbar {
             &:hover {
                 background-color: var(--ui-item-hover);
                 display: block;
+            }
+        }
+    }
+
+    // User Profile card
+    div.user-profile-card {
+        align-self: center;
+        margin-left: auto;
+        padding: 15px;
+
+        @include for-mobile-only {
+            display: none;
+        }
+
+        div.user-container {
+            background-color: var(--ui-foreground-header);
+            display: flex;
+            justify-content: space-around;
+            padding: 3px;
+
+            div {
+                margin: 10px;
+            }
+
+            div.logout-button {
+                margin-top: auto;
+                margin-bottom: auto;
+                cursor: pointer;
+                width: 16px;
+                min-width: 16px;
+                max-width: 16px;
+                background-color: #ffffff34;
+                padding: 5px 10px 5px 10px;
+            }
+
+            div.user-profile-link {
+                cursor: pointer;
+                margin-right: 100px;
+            }
+
+            // image inside the profile picture container
+            img#user-pfp {
+                width: 45px;
+                height: 45px;
+                margin-top: auto;
+                margin-bottom: auto;
+                padding: 5px;
             }
         }
     }
@@ -80,8 +156,134 @@ header.navbar {
             }
         }
     }
+    // Onani search box
+    div#search-box {
+        align-self: center;
+        display: inline-flex;
+        font-size: 16px;
+        height: 20px;
+        margin-left: 50px;
+        background-color: var(--ui-foreground-1);
+        padding: 11px 16px 11px 6px;
+        width: min-content;
+
+        // Magnifying glass icon
+        #search-icon {
+            cursor: pointer;
+            transition: all 0.5s ease;
+            width: 20px;
+
+            &:hover {
+                transform: scale(1.1);
+            }
+        }
+
+        // Search box input
+        input#search-input {
+            background-color: var(--ui-foreground-1);
+            border: 0;
+            display: inline-flex;
+            font-size: 16px;
+            padding: 0px 15px 0px 15px;
+            text-align: start;
+            vertical-align: middle;
+            width: 215px;
+        }
+
+        @include for-mobile-only {
+            display: none;
+        }
+    }
     
 }
+
+div.sidenav {
+    background-color: var(--ui-foreground-header);
+    border-radius: 15px 0px 15px 15px;
+    height: 100%;
+    overflow-x: hidden;
+    position: fixed;
+    right: 0;
+    top: 0;
+    transition: 0.2s;
+    width: 0;
+    z-index: 5;
+    padding-top: 60px;
+
+    a {
+        background-color: var(--ui-foreground-1);
+        color: var(--text-colour-1);
+        display: block;
+        font-size: 22px;
+        margin: 10px;
+        padding: 8px 8px 8px 32px;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    a.close-button {
+        background-color: unset;
+        font-size: 36px;
+        margin-left: 50px;
+        margin: 0;
+        position: absolute;
+        right: 25px;
+        text-align: center;
+        top: 0;
+    }
+
+    div.login-register-buttons {
+        bottom: 65px;
+        margin-left: auto;
+        position: absolute;
+        width: 100%;
+    }
+
+    div.user-profile-card {
+        bottom: 60px;
+        position: absolute;
+        width: 100%;
+
+        div.user-container {
+            background-color: var(--ui-foreground-header);
+            display: flex;
+            justify-content: space-around;
+            padding: 5px;
+
+            div {
+                margin: 10px;
+            }
+
+            div.logout-button {
+                margin-top: auto;
+                margin-bottom: auto;
+                cursor: pointer;
+                background-color: #ffffff34;
+                padding: 5px 10px 5px 10px;
+            }
+
+            div.user-profile-link {
+                cursor: pointer;
+                h5 {
+                    font-size: 20px;
+                }
+                h6 {
+                    font-size: 17px;
+                }
+            }
+
+            // image inside the profile picture container
+            img#user-pfp {
+                width: 55px;
+                height: 55px;
+                margin-top: auto;
+                margin-bottom: auto;
+                // padding: 5px;
+            }
+        }
+    }
+}
+
 
 // Dropdown content, used for users
 div.dropdown {
@@ -105,85 +307,6 @@ div.dropdown {
         button.dropbtn {
             background-color: var(--ui-item-hover);
             display: block;
-        }
-    }
-}
-
-// Onani search box
-div#search-box {
-    align-self: center;
-    display: inline-flex;
-    font-size: 16px;
-    height: 20px;
-    margin-left: 50px;
-    background-color: var(--ui-foreground-1);
-    padding: 11px 16px 11px 6px;
-    width: min-content;
-
-    @include for-mobile-only {
-        display: none;
-    }
-}
-
-// Magnifying glass icon
-#search-icon {
-    cursor: pointer;
-    transition: all 0.5s ease;
-    width: 20px;
-
-    &:hover {
-        transform: scale(1.1);
-    }
-}
-
-// Search box input
-input#search-input {
-    background-color: var(--ui-foreground-1);
-    border: 0;
-    display: inline-flex;
-    font-size: 16px;
-    padding: 0px 15px 0px 15px;
-    text-align: start;
-    vertical-align: middle;
-    width: 215px;
-}
-
-// User Profile picture
-div#user-pfp-container {
-    align-self: center;
-    margin-left: auto;
-    padding: 15px;
-    div.user-container {
-        background-color: var(--ui-foreground-header);
-        display: flex;
-        justify-content: space-around;
-        padding: 3px;
-
-        div {
-            margin: 10px;
-        }
-
-        div.logout-button {
-            margin-top: auto;
-            margin-bottom: auto;
-            cursor: pointer;
-            width: 16px;
-            min-width: 16px;
-            max-width: 16px;
-        }
-
-        div.user-profile-link {
-            cursor: pointer;
-            margin-right: 100px;
-        }
-
-        // image inside the profile picture
-        img#user-pfp {
-            width: 45px;
-            height: 45px;
-            margin-top: auto;
-            margin-bottom: auto;
-            padding: 5px;
         }
     }
 }

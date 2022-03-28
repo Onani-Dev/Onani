@@ -255,24 +255,5 @@
     {% endif %}
   </div>
   <script src="/static/javascript/profile.min.js"></script>
-  <script src="/static/javascript/edit-profile.min.js"></script>
 </div>
-<script>
-  let converter = new showdown.Converter();
-  const customEmotes = /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g,
-    emojiTable = {
-      don: "/static/svg/don.svg",
-      katsu: "/static/svg/katsu.svg",
-      desuwa: "/static/svg/desuwa.svg",
-      dirt: "/static/image/dirt_small.gif",
-      armagan: "/static/image/armagan_small.gif"
-    }
-  let bioText = document.getElementById("profile-bio-textarea");
-  twemoji.parse(document.getElementById("profile-username-header"));
-  twemoji.parse(bioText);
-  bioText.innerHTML = bioText.innerHTML.replace(customEmotes, (current) => {
-    return `<img src='${emojiTable[current.replace(/:/g, "")]}' class='emoji' draggable='false' alt='${current}'></img>`
-  });
-  bioText.innerHTML = converter.makeHtml(bioText.innerHTML);
-</script>
 {% endblock %}

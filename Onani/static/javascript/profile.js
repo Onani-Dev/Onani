@@ -2,14 +2,39 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-20 19:46:11
+ * @Last Modified time: 2022-03-28 23:46:38
  */
 const tabcontent = document.getElementsByClassName("profile-tab-content"),
   tablinks = document.getElementsByClassName("profile-tab-link"),
   settingsTabContent = document.getElementsByClassName("settings-tab-content"),
   settingsTabLinks = document.getElementsByClassName("settings-tab-link"),
   pageURL = new URL(window.location.href),
-  windowParams = new URLSearchParams(window.location.search);
+  windowParams = new URLSearchParams(window.location.search),
+  hiddenPfpField = document.getElementById("hidden-base64-profile-picture");
+
+let $uploadCrop,
+  converter = new showdown.Converter();
+
+function readFile(input) {
+  if (input.files && input.files[0]) {
+    let reader = new FileReader();
+    reader.onload = function (e) {
+      $("#upload-image").addClass("ready");
+      $uploadCrop.croppie("bind", {
+        url: e.target.result,
+      });
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+$uploadCrop = $("#upload-image").croppie({
+  viewport: {
+    width: 220,
+    height: 220,
+    type: "square",
+  },
+});
 
 if (
   windowParams.get("t") != "" &&
@@ -68,3 +93,41 @@ function CopyText(text) {
 try {
   document.getElementById("account-settings").click();
 } catch (error) {}
+
+const customEmotes = /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g,
+  emojiTable = {
+    don: "/static/svg/don.svg",
+    katsu: "/static/svg/katsu.svg",
+    desuwa: "/static/svg/desuwa.svg",
+    dirt: "/static/image/dirt_small.gif",
+    armagan: "/static/image/armagan_small.gif",
+  };
+let bioText = document.getElementById("profile-bio-textarea");
+twemoji.parse(document.getElementById("profile-username-header"));
+twemoji.parse(bioText);
+bioText.innerHTML = bioText.innerHTML.replace(customEmotes, (current) => {
+  return `<img src='${
+    emojiTable[current.replace(/:/g, "")]
+  }' class='emoji' draggable='false' alt='${current}'></img>`;
+});
+bioText.innerHTML = converter.makeHtml(bioText.innerHTML);
+
+$("#profile-settings-profile-picture").on("change", function () {
+  readFile(this);
+});
+
+$("#settings-profile").submit(function () {
+  let base64Img;
+  $uploadCrop
+    .croppie("result", {
+      type: "canvas",
+      size: "viewport",
+    })
+    .then(function (resp) {
+      base64Img = resp;
+      if (base64Img.length == 6) {
+        base64Img = null;
+      }
+      hiddenPfpField.value = base64Img;
+    });
+});

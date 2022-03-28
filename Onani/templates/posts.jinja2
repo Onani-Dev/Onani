@@ -11,9 +11,6 @@
 {% extends "base.jinja2" %}
 
 {% block content %}
-<!-- Left panel/Tags -->
-{% include "elements/tag_bar.jinja2" %}
-
 <div id="posts-container">
   {% if posts.items|length <= 0 %}
     <h1>Sorry nothing</h1>
@@ -29,7 +26,7 @@
     {% set page_url = "/posts/" %}
     {% include "elements/pagination.jinja2" %}
   {% endif %}
-
 </div>
-
+<!-- Left panel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
 {% endblock %}

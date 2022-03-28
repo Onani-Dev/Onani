@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-25 00:45:28
+ * @Last Modified time: 2022-03-29 00:04:34
  */
 div#posts-container {
     background-color: var(--ui-foreground-1);
@@ -65,6 +65,8 @@ img.post-thumbnail {
     margin: auto;
     max-height: 150px;
     max-width: 150px;
+    min-width: 80px;
+    min-height: 80px;
     user-select: none;
 
     @include for-mobile-only {
@@ -77,7 +79,11 @@ img.post-thumbnail {
 
 .main-image {
     min-width: 500px;
-    max-width: 500px;
+    max-width: 100%;
+    @include for-mobile-only {
+        min-width: 200px;
+        max-width: 100%;
+    }
 }
 
 .images-container {

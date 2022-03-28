@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-25 01:13:07
+ * @Last Modified time: 2022-03-29 00:14:33
  */
 
 html {
@@ -83,6 +83,10 @@ table {
     padding: 20px;
     width: 100%;
     empty-cells: show;
+
+    @include for-mobile-only {
+        padding: 5px;
+    }
 }
 
 td {
@@ -90,6 +94,12 @@ td {
     border-radius: 0;
     text-align: left;
     padding: 10px;
+
+    @include for-mobile-only {
+        padding: 1px;
+        text-align: center;
+        text-overflow: ellipsis;
+    }
 
     &:first-child {
         border-left: 1px solid var(--ui-border-colour);
@@ -106,6 +116,9 @@ td {
 th {
     @extend td;
     font-weight: 700;
+    @include for-mobile-only {
+        padding: 5px;
+    }
 }
 
 tr {

@@ -2,11 +2,12 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:06:35
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-25 01:06:19
+ * @Last Modified time: 2022-03-29 00:27:12
  */
 
 img.emoji {
     height: 1em;
+    width: 1em;
     width: 1em;
     margin: 0 .05em 0 .1em;
     vertical-align: -0.1em;
@@ -19,7 +20,7 @@ div#outlined-container {
     background-color: var(--ui-foreground-1);
 
     @include for-mobile-only {
-        max-width: 90vw;
+        max-width: 95vw;
     }
 }
 
@@ -41,15 +42,36 @@ div.login-box {
         flex-direction: column;
         align-content: center;
         align-items: center;
+    
+        input#username,
+        input#password,
+        input#email,
+        input#confirm {
+            display: flex;
+            font-size: medium;
+            margin: 5px;
+            padding: 5px 10px 5px 10px;
+            text-align: center;
+            width: 210px;
+            @include for-mobile-only {
+                margin: 10px;
+                padding: 15px;
+            }
+        }
+
+        input#submit {
+            cursor: pointer;
+            display: inline-flex;
+            margin: 5px;
+            padding: 13px;
+        }
     }
-}
 
-a#login-user-button {
-    cursor: pointer;
-}
-
-a#register-user-button {
-    cursor: pointer;
+    // @include for-mobile-only {
+    //     height: 30vh;
+    //     padding: 20px;
+    //     padding-top: 60px;
+    // }
 }
 
 a.tag-list-item {
@@ -86,9 +108,9 @@ a.tag-list-item {
     background-color: var(--tag-meta);
 }
 
-h1.login-bloody-header {
+h1.login-header {
     flex-direction: column;
-    font-family: 'Bloody';
+    font-family: 'Megrim', cursive;
     font-size: 2.5em;
     left: 25%;
     margin-top: 30px;
@@ -100,25 +122,8 @@ h1.login-bloody-header {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-}
-
-input#username,
-input#password,
-input#email,
-input#confirm {
-    display: flex;
-    font-size: medium;
-    margin: 5px;
-    padding: 5px 10px 5px 10px;
-    text-align: center;
-    width: 210px;
-}
-
-input#submit {
-    cursor: pointer;
-    display: inline-flex;
-    margin: 5px;
-    padding: 5px 10px 5px 10px;
+    text-transform: uppercase;
+    font-weight: 900;
 }
 
 .column {
@@ -149,6 +154,10 @@ input#submit {
     a {
         padding: 1px 5px 1px 5px;
         font-size: large;
+
+        @include for-mobile-only {
+            padding: 15px;
+        }
     }
 
     a.focused {
@@ -156,7 +165,7 @@ input#submit {
         text-decoration: underline;
         width: 20px;
         text-align: center;
-        background-color: var(--ui-foreground-1);
+        background-color: #ffffff27;
     }
 }
 
