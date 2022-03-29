@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-29 00:14:33
+ * @Last Modified time: 2022-03-30 01:09:46
  */
 
 html {
@@ -21,7 +21,13 @@ h6 {
 }
 
 body {
+    align-content: flex-start;
+    align-items: stretch;
     background-color: var(--ui-background-colour);
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
 }
 
 input {
@@ -65,11 +71,20 @@ input[type=password] {
 }
 
 footer {
-    bottom: -270px;
+    align-content: center;
+    align-items: center;
+    background-color: var(--ui-foreground-2);
+    border-radius: 15px 15px 0px 0px;
     display: flex;
-    outline: 1px solid var(--ui-colour);
-    position: absolute;
+    flex-wrap: wrap;
+    height: 60px;
+    justify-content: center;
+    margin-top: 50px;
     width: 100%;
+
+    a{
+        margin: 5px;
+    }
 }
 
 textarea {

@@ -142,12 +142,21 @@
       </div>
     {% endif %}
   </div>
-  {% block content %}
-  {% endblock %}
+  <!-- Page content -->
+  <div id="content">
+    {% block content %}
+    {% endblock %}
+  </div>
+
   {% block bottom_scripts %}
   {% endblock %}
-  {# <footer>
-  </footer> #}
+  <footer>
+    <a href="/wiki/">Wiki</a>
+    <a href="/forum/">Forum</a>
+    <a href="/developers/">Developers</a>
+    <a href="/dmca/">DMCA</a>
+    <a href="https://github.com/Onani-Dev/Onani/">GitHub</a>
+  </footer>
 </body>
 
 </html>

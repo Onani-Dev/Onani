@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:06:35
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-29 00:27:12
+ * @Last Modified time: 2022-03-30 00:48:35
  */
 
 img.emoji {
@@ -11,17 +11,6 @@ img.emoji {
     width: 1em;
     margin: 0 .05em 0 .1em;
     vertical-align: -0.1em;
-}
-
-div#outlined-container {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 55vw;
-    background-color: var(--ui-foreground-1);
-
-    @include for-mobile-only {
-        max-width: 95vw;
-    }
 }
 
 div.login-box {
@@ -124,22 +113,6 @@ h1.login-header {
     -webkit-text-fill-color: transparent;
     text-transform: uppercase;
     font-weight: 900;
-}
-
-.column {
-    float: left;
-    width: 50%;
-    display: grid;
-}
-
-.row {
-    max-width: 1000px;
-
-    &:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
 }
 
 .page-navigation {

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-24 01:53:39
+# @Last Modified time: 2022-03-29 20:44:37
 
 from email.policy import default
 import enum
@@ -60,6 +60,10 @@ class Tag(db.Model):
     @property
     def is_alias(self):
         return bool(self.alias_of)
+
+    @property
+    def humanize(self):
+        return self.name.replace("_", " ").capitalize()
 
     def save_to_db(self):
         db.session.add(self)

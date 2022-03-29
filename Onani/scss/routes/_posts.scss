@@ -2,19 +2,16 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-29 00:04:34
+ * @Last Modified time: 2022-03-30 00:15:43
  */
 div#posts-container {
     background-color: var(--ui-foreground-1);
-    left: 0;
     margin-left: auto;
     margin-right: auto;
-    max-width: 50vw;
+    max-width: 70vw;
     min-height: 100px;
-    min-width: 50vw;
+    min-width: 70vw;
     padding: 10px;
-    position: absolute;
-    right: 0;
     width: fit-content;
 
     @include for-mobile-only {

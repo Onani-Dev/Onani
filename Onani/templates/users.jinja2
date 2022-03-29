@@ -8,11 +8,8 @@
 {% block content %}
 <!-- Left panel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
-<!-- Right panel/News -->
-{% include "elements/right_bar.jinja2" %}
 
-
-<div id="outlined-container">
+<div id="content-container">
   <table>
     <tr>
       <th class="profile-picture-cell"></th>
@@ -35,4 +32,7 @@
   {% set page_url = "/users/" %}
   {% include "elements/pagination.jinja2" %}
 </div>
+
+<!-- Right panel/News -->
+{% include "elements/right_bar.jinja2" %}
 {% endblock %}
