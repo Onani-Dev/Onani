@@ -1,13 +1,13 @@
 {% set title = user.username + " - " %}
 {% set ogtitle = user.username %}
-{% set ogdesc = "Check out {}'s profile on Onani!".format(user.username) %}
+{% set ogdesc = "Check out {name}'s profile on Onani!".format(name=user.username) %}
 {% set ogimage = user.get_avatar() %}
 {% extends "base.jinja2" %}
 
 {% if user.ban %}
   {% set username_class = "banned" %}
   {% set pfp_class = "banned" %}
-  {% set user_bio = "User is banned. Reason: " + user.ban.reason %}
+  {% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.utcnow() - user.ban.expires))  %}
 {% else %}
   {% set username_class = "" %}
   {% set pfp_class = "" %}
@@ -34,7 +34,7 @@
         <!-- Username -->
         <h1 id="profile-username-header" class="{{ username_class }}">{{ user.username }}</h1>
         <!-- Permission value -->
-        <h3 id="profile-user-role">{{ user.role.name }}</h3>
+        <h3 id="profile-user-role">{{ user.role.name.capitalize() }}</h3>
       </div>
       <div id="profile-platforms-group">
         <!-- User Platforms -->
@@ -269,7 +269,7 @@
         </div>
       {% endif %}
     {% endif %}
-  <script src="/static/javascript/profile.min.js"></script>
+  <script src="/static/js/profile.min.js"></script>
   </div>
 </div>
 <!-- Right panel/News -->

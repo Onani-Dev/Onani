@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-23 01:24:34
+# @Last Modified time: 2022-03-31 02:37:12
 
 import datetime
 import enum
@@ -57,7 +57,7 @@ class Post(db.Model):
     # The status of the post. if it is deleted for any reason it will become PostStatus.DELETED
     status = db.Column(
         ChoiceType(PostStatus, impl=db.Integer()),
-        default=PostStatus.ACTIVE,
+        default=PostStatus.PENDING,
         nullable=False,
     )
 
@@ -118,7 +118,7 @@ class Post(db.Model):
         Returns:
             int: The Score.
         """
-        return len(self.upvoters) - len(self.downvoters)
+        return len(self.upvoters.all()) - len(self.downvoters.all())
 
     @property
     def sorted_tags(self) -> dict:

@@ -2,21 +2,22 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-30 01:58:57
+ * @Last Modified time: 2022-03-31 02:44:53
  */
 div#posts-container {
     background-color: var(--ui-foreground-1);
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 65vw;
-    min-height: 100px;
-    min-width: 65vw;
+    margin-right: 20px;
+    margin-left: 20px;
+    // max-width: 65vw;
+    // min-height: 100px;
+    // min-width: 65vw;
     padding: 10px;
-    width: fit-content;
+    width: 100%;
 
     @include for-mobile-only {
-        max-width: 90vw;
-        min-width: 90vw;
+        margin-right: auto;
+        margin-left: auto;
+        padding: 0px;
     }
 }
 
@@ -84,24 +85,94 @@ img.post-thumbnail {
 }
 
 .images-container {
-    max-width: 500px;
-    max-height: 800px;
     margin-left: auto;
     margin-right: auto;
     padding: 50px;
     text-decoration: none;
     user-select: none;
 
-    div.file-container {
-        display: grid;
-        height: 100%;
-        justify-content: center;
+    .file-container {
+        display: flex;
         margin: 0 auto;
-        padding: 10px;
-        transition: transform 0.2s ease;
-        width: 140px;
         margin-top: auto;
         margin-bottom: auto;
+        flex-wrap: nowrap;
+        flex-direction: row;
+        align-content: center;
+        justify-content: center;
+        align-items: center;
     }
 }
 
+.post-info-box {
+    background-color: var(--ui-foreground-2);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 50px;
+    min-height: 100px;
+    padding: 15px;
+    width: 60vw;
+
+    @include for-mobile-only {
+        width: 80vw;
+    }
+
+    #post-info-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+
+        #poster-container {
+            padding: 5px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            align-items: center;
+
+            img {
+                border-radius: 10px;
+                margin-right: 10px;
+                width: 30px;
+                height: 30px;
+                margin-top: auto;
+                margin-bottom: auto;
+            }
+
+            a {
+                margin-right: 20px;
+            }
+        }
+
+        #voting-container {
+            align-content: center;
+            background-color: var(--ui-foreground-1);
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: space-around;
+            padding: 10px;
+            width: 80px;
+        }
+    }
+    #post-info-body {
+        display: flex;
+
+        #description-container {
+            width: 50%;
+            background-color: var(--ui-foreground-1);
+            padding: 20px;
+            min-height: 300px;
+            margin: 20px;
+
+            p {
+                white-space: pre-wrap;
+            }
+        }
+
+        #table-container {
+            width: 50%;
+        }
+    }
+}

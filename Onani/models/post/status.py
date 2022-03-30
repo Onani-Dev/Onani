@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-21 23:07:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:46:20
+# @Last Modified time: 2022-03-31 02:35:17
 import enum
 
 
@@ -11,8 +11,9 @@ class PostStatus(enum.Enum):
     Status for Post objects
     """
 
-    DELETED = 0
-    ACTIVE = 1
+    REMOVED = 0
+    PENDING = 1
+    APPROVED = 2
 
     @classmethod
     def get_all(cls):
