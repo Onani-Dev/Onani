@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-19 14:50:20
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-23 23:05:23
+ * @Last Modified time: 2022-03-31 03:13:21
  */
 const tagContainer = document.getElementById("tag-container");
 
@@ -29,6 +29,9 @@ fetch("/api/tags?sort=post_count&order=desc").then((response) => {
       // Add the elements to the page
       tagListItem.appendChild(tagLink);
       tagListItem.appendChild(postCount);
+      tagListItem.onclick = function (e) {
+        location.href = `/posts/?tags=${tag.name}`;
+      };
       tagContainer.appendChild(tagListItem);
     });
   });

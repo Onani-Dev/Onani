@@ -2,11 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 02:23:59
+# @Last Modified time: 2022-03-31 18:18:44
 from flask_wtf import FlaskForm
 from Onani.models import UserSettings
 from wtforms import HiddenField, PasswordField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, Regexp
+from wtforms.widgets import ColorInput
 
 
 class AccountSettingsForm(FlaskForm):
@@ -81,6 +82,10 @@ class AccountProfileForm(FlaskForm):
         "Biography",
         validators=[Optional()],
         render_kw={"id": "profile-settings-bio", "cols": "30", "rows": "10"},
+    )
+
+    profile_colour = StringField(
+        "Profile Colour", validators=[Optional()], widget=ColorInput()
     )
 
     submit = SubmitField(

@@ -20,17 +20,66 @@
 <!-- Left panel/Tags -->
 {% include "elements/post_tag_bar.jinja2" %}
 
-<div id="posts-container">
+<div id="content-container">
   <div class="images-container">
-    <div class="images">
-      {% for file in post.files %}
-        <div class="file-container">
-          <a href="{{ file.url }}"><img class="main-image" src="{{ file.url }}"></a>
-        </div>
-      {% endfor %}
+    {% for file in post.files %}
+      <div class="file-container">
+        <a href="{{ file.url }}"><img class="main-image" src="{{ file.url }}"></a>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="post-info-box">
+    <div id="post-info-header">
+
+      <div id="poster-container" style="background-color:{{ post.uploader.profile_colour }}">
+        <img src="{{ post.uploader.get_avatar(size=30) }}" alt="{{ post.uploader.username }}" title="{{ post.uploader.username }}">
+        <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
+      </div>
+
+      <div id="voting-container">
+        <i class="fa-solid fa-thumbs-up"></i>
+        <div id="post-score-count">{{ post.score }}</div>
+        <i class="fa-solid fa-thumbs-down"></i>
+      </div>
+
+    </div>
+
+    <div id="post-info-body">
+      <div id="description-container">
+        {% if post.description %}
+          {% set description = post.description %}
+        {% else %}
+          {% set description = "Post has no description." %}
+        {% endif %}
+        <p>{{ description }}</p>
+      </div>
+
+      <div id="table-container">
+
+        <table>
+          <tr>
+            <th>Uploaded At</th>
+            <td>{{ post.uploaded_at.strftime('%d/%m/%Y %I:%M %p') }} UTC ({{ humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - post.uploaded_at) }})</td>
+          </tr>
+          <tr>
+            <th>Status</th>
+            <td>{{ post.status.name.capitalize() }}</td>
+          </tr>
+          <tr>
+            <th>Rating</th>
+            <td>{{ post.rating.name.capitalize() }}</td>
+          </tr>
+          <tr>
+            <th>Source</th>
+            <td>{% if post.source %}<a href="{{ post.source }}" target="_blank">{{ post.source }}</a>{% else %}No source available.{% endif %}</td>
+          </tr>
+        </table>
+
+      </div>
+
     </div>
   </div>
-  <table>
+  {# <table>
     <tr>
     	<th>Uploaded At</th>
         <td>{{ post.uploaded_at }}</td>
@@ -55,11 +104,11 @@
     	<th>Uploader</th>
         <td><a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a></td>
     </tr>
-  </table>
+  </table> #}
 </div>
 
-<script type="text/javascript">
+{# <script type="text/js">
   $(document).ready(function(){$('.images').slick({dots: true, infinite: false});});
-</script>
+</script> #}
 
 {% endblock %}

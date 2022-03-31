@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-30 01:58:08
+ * @Last Modified time: 2022-03-31 03:15:47
  */
 // Main Onani logo
 #logo {
@@ -216,7 +216,7 @@ div.sidenav {
         display: block;
         font-size: 22px;
         margin: 10px;
-        padding: 8px 8px 8px 32px;
+        padding: 8px;
         text-decoration: none;
         transition: 0.3s;
     }
@@ -292,6 +292,11 @@ div#content {
     justify-content: space-between;
     align-items: flex-start;
     min-height: 100vh;
+
+    @include for-mobile-only {
+        flex-direction: column;
+        padding: 10px;
+    }
 }
 
 div#content-container {
@@ -301,7 +306,9 @@ div#content-container {
     background-color: var(--ui-foreground-1);
 
     @include for-mobile-only {
-        max-width: 95vw;
+        margin-right: auto;
+        margin-left: auto;
+        padding: 0px;
     }
 }
 
@@ -310,11 +317,15 @@ div#content-container {
 div#left-panel {
     font-size: 16px;
     margin-left: 25px;
-    width: 20vw;
+    width: 15vw;
     word-break: break-all;
 
     @include for-mobile-only {
-        display: none;
+        order: 2;
+        margin-top: 20px;
+        margin-right: auto;
+        margin-left: auto;
+        width: 100%;
     }
     
     div#tag-container {
@@ -331,6 +342,39 @@ div#left-panel {
             flex-direction: row;
             flex-wrap: nowrap;
             justify-content: space-between;
+            cursor: pointer;
+
+            &.banned {
+                background-color: var(--tag-banned);
+                cursor: not-allowed;
+
+                a {
+                    color: var(--tag-banned);
+                    pointer-events: none;
+                    cursor: not-allowed;
+                }
+            }
+
+            &.general {
+                background-color: var(--tag-general);
+            }
+
+            &.artist {
+                background-color: var(--tag-artist);
+            }
+
+            &.character {
+                background-color: var(--tag-character);
+            }
+
+            &.copyright {
+                background-color: var(--tag-copyright);
+            }
+
+            &.meta {
+                background-color: var(--tag-meta);
+            }
+
         }
     }
 

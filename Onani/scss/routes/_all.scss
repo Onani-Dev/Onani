@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:06:35
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-30 00:48:35
+ * @Last Modified time: 2022-03-30 23:23:30
  */
 
 img.emoji {
@@ -65,36 +65,6 @@ div.login-box {
 
 a.tag-list-item {
     text-decoration: none;
-}
-
-.banned {
-    background-color: var(--tag-banned);
-    cursor: not-allowed;
-    a {
-        color: var(--tag-banned);
-        pointer-events: none;
-        cursor: not-allowed;
-    }
-}
-
-.general {
-    background-color: var(--tag-general);
-}
-
-.artist {
-    background-color: var(--tag-artist);
-}
-
-.character {
-    background-color: var(--tag-character);
-}
-
-.copyright {
-    background-color: var(--tag-copyright);
-}
-
-.meta {
-    background-color: var(--tag-meta);
 }
 
 h1.login-header {

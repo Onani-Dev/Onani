@@ -10,7 +10,7 @@
 <div class="login-box">
   <h1 class="login-header">Register</h1>
   <!-- Form -->
-  <form action="/register/" method="POST">
+  <form action="/register/" method="POST" enctype='multipart/form-data'>
     {{ form.csrf_token }}
     {{ form.username() }}
     {{ form.email() }}

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-20 01:04:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 02:53:32
+# @Last Modified time: 2022-03-31 18:35:48
 from flask import redirect, render_template, request
 from flask_login import current_user
 from Onani.controllers import create_avatar
@@ -41,6 +41,11 @@ def settings_profile():
 
         if form.profile_picture.data:
             create_avatar(current_user, form.profile_picture.data)
+
+        if form.profile_colour.data:
+            current_user.settings.profile_colour = (
+                form.profile_colour.data
+            )  # TODO Validation of hex code
 
         db.session.commit()
 
