@@ -21,14 +21,8 @@ const emojiTable = {
 
 jQuery(function ($) {
   $("#chat-message-area").on("scroll", function () {
-    if (
-      $(this).scrollTop() + $(this).innerHeight() >=
-      $(this)[0].scrollHeight
-    ) {
-      scrolled = false;
-    } else {
-      scrolled = true;
-    }
+    scrolled = $(this).scrollTop() + $(this).innerHeight() >=
+      $(this)[0].scrollHeight ? false : true;
   });
 });
 
