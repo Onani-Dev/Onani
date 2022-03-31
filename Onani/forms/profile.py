@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-31 18:18:44
+# @Last Modified time: 2022-03-31 23:29:36
 from flask_wtf import FlaskForm
 from Onani.models import UserSettings
 from wtforms import HiddenField, PasswordField, StringField, SubmitField, TextAreaField
@@ -85,7 +85,12 @@ class AccountProfileForm(FlaskForm):
     )
 
     profile_colour = StringField(
-        "Profile Colour", validators=[Optional()], widget=ColorInput()
+        "Profile Colour",
+        validators=[
+            Optional(),
+            Regexp(r"^#(?:[0-9a-fA-F]{3}){1,2}$", message="Must be a valid hex code."),
+        ],
+        widget=ColorInput(),
     )
 
     submit = SubmitField(

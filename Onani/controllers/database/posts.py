@@ -1,17 +1,39 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
-# @Date:   2022-03-24 02:05:16
+# @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-24 02:46:49
+# @Last Modified time: 2022-04-01 01:51:25
 from cgi import FieldStorage
 
 from flask import request
 from flask_login import current_user
 from Onani.forms import UploadForm
-from Onani.models import Post, PostRating, Tag
+from Onani.models import Post, PostComment, PostRating, Tag, User
 from PIL import UnidentifiedImageError
 
 from . import create_files, db
+
+
+def create_comment(author: User, post: Post, content: str) -> PostComment:
+    """Create a comment on a post
+
+    Args:
+        author (User): The user to post the comment on behalf of
+        post (Post): The post to comment on
+        content (str): The comment's body
+
+    Returns:
+        PostComment: The post database object
+    """
+    comment = PostComment()
+    comment.author = author
+    comment.post = post
+    comment.content = content
+
+    db.session.add(comment)
+    db.session.commit()
+
+    return comment
 
 
 def upload_post(form: UploadForm):
@@ -31,7 +53,7 @@ def upload_post(form: UploadForm):
 
     # Delete duplicate tags and replace spaces with underscores + split the tags
     tags = {
-        (t.lower().strip().replace(" ", "_") if t else None)
+        (t.lower().strip().replace(" ", "_") if t and len(t) < 32 else None)
         for t in form.tags.data.split(",")
     }
 

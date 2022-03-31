@@ -4,6 +4,10 @@
 {% set ogimage = user.get_avatar() %}
 {% extends "base.jinja2" %}
 
+{% block meta %}
+<meta name="theme-color" content="{{ user.profile_colour }}">
+{% endblock %}
+
 {% if user.ban %}
   {% set username_class = "banned" %}
   {% set pfp_class = "banned" %}
