@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 21:17:50
+# @Last Modified time: 2022-03-31 13:10:47
 from datetime import datetime, timedelta, timezone
 
 import humanize
@@ -71,13 +71,13 @@ def login():
 @main.route("/register/", methods=["GET", "POST"])
 def register():
     # The registration form object
-    form = RegistrationForm(request.form)
+    form = RegistrationForm()
 
     # Logged in users don't need to register again.
     if current_user.is_authenticated:
         return redirect(f"/users/{current_user.id}")
 
-    if request.method == "POST" and form.validate():
+    if form.validate_on_submit():
         user = User()
         try:
             user.username = form.username.data

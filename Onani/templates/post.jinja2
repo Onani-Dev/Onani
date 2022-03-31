@@ -59,7 +59,7 @@
         <table>
           <tr>
             <th>Uploaded At</th>
-            <td>{{ post.uploaded_at.strftime('%d/%m/%Y %I:%M %p') }} UTC ({{ humanize.naturaltime(datetime.datetime.utcnow() - post.uploaded_at) }})</td>
+            <td>{{ post.uploaded_at.strftime('%d/%m/%Y %I:%M %p') }} UTC ({{ humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - post.uploaded_at) }})</td>
           </tr>
           <tr>
             <th>Status</th>

@@ -7,7 +7,7 @@
 {% if user.ban %}
   {% set username_class = "banned" %}
   {% set pfp_class = "banned" %}
-  {% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.utcnow() - user.ban.expires))  %}
+  {% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires))  %}
 {% else %}
   {% set username_class = "" %}
   {% set pfp_class = "" %}
