@@ -167,6 +167,10 @@
                     <!-- Croppie container -->
                     <div id="upload-image"></div>
                   </div>
+                  <div class="input-section">
+                    {{ profile_form.profile_colour.label}}
+                    {{ profile_form.profile_colour(value=user.profile_colour)}}
+                  </div>  
                 </div>
               </div>
 
