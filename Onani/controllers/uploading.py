@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-24 02:05:16
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-24 02:46:49
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-04 00:21:07
 from cgi import FieldStorage
+from typing import Union
 
 from flask import request
 from flask_login import current_user
@@ -14,7 +15,7 @@ from PIL import UnidentifiedImageError
 from . import create_files, db
 
 
-def upload_post(form: UploadForm):
+def upload_post(form: UploadForm) -> Union[Post, None]:
     # Create the post
     post = Post()
 
