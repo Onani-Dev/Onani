@@ -9,7 +9,7 @@ import enum
 class TagType(enum.Enum):
     """
     Types for Tag Objects
-    Can be: ARTIST, CHARACTER, COPYRIGHT, GENERAL, META
+    Can be: BANNED, ARTIST, CHARACTER, COPYRIGHT, GENERAL, META
     """
 
     BANNED = 0
