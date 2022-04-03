@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-31 02:37:12
+# @Last Modified time: 2022-04-03 21:23:44
 
 import datetime
 import enum
@@ -29,12 +29,6 @@ post_tags = db.Table(
     "post_tags",
     db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
     db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
-)
-
-post_comments = db.Table(
-    "post_comments",
-    db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
-    db.Column("comment_id", db.Integer, db.ForeignKey("comments.id")),
 )
 
 
@@ -100,7 +94,7 @@ class Post(db.Model):
 
     # The post's comments. will be filtered for naughty words or other bad things.
     comments = db.relationship(
-        "PostComment", secondary=post_comments, backref="post_comments", lazy="dynamic"
+        "PostComment", backref="comments", lazy="dynamic", viewonly=True
     )
 
     @validates("description")

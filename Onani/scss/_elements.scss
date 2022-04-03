@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
- * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-31 02:26:29
+ * @Last Modified by:   Mattlau04
+ * @Last Modified time: 2022-04-03 19:12:15
  */
 
 html {
@@ -139,6 +139,14 @@ th {
 }
 
 tr {
+    &:nth-child(even) {
+        background-color: var(--ui-foreground-1);
+    }
+
+    &:nth-child(odd) {
+        background-color: var(--ui-foreground-2);
+    }
+
     td.profile-picture-cell {
         width: 50px;
         white-space: nowrap;

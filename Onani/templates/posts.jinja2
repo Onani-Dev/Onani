@@ -21,7 +21,7 @@
     <div class="grid">
       {% for post in posts.items %}
         <div class="post-thumbnail-container">
-          <a href="/posts/{{ post.id }}"><img src="/thumbnail/150x150{{ post.files[0].url }}" class="post-thumbnail"></a>
+          <a href="/posts/{{ post.id }}"><img src="{{ post.files[0].thumbnail() }}" class="post-thumbnail"></a>
         </div>
       {% endfor %}
     </div>

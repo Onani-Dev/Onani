@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-23 16:16:39
+# @Last Modified time: 2022-04-03 18:45:47
 
 import datetime
 import html
@@ -86,7 +86,9 @@ class User(UserMixin, db.Model):
     settings = db.relationship("UserSettings", uselist=False, backref="user_settings")
 
     # The users comments on posts.
-    comments = db.relationship("PostComment", backref="user_comments", lazy="dynamic")
+    comments = db.relationship(
+        "PostComment", backref="user_comments", lazy="dynamic", viewonly=True
+    )
 
     # The users uploaded posts.
     posts = db.relationship("Post", backref="user_posts", lazy="dynamic", viewonly=True)

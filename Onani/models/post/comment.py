@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 23:34:00
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-01 00:14:31
+# @Last Modified time: 2022-04-03 21:27:27
 import datetime
 import html
 
@@ -27,11 +27,13 @@ class PostComment(db.Model):
 
     # Author user object
     author: User = db.relationship(
-        "User", backref="post_comments", lazy="joined", uselist=False
+        "User", backref="user_comments", lazy="joined", uselist=False
     )
 
     # The post relationship
     post_id: int = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
+
+    post = db.relationship("Post", backref="posts", lazy="joined", uselist=False)
 
     # The time that the comment was created
     created_at: datetime.datetime = db.Column(

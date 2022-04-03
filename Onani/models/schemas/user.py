@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-09 18:30:19
-# @Last Modified by:   dirt3009
-# @Last Modified time: 2022-03-14 19:11:15
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-03 18:13:02
 from Onani.models.user import User, UserSettings
 
 from . import ma
@@ -28,4 +28,5 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
             "email",
             "api_key",
             "tag_blacklist",
+            "login_id",
         )

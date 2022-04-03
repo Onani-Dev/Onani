@@ -13,7 +13,8 @@
 
 {% block meta %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="/thumbnail/500x500{{ post.files[0].url }}">
+<meta name="twitter:image" content="{{ post.files[0].thumbnail(500) }}">
+<meta name="author" content="{{'{score}👍 | {comments}💬'.format(score=post.score, comments=post.comments.all()|length) }}">
 {% endblock %}
 
 {% block content %}
@@ -21,6 +22,9 @@
 {% include "elements/post_tag_bar.jinja2" %}
 
 <div id="content-container">
+  <script>
+    const postID = {{ post.id }};
+  </script>
   <div class="images-container">
     {% for file in post.files %}
       <div class="file-container">
@@ -37,9 +41,9 @@
       </div>
 
       <div id="voting-container">
-        <i class="fa-solid fa-thumbs-up"></i>
+        <div id="upvote-button" class="fa-solid fa-thumbs-up"></div>
         <div id="post-score-count">{{ post.score }}</div>
-        <i class="fa-solid fa-thumbs-down"></i>
+        <div id="downvote-button" class="fa-solid fa-thumbs-down"></div>
       </div>
 
     </div>
@@ -71,7 +75,7 @@
           </tr>
           <tr>
             <th>Source</th>
-            <td>{% if post.source %}<a href="{{ post.source }}" target="_blank">{{ post.source }}</a>{% else %}No source available.{% endif %}</td>
+            <td>{% if post.source %}<a href="{{ '{source}?pid={pid}'.format(source=post.source, pid=post.id)  }}" target="_blank">{{ post.source }}</a>{% else %}No source available.{% endif %}</td>
           </tr>
         </table>
 
@@ -79,36 +83,17 @@
 
     </div>
   </div>
-  {# <table>
-    <tr>
-    	<th>Uploaded At</th>
-        <td>{{ post.uploaded_at }}</td>
-    </tr>
-    <tr>
-    	<th>Status</th>
-        <td>{{ post.status.name }}</td>
-    </tr>
-    <tr>
-    	<th>Rating</th>
-        <td>{{ post.rating.name }}</td>
-    </tr>
-    <tr>
-    	<th>Source</th>
-        <td><a href="{{ post.source }}">{{ post.source }}</a></td>
-    </tr>
-    <tr>
-    	<th>Description</th>
-        <td>{{ post.description }}</td>
-    </tr>
-    <tr>
-    	<th>Uploader</th>
-        <td><a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a></td>
-    </tr>
-  </table> #}
+  <div class="comments-box">
+    <h1>Comments</h1>
+    <div class="post-comment-input-container">
+      <input id="post-comment-input" placeholder="Type your comment here...">
+      <button id="post-comment-submit">Post</button>
+    </div>
+    <div id="comment-container">
+      Loading Comments...
+    </div>
+    <script src="/static/js/comments.min.js"></script>
+  </div>
 </div>
-
-{# <script type="text/js">
-  $(document).ready(function(){$('.images').slick({dots: true, infinite: false});});
-</script> #}
-
+{# $(document).ready(function(){$('.images').slick({dots: true, infinite: false});}); #}
 {% endblock %}

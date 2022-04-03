@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 03:48:33
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 01:02:37
+# @Last Modified time: 2022-04-03 17:43:23
 
 from functools import wraps
 
@@ -12,6 +12,12 @@ from Onani.models import UserRoles
 
 
 def role_required(role: UserRoles):
+    """Require a role to use a function.
+
+    Args:
+        role (UserRoles): The role >= to check for.
+    """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):

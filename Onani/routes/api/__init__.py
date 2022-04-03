@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:42:18
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-16 01:11:14
+# @Last Modified time: 2022-04-03 18:18:23
 
 
 from json import dumps
@@ -16,6 +16,16 @@ from .. import admin_api, csrf, db, main_api
 def make_api_response(
     data: dict = None, error: str = None, code: int = 200
 ) -> Tuple[Response, int]:
+    """Create a standardised response for the api.
+
+    Args:
+        data (dict, optional): The JSON data to return. Defaults to None.
+        error (str, optional): The error, if applicable. Defaults to None.
+        code (int, optional): The HTTP code. Defaults to 200.
+
+    Returns:
+        Tuple[Response, int]: The Response and HTTP code.
+    """
     if data is None:
         data = {}
     ok = code not in range(400, 600)
@@ -27,4 +37,4 @@ def make_api_response(
     )
 
 
-from . import _admin, index, news, posts, profile, tags, users
+from . import _admin, comments, index, news, posts, profile, tags, users

@@ -2,19 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-03 14:51:11
+# @Last Modified time: 2022-04-03 20:09:44
 
 from cgi import FieldStorage
 from typing import List
 
 from flask import request
 from flask_login import current_user
+from Onani.controllers.utils import startswith_min
 from Onani.forms import UploadForm
-from Onani.models import Post, PostComment, PostRating, Tag, User
+from Onani.models import Post, PostComment, PostRating, Tag, TagType, User
 from PIL import UnidentifiedImageError
 
 from . import create_files, db
-from Onani.controllers.utils import startswith_min
 
 
 def create_comment(author: User, post: Post, content: str) -> PostComment:
@@ -41,13 +41,18 @@ def create_comment(author: User, post: Post, content: str) -> PostComment:
 
 def format_tag(tag: str) -> str:
     """Takes in a string and formats it to be a tag's name"""
-    tag = tag.lower().strip()
-    if not tag:
-        return ''
+    CHAR_BLACKLIST = [chr(i) for i in range(32)]  # ASCII char 0-31
 
-    if 32 < len(tag):
+    tag = tag.lower().strip()
+
+    tag = "".join(c for c in tag if c not in CHAR_BLACKLIST)
+
+    if not tag:
+        return ""
+
+    if len(tag) > 32:
         # Maybe display a warning to the user?
-        return ''
+        return ""
 
     tag = tag.replace(" ", "_")
     return tag
@@ -62,7 +67,7 @@ def parse_tags(post: Post, tags: List[str]) -> List[Tag]:
 
     Returns:
         List[Tag]: The tags to add to the post
-    """    
+    """
 
     taglist = []
 
@@ -75,42 +80,50 @@ def parse_tags(post: Post, tags: List[str]) -> List[Tag]:
 
         # We handle special tags
         new_tag_type = None
-        if ':' in tag_str: 
-            prefix, tag_no_prefix = tag_str.split(':', 1)
+        if ":" in tag_str:
+            prefix, tag_no_prefix = tag_str.split(":", 1)
+            prefix = prefix.strip()
+            tag_no_prefix = tag_no_prefix.strip()
             # Checks for meta tags
-            if prefix == 'pool' or startswith_min('collection', prefix, 3):
+            if prefix == "pool" or startswith_min("collection", prefix, 3):
                 # TODO: Add the post to the pool
-                continue # don't add the tag to the post
+                continue  # don't add the tag to the post
 
-            if startswith_min('source', prefix, 3):
+            if startswith_min("source", prefix, 3):
                 # TODO: add source validation
                 post.source = tag_no_prefix
-                continue # don't add the tag to the post
-            
+                continue  # don't add the tag to the post
+
+            # TODO: implement rating metatag
+
             # We check for types
             for type in TagType:
-                if type == TagType.BANNED: # You can't make a tag "BANNED"
+                if type == TagType.BANNED:  # You can't make a tag "BANNED"
                     continue
-                if startswith_min(type.name.lower(), prefix, min_len=3): # We don't want 1-2 char bc ambiguous
+                if startswith_min(
+                    type.name.lower(), prefix, min_len=3
+                ):  # We don't want 1-2 char bc ambiguous
                     # make the tag 'tag' of type 'type'
                     new_tag_type = type
+                    tag_str = tag_no_prefix
                     break
 
         # /!\ We should only reach here if the tag is not a metatag
         # that shouldn't be added to the post
 
         # Check if the tag exists and make it if not
-        tag = Tag.query.filter_by(name=tag_str).first()
-        if not tag:
-            # make it and add it to the session
-            tag = Tag(name=t, post_count=0)
-            db.session.add(tag)
+        if tag_str:  # Musn't be empty (can happen with 'char:' for exemple)
+            tag = Tag.query.filter_by(name=tag_str).first()
+            if not tag:
+                # make it and add it to the session
+                tag = Tag(name=tag_str, post_count=0)
+                db.session.add(tag)
 
-        if new_tag_type is not None:
-            tag.type = new_tag_type
-        
-        taglist.append(tag)
-            
+            if new_tag_type is not None:
+                tag.type = new_tag_type
+
+            taglist.append(tag)
+
     db.session.commit()
     return taglist
 
@@ -131,6 +144,7 @@ def upload_post(form: UploadForm):
     datas = (f.stream.read() for f in files)
 
     # Delete duplicate tags and replace spaces with underscores + split the tags
+    # TODO: Remove this treatment as it's already performed by the call to parse_tags() a few lines below
     tags = {
         (t.lower().strip().replace(" ", "_") if t and len(t) < 32 else None)
         for t in form.tags.data.split(",")
@@ -145,23 +159,25 @@ def upload_post(form: UploadForm):
     except ValueError as e:
         form.files.errors.append(str(e))
     else:
+        tags = parse_tags(post, tags)
         for t in tags:
-            if t:
-                # Check if the tag exists
-                tag = Tag.query.filter_by(name=t).first()
-                if not tag:
-                    # make it and add it to the session
-                    tag = Tag(name=t, post_count=0)
-                    db.session.add(tag)
+            # add the tag to the post
+            post.tags.append(t)
 
-                # add the tag to the post
-                post.tags.append(tag)
+            if t.explicit:
+                post.rating = PostRating.EXPLICIT
 
-                if tag.explicit:
-                    post.rating = PostRating.EXPLICIT
+            # Increase the tag's post count
+            t.post_count += 1
 
-                # Increase the tag's post count
-                tag.post_count += 1
+        # for t in tags:
+        #     if t:
+        #         # Check if the tag exists
+        #         tag = Tag.query.filter_by(name=t).first()
+        #         if not tag:
+        #             # make it and add it to the session
+        #             tag = Tag(name=t, post_count=0)
+        #             db.session.add(tag)
 
         # increase the user's post count
         current_user.post_count = len(current_user.posts.all())

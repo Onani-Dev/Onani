@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:47:50
+# @Last Modified time: 2022-04-03 23:44:55
 import os
 
 from sqlalchemy.orm import validates
@@ -32,6 +32,9 @@ class File(db.Model):
                 raise ValueError("File already exists.")
             return hash_
         return None
+
+    def thumbnail(self, size: int = 150) -> str:
+        return f"/thumbnail/{size}x{size}{self.url}"
 
     def delete(self):
         """Delete this file from the database and the disk.
