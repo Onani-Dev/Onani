@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-04 04:05:08
+ * @Last Modified time: 2022-04-05 00:45:52
  */
 const commentTextInput = document.getElementById("post-comment-input"),
   commentContainer = document.getElementById("comment-container"),
@@ -16,7 +16,7 @@ function contructCommentElement(comment) {
     commentContent = document.createElement("p");
 
   commentPostContainer.className = "comment-post";
-  userProfilePicture.src = comment.author.settings.avatar;
+  userProfilePicture.src = comment.author.avatar_thumbnail;
   userName.href = `/users/${comment.author.id}`;
   userName.innerText = comment.author.username;
   commentContent.innerHTML = comment.content;
@@ -41,9 +41,10 @@ function loadComments() {
 
   $.ajax(settings).done(function (response) {
     commentContainer.innerHTML = "";
-    if (response.data.length == 0) {
-      noCom = document.createElement("h2");
-      noCom.innerText = "No Comments on this post.";
+    if (response.data.length === 0) {
+      let noCom = document.createElement("h2");
+      noCom.id = "no-comments-message";
+      noCom.innerHTML = "No Comments on this post.";
       commentContainer.appendChild(noCom);
     }
     response.data.forEach((comment) => {
@@ -68,6 +69,10 @@ function postComment() {
     };
 
     $.ajax(settings).done(function (response) {
+      let noCommentsMessage = document.getElementById("no-comments-message");
+      if (noCommentsMessage) {
+        noCommentsMessage.parentNode.removeChild(noCommentsMessage);
+      }
       $(commentContainer).prepend(contructCommentElement(response));
       commentTextInput.value = "";
     });

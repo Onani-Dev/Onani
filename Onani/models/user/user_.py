@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-03 18:45:47
+# @Last Modified time: 2022-04-05 00:12:31
 
 import datetime
 import html
@@ -210,6 +210,10 @@ class User(UserMixin, db.Model):
         if size:
             return f"/thumbnail/{size}x{size}{self.settings.avatar}"
         return self.settings.avatar
+
+    @property
+    def avatar_thumbnail(self):
+        return self.get_avatar(150)
 
     @property
     def profile_colour(self):

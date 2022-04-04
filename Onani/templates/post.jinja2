@@ -1,20 +1,18 @@
 {% set title = "Post - " %}
+{% set ogtitle = "{score}👍 | {comments}💬".format(score=post.score, comments=post.comments.all()|length) %}
+{% set ogimage = post.files[0].url %}
 
 {% if post.description %}
-  {% set ogtitle = post.description  %}
+  {% set ogdesc = post.description %}
 {% else %}
-  {% set ogtitle = "Post"  %}
+  {% set ogdesc = "View on Onani." %}
 {% endif %}
-
-{% set ogdesc = "View on Onani." %}
-{% set ogimage = post.files[0].url %}
 
 {% extends "base.jinja2" %}
 
 {% block meta %}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="{{ post.files[0].thumbnail(500) }}">
-<meta name="author" content="{{'{score}👍 | {comments}💬'.format(score=post.score, comments=post.comments.all()|length) }}">
 {% endblock %}
 
 {% block content %}
@@ -28,7 +26,7 @@
   <div class="images-container">
     {% for file in post.files %}
       <div class="file-container">
-        <a href="{{ file.url }}"><img class="main-image" src="{{ file.url }}"></a>
+        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}"></a>
       </div>
     {% endfor %}
   </div>
@@ -85,10 +83,12 @@
   </div>
   <div class="comments-box">
     <h1>Comments</h1>
-    <div class="post-comment-input-container">
-      <input id="post-comment-input" placeholder="Type your comment here...">
-      <button id="post-comment-submit">Post</button>
-    </div>
+    {% if not current_user.is_anonymous %}
+      <div class="post-comment-input-container">
+        <input id="post-comment-input" placeholder="Type your comment here...">
+        <button id="post-comment-submit">Post</button>
+      </div>
+    {% endif %}
     <div id="comment-container">
       Loading Comments...
     </div>
