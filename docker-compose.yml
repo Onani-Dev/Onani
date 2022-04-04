@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-17 14:43:30
+# @Last Modified time: 2022-04-05 01:19:48
 version: '3.8'
 
 services:
@@ -12,8 +12,10 @@ services:
     - 5000
     environment:
       FLASK_APP: run
-      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev}
-      DB_PASSWORD: ${DB_PASSWORD:-onani_db}
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
+      RECAPTCHA_PUBLIC_KEY: ${RECAPTCHA_PUBLIC_KEY}
+      RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
+      DB_PASSWORD: ${DB_PASSWORD} 
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,7 +30,7 @@ services:
       context: .
       dockerfile: ./nginx/dockerfile
     ports:
-      - 80:80
+      - 8080:80
     depends_on:
       - flask
     volumes:
@@ -38,14 +40,14 @@ services:
 
   postgres:
     image: postgres:14-alpine
-    ports:
-      - 5432:5432
+    expose:
+      - 5432
     volumes:
       - database:/var/lib/postgresql/data/
     environment:
       - PGUSER=onani_db
       - POSTGRES_USER=onani_db
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-onani_db}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=onani_db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]

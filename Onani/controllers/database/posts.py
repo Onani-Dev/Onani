@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-04 18:01:59
+# @Last Modified time: 2022-04-05 01:45:16
 
 from cgi import FieldStorage
 from typing import List
@@ -124,7 +124,6 @@ def parse_tags(post: Post, tags: List[str]) -> List[Tag]:
 
             taglist.append(tag)
 
-    db.session.commit()
     return taglist
 
 
@@ -143,12 +142,8 @@ def upload_post(form: UploadForm):
     # Turn the files into bytes.
     datas = (f.stream.read() for f in files)
 
-    # Delete duplicate tags and replace spaces with underscores + split the tags
-    # TODO: Remove this treatment as it's already performed by the call to parse_tags() a few lines below
-    tags = {
-        (t.lower().strip().replace(" ", "_") if t and len(t) < 32 else None)
-        for t in form.tags.data.split(",")
-    }
+    # Split and Delete duplicate tags
+    tags = set(form.tags.data.split(","))
 
     # save the files and add them to the post
     try:
@@ -169,15 +164,6 @@ def upload_post(form: UploadForm):
 
             # Increase the tag's post count
             t.post_count += 1
-
-        # for t in tags:
-        #     if t:
-        #         # Check if the tag exists
-        #         tag = Tag.query.filter_by(name=t).first()
-        #         if not tag:
-        #             # make it and add it to the session
-        #             tag = Tag(name=t, post_count=0)
-        #             db.session.add(tag)
 
         # increase the user's post count
         current_user.post_count = len(current_user.posts.all())

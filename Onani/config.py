@@ -2,17 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:16:09
+# @Last Modified time: 2022-04-05 01:47:37
 import os
 
 # Flask Config
 STATIC_PATH = "/static/"
 SECRET_KEY = os.environ["FLASK_SECRET_KEY"]
+TESTING = os.environ.get(bool("TESTING"), False)
 
 if SECRET_KEY == "dev":
     print(
         "Warning! SECRET_KEY is not set. Make sure to run 'python generate.py' before starting Onani."
     )
+
 
 # SQLAlchemy Config
 SQLALCHEMY_DATABASE_URI = (
