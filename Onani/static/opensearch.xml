@@ -2,7 +2,7 @@
   @Author: dirt3009
   @Date:   2022-03-15 21:30:48
   @Last Modified by:   kapsikkum
-  @Last Modified time: 2022-03-21 22:58:06
+  @Last Modified time: 2022-04-06 22:53:24
 -->
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
 <ShortName>Onani</ShortName>
@@ -10,5 +10,5 @@
 <InputEncoding>UTF-8</InputEncoding>
 <Image width="16" height="16" type="image/png">/static/favicon-16x16.png</Image>
 <Url type="text/html" method="get" template="/posts/?tags={searchTerms}"/>
-<moz:SearchForm>/posts/</moz:SearchForm>
+<moz:SearchForm>/posts</moz:SearchForm>
 </OpenSearchDescription>

@@ -2,29 +2,30 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-31 03:15:47
+ * @Last Modified time: 2022-04-07 02:03:35
  */
 // Main Onani logo
 #logo {
     cursor: pointer;
     display: inline-block;
-    font-family: 'Megrim', cursive;
-    font-size: 36px;
     margin-bottom: auto;
     margin-left: 10px;
     margin-right: 10px;
     margin-top: auto;
-    text-align: center;
-    text-decoration: none;
-    user-select: none;
-    text-transform: uppercase;
-    background: -webkit-linear-gradient(90deg, var(--text-logo-colour-1) 0%, var(--text-logo-colour-2) 80%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900;
+    fill: url(#onani-logo-gradient) #fff;
+    width: 90px;
 
     @include for-mobile-only {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    @include for-tablet-portrait-only {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    @include for-tablet-landscape-only {
         margin-left: 20px;
         margin-right: 20px;
     }
@@ -42,14 +43,22 @@ header.navbar {
 
     div.mobile-sidebar-open {
         display: none;
+        margin-left: auto;
+        margin-right: 15px;
+        margin-top: auto;
+        margin-bottom: auto;
+        padding: 14px 16px;
 
         @include for-mobile-only {
+            display: block; 
+        }
+
+        @include for-tablet-portrait-only {
+            display: block; 
+        }
+
+        @include for-tablet-landscape-only {
             display: block;
-            margin-left: auto;
-            margin-right: 15px;
-            margin-top: auto;
-            margin-bottom: auto;
-            padding: 14px 16px;
         }
     }
 
@@ -61,6 +70,14 @@ header.navbar {
         margin-right: 15px;
 
         @include for-mobile-only {
+            display: none;
+        }
+
+        @include for-tablet-portrait-only {
+            display: none;
+        }
+
+        @include for-tablet-landscape-only {
             display: none;
         }
 
@@ -98,6 +115,13 @@ header.navbar {
             display: none;
         }
 
+        @include for-tablet-portrait-only {
+            display: none;
+        }
+
+        @include for-tablet-landscape-only {
+            display: none;
+        }
         div.user-container {
             background-color: var(--ui-foreground-header);
             display: flex;
@@ -140,6 +164,14 @@ header.navbar {
         @include for-mobile-only {
             display: none;
         }
+        @include for-tablet-portrait-only {
+            display: none;
+        }
+
+        @include for-tablet-landscape-only {
+            display: none;
+        }
+
         a {
             align-self: center;
             color: var(--ui-colour);
@@ -192,6 +224,16 @@ header.navbar {
 
         @include for-mobile-only {
             display: none;
+        }
+
+        @include for-tablet-portrait-only {
+            margin-left: auto;
+            // margin-right: auto;
+        }
+
+        @include for-tablet-landscape-only {
+            margin-left: auto;
+            // margin-right: auto;
         }
     }
     
@@ -318,6 +360,7 @@ div#left-panel {
     font-size: 16px;
     margin-left: 25px;
     width: 15vw;
+    min-width: 220px;
     word-break: break-all;
 
     @include for-mobile-only {
@@ -327,7 +370,16 @@ div#left-panel {
         margin-left: auto;
         width: 100%;
     }
-    
+
+    @include for-tablet-portrait-only {
+        width: 30vw;
+        min-width: 0;
+    }
+
+    // @include for-tablet-landscape-only {
+    //     width: 30vw;
+    // }
+
     div#tag-container {
         background-color: var(--ui-foreground-2);
         padding: 10px;
@@ -386,10 +438,20 @@ div#left-panel {
 div#right-panel {
     right: 0;
     margin-right: 25px;
+    min-width: 220px;
     width: 20vw;
+
     @include for-mobile-only {
         display: none;
     }
+
+    @include for-tablet-portrait-only {
+        min-width: 0;
+    }
+
+    // @include for-tablet-landscape-only {
+    //     width: 30vw;
+    // }
 }
 
 div#news-container {

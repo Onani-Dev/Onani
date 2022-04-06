@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-25 00:15:48
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-25 00:41:30
+ * @Last Modified time: 2022-04-06 23:28:59
  */
 @mixin for-mobile-only {
     @media (max-width: 599px) {
@@ -11,25 +11,25 @@
 }
 
 @mixin for-tablet-portrait-only {
-    @media (max-width: 600px) {
+    @media (min-width: 600px) and (max-width: 899px) {
         @content;
     }
 }
 
 @mixin for-tablet-landscape-only {
-    @media (max-width: 900px) {
+    @media (min-width: 900px) and (max-width: 1199px) {
         @content;
     }
 }
 
 @mixin for-desktop-only {
-    @media (max-width: 1200px) {
+    @media (min-width: 1200px) and (max-width: 1799px) {
         @content;
     }
 }
 
 @mixin for-big-desktop-only {
-    @media (max-width: 1800px) {
+    @media (min-width: 1800px) {
         @content;
     }
 }

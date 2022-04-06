@@ -6,16 +6,11 @@
   <!-- META -->
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
-  <link rel="manifest" href="/static/site.webmanifest">
   <meta name="apple-mobile-web-app-title" content="Onani">
   <meta name="application-name" content="Onani">
   <meta name="msapplication-TileColor" content="#670002">
   <meta name="theme-color" content="#670002">
   <meta name="description" content="{{ ogdesc }}">
-  <link rel="search" type="application/opensearchdescription+xml" href="/static/opensearch.xml" title="Onani">
   <meta name="twitter:image:src" content="{{ ogimage }}" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="{{ ogtitle }}" />
@@ -30,6 +25,13 @@
   <meta name="exoclick-site-verification" content="bc71ddb7a4f0e8e0b29f4839dfdfd6c9"> #}
   {% block meta %}
   {% endblock %}
+
+  <!-- LINKS -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="search" type="application/opensearchdescription+xml" href="/static/opensearch.xml" title="Onani">
+  <link rel="manifest" href="/static/site.webmanifest">
 
   <!-- STYLES -->
   <link rel="stylesheet" type="text/css" href="/static/css/onani.style.min.css">
@@ -66,7 +68,7 @@
   <header class="navbar">
 
     <!-- logo -->
-    <div id="logo" onclick="location.href='/'">Onani</div>
+    <img id="logo" src="/static/svg/onani.svg" alt="Onani" onclick="location.href='/'">
 
     <!-- Navbar links -->
     <div class="site-links">
@@ -145,14 +147,14 @@
       </div>
     {% endif %}
   </div>
+
   <!-- Page content -->
   <div id="content">
     {% block content %}
     {% endblock %}
   </div>
 
-  {% block bottom_scripts %}
-  {% endblock %}
+  <!-- Footer -->
   <footer>
     <a href="/wiki/">Wiki</a>
     <a href="/forum/">Forum</a>
@@ -160,6 +162,9 @@
     <a href="/dmca/">DMCA</a>
     <a href="https://github.com/Onani-Dev">GitHub</a>
   </footer>
+
+  {% block bottom_scripts %}
+  {% endblock %}
 </body>
 
 </html>
