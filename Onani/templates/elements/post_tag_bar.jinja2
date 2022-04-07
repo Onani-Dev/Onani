@@ -7,12 +7,14 @@
         No tags on this post.
       {% endif %}
       {% for t in sorted_tags %}
-        <h2>{{ t }}</h2>
-        {% for tag in sorted_tags[t] %}
-          <li class=" {{ tag.type.name.lower() }}" onclick="location.href='/posts/?tags={{ tag.name }}'">
-            <a href="/posts/?tags={{ tag.name }}" class="tag-list-item">{{ tag.name }}</a>
-          </li>
-        {% endfor %}
+        <div class="tag-section">
+          <h2>{{ t }}</h2>
+          {% for tag in sorted_tags[t] %}
+            <li class=" {{ tag.type.name.lower() }}" onclick="location.href='/posts/?tags={{ tag.name }}'">
+              <a href="/posts/?tags={{ tag.name }}" class="tag-list-item">{{ tag.name }}</a>
+            </li>
+          {% endfor %}
+        </div>
       {% endfor %}
     </div>
   </div>

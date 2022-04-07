@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-05 00:45:52
+ * @Last Modified time: 2022-04-08 03:10:08
  */
 const commentTextInput = document.getElementById("post-comment-input"),
   commentContainer = document.getElementById("comment-container"),
@@ -13,20 +13,53 @@ function contructCommentElement(comment) {
     commentPostContainer = document.createElement("div"),
     userProfilePicture = document.createElement("img"),
     userName = document.createElement("a"),
-    commentContent = document.createElement("p");
+    commentContent = document.createElement("p"),
+    commentInfoContainer = document.createElement("div"),
+    commentBody = document.createElement("div"),
+    commentTime = document.createElement("div");
 
+  // add the class to the post container
   commentPostContainer.className = "comment-post";
+
+  // Add the properties to the profile picture
   userProfilePicture.src = comment.author.avatar_thumbnail;
+
+  userProfilePicture.onclick = function (e) {
+    location.href = `/users/${comment.author.id}`;
+  };
+
+  // Add the link to the user's profile
   userName.href = `/users/${comment.author.id}`;
   userName.innerText = comment.author.username;
+
+  // add the comment content
   commentContent.innerHTML = comment.content;
 
+  // Add class to the profile container
   userProfileContainer.className = "comment-post-profile";
+
+  // Add the profile picture
   userProfileContainer.appendChild(userProfilePicture);
-  userProfileContainer.appendChild(userName);
+
+  // Use luxon to make human readable time
+  commentTime.innerHTML = `${luxon.DateTime.fromISO(
+    comment.created_at
+  ).toFormat("fff")}`;
+
+  // Add comment author username and time
+  commentInfoContainer.appendChild(userName);
+  commentInfoContainer.appendChild(commentTime);
+
+  commentInfoContainer.className = "comment-post-info";
+
+  commentBody.className = "comment-post-data";
+
+  commentBody.appendChild(commentInfoContainer);
+
+  commentBody.appendChild(twemoji.parse(commentContent));
 
   commentPostContainer.appendChild(userProfileContainer);
-  commentPostContainer.appendChild(commentContent);
+  commentPostContainer.appendChild(commentBody);
 
   return commentPostContainer;
 }
