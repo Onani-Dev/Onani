@@ -1,8 +1,8 @@
 #!/bin/bash
 # @Author: kapsikkum
 # @Date:   2022-03-02 19:19:49
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-09 21:52:44
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-07 21:28:32
 flask db init
 flask init-db
 flask db migrate
