@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-09 01:12:42
+ * @Last Modified time: 2022-04-09 01:24:39
  */
 div#posts-container {
     background-color: var(--ui-foreground-1);
@@ -176,6 +176,7 @@ img.post-thumbnail {
             padding: 20px;
             min-height: 300px;
             margin: 20px;
+
             @include for-mobile-only {
                 width: auto;
             }
@@ -190,7 +191,9 @@ img.post-thumbnail {
         }
 
         #table-container {
+            margin-top: 20px;
             width: 50%;
+
             @include for-mobile-only {
                 width: auto;
             }

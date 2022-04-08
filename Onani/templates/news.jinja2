@@ -10,12 +10,22 @@
 {% include "elements/tag_bar.jinja2" %}
 
 <div id="content-container" class="grid-container">
-  {% for news in news.items %}
-    <div class="grid-item">
-      <img src="/static/android-chrome-512x512.png" class="pfp-list">
-      <a href="/news/{{ news.id }}">{{ news.title }}<h6>{{ news.content[:15] }}{{'...' if news.content|length > 15 else ''}}</h6></a>
-    </div>
-  {% endfor %}
+  <table>
+    <tr>
+      <th>Title</th>
+      <th>Category</th>
+      <th>Date</th>
+      <th>Author</th>
+    </tr>
+    {% for news in news.items %}
+        <tr>
+          <td>{{ news.title }}</td>
+          <td>{{ news.category }}</td>
+          <td><a href="/users/{{ news.author.id }}" alt="{{ news.author.username }}">{{ news.author.username }}</a></td>
+          <td class="date-format">{{ news.created_at.isoformat() }}</td>
+        </tr>
+    {% endfor %}
+  </table>
   {% set pagination = news %}
   {% set page_url = "/news/" %}
   {% include "elements/pagination.jinja2" %}

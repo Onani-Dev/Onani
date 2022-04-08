@@ -2,8 +2,20 @@
  * @Author: kapsikkum
  * @Date:   2022-03-28 22:16:17
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-28 22:22:32
+ * @Last Modified time: 2022-04-09 01:38:28
  */
+
+const dateFormatElements = document.getElementsByClassName("date-format");
+
+for (let element of dateFormatElements) {
+  try {
+    element.innerHTML = luxon.DateTime.fromISO(element.innerHTML).toFormat(
+      "fff"
+    );
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 document.onkeyup = function (e) {
   if (e.keyCode == 27) {

@@ -2,13 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:33:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 18:59:02
+# @Last Modified time: 2022-04-09 02:06:43
 import datetime
 import html
 
 from sqlalchemy.orm import validates
+from sqlalchemy_utils import ChoiceType
 
-from .. import db
+from . import NewsType, db
 
 
 class NewsPost(db.Model):
@@ -21,10 +22,17 @@ class NewsPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     author = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(
-        db.DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        db.DateTime(timezone=True),
+        default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.UnicodeText, nullable=False)
+
+    type = db.Column(
+        ChoiceType(NewsType, impl=db.Integer()),
+        default=NewsType.ANNOUNCEMENT,
+        nullable=False,
+    )
 
     @validates("title")
     def validate_title(self, key, title):

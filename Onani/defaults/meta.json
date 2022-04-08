@@ -42,5 +42,10 @@
     "name": "animated",
     "type": 5,
     "description": "Posts with GIFs"
+},
+{
+    "name": "tagme",
+    "type": 5,
+    "description": "Posts with a small amount of tags. Requesting tags."
 }
 ]
