@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
- * @Last Modified by:   Mattlau04
- * @Last Modified time: 2022-04-03 19:12:15
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-04-09 00:48:23
  */
 
 html {
@@ -95,19 +95,17 @@ textarea {
 
 table {
     border-spacing: 0px 0px;
-    padding: 20px;
     width: 100%;
     empty-cells: show;
     table-layout: fixed;
     overflow-wrap: break-word;
-
-    @include for-mobile-only {
-        padding: 5px;
-    }
+    border: 2px solid var(--ui-border-colour);
+    border-radius: 1em;
+    margin-top: 20px;
+    overflow: hidden;
 }
 
 td {
-    border: 1px solid var(--ui-border-colour);
     border-radius: 0;
     text-align: left;
     padding: 10px;
@@ -118,24 +116,21 @@ td {
         text-overflow: ellipsis;
     }
 
-    &:first-child {
-        border-left: 1px solid var(--ui-border-colour);
-        border-radius: 15px 0px 0px 15px;
-    }
+    // &:first-child {
+    //     border-left: 1px solid var(--ui-border-colour);
+    //     // border-radius: 15px 0px 0px 15px;
+    // }
 
-    &:last-child {
-        border-right: 1px solid var(--ui-border-colour);
-        border-radius: 0px 15px 15px 0px;
-    }
+    // &:last-child {
+    //     border-right: 1px solid var(--ui-border-colour);
+    //     // border-radius: 0px 15px 15px 0px;
+    // }
 }
 
 
 th {
     @extend td;
     font-weight: 700;
-    @include for-mobile-only {
-        padding: 5px;
-    }
 }
 
 tr {
