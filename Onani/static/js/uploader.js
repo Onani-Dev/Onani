@@ -2,10 +2,8 @@
  * @Author: kapsikkum
  * @Date:   2020-10-12 02:03:30
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-19 14:56:52
+ * @Last Modified time: 2022-04-08 22:03:08
  */
-"use strict";
-
 const fileInput = document.getElementById("file-upload"),
   uploadButton = document.getElementById("upload-button"),
   sourceInput = document.getElementById("file-source"),
@@ -19,6 +17,7 @@ const reader = new FileReader();
 let imageList;
 
 function displayImage(input) {
+  "use strict";
   if (input.files && input.files[0]) {
     // Set the imageList to the input files
     imageList = input.files;
