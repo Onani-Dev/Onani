@@ -20,7 +20,7 @@
     {% for news in news.items %}
         <tr>
           <td>{{ news.title }}</td>
-          <td>{{ news.category }}</td>
+          <td>{{ news.type }}</td>
           <td><a href="/users/{{ news.author.id }}" alt="{{ news.author.username }}">{{ news.author.username }}</a></td>
           <td class="date-format">{{ news.created_at.isoformat() }}</td>
         </tr>

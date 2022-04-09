@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-03 23:44:55
+# @Last Modified time: 2022-04-10 03:54:08
 import os
 
 from sqlalchemy.orm import validates
@@ -20,15 +20,16 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     post = db.Column(db.Integer, db.ForeignKey("posts.id"))
     url = db.Column(db.String, unique=True)
-    hash = db.Column(db.String, unique=True, index=True)
+    sha256_hash = db.Column(db.String, unique=True, index=True)
+    md5_hash = db.Column(db.String, index=True)
     width = db.Column(db.Integer)
     height = db.Column(db.Integer)
     filesize = db.Column(db.Integer)
 
-    @validates("hash")
+    @validates("sha256_hash")
     def validate_hash(self, key, hash_):
         if hash_:
-            if File.query.filter(File.hash == hash_).first():
+            if File.query.filter(File.sha256_hash == hash_).first():
                 raise ValueError("File already exists.")
             return hash_
         return None

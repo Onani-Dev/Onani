@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-28 23:46:38
+ * @Last Modified time: 2022-04-10 04:11:29
  */
 const tabcontent = document.getElementsByClassName("profile-tab-content"),
   tablinks = document.getElementsByClassName("profile-tab-link"),
@@ -10,7 +10,9 @@ const tabcontent = document.getElementsByClassName("profile-tab-content"),
   settingsTabLinks = document.getElementsByClassName("settings-tab-link"),
   pageURL = new URL(window.location.href),
   windowParams = new URLSearchParams(window.location.search),
-  hiddenPfpField = document.getElementById("hidden-base64-profile-picture");
+  hiddenPfpField = document.getElementById("hidden-base64-profile-picture"),
+  profileColourSelector = document.getElementById("profile-colour"),
+  profileContentContainer = document.getElementById("content-container");
 
 let $uploadCrop,
   converter = new showdown.Converter();
@@ -131,3 +133,7 @@ $("#settings-profile").submit(function () {
       hiddenPfpField.value = base64Img;
     });
 });
+
+profileColourSelector.onchange = function (e) {
+  profileContentContainer.style.backgroundColor = profileColourSelector.value;
+};

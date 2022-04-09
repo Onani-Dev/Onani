@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-31 23:29:36
+# @Last Modified time: 2022-04-10 04:08:40
 from flask_wtf import FlaskForm
 from Onani.models import UserSettings
 from wtforms import HiddenField, PasswordField, StringField, SubmitField, TextAreaField
@@ -90,6 +90,9 @@ class AccountProfileForm(FlaskForm):
             Optional(),
             Regexp(r"^#(?:[0-9a-fA-F]{3}){1,2}$", message="Must be a valid hex code."),
         ],
+        render_kw={
+            "id": "profile-colour",
+        },
         widget=ColorInput(),
     )
 

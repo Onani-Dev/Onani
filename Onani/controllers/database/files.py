@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-05 01:42:04
+# @Last Modified time: 2022-04-10 04:03:54
 
 import hashlib
 import io
@@ -62,29 +62,40 @@ def get_file_data(file_data: bytes, path: str = "/images/"):
     # Get MD5 hash
     hash_md5 = hashlib.md5(image_file.getbuffer()).hexdigest()
 
+    # Get SHA256 hash
+    hash_sha256 = hashlib.sha256(image_file.getbuffer()).hexdigest()
+
     # Open and get width, height and file type
     im = Image.open(image_file)
     width, height = im.size
     file_type = im.format.lower()
 
     # The files URL to write to
-    url = f"{path}{hash_md5}.{file_type}"
+    url = f"{path}{hash_sha256}.{file_type}"
 
-    return image_file, filesize, hash_md5, width, height, url, file_type
+    return image_file, filesize, hash_sha256, hash_md5, width, height, url, file_type
 
 
 def create_files(post: Post, file_datas: List[bytes]) -> List[File]:
     meta_tags = []
 
     for file_data in file_datas:
-        image_file, filesize, hash_md5, width, height, url, file_type = get_file_data(
-            file_data
-        )
+        (
+            image_file,
+            filesize,
+            hash_sha256,
+            hash_md5,
+            width,
+            height,
+            url,
+            file_type,
+        ) = get_file_data(file_data)
 
         # File is here to prevent writing to disk if this fails.
         file = File(
             url=url,
-            hash=hash_md5,
+            md5_hash=hash_md5,
+            sha256_hash=hash_sha256,
             width=width,
             height=height,
             filesize=filesize,
@@ -109,9 +120,16 @@ def create_avatar(user: User, base64_file: str) -> str:
     avatar = b64decode(base64_file.split(",")[1])
 
     # The info
-    image_file, filesize, hash_md5, width, height, url, file_type = get_file_data(
-        avatar, path="/avatars/"
-    )
+    (
+        image_file,
+        filesize,
+        hash_sha256,
+        hash_md5,
+        width,
+        height,
+        url,
+        file_type,
+    ) = get_file_data(avatar, path="/avatars/")
 
     # Check the width and height
     if width != height:

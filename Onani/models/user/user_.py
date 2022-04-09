@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-05 00:12:31
+# @Last Modified time: 2022-04-10 04:05:07
 
 import datetime
 import html
@@ -136,8 +136,8 @@ class User(UserMixin, db.Model):
         """
         if not password:
             raise ValueError("Password not provided")
-        if len(password) < 5 or len(password) > 50:
-            raise ValueError("Password must be between 5 and 50 characters")
+        if len(password) < 4 or len(password) > 50:
+            raise ValueError("Password must be between 4 and 50 characters")
 
         self.password_hash = argon2.using(rounds=8).hash(password)
 
