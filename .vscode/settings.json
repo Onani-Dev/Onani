@@ -7,5 +7,6 @@
             "extensionName": ".min.css",
             "savePath": "/Onani/static/css"
         }
-    ]
+    ],
+    "es6-css-minify.minifyOnSave": "yes"
 }
