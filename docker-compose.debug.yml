@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-07 21:28:36
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-10 15:16:03
 version: '3.8'
 
 services:
@@ -12,6 +12,7 @@ services:
     - 5000:5000
     environment:
       FLASK_APP: run
+      FLASK_ENV: development
       FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev}
       FLASK_SQLALCHEMY_ECHO: "True"
       TESTING: "True"
@@ -26,6 +27,7 @@ services:
     - avatars:/avatars
     - migrations:/onani/migrations
     - logs:/logs
+    - ./:/onani
 
   nginx:
     build: 
@@ -39,6 +41,7 @@ services:
     - images:/images
     - avatars:/avatars
     - logs:/logs
+    - ./Onani/static:/static
 
   postgres:
     image: postgres:14-alpine
