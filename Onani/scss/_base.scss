@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-08 02:54:22
+ * @Last Modified time: 2022-04-11 00:20:59
  */
 // Main Onani logo
 #logo {
@@ -12,8 +12,7 @@
     margin-left: 10px;
     margin-right: 10px;
     margin-top: auto;
-    fill: url(#onani-logo-gradient) #fff;
-    width: 90px;
+    width: 6em;
 
     @include for-mobile-only {
         margin-left: 20px;
@@ -34,11 +33,10 @@
 // Navbar on top of page
 header.navbar {
     display: flex;
-    height: 85px;
-    max-height: 85;
+    height: 5.3125em;
+    max-height: 5.3125em;
     justify-content: left;
     margin-bottom: 25px;
-    outline-offset: -1px;
     text-align: left;
 
     div.mobile-sidebar-open {
@@ -107,7 +105,7 @@ header.navbar {
     div.user-profile-card {
         align-self: center;
         margin-left: auto;
-        padding: 15px;
+        padding: 1em;
 
         @include for-mobile-only {
             display: none;
@@ -137,8 +135,10 @@ header.navbar {
                 width: 16px;
                 min-width: 16px;
                 max-width: 16px;
+                min-height: 16px;
                 background-color: #ffffff34;
                 padding: 5px 10px 5px 10px;
+                border-radius: 0.7em;
             }
 
             div.user-profile-link {
@@ -191,8 +191,8 @@ header.navbar {
         align-self: center;
         display: inline-flex;
         font-size: 16px;
-        height: 20px;
-        margin-left: 50px;
+        // height: 20px;
+        margin-left: 1em;
         background-color: var(--ui-foreground-1);
         padding: 11px 16px 11px 6px;
         width: min-content;
@@ -361,8 +361,8 @@ div#content-container {
 div#left-panel {
     font-size: 16px;
     margin-left: 25px;
-    width: 15vw;
-    min-width: 220px;
+    width: 14em;
+    min-width: 14em;
     word-break: break-all;
 
     @include for-mobile-only {
@@ -373,19 +373,10 @@ div#left-panel {
         width: 100%;
     }
 
-    @include for-tablet-portrait-only {
-        width: 30vw;
-        min-width: 0;
-    }
-
-    // @include for-tablet-landscape-only {
-    //     width: 30vw;
-    // }
-
     div#tag-container {
         background-color: var(--ui-foreground-2);
         padding: 10px;
-        min-height: 100px;
+        min-height: 6em;
         border-radius: 0px 0px 15px 15px;
 
         .tag-section {
@@ -452,8 +443,8 @@ div#left-panel {
 div#right-panel {
     right: 0;
     margin-right: 25px;
-    min-width: 220px;
-    width: 20vw;
+    min-width: 14em;
+    width: 14em;
 
     @include for-mobile-only {
         display: none;

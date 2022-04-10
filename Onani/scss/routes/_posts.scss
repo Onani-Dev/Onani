@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-09 01:24:39
+ * @Last Modified time: 2022-04-11 00:31:06
  */
 div#posts-container {
     background-color: var(--ui-foreground-1);
@@ -20,26 +20,35 @@ div#posts-container {
 
 div.grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(11em, 1fr));
     width: 100%;
 
     @include for-mobile-only {
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(6em, 1fr));
+    }
+
+    @include for-tablet-portrait-only {
+        grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
     }
 }
 
 div.post-thumbnail-container {
     display: grid;
-    height: 150px;
+    height: 10em;
     justify-content: center;
     margin: 0 auto;
     padding: 10px;
     transition: transform 0.2s ease;
-    width: 140px;
+    width: 10em;
 
     @include for-mobile-only {
-        height: 90px;
-        width: 90px;
+        height: 5em;
+        width: 5em;
+    }
+
+    @include for-tablet-portrait-only {
+        height: 8em;
+        width: 8em;
     }
 
     &:hover {
@@ -58,17 +67,25 @@ img.post-thumbnail {
     align-self: center;
     display: flex;
     margin: auto;
-    max-height: 150px;
-    max-width: 150px;
-    min-width: 80px;
-    min-height: 80px;
+    max-height: 10em;
+    max-width: 10em;
+    min-width: 5em;
+    min-height: 5em;
     user-select: none;
+    border-radius: 0.3em;
 
     @include for-mobile-only {
-        max-height: 90px;
-        max-width: 90px;
-        min-width: 50px;
-        min-height: 50px;
+        max-height: 5em;
+        max-width: 5em;
+        min-width: 2.5em;
+        min-height: 2.5em;
+    }
+
+    @include for-tablet-portrait-only {
+        max-height: 8em;
+        max-width: 8em;
+        min-width: 4em;
+        min-height: 4em;
     }
 }
 
@@ -285,6 +302,11 @@ img.post-thumbnail {
                     display: flex;
                     padding: 5px;
                     opacity: 0.9;
+                    
+                    a {
+                        margin-top: auto;
+                        margin-bottom: auto;
+                    }
 
                     div {
                         margin-left: 10px;

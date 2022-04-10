@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-29 00:39:16
+ * @Last Modified time: 2022-04-11 00:06:54
 */
 @import "mixins";
 
@@ -25,7 +25,7 @@
     padding: 0;
     scrollbar-color: var(--ui-foreground-header) var(--ui-background-colour);
     scrollbar-width: thin;
-    border-radius: 15px;
+    border-radius: 1em;
 }
 
 ::-webkit-scrollbar-thumb {
