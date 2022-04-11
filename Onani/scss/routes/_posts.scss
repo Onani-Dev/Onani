@@ -2,9 +2,10 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-11 00:31:06
+ * @Last Modified time: 2022-04-11 15:10:01
  */
-div#posts-container {
+
+#posts-container {
     background-color: var(--ui-foreground-1);
     margin-right: 20px;
     margin-left: 20px;
@@ -18,7 +19,7 @@ div#posts-container {
     }
 }
 
-div.grid {
+.grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(11em, 1fr));
     width: 100%;
@@ -32,7 +33,7 @@ div.grid {
     }
 }
 
-div.post-thumbnail-container {
+.post-thumbnail-container {
     display: grid;
     height: 10em;
     justify-content: center;
@@ -127,8 +128,8 @@ img.post-thumbnail {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 50px;
-    min-height: 100px;
-    padding: 15px;
+    min-height: 6em;
+    padding: 1em;
     width: 60vw;
     overflow-wrap: anywhere;
 

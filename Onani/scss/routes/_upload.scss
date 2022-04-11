@@ -2,13 +2,84 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:19:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-11 00:01:34
+ * @Last Modified time: 2022-04-12 02:05:33
  */
  div#uploader-container {
     width: 50vw;
     margin-right: auto;
     margin-left: auto;
     background-color: var(--ui-foreground-1);
+    // text-align: center;
+
+    #uploader-title-bar {
+        align-content: center;
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        margin-bottom: 2em;
+        margin-left: 1em;
+        margin-right: 1em;
+        margin-top: 1em;
+
+        #left-button {
+            background-color: #ffffff15;
+            padding: 1em;
+            cursor: pointer;
+            transition: 100ms;
+
+            &:hover {
+                transform: scale(1.05);
+            }
+        }
+
+        #right-button {
+            @extend #left-button;
+        }
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-content: center;
+        justify-content: center;
+        align-items: center;
+
+        .uploader-panel {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+
+            #preview-image-container {
+                align-content: center;
+                align-items: center;
+                background-color: var(--ui-foreground-2);
+                display: flex;
+                justify-content: center;
+                max-height: 30em;
+                max-width: 30em;
+                min-height: 30em;
+                min-width: 30em;
+                padding: 10px;
+
+                #preview-image {
+                    object-fit: contain;
+                    max-width: 30em;
+                    max-height: 30em;
+                    border-radius: 0
+                }
+            }
+            .uploader-input-group {
+                @extend .uploader-panel;
+                margin-top: 1em;
+            }
+        }
+    }
 
     @include for-mobile-only {
         margin-right: auto;
@@ -59,27 +130,6 @@ input#upload-button {
     margin-right: 30px;
 }
 
-div#preview-image-container {
-    border: 1px solid var(--border-colour);
-    display: inline-block;
-    padding: 10px;
-    min-width: 350px;
-    min-height: 350px;
-    max-width: 350px;
-    max-height: min-content;
-    background-color: var(--ui-foreground-2);
-}
-
-img#preview-image {
-    top: 50%;
-    left: 50%;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    align-content: center;
-    width: 350px;
-    max-width: 350px;
-}
 
 select#rating {
     background-color: var(--ui-foreground-2);

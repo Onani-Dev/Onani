@@ -83,7 +83,9 @@
 
     <!-- Search Box -->
     <div id="search-box">
-      <input id="search-input" type="text" placeholder="Search posts..." spellcheck="false" autocapitalize="off" value="{{ search_box_value }}">
+      <div class="search-autocomplete">
+        <input id="search-input" type="text" placeholder="Search posts..." spellcheck="false" autocapitalize="off" autocomplete="off" value="{{ search_box_value }}">
+      </div>
       <i class="fas fa-search" id="search-icon" onclick="searchPosts();"></i>
       <script src="/static/js/search.min.js"></script>
     </div>

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 00:55:57
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 21:37:05
+# @Last Modified time: 2022-04-12 02:41:11
 from flask import abort, request
 from flask_login import login_required
 from Onani.models import Tag, TagSchema
@@ -12,7 +12,6 @@ from . import main_api, make_api_response
 
 
 @main_api.route("/tags", methods=["GET"])
-# @login_required
 def get_tags():
     page = request.args.get("page", "0")
     per_page = request.args.get("per_page", "25")
@@ -51,3 +50,20 @@ def get_tags():
             "total": tags.total,
         }
     )
+
+
+@main_api.route("/tags/autocomplete", methods=["GET"])
+def get_tags_autocomplete():
+    if query := request.args.get("query"):
+        tags = Tag.query.filter(
+            Tag.name.like(f"{query[:32].replace(' ', '_')}%")
+        ).order_by(Tag.post_count.desc())
+        return make_api_response(
+            {
+                "data": TagSchema(many=True, exclude=("posts",)).dump(
+                    sorted(tags, key=lambda t: (t.type.name, t.name))
+                )
+            }
+        )
+
+    return make_api_response({"data": []})

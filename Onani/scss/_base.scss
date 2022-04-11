@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-11 00:20:59
+ * @Last Modified time: 2022-04-12 03:38:03
  */
 // Main Onani logo
 #logo {
@@ -187,11 +187,11 @@ header.navbar {
         }
     }
     // Onani search box
-    div#search-box {
+    #search-box {
+        position: relative;
         align-self: center;
         display: inline-flex;
         font-size: 16px;
-        // height: 20px;
         margin-left: 1em;
         background-color: var(--ui-foreground-1);
         padding: 11px 16px 11px 6px;
@@ -200,8 +200,10 @@ header.navbar {
         // Magnifying glass icon
         #search-icon {
             cursor: pointer;
-            transition: all 0.5s ease;
+            transition: all 100ms ease;
             width: 20px;
+            margin-top: auto;
+            margin-bottom: auto;
 
             &:hover {
                 transform: scale(1.1);
@@ -209,16 +211,21 @@ header.navbar {
         }
 
         // Search box input
-        input#search-input {
-            background-color: var(--ui-foreground-1);
-            border: 0;
-            display: inline-flex;
-            font-size: 16px;
-            padding: 0px 15px 0px 15px;
-            text-align: start;
-            vertical-align: middle;
-            width: 215px;
+        .search-autocomplete {
+            position: relative;
+            display: inline-block;
+            #search-input {
+                background-color: var(--ui-foreground-1);
+                border: 0;
+                display: inline-flex;
+                font-size: 16px;
+                padding: 0px 15px 0px 15px;
+                text-align: start;
+                vertical-align: middle;
+                width: 215px;
+            }
         }
+        
 
         @include for-mobile-only {
             display: none;
@@ -234,8 +241,8 @@ header.navbar {
             // margin-right: auto;
         }
     }
-    
 }
+
 
 div.sidenav {
     background-color: var(--ui-foreground-header);
@@ -510,6 +517,33 @@ div.side-container {
             margin-bottom: auto;
             // size: 20em;
         }
+    }
+}
+
+.page-navigation {
+    align-content: center;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    outline: 1px solid var(--ui-colour);
+    padding: 5px;
+
+    a {
+        padding: 1px 5px 1px 5px;
+        font-size: large;
+
+        @include for-mobile-only {
+            padding: 15px;
+        }
+    }
+
+    a.focused {
+        @extend a;
+        text-decoration: underline;
+        width: 20px;
+        text-align: center;
+        background-color: #ffffff27;
     }
 }
 

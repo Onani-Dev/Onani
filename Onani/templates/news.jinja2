@@ -12,17 +12,17 @@
 <div id="content-container" class="grid-container">
   <table>
     <tr>
-      <th>Title</th>
       <th>Category</th>
+      <th>Title</th>
       <th>Date</th>
       <th>Author</th>
     </tr>
     {% for news in news.items %}
         <tr>
-          <td>{{ news.title }}</td>
-          <td>{{ news.type }}</td>
-          <td><a href="/users/{{ news.author.id }}" alt="{{ news.author.username }}">{{ news.author.username }}</a></td>
+          <td>{{ news.type.name.capitalize() }}</td>
+          <td><a href="/news/{{ news.id }}">{{ news.title }}</a></td>
           <td class="date-format">{{ news.created_at.isoformat() }}</td>
+          <td><a href="/users/{{ news.author.id }}" alt="{{ news.author.username }}">{{ news.author.username }}</a></td>
         </tr>
     {% endfor %}
   </table>

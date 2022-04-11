@@ -13,42 +13,24 @@
 
 {% block content %}
 <div id="uploader-container">
-  <h1>Upload File</h1>
-  <form action="/upload/" method="POST" enctype="multipart/form-data" style="display: flex;">
+  <div id="uploader-title-bar">
+    <div id="left-button" class="fa-solid fa-chevron-left"></div>
+    <h1 id="uploader-title-text">Upload File</h1>
+    <div id="right-button" class="fa-solid fa-chevron-right"></div>
+  </div>
+  <form action="/upload/" method="POST" enctype="multipart/form-data">
     {{ form.csrf_token }}
-    <div class="row uploader">
-      <div class="column uploader">
+    <div id="first-panel" class="uploader-panel">
+      <div id="preview-image-container">
+        <img id="preview-image">
+      </div>
+      <div class="uploader-input-group">
         {{ form.files.label }}
         {{ form.files() }}
       </div>
-      <div class="column uploader">
-        {{ form.source.label }}
-        {{ form.source() }}
-      </div>
-      <div class="column uploader">
-        {{ form.tags.label }}
-        {{ form.tags() }}
-      </div>
-      <div class="column uploader">
-        {{ form.description.label }}
-        {{ form.description() }}
-      </div>
-      <div class="column uploader">
-        {{ form.rating.label }}
-        {{ form.rating() }}
-      </div>
-      <div class="column uploader">
-        {{ form.recaptcha() }}
-        {{ form.submit() }}
-      </div>
     </div>
-
-    <div class="row uploader">
-    <div class="column uploader">
-        <div id="preview-image-container"><img id="preview-image"></div>
-      </div>
+    <div id="second-panel" class="uploader-panel">
     </div>
-
     <script src="/static/js/uploader.min.js"></script>
   </form>
 </div>
