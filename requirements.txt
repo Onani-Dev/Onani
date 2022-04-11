@@ -25,3 +25,4 @@ requests>=2.24.0
 sqlalchemy-utils>=0.36.8
 ujson>=3.2.0
 Werkzeug>=2.0.3
+traceback-with-variables>=2.0.4
