@@ -1,27 +1,30 @@
 # -*- coding: utf-8 -*-
 # @Author: Mattlau04
 # @Date:   2022-04-11 21:20:25
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-11 22:26:19
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-12 16:29:38
 
 import uuid
-from . import db
-from traceback_with_variables import format_exc
-from Onani.models.error import Error
 
-def log_error(e: Exception) -> uuid.UUID:
+from Onani.models import Error
+from traceback_with_variables import format_exc
+
+from . import db
+
+
+def log_error(e: Exception) -> Error:
     """Logs an exception to the DB
 
     Args:
-        e (Exception): the exception to log
+        e (Exception): The exception to log
 
     Returns:
-        UUID: the identifier for the error
+        Error: The logged error object
     """
     traceback = format_exc(e)
 
-    err = Error(traceback = traceback)
+    err = Error(traceback=traceback)
 
     db.session.add(err)
     db.session.commit()
-    return err.id
+    return err

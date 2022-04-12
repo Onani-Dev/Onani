@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-18 23:54:08
+# @Last Modified time: 2022-04-12 19:56:37
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
@@ -34,10 +34,9 @@ def news(article_id=None):
     article_id = int(article_id)
 
     article = NewsPost.query.filter_by(id=article_id).first_or_404()
-    user = User.query.filter_by(id=article.author).first()
 
     page = request.args.get("p", "0")
     page = int(page) if page.isdigit() else 0
 
     # Render the user page
-    return render_template("/news_article.jinja2", article=article, user=user)
+    return render_template("/news_article.jinja2", article=article)

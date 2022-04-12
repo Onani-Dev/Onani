@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-11 15:10:01
+ * @Last Modified time: 2022-04-12 17:37:53
  */
 
 #posts-container {
@@ -264,6 +264,7 @@ img.post-thumbnail {
         #post-comment-submit {
             background-color: var(--ui-background-colour);
             border: none;
+            border-radius: 0.4em;
             cursor: pointer;
             padding: 10px;
             transition: 50ms;

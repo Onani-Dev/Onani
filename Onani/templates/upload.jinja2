@@ -30,6 +30,18 @@
       </div>
     </div>
     <div id="second-panel" class="uploader-panel">
+      {{ form.tags.label }}
+      {{ form.tags() }}
+    </div>
+    <div id="third-panel" class="uploader-panel">
+      {{ form.source.label }}
+      {{ form.source() }}
+      {{ form.description.label }}
+      {{ form.description() }}
+      {{ form.rating.label }}
+      {{ form.rating() }}
+      {{ form.recaptcha() }}
+      {{ form.submit() }}
     </div>
     <script src="/static/js/uploader.min.js"></script>
   </form>

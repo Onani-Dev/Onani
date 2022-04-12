@@ -2,7 +2,7 @@
 # @Author: dirt3009
 # @Date:   2022-03-17 20:38:10
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-03 17:42:28
+# @Last Modified time: 2022-04-12 18:59:22
 
 import datetime
 
@@ -22,7 +22,7 @@ def create_article():
     if request.method == "POST":
         data = request.json
         article = NewsPost(
-            author=current_user.id,
+            author=current_user,
             title=data["title"],
             content=data["content"],
         )

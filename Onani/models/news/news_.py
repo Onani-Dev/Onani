@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:33:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-09 02:06:43
+# @Last Modified time: 2022-04-12 18:57:30
 import datetime
 import html
 
@@ -20,7 +20,8 @@ class NewsPost(db.Model):
     __tablename__ = "news"
 
     id = db.Column(db.Integer, primary_key=True)
-    author = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    author = db.relationship("User", backref="user_news")
     created_at = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),

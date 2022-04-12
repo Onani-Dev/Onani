@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:06:35
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-11 15:10:29
+ * @Last Modified time: 2022-04-12 16:54:15
  */
 
 img.emoji {
@@ -15,21 +15,46 @@ img.emoji {
 .login-box {
     background-color: var(--ui-foreground-1);
     position: absolute;
+    align-self: center;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     justify-content: center;
-    align-items: center;
     text-align: center;
     box-sizing: content-box;
     display: flex;
-    padding: 80px 80px 20px 80px;
+    padding: 3em;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: center;
+
+    @include for-mobile-only {
+        top: initial;
+        left: initial;
+        transform: initial;
+        padding: 1em;
+    }
+
+    h1.login-header {
+        flex-direction: column;
+        font-family: 'Tomorrow', sans-serif;
+        font-size: 2em;
+        left: 25%;
+        margin-bottom: 1em;
+        right: 25%;
+        top: 0;
+        user-select: none;
+    }
 
     form {
         display: flex;
         flex-direction: column;
         align-content: center;
         align-items: center;
+
+        .g-recaptcha {
+            border-radius: 0;
+        }
     
         input#username,
         input#password,
@@ -64,24 +89,6 @@ img.emoji {
 
 a.tag-list-item {
     text-decoration: none;
-}
-
-h1.login-header {
-    flex-direction: column;
-    font-family: 'Megrim', cursive;
-    font-size: 2.5em;
-    left: 25%;
-    margin-top: 30px;
-    position: absolute;
-    right: 25%;
-    top: 0;
-    user-select: none;
-    background: -webkit-linear-gradient(90deg, var(--text-logo-colour-1) 0%, var(--text-logo-colour-2) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-transform: uppercase;
-    font-weight: 900;
 }
 
 .grid-container {

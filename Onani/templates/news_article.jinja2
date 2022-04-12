@@ -10,8 +10,14 @@
 {% include "elements/tag_bar.jinja2" %}
 
 <div id="content-container">
-  <h1>{{ article.title }}</h1>
-  <p>{{ article.content }}</p>
+  <div id="news-article-header">
+    <h1>{{ article.title }}</h1>
+    <div class="date-format">{{ article.created_at.isoformat() }}</div>
+    <div>{{ article.type.name.capitalize() }} posted by <a href="/users/{{ article.author.id }}" alt="{{ article.author.username }}">{{ article.author.username }}</a></div>
+  </div>
+  <div id="news-article-body" class="twemoji-format markdown-format">
+    {{ article.content }}
+  </div>
 </div>
 
 {% endblock %}

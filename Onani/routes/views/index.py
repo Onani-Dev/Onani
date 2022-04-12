@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:59:30
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-07 02:12:47
+# @Last Modified time: 2022-04-12 16:36:25
 from flask import render_template, request, redirect
 from Onani.models import Ban, Post, Tag
 
