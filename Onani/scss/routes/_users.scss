@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:00:41
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-11 00:14:29
+ * @Last Modified time: 2022-04-13 19:50:56
  */
 div#profile-info-container {
     height: 175px;
@@ -123,6 +123,7 @@ p#profile-bio-textarea {
     color: var(--text-colour-2);
     background-color: var(--ui-foreground-2);
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 div.settings-input-group {

@@ -1,7 +1,7 @@
 <div id="left-panel">
   <div class="side-container">
     <h2 class="title">Tags</h2>
-    <div id="tag-container">
+    <ul id="tag-container">
       {% set sorted_tags = post.sorted_tags %}
       {% if sorted_tags|length == 0 %}
         No tags on this post.
@@ -16,6 +16,6 @@
           {% endfor %}
         </div>
       {% endfor %}
-    </div>
+    </ul>
   </div>
 </div>

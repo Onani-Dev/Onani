@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-10 04:05:07
+# @Last Modified time: 2022-04-13 23:58:55
 
 import datetime
 import html
@@ -18,6 +18,7 @@ from sqlalchemy_utils import ChoiceType
 from . import Ban, db
 from .roles import UserRoles
 from .settings import UserSettings
+from .permissions import UserPermissions
 
 tag_blacklist = db.Table(
     "tag_blacklist",
@@ -56,10 +57,17 @@ class User(UserMixin, db.Model):
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
 
-    # The User's role. this affects what the user can do.
+    # The User's role. this affects what permissions the user can utilize
     role = db.Column(
         ChoiceType(UserRoles, impl=db.Integer()),
         default=UserRoles.MEMBER,
+        nullable=False,
+    )
+
+    # The user's permissions. this contains flags on what a user can do.
+    permissions = db.Column(
+        ChoiceType(UserPermissions, impl=db.Integer()),
+        default=UserPermissions.DEFAULT,
         nullable=False,
     )
 

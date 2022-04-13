@@ -2,12 +2,12 @@
  * @Author: kapsikkum
  * @Date:   2022-04-12 18:00:57
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-12 18:35:09
+ * @Last Modified time: 2022-04-13 20:25:51
  */
 #news-article-header {
     padding: 1em;
     background-color: var(--ui-foreground-header);
-    border-radius: 1em 1em 1em 1em;
+    border-radius: 1em 1em 0em 0em;
     
     div {
         color: var(--text-colour-3);
@@ -17,7 +17,20 @@
 #news-article-body {
     background-color: var(--ui-foreground-2);
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
     padding: 0.5em;
     margin: 1em;
     min-height: 10em;
+
+    p {
+        top: 0;
+        p{
+            img{
+                @include for-mobile-only {
+                    max-width: 20em;
+                }
+                
+            }
+        }
+    }
 }

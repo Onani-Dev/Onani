@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-12 17:35:55
+ * @Last Modified time: 2022-04-13 19:49:18
  */
 // Main Onani logo
 #logo {
@@ -380,7 +380,7 @@ div#left-panel {
         width: 100%;
     }
 
-    div#tag-container {
+    #tag-container {
         background-color: var(--ui-foreground-2);
         padding: 10px;
         min-height: 6em;
@@ -497,7 +497,7 @@ div.side-container {
         }
     }
 
-    div#news-container {
+    #news-container {
         height: 18em;
         background-color: var(--ui-foreground-2);
         overflow-y: scroll;

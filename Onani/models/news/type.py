@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-09 01:56:43
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-09 02:02:04
+# @Last Modified time: 2022-04-13 23:06:26
 import enum
 
 
@@ -12,6 +12,8 @@ class NewsType(enum.Enum):
     WARNING = enum.auto()
     COMMUNITY = enum.auto()
     UPDATE = enum.auto()
+    POLL = enum.auto()
+    DISCUSSION = enum.auto()
 
     def __int__(self):
         return self.value

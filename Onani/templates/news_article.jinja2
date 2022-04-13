@@ -1,7 +1,7 @@
 {% set title = "News - " %}
-{% set ogtitle = "News" %}
-{% set ogdesc = "Latest Onani news." %}
-{% set ogimage = "/static/android-chrome-512x512.png" %}
+{% set ogtitle = article.title %}
+{% set ogdesc = "View this {type} on Onani".format(type=article.type.name.capitalize()) %}
+{# {% set ogimage = "/static/android-chrome-512x512.png" %} #}
 
 {% extends "base.jinja2" %}
 
@@ -11,13 +11,11 @@
 
 <div id="content-container">
   <div id="news-article-header">
-    <h1>{{ article.title }}</h1>
+    <h1 class="twemoji-format">{{ article.title }}</h1>
     <div class="date-format">{{ article.created_at.isoformat() }}</div>
     <div>{{ article.type.name.capitalize() }} posted by <a href="/users/{{ article.author.id }}" alt="{{ article.author.username }}">{{ article.author.username }}</a></div>
   </div>
-  <div id="news-article-body" class="twemoji-format markdown-format">
-    {{ article.content }}
-  </div>
+  <div id="news-article-body"><p class="twemoji-format markdown-format">{{ article.content }}</p></div>
 </div>
 
 {% endblock %}
