@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-10 04:03:54
+# @Last Modified time: 2022-04-13 13:24:14
 
 import hashlib
 import io
@@ -24,30 +24,30 @@ def determine_meta_tags(width, height, filesize, file_type) -> list:
 
     # Determine width
     if width >= 5400 and height <= 512 or width <= 512 and height >= 5400:
-        meta_tags.append("long")
+        meta_tags.append("meta:long")
 
     elif width >= 10000 and height >= 10000:
-        meta_tags.append("extremely_high_resolution")
+        meta_tags.append("meta:extremely_high_resolution")
 
     elif width >= 3200 and height >= 2400:
-        meta_tags.append("very_high_resolution")
+        meta_tags.append("meta:very_high_resolution")
 
     elif width >= 1600 and height >= 1200:
-        meta_tags.append("high_resolution")
+        meta_tags.append("meta:high_resolution")
 
     elif width <= 500 and height <= 500:
-        meta_tags.append("low_resolution")
+        meta_tags.append("meta:low_resolution")
 
     # Determine filesize
     if filesize >= 15728640:
-        meta_tags.append("extremely_large_filesize")
+        meta_tags.append("meta:extremely_large_filesize")
 
     elif filesize >= 5242880:
-        meta_tags.append("large_filesize")
+        meta_tags.append("meta:large_filesize")
 
     # Determine file type
     if file_type == "gif":
-        meta_tags.append("animated")
+        meta_tags.append("meta:animated")
 
     return meta_tags
 
