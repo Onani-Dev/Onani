@@ -2,14 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 15:16:39
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-13 23:54:26
-from enum import Flag, auto
+# @Last Modified time: 2022-04-15 01:17:13
+from enum import IntFlag, auto
 
 # from functools import reduce
 # from operator import or_ as _or_
 
 
-class UserPermissions(Flag):
+class UserPermissions(IntFlag):
     # POSTS
     CREATE_POSTS = auto()
     DELETE_POSTS = auto()

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 19:38:53
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-14 17:25:54
 
 from flask_wtf import FlaskForm, RecaptchaField
 from flask_wtf.file import FileAllowed, FileRequired
@@ -71,7 +71,7 @@ class UploadForm(FlaskForm):
     tags = StringField(
         "Tags",
         render_kw={
-            "placeholder": "Add the tags for this post (Split with commas)",
+            "placeholder": "Add the tags for this post (Split with spaces)",
             "id": "file-tags",
             "class": "uploader-textarea",
         },

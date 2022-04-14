@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-10 04:22:31
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-14 17:27:26
 
 from cgi import FieldStorage
 from typing import List
@@ -143,7 +143,7 @@ def upload_post(form: UploadForm):
     datas = (f.stream.read() for f in files)
 
     # Split and Delete duplicate tags
-    tags = set(form.tags.data.split(","))
+    tags = set(form.tags.data.split(" "))
 
     # save the files and add them to the post
     try:

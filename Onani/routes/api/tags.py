@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 00:55:57
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-12 02:41:11
+# @Last Modified time: 2022-04-15 01:55:04
 from flask import abort, request
 from flask_login import login_required
 from Onani.models import Tag, TagSchema
@@ -28,11 +28,13 @@ def get_tags():
         sort_order = order
 
     if sort := request.args.get("sort"):
-        sort = set(sort.lower().split(","))
-        for s in sort:
-            if s not in ["id", "name", "type", "post_count"]:
-                abort(400)
-            order_by.append(f"tags_{s} {sort_order}")
+        sort = sort.lower()
+        # Check if user has supplied sort param
+        if sort not in ["id", "name", "type", "post_count"]:
+            # not a valid sorting type, we raise an error
+            abort(400)
+        # Append to custom query for sqlalchemy
+        order_by.append(f"tags_{sort} {sort_order}")
 
     order_by = ", ".join(order_by) if order_by else ""
 
