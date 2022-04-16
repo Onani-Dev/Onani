@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-12 16:56:33
+ * @Last Modified time: 2022-04-17 00:43:33
  */
 
 html {
@@ -105,9 +105,9 @@ table {
     border-radius: 1em;
     overflow: hidden;
 
-    @include for-mobile-only {
-        width: auto;
-    }
+    // @include for-mobile-only {
+    //     width: auto;
+    // }
 }
 
 td {

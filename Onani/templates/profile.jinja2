@@ -11,14 +11,18 @@
 {% if user.ban %}
   {% set username_class = "banned" %}
   {% set pfp_class = "banned" %}
+  {% set bio_class = "system-text" %}
   {% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires))  %}
 {% else %}
   {% set username_class = "" %}
   {% set pfp_class = "" %}
+  {% set bio_class = "system-text" %}
   {% if user.settings.biography is not none %}
     {% set user_bio = emoji.emojize(user.settings.biography, use_aliases=true) %}
+    {% set bio_class = "" %}
   {% else %}
     {% set user_bio = "User has no Bio." %}
+    {% set bio_class = "system-text" %}
   {% endif %}
 {% endif %}
 
@@ -80,11 +84,11 @@
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea">{{ user_bio }}</p>
+      <p id="profile-bio-textarea" class="{{ bio_class }} twemoji-format markdown-format">{{ user_bio }}</p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
       {% if posts.items|length <= 0 %}
-        <p id="profile-bio-textarea">User has no posts.</p>
+        <p id="profile-bio-textarea" class="system-text">User has no posts.</p>
       {% else %}
         <div class="grid">
           {% for post in posts.items %}

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-10 04:11:29
+ * @Last Modified time: 2022-04-17 01:12:38
  */
 const tabcontent = document.getElementsByClassName("profile-tab-content"),
   tablinks = document.getElementsByClassName("profile-tab-link"),
@@ -105,14 +105,14 @@ const customEmotes = /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g,
     armagan: "/static/image/armagan_small.gif",
   };
 let bioText = document.getElementById("profile-bio-textarea");
-twemoji.parse(document.getElementById("profile-username-header"));
-twemoji.parse(bioText);
+// twemoji.parse(document.getElementById("profile-username-header"));
+// twemoji.parse(bioText);
 bioText.innerHTML = bioText.innerHTML.replace(customEmotes, (current) => {
   return `<img src='${
     emojiTable[current.replace(/:/g, "")]
   }' class='emoji' draggable='false' alt='${current}'></img>`;
 });
-bioText.innerHTML = converter.makeHtml(bioText.innerHTML);
+// bioText.innerHTML = converter.makeHtml(bioText.innerHTML);
 
 $("#profile-settings-profile-picture").on("change", function () {
   readFile(this);

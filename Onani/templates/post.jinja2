@@ -50,10 +50,12 @@
       <div id="description-container">
         {% if post.description %}
           {% set description = post.description %}
+          {% set description_class = "" %}
         {% else %}
           {% set description = "Post has no description." %}
+          {% set description_class = "system-text" %}
         {% endif %}
-        <p>{{ description }}</p>
+        <p class="{{ description_class }}">{{ description }}</p>
       </div>
 
       <div id="table-container">
