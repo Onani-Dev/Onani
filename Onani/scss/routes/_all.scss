@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:06:35
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-12 16:54:15
+ * @Last Modified time: 2022-04-17 09:37:36
  */
 
 img.emoji {
@@ -110,4 +110,9 @@ a.tag-list-item {
         align-self: center;
         padding-left: 10px;
     }
+}
+
+.system-text {
+    font-style: italic;
+    color: #9b9b9b !important;
 }
