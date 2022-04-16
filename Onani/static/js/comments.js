@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
- * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-08 03:10:08
+ * @Last Modified by:   Mattlau04
+ * @Last Modified time: 2022-04-16 18:43:24
  */
 const commentTextInput = document.getElementById("post-comment-input"),
   commentContainer = document.getElementById("comment-container"),
@@ -77,6 +77,7 @@ function loadComments() {
     if (response.data.length === 0) {
       let noCom = document.createElement("h2");
       noCom.id = "no-comments-message";
+      noCom.classList.add("system-text");
       noCom.innerHTML = "No Comments on this post.";
       commentContainer.appendChild(noCom);
     }
