@@ -2,13 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-31 13:10:47
+# @Last Modified time: 2022-04-16 21:20:23
 from datetime import datetime, timedelta, timezone
 
 import humanize
 from dateutil import tz
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
+from Onani.controllers import user_login
 from Onani.forms import LoginForm, RegistrationForm
 from Onani.models import User
 
@@ -25,44 +26,17 @@ def login():
     form = LoginForm(request.form)
 
     # The credentials have been posted
-    if request.method == "POST" and form.validate():
+    if form.validate_on_submit():
 
         # Try to get the user
         user = User.query.filter_by(username=form.username.data).first()
 
         if not user:
             # user doesn't exist here
-            flash("Account does not exist.")
+            flash("Invalid Login.")
             return redirect(url_for("main.login"))
 
-        # Check if password is correct
-        if user.check_password(form.password.data):
-            # Authentication passed
-
-            # Login to flask login
-            login = login_user(user, duration=timedelta(days=7))
-
-            if not login:
-                # The login failed for some reason
-
-                if user.ban:
-                    # The user is banned. They cannot login.
-                    flash(
-                        f"This account has been banned.\nReason: {user.ban.reason}\nExpires: {humanize.naturaltime(datetime.now(timezone.utc) - user.ban.expires)} ({user.ban.expires.strftime('%d/%m/%Y %H:%M:%S')} UTC)"
-                    )
-
-                    return redirect(url_for("main.login"))
-
-                if user.is_deleted:
-                    # The user is deleted. They can never login again.
-                    flash("User is deleted.")
-                    return redirect(url_for("main.login"))
-
-            return redirect(f"/users/{current_user.id}")
-
-        # Password was wrong, show message
-        flash("Invalid Login.")
-        return redirect(url_for("main.login"))
+        return user_login(user, form.password.data)
 
     # Render the login page when visited.
     return render_template("/login.jinja2", form=form)
@@ -93,9 +67,7 @@ def register():
         user.set_password(form.password.data)
         user.save_to_db()
 
-        # Account created.
-        flash("Account created, You can now login.")
-        return redirect(url_for("main.login"))
+        return user_login(user, form.password.data)
 
     # Render the registration page
     return render_template("/register.jinja2", form=form)
