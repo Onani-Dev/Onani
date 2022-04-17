@@ -87,7 +87,7 @@
     <h1>Comments</h1>
     {% if not current_user.is_anonymous %}
       <div class="post-comment-input-container">
-        <input id="post-comment-input" placeholder="Type your comment here...">
+        <textarea id="post-comment-input" placeholder="Type your comment here..."></textarea>
         <button id="post-comment-submit">Post</button>
       </div>
     {% endif %}

@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
- * @Last Modified by:   Mattlau04
- * @Last Modified time: 2022-04-16 18:43:24
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-04-17 10:16:52
  */
 const commentTextInput = document.getElementById("post-comment-input"),
   commentContainer = document.getElementById("comment-container"),
@@ -114,12 +114,12 @@ function postComment() {
 }
 
 loadComments();
-commentTextInput.onkeyup = function (e) {
-  "use strict";
-  if (e.key == "Enter") {
-    postComment();
-  }
-};
+// commentTextInput.onkeyup = function (e) {
+//   "use strict";
+//   if (e.key == "Enter") {
+//     postComment();
+//   }
+// };
 
 postButton.onclick = function (e) {
   postComment();
