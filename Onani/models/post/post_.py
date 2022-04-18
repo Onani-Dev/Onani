@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-03 21:23:44
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-18 23:13:14
 
+from collections import defaultdict
 import datetime
 import enum
 import html
+from typing import Dict, List
 
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
+from Onani.controllers.utils import natural_join
+
+from ..tag import Tag, TagType
 from . import PostRating, PostStatus, db
 
 post_upvotes = db.Table(
@@ -115,24 +120,62 @@ class Post(db.Model):
         return len(self.upvoters.all()) - len(self.downvoters.all())
 
     @property
-    def sorted_tags(self) -> dict:
+    def sorted_tags(self) -> Dict[TagType, List[Tag]]:
         # Dictionary we are going to add the types as keys to lists for the tags
-        sorted_tags = {}
+        sorted_tags = defaultdict(list)
 
         # Get all tags in self
         for tag in sorted(self.tags, key=lambda t: t.type.name.capitalize()):
-            # Make the tag type nicer and readable
-            tag_type = tag.type.name.capitalize()
-
-            # Make the list if not already
-            if not sorted_tags.get(tag_type):
-                sorted_tags[tag_type] = []
-
             # append the tag to the type list
-            sorted_tags[tag_type].append(tag)
+            sorted_tags[tag.type].append(tag)
 
         # Return the sorted dict
         return {x: sorted(sorted_tags[x], key=lambda t: t.name) for x in sorted_tags}
+
+    @property
+    def title(self) -> str:
+        """Makes a nice title describing the post. This should never be an empty string."""
+        sorted_tags = self.sorted_tags
+        characters = sorted_tags.get(TagType.CHARACTER, None)
+        artists = sorted_tags.get(TagType.ARTIST, None)
+        copyrights = sorted_tags.get(TagType.COPYRIGHT, None)
+        
+        # First we get all 3 strings
+        # TODO: pick char based on popularity and not alphabetically
+        if characters is not None:
+            char_str = natural_join( [c.name.capitalize() for c in characters], max_lenght=5)
+        else:
+            char_str = ""
+            
+        if artists is not None:
+            artist_str = "drawn by " + natural_join([a.name.capitalize() for a in artists], max_lenght=3)
+        else:
+            artist_str = ""
+
+        if copyrights is not None:
+            copyright_str = natural_join([a.name.capitalize() for a in copyrights], max_lenght=1)
+        else:
+            copyright_str = ""
+        
+        title = ""
+        if char_str:
+            # If we have chars, copyrights will be in parenthesis
+            title += char_str
+            if copyright_str:
+                title += f" ({copyright_str})"
+        else:
+            # If we don't have chars, copyrights won't be in parenthesis
+            # Also this will work even is there's no copyright
+            title += copyright_str
+
+        if artist_str:
+            # We need to lstrip in case title was still empty
+            title = f"{title} {artist_str}".lstrip()
+        
+        if not title: # We never want an empty title
+            title = f"#{self.id}"
+        
+        return title
 
     def __repr__(self):
         return f"<Post {self.__dict__}>"

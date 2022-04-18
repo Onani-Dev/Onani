@@ -1,4 +1,4 @@
-{% set title = "Post - " %}
+{% set title = "{title} - ".format(title=post.title) %}
 {% set ogtitle = "{score}👍 | {comments}💬".format(score=post.score, comments=post.comments.all()|length) %}
 {% set ogimage = post.files[0].thumbnail(500) %}
 
@@ -26,7 +26,7 @@
   <div class="images-container">
     {% for file in post.files %}
       <div class="file-container">
-        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}"></a>
+        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}"></a>
       </div>
     {% endfor %}
   </div>
