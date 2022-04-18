@@ -1,0 +1,37 @@
+/**
+ * @Author: dirt3009
+ * @Date:   2022-04-18 20:27:02
+ * @Last Modified by:   dirt3009
+ * @Last Modified time: 2022-04-18 20:39:34
+ */
+
+ #dmca-header {
+    padding: 1em;
+    background-color: var(--ui-foreground-header);
+    border-radius: 1em 1em 0em 0em;
+    
+    div {
+        color: var(--text-colour-3);
+    }
+}
+
+#dmca-body {
+    background-color: var(--ui-foreground-2);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding: 0.5em;
+    margin: 1em;
+    min-height: 10em;
+
+    p {
+        top: 0;
+        p{
+            img{
+                @include for-mobile-only {
+                    max-width: 20em;
+                }
+                
+            }
+        }
+    }
+}

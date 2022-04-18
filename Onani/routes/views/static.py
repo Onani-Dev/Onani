@@ -17,3 +17,8 @@ def gen_204():
 @main.route("/dmca/")
 def dmca_page():
     return render_template("/dmca.jinja2")
+
+@main.route("/developers/")
+def devs_page():
+    return render_template("/developers.jinja2")
+
