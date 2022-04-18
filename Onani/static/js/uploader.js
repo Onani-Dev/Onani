@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-10-12 02:03:30
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-19 03:36:24
+ * @Last Modified time: 2022-04-19 03:47:25
  */
 const fileInput = document.getElementById("file-upload"),
   previewImage = document.getElementById("preview-image"),
@@ -57,12 +57,12 @@ function changeImage(image) {
   // previewImage.appendChild(image);
 }
 
-document.getElementById("left-button-image").onclick = (e) => {
+document.getElementById("left-button-image").onclick = () => {
   currentImage -= 1;
   changeImage(imageElements[currentImage]);
 };
 
-document.getElementById("right-button-image").onclick = (e) => {
+document.getElementById("right-button-image").onclick = () => {
   currentImage += 1;
   changeImage(imageElements[currentImage]);
 };
