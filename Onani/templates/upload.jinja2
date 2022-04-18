@@ -11,21 +11,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.min.js" integrity="sha512-IKpu1GFk/bQ+2fOc4sXuA6lm7Rct4P7611iDBxY9LReOZ2PpwoDWWqj6GSYejUce1FLxo/d4lxAnKqGWJuBw7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock %}
 
+{% set content_class = "uploader" %}
 {% block content %}
-<div id="uploader-container">
+<div class="uploader-container">
   <form id="uploader-form" action="/upload/" method="POST" enctype="multipart/form-data">
     <div id="uploader-title-bar">
       <div id="left-button" class="fa-solid fa-chevron-left" style="visibility:hidden;" title="Previous"></div>
       <h1 id="uploader-title-text">Select Files</h1>
       <div id="right-button" class="fa-solid fa-chevron-right" onclick="slide2()" title="Next"></div>
       <div id="upload-button" class="fa-solid fa-upload" onclick="invokeForm()" style="display:none;" title="Upload"></div>
-      {# {{ form.submit(style="display:none;") }} #}
     </div>
     {{ form.csrf_token }}
     <div id="first-panel" class="uploader-panel">
-      <div id="preview-image-container">
-        <img id="preview-image">
-      </div>
       <div class="uploader-input-group">
         {{ form.files.label }}
         {{ form.files() }}
@@ -54,9 +51,19 @@
         {{ form.recaptcha() }}
       </div>
     </div>
-    <script src="/static/js/uploader.min.js"></script>
   </form>
 </div>
+<div class="uploader-container preview-image-block">
+  <div id="preview-image-container">
+    <div id="preview-image">
+    </div>
+    <div class="image-controls">
+      <div id="left-button-image" class="fa-solid fa-chevron-left clickable pop-out" title="Previous image"></div>
+      <div id="right-button-image" class="fa-solid fa-chevron-right clickable pop-out" title="Next image"></div>
+    </div>
+  </div>
+</div>
+<script src="/static/js/uploader.min.js"></script>
 {% include "elements/form_errors.jinja2" %}
 {% include "elements/flashed_messages.jinja2" %}
 {% endblock %}
