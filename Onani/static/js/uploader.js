@@ -2,36 +2,72 @@
  * @Author: kapsikkum
  * @Date:   2020-10-12 02:03:30
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-18 15:46:06
+ * @Last Modified time: 2022-04-19 03:47:25
  */
 const fileInput = document.getElementById("file-upload"),
-  uploadButton = document.getElementById("upload-button"),
-  sourceInput = document.getElementById("file-source"),
-  tagTextarea = document.getElementById("file-tags"),
+  previewImage = document.getElementById("preview-image"),
   uploaderForm = document.getElementById("uploader-form");
 
-// New file reader for the image
-const reader = new FileReader();
+// New file reader for the images
+// const reader = new FileReader();
 
 // array to store images in
 let imageList;
 
+// Image elements to paginate
+let imageElements = [];
+let currentImage = 0;
+
+// Image
 function displayImage(input) {
   "use strict";
   if (input.files && input.files[0]) {
+    currentImage = 0;
+    imageElements = [];
+
     // Set the imageList to the input files
     imageList = input.files;
+    // Promises array
+    let promises = [];
+    // Read all the files
+    for (let file of imageList) {
+      let filePromise = new Promise((resolve) => {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+      });
+      promises.push(filePromise);
+    }
 
-    reader.onload = function (e) {
-      // Set the onload funtion to update the preview image
-      document.getElementById("preview-image").src = e.target.result;
-    };
-
-    // Read the first file in the input files
-    reader.readAsDataURL(input.files[0]);
+    // Complete all the promises and add the results to the slick slider
+    Promise.all(promises).then((fileContents) => {
+      for (let file of fileContents) {
+        let previewImage = document.createElement("img");
+        previewImage.className = "preview-image";
+        previewImage.src = file;
+        imageElements.push(previewImage);
+      }
+      changeImage(imageElements[currentImage]);
+    });
   }
 }
 
+function changeImage(image) {
+  previewImage.replaceChildren(image);
+  // previewImage.appendChild(image);
+}
+
+document.getElementById("left-button-image").onclick = () => {
+  currentImage -= 1;
+  changeImage(imageElements[currentImage]);
+};
+
+document.getElementById("right-button-image").onclick = () => {
+  currentImage += 1;
+  changeImage(imageElements[currentImage]);
+};
+
+// Slides
 function hideOtherSlides(slideName) {
   for (let element of document.getElementsByClassName("uploader-panel")) {
     if (element.id != slideName) {
