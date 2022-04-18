@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-12 18:17:47
+ * @Last Modified time: 2022-04-18 14:44:36
 */
 @import "mixins";
 
@@ -10,6 +10,8 @@
 @import "base";
 @import "colours";
 @import "elements";
+@import "external/icomoon";
+@import "external/slick";
 @import "fonts";
 @import "routes/all";
 @import "routes/news";

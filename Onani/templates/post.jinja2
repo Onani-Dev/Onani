@@ -39,9 +39,9 @@
       </div>
 
       <div id="voting-container">
-        <div id="upvote-button" class="fa-solid fa-thumbs-up"></div>
+        <div id="upvote-button" class="fa-solid fa-thumbs-up clickable pop-out"></div>
         <div id="post-score-count">{{ post.score }}</div>
-        <div id="downvote-button" class="fa-solid fa-thumbs-down"></div>
+        <div id="downvote-button" class="fa-solid fa-thumbs-down clickable pop-out"></div>
       </div>
 
     </div>
@@ -92,7 +92,7 @@
       </div>
     {% endif %}
     <div id="comment-container">
-      Loading Comments...
+      <h3>Loading Comments...</h3>
     </div>
     <script src="/static/js/comments.min.js"></script>
   </div>

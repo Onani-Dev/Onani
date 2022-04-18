@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:19:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-13 20:37:06
+ * @Last Modified time: 2022-04-18 16:08:59
  */
  div#uploader-container {
     width: 45em;
@@ -40,6 +40,9 @@
         #right-button {
             @extend #left-button;
         }
+        #upload-button {
+            @extend #left-button;
+        }
     }
 
     form {
@@ -48,7 +51,7 @@
         flex-wrap: nowrap;
         align-content: center;
         justify-content: center;
-        align-items: center;
+        // align-items: center;
 
         .uploader-panel {
             display: flex;
@@ -91,7 +94,37 @@
             }
             .uploader-input-group {
                 @extend .uploader-panel;
+                display: flex;
                 margin-top: 1em;
+                margin-bottom: 1em;
+                // flex-direction: row;
+                // flex-wrap: nowrap;
+                // align-content: center;
+                // justify-content: space-between;
+                // align-items: center;
+
+                input.uploader-input {
+                    display: block;
+                    padding: 10px;
+                    text-align: left;
+                    width: 300px;
+                }
+
+                textarea.uploader-textarea {
+                    background-color: var(--ui-foreground-2);
+                    border: none;
+                    color: var(--ui-colour);
+                    height: 120px;
+                    max-width: 300px;
+                    padding: 10px;
+                    text-align: left;
+                    white-space: pre-wrap;
+                    width: 300px;
+                }
+
+                label {
+                    margin-bottom: 1em;
+                }
             }
         }
     }
@@ -107,33 +140,6 @@
     display: inline-block;
     margin-top: 50px;
  }
-
- input.uploader-input {
-    display: block;
-    margin-bottom: 15px;
-    padding: 10px;
-    text-align: left;
-    width: 300px;
- }
-
- textarea.uploader-textarea {
-    background-color: var(--ui-foreground-2);
-    border: none;
-    color: var(--ui-colour);
-    height: 120px;
-    margin-bottom: 15px;
-    max-width: 300px;
-    padding: 10px;
-    text-align: left;
-    white-space: pre-wrap;
-    width: 300px;
- }
-
-label.uploader-label {
-    display: inline-block;
-    padding-right: 10px;
-    width: 50px;
-}
 
 input#upload-button {
     display: inline-block;

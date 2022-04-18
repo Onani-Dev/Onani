@@ -59,7 +59,7 @@
           <a href="{{ user.settings.connections.get('deviantart') }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
         {% endif %}
         {% if user.settings.connections.get('discord') %}
-          <a onclick="CopyText('{{ user.settings.connections.get('discord') }}')" style="cursor: pointer;">
+          <a onclick="copyText('{{ user.settings.connections.get('discord') }}')" class="clickable">
             <i class="fa-brands fa-discord fa-2x" title="{{ user.settings.connections.get('discord') }}"></i>
           </a>
         {% endif %}

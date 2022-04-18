@@ -13,12 +13,14 @@
 
 {% block content %}
 <div id="uploader-container">
-  <div id="uploader-title-bar">
-    <div id="left-button" class="fa-solid fa-chevron-left"></div>
-    <h1 id="uploader-title-text">Upload File</h1>
-    <div id="right-button" class="fa-solid fa-chevron-right"></div>
-  </div>
-  <form action="/upload/" method="POST" enctype="multipart/form-data">
+  <form id="uploader-form" action="/upload/" method="POST" enctype="multipart/form-data">
+    <div id="uploader-title-bar">
+      <div id="left-button" class="fa-solid fa-chevron-left" style="visibility:hidden;" title="Previous"></div>
+      <h1 id="uploader-title-text">Select Files</h1>
+      <div id="right-button" class="fa-solid fa-chevron-right" onclick="slide2()" title="Next"></div>
+      <div id="upload-button" class="fa-solid fa-upload" onclick="invokeForm()" style="display:none;" title="Upload"></div>
+      {# {{ form.submit(style="display:none;") }} #}
+    </div>
     {{ form.csrf_token }}
     <div id="first-panel" class="uploader-panel">
       <div id="preview-image-container">
@@ -29,19 +31,28 @@
         {{ form.files() }}
       </div>
     </div>
-    <div id="second-panel" class="uploader-panel">
-      {{ form.tags.label }}
-      {{ form.tags() }}
+    <div id="second-panel" class="uploader-panel" style="display:none;">
+      <div class="uploader-input-group">
+        {{ form.tags.label }}
+        {{ form.tags() }}
+      </div>
     </div>
-    <div id="third-panel" class="uploader-panel">
-      {{ form.source.label }}
-      {{ form.source() }}
-      {{ form.description.label }}
-      {{ form.description() }}
-      {{ form.rating.label }}
-      {{ form.rating() }}
-      {{ form.recaptcha() }}
-      {{ form.submit() }}
+    <div id="third-panel" class="uploader-panel" style="display:none;">
+      <div class="uploader-input-group">
+        {{ form.source.label }}
+        {{ form.source() }}
+      </div>
+      <div class="uploader-input-group">
+        {{ form.description.label }}
+        {{ form.description() }}
+      </div>
+      <div class="uploader-input-group">
+        {{ form.rating.label }}
+        {{ form.rating() }}
+      </div>
+      <div class="uploader-input-group">
+        {{ form.recaptcha() }}
+      </div>
     </div>
     <script src="/static/js/uploader.min.js"></script>
   </form>

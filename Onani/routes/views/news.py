@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-12 19:56:37
+# @Last Modified time: 2022-04-18 22:02:33
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
@@ -25,13 +25,7 @@ def news(article_id=None):
 
         return render_template("/news.jinja2", news=news)
 
-    # Check if it is a valid number
-    if not article_id.isdigit():
-        # abort, it's not a number
-        abort(404)
-
-    # Convert to integer
-    article_id = int(article_id)
+    article_id = int(article_id) if article_id.isdigit() else abort(404)
 
     article = NewsPost.query.filter_by(id=article_id).first_or_404()
 

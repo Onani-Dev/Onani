@@ -2,13 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-16 21:20:23
+# @Last Modified time: 2022-04-18 22:19:09
+import html
 from datetime import datetime, timedelta, timezone
 
-import humanize
-from dateutil import tz
 from flask import flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import current_user, login_required, logout_user
 from Onani.controllers import user_login
 from Onani.forms import LoginForm, RegistrationForm
 from Onani.models import User
@@ -29,7 +28,7 @@ def login():
     if form.validate_on_submit():
 
         # Try to get the user
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(username=html.escape(form.username.data)).first()
 
         if not user:
             # user doesn't exist here

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 23:34:00
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-03 21:27:27
+# @Last Modified time: 2022-04-18 22:38:52
 import datetime
 import html
 
@@ -46,10 +46,12 @@ class PostComment(db.Model):
 
     @validates("content")
     def validate_content(self, key, content):
-        if len(content) > 2000:
+        while "\n\n\n\n" in content:
+            content = content.replace("\n\n\n\n", "\n\n\n")
+        if len(content.strip()) > 2000:
             raise ValueError("Comment was too long. (Over 2000 Chars)")
 
-        return html.escape(content)
+        return html.escape(content.strip())
 
     def save_to_db(self):
         db.session.add(self)

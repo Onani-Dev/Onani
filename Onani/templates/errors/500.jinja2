@@ -1,0 +1,15 @@
+{% set title = "Error 500 - " %}
+{% set ogtitle = "Error 500" %}
+{% set ogdesc = "Something went wrong..." %}
+
+{% extends "base.jinja2" %}
+
+{% block content %}
+<div id="error-container">
+    <h1>Internal Server Error</h1>
+    <p>
+        Error id: <strong>{{ error.id }}</strong><br>
+        HTTP error code: <strong>{{ code }}</strong><br>
+    </p>
+</div>
+{% endblock %}

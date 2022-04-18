@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-14 22:24:47
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-17 01:12:38
+ * @Last Modified time: 2022-04-18 17:27:49
  */
 const tabcontent = document.getElementsByClassName("profile-tab-content"),
   tablinks = document.getElementsByClassName("profile-tab-link"),
@@ -80,18 +80,6 @@ function changeSettingsTab(evt, tabName) {
   evt.currentTarget.className += " active";
 }
 
-function CopyText(text) {
-  const listener = function (ev) {
-    ev.preventDefault();
-    ev.clipboardData.setData("text/html", text);
-    ev.clipboardData.setData("text/plain", text);
-  };
-  document.addEventListener("copy", listener);
-  document.execCommand("copy");
-  document.removeEventListener("copy", listener);
-  alert("Copied to clipboard!");
-}
-
 try {
   document.getElementById("account-settings").click();
 } catch (error) {}
@@ -105,14 +93,11 @@ const customEmotes = /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g,
     armagan: "/static/image/armagan_small.gif",
   };
 let bioText = document.getElementById("profile-bio-textarea");
-// twemoji.parse(document.getElementById("profile-username-header"));
-// twemoji.parse(bioText);
 bioText.innerHTML = bioText.innerHTML.replace(customEmotes, (current) => {
   return `<img src='${
     emojiTable[current.replace(/:/g, "")]
   }' class='emoji' draggable='false' alt='${current}'></img>`;
 });
-// bioText.innerHTML = converter.makeHtml(bioText.innerHTML);
 
 $("#profile-settings-profile-picture").on("change", function () {
   readFile(this);
@@ -134,6 +119,8 @@ $("#settings-profile").submit(function () {
     });
 });
 
-profileColourSelector.onchange = function (e) {
-  profileContentContainer.style.backgroundColor = profileColourSelector.value;
-};
+if (profileColourSelector) {
+  profileColourSelector.onchange = function (e) {
+    profileContentContainer.style.backgroundColor = profileColourSelector.value;
+  };
+}

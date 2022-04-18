@@ -2,14 +2,11 @@
  * @Author: kapsikkum
  * @Date:   2022-03-28 22:16:17
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-12 18:40:49
+ * @Last Modified time: 2022-04-18 14:01:48
  */
 
-const dateFormatElements = document.getElementsByClassName("date-format"),
-  markdownFormatElements = document.getElementsByClassName("markdown-format"),
-  twemojiFormatElements = document.getElementsByClassName("twemoji-format");
-
-for (let element of dateFormatElements) {
+// Format all date-format elements
+for (let element of document.getElementsByClassName("date-format")) {
   try {
     element.innerHTML = luxon.DateTime.fromISO(element.innerHTML).toFormat(
       "fff"
@@ -19,7 +16,8 @@ for (let element of dateFormatElements) {
   }
 }
 
-for (let element of markdownFormatElements) {
+// Format all markdown-format elements
+for (let element of document.getElementsByClassName("markdown-format")) {
   let converter = new showdown.Converter();
   try {
     element.innerHTML = converter.makeHtml(element.innerHTML);
@@ -28,7 +26,8 @@ for (let element of markdownFormatElements) {
   }
 }
 
-for (let element of twemojiFormatElements) {
+// Format all twemoji-format elements
+for (let element of document.getElementsByClassName("twemoji-format")) {
   try {
     twemoji.parse(element);
   } catch (e) {
@@ -36,6 +35,7 @@ for (let element of twemojiFormatElements) {
   }
 }
 
+// Escape route
 document.onkeyup = function (e) {
   if (e.key == "Escape") {
     document.body.innerHTML = "";
@@ -43,10 +43,24 @@ document.onkeyup = function (e) {
   }
 };
 
+// Opening navigation
 function openNav() {
   document.getElementById("side-navigation").style.width = "250px";
 }
 
+// Closing navigation
 function closeNav() {
   document.getElementById("side-navigation").style.width = "0";
+}
+
+// Text copy function
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(
+    function () {
+      alert("Copied to clipboard!");
+    },
+    function () {
+      alert("Failed to copy.");
+    }
+  );
 }

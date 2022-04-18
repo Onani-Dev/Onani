@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-17 10:16:52
+ * @Last Modified time: 2022-04-18 22:49:47
  */
 const commentTextInput = document.getElementById("post-comment-input"),
   commentContainer = document.getElementById("comment-container"),
@@ -101,25 +101,25 @@ function postComment() {
         content: commentTextInput.value,
       }),
     };
-
+    commentTextInput.value = "";
     $.ajax(settings).done(function (response) {
       let noCommentsMessage = document.getElementById("no-comments-message");
       if (noCommentsMessage) {
         noCommentsMessage.parentNode.removeChild(noCommentsMessage);
       }
       $(commentContainer).prepend(contructCommentElement(response));
-      commentTextInput.value = "";
     });
   }
 }
 
 loadComments();
-// commentTextInput.onkeyup = function (e) {
-//   "use strict";
-//   if (e.key == "Enter") {
-//     postComment();
-//   }
-// };
+commentTextInput.onkeydown = function (e) {
+  "use strict";
+  if (e.key == "Enter" && e.shiftKey) {
+    e.preventDefault();
+    postComment();
+  }
+};
 
 postButton.onclick = function (e) {
   postComment();
