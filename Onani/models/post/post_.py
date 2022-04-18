@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-18 23:13:14
+# @Last Modified time: 2022-04-18 23:47:39
 
 from collections import defaultdict
 import datetime
@@ -139,24 +139,30 @@ class Post(db.Model):
         characters = sorted_tags.get(TagType.CHARACTER, None)
         artists = sorted_tags.get(TagType.ARTIST, None)
         copyrights = sorted_tags.get(TagType.COPYRIGHT, None)
-        
+
         # First we get all 3 strings
         # TODO: pick char based on popularity and not alphabetically
         if characters is not None:
-            char_str = natural_join( [c.name.capitalize() for c in characters], max_lenght=5)
+            char_str = natural_join(
+                [c.name.capitalize() for c in characters], max_lenght=5
+            )
         else:
             char_str = ""
-            
+
         if artists is not None:
-            artist_str = "drawn by " + natural_join([a.name.capitalize() for a in artists], max_lenght=3)
+            artist_str = "drawn by " + natural_join(
+                [a.name.capitalize() for a in artists], max_lenght=3
+            )
         else:
             artist_str = ""
 
         if copyrights is not None:
-            copyright_str = natural_join([a.name.capitalize() for a in copyrights], max_lenght=1)
+            copyright_str = natural_join(
+                [a.name.capitalize() for a in copyrights], max_lenght=1
+            )
         else:
             copyright_str = ""
-        
+
         title = ""
         if char_str:
             # If we have chars, copyrights will be in parenthesis
@@ -171,10 +177,10 @@ class Post(db.Model):
         if artist_str:
             # We need to lstrip in case title was still empty
             title = f"{title} {artist_str}".lstrip()
-        
-        if not title: # We never want an empty title
+
+        if not title:  # We never want an empty title
             title = f"#{self.id}"
-        
+
         return title
 
     def __repr__(self):

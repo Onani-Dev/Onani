@@ -1,12 +1,13 @@
 {
     "python.formatting.provider": "black",
     "liveSassCompile.settings.watchOnLaunch": true,
-    "liveSassCompile.settings.formats":[
+    "liveSassCompile.settings.formats": [
         {
             "format": "compressed",
             "extensionName": ".min.css",
             "savePath": "/Onani/static/css"
         }
     ],
-    "es6-css-minify.minifyOnSave": "yes"
+    "es6-css-minify.minifyOnSave": "yes",
+    "editor.formatOnSave": true
 }
