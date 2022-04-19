@@ -2,13 +2,17 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-19 14:12:17
+ * @Last Modified time: 2022-04-19 15:13:46
  */
+
+import { ajax } from "jquery";
+import { DateTime } from "luxon";
+
 const commentTextInput = document.getElementById("post-comment-input"),
   commentContainer = document.getElementById("comment-container"),
   postButton = document.getElementById("post-comment-submit");
 
-function contructCommentElement(comment) {
+const contructCommentElement = (comment) => {
   let userProfileContainer = document.createElement("div"),
     commentPostContainer = document.createElement("div"),
     userProfilePicture = document.createElement("img"),
@@ -42,9 +46,9 @@ function contructCommentElement(comment) {
   userProfileContainer.appendChild(userProfilePicture);
 
   // Use luxon to make human readable time
-  commentTime.innerHTML = `${luxon.DateTime.fromISO(
-    comment.created_at
-  ).toFormat("fff")}`;
+  commentTime.innerHTML = `${DateTime.fromISO(comment.created_at).toFormat(
+    "fff"
+  )}`;
 
   // Add comment author username and time
   commentInfoContainer.appendChild(userName);
@@ -62,17 +66,16 @@ function contructCommentElement(comment) {
   commentPostContainer.appendChild(commentBody);
 
   return commentPostContainer;
-}
+};
 
-function loadComments() {
-  "use strict";
+const loadComments = () => {
   var settings = {
     url: "/api/comments",
     method: "GET",
     data: { post_id: postID },
   };
 
-  $.ajax(settings).done(function (response) {
+  ajax(settings).done(function (response) {
     commentContainer.innerHTML = "";
     if (response.data.length === 0) {
       let noCom = document.createElement("h2");
@@ -85,10 +88,9 @@ function loadComments() {
       commentContainer.appendChild(contructCommentElement(comment));
     });
   });
-}
+};
 
-function postComment() {
-  "use strict";
+const postComment = () => {
   if (commentTextInput.value) {
     var settings = {
       url: "/api/comments/post",
@@ -102,7 +104,7 @@ function postComment() {
       }),
     };
     commentTextInput.value = "";
-    $.ajax(settings).done(function (response) {
+    ajax(settings).done(function (response) {
       let noCommentsMessage = document.getElementById("no-comments-message");
       if (noCommentsMessage) {
         noCommentsMessage.parentNode.removeChild(noCommentsMessage);
@@ -110,17 +112,18 @@ function postComment() {
       $(commentContainer).prepend(contructCommentElement(response));
     });
   }
-}
-
-loadComments();
-commentTextInput.onkeydown = function (e) {
-  "use strict";
-  if (e.key == "Enter" && e.shiftKey) {
-    e.preventDefault();
-    postComment();
-  }
 };
 
-postButton.onclick = function (e) {
-  postComment();
-};
+// loadComments();
+// commentTextInput.onkeydown = function (e) {
+//   "use strict";
+//   if (e.key == "Enter" && e.shiftKey) {
+//     e.preventDefault();
+//     postComment();
+//   }
+// };
+
+// postButton.onclick = function (e) {
+//   postComment();
+// };
+export { loadComments, postComment };
