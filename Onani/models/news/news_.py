@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:33:34
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-12 18:57:30
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-19 11:55:04
 import datetime
 import html
 
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType
+
+from Onani.models.user.user_ import User
 
 from . import NewsType, db
 
@@ -19,17 +21,17 @@ class NewsPost(db.Model):
 
     __tablename__ = "news"
 
-    id = db.Column(db.Integer, primary_key=True)
-    author_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    author = db.relationship("User", backref="user_news")
-    created_at = db.Column(
+    id: int = db.Column(db.Integer, primary_key=True)
+    author_id: int = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    author: User = db.relationship("User", backref="user_news")
+    created_at: datetime.datetime = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
-    title = db.Column(db.String, nullable=False)
+    title: str = db.Column(db.String, nullable=False)
     content = db.Column(db.UnicodeText, nullable=False)
 
-    type = db.Column(
+    type: NewsType = db.Column(
         ChoiceType(NewsType, impl=db.Integer()),
         default=NewsType.ANNOUNCEMENT,
         nullable=False,

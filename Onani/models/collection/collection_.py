@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 18:59:03
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-19 13:04:34
 import datetime
 import enum
 
+from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType
+
+from Onani.models.post.post_ import Post
 
 from . import CollectionStatus, db
 
@@ -24,26 +27,27 @@ class Collection(db.Model):
 
     __tablename__ = "collections"
 
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String, nullable=False, index=True)
-    description = db.Column(
+    id: int = db.Column(db.Integer, primary_key=True)
+    title: str = db.Column(db.String, nullable=False, index=True)
+    description: str = db.Column(
         db.String, default="No description has been added to this collection."
     )
-    posts = db.relationship(
+    posts: Query = db.relationship(
         "Post",
         secondary=collection_posts,
         backref="collection_posts",
         lazy="dynamic",
     )
-    status = db.Column(
+    status: CollectionStatus = db.Column(
         ChoiceType(CollectionStatus, impl=db.Integer()),
         default=CollectionStatus.PENDING,
         nullable=False,
     )
-    created_at = db.Column(
-        db.DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc)
+    created_at: datetime.datetime = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
-    creator = db.Column(db.Integer, db.ForeignKey("users.id"))
+    creator: int = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     def __repr__(self):
         return "<Collection {0!r}>".format(self.__dict__)

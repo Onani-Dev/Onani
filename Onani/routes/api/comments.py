@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-04-01 02:10:13
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-05 00:35:19
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-19 12:40:07
 
 from flask import abort, jsonify, request
 from flask_login import current_user, login_required
@@ -27,7 +27,7 @@ def comment_post():
 @csrf.exempt
 def get_comments():
     if post_id := request.args.get("post_id"):
-        post = Post.query.filter_by(id=post_id).first_or_404()
+        post: Post = Post.query.filter_by(id=post_id).first_or_404()
         return make_api_response(
             {
                 "data": PostCommentSchema(many=True).dump(

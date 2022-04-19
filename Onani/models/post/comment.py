@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-06 23:34:00
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-18 22:38:52
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-19 12:28:10
+
+from __future__ import annotations
 import datetime
 import html
+from typing import TYPE_CHECKING
 
-from Onani.models.user import User
 from sqlalchemy.orm import backref, validates
 
 from . import db
+
+if TYPE_CHECKING:
+    from Onani.models.user import User
 
 
 class PostComment(db.Model):
@@ -46,7 +51,7 @@ class PostComment(db.Model):
 
     @validates("content")
     def validate_content(self, key, content):
-        while "\n\n\n\n" in content:
+        while "\n\n\n\n" in content:  # Max 3 consecutive newlines in a row
             content = content.replace("\n\n\n\n", "\n\n\n")
         if len(content.strip()) > 2000:
             raise ValueError("Comment was too long. (Over 2000 Chars)")

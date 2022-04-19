@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-18 22:18:15
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-19 13:04:54
 
+from __future__ import annotations
 import datetime
 import html
 import secrets
+from typing import TYPE_CHECKING, Optional
 import uuid
 
 import regex as re
@@ -14,6 +16,13 @@ from flask_login import UserMixin
 from passlib.hash import argon2
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType
+from sqlalchemy.orm.query import Query
+from Onani.models.post.comment import PostComment
+
+if TYPE_CHECKING:
+    from Onani.models.post.post_ import Post
+
+from Onani.models.tag.tag_ import Tag
 
 from . import Ban, db
 from .roles import UserRoles
@@ -40,39 +49,39 @@ class User(UserMixin, db.Model):
             self.settings = UserSettings()
 
     # Users ID, obviously unique as it is the primary key
-    id = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True)
 
     # Users username, must be unique
-    username = db.Column(db.String, index=True, unique=True, nullable=False)
+    username: str = db.Column(db.String, index=True, unique=True, nullable=False)
 
     # Users email, optional and must be unique
-    email = db.Column(db.String, index=True, unique=True)
+    email: str = db.Column(db.String, index=True, unique=True)
 
     # The argon2 hash of the users password.
-    password_hash = db.Column(db.String, nullable=False)
+    password_hash: str = db.Column(db.String, nullable=False)
 
     # The time this user was created. it doesn't need to be touched.
-    created_at = db.Column(
+    created_at: datetime.datetime = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
 
     # The User's role. this affects what permissions the user can utilize
-    role = db.Column(
+    role: UserRoles = db.Column(
         ChoiceType(UserRoles, impl=db.Integer()),
         default=UserRoles.MEMBER,
         nullable=False,
     )
 
     # The user's permissions. this contains flags on what a user can do.
-    permissions = db.Column(
+    permissions: UserPermissions = db.Column(
         ChoiceType(UserPermissions, impl=db.Integer()),
         default=UserPermissions.DEFAULT,
         nullable=False,
     )
 
     # The api key the user will use for the /api endpoint. Grants full control over the user account
-    api_key = db.Column(
+    api_key: str = db.Column(
         db.String,
         index=True,
         unique=True,
@@ -80,10 +89,10 @@ class User(UserMixin, db.Model):
     )
 
     # The ban that this user has. will be None if not banned.
-    ban = db.relationship(Ban, uselist=False, backref="user_ban")
+    ban: Optional[Ban] = db.relationship(Ban, uselist=False, backref="user_ban")
 
     # The tag blacklist. posts with tags on this list will not appear on this user's results.
-    tag_blacklist = db.relationship(
+    tag_blacklist: Query = db.relationship(
         "Tag",
         secondary=tag_blacklist,
         backref="user_blacklist",
@@ -91,26 +100,30 @@ class User(UserMixin, db.Model):
     )
 
     # The user's settings. eg. custom css or profile connections
-    settings = db.relationship("UserSettings", uselist=False, backref="user_settings")
+    settings: UserSettings = db.relationship(
+        "UserSettings", uselist=False, backref="user_settings"
+    )
 
     # The users comments on posts.
-    comments = db.relationship(
+    comments: Query = db.relationship(
         "PostComment", backref="user_comments", lazy="dynamic", viewonly=True
     )
 
     # The users uploaded posts.
-    posts = db.relationship("Post", backref="user_posts", lazy="dynamic", viewonly=True)
+    posts: Query = db.relationship(
+        "Post", backref="user_posts", lazy="dynamic", viewonly=True
+    )
 
     # Amount of posts this user has uploaded.
-    post_count = db.Column(db.Integer, default=0, nullable=False)
+    post_count: int = db.Column(db.Integer, default=0, nullable=False)
 
     # ULTRA SECRET LOGIN UUID FOR INTERNAL LOGGING IN!!!!1!!!1 (hidden value for securely logging in users with flask-login)
-    login_id = db.Column(
+    login_id: str = db.Column(
         db.String, index=True, unique=True, default=lambda: str(uuid.uuid4())
     )
 
     # If the user deletes their account, this will become true.
-    is_deleted = db.Column(db.Boolean, default=False)
+    is_deleted: bool = db.Column(db.Boolean, default=False)
 
     @validates("username")
     def validate_username(self, key, username):
