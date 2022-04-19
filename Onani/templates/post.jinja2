@@ -8,7 +8,7 @@
   {% set ogdesc = "View on Onani." %}
 {% endif %}
 
-{% set ogdesc = "{score}👍 | {comments}💬\n {ogdesc}".format(score=post.score, comments=post.comments.all()|length, ogdesc=ogdesc) %}
+{% set ogdesc = "{score}👍 | {comments}💬\n{ogdesc}".format(score=post.score, comments=post.comments.all()|length, ogdesc=ogdesc) %}
 
 {% extends "base.jinja2" %}
 

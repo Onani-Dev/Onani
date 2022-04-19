@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 03:37:30
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-19 18:10:40
+# @Last Modified time: 2022-04-20 00:01:35
 from flask import jsonify, request, abort
 from Onani.controllers import role_required
 from Onani.models import UserRoles, Ban, User
@@ -28,6 +28,9 @@ def ban_user():
 
         ban.save_to_db()
         return make_api_response()
+
+    if request.method == "DELETE":
+        pass
 
 
 # @admin_api.route("/pardon", methods=["POST"])

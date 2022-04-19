@@ -5,10 +5,15 @@
   <title>{{ title }}Onani</title>
   <!-- META -->
   <meta charset="utf-8">
+  <link rel="manifest" href="/manifest.json" />
+  <script type="module">
+   import '/static/js/pwaupdate.js';
+   const el = document.createElement('pwa-update');
+   document.body.appendChild(el);
+  </script>
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
   <meta name="apple-mobile-web-app-title" content="Onani">
   <meta name="application-name" content="Onani">
-  <meta name="msapplication-TileColor" content="#dc143c">
   <meta name="msapplication-TileColor" content="#dc143c">
   <meta name="theme-color" content="#dc143c">
   <meta name="description" content="{{ ogdesc }}">
