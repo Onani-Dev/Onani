@@ -2,10 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 15:17:22
+# @Last Modified time: 2022-04-19 15:23:08
 
 from __future__ import annotations
-from collections import defaultdict
 import datetime
 import html
 from typing import TYPE_CHECKING, Dict, List
@@ -15,14 +14,8 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from Onani.controllers.utils import natural_join
-from Onani.models.post.comment import PostComment
 from Onani.models.user.user_ import User
 from collections import defaultdict
-from typing import Dict, List
-
-from Onani.controllers.utils import natural_join
-from sqlalchemy.orm import validates
-from sqlalchemy_utils import ChoiceType
 
 from ..tag import Tag, TagType
 from . import PostRating, PostStatus, db
