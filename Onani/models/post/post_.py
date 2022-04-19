@@ -2,21 +2,28 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-18 23:47:39
+# @Last Modified time: 2022-04-19 14:26:40
 
+from __future__ import annotations
 from collections import defaultdict
 import datetime
 import enum
 import html
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 
 from sqlalchemy.orm import validates
+from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from Onani.controllers.utils import natural_join
+from Onani.models.post.comment import PostComment
+from Onani.models.user.user_ import User
 
 from ..tag import Tag, TagType
 from . import PostRating, PostStatus, db
+
+if TYPE_CHECKING:
+    from Onani.models.post.file import File
 
 post_upvotes = db.Table(
     "post_upvotes",
@@ -45,60 +52,61 @@ class Post(db.Model):
     __tablename__ = "posts"
 
     # The post primary key
-    id = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True)
 
     # The time the post was created.
-    uploaded_at = db.Column(
+    uploaded_at: datetime.datetime = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
 
     # The status of the post. if it is deleted for any reason it will become PostStatus.DELETED
-    status = db.Column(
+    status: PostStatus = db.Column(
         ChoiceType(PostStatus, impl=db.Integer()),
         default=PostStatus.PENDING,
         nullable=False,
     )
 
     # The explicitness rating of a post. will be manually set by uploader and can be changed by an admin or moderator.
-    rating = db.Column(
+    rating: PostRating = db.Column(
         ChoiceType(PostRating, impl=db.Integer()),
         default=PostRating.QUESTIONABLE,
         nullable=False,
     )
 
     # The post's source. will be a url.
-    source = db.Column(db.String)
+    source: str = db.Column(db.String)
 
     # the post's description
-    description = db.Column(db.String)
+    description: str = db.Column(db.String)
 
     # The post's file(s). has information on file sizes etc
-    files = db.relationship("File", backref="post_files", lazy="joined")
-
-    # The post's notes. those little thingys on the image over the japanese text :)
-    notes = db.relationship("Note", backref="post_notes", lazy="joined")
+    files: File = db.relationship("File", backref="post_files", lazy="joined")
 
     # The post's uploader. is a user.
-    uploader_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    uploader_id: int = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-    uploader = db.relationship("User", backref="uploads", lazy="joined", uselist=False)
+    uploader: User = db.relationship(
+        "User", backref="uploads", lazy="joined", uselist=False
+    )
 
     # The post's tags. will be a list of tags that can be appended to.
-    tags = db.relationship("Tag", secondary=post_tags, backref="posts", lazy="joined")
+    tags: List[Tag] = db.relationship(
+        "Tag", secondary=post_tags, backref="posts", lazy="joined"
+    )
 
     # Post's upvoters. users. contributes to the post's rating/score
-    upvoters = db.relationship(
+    upvoters: Query = db.relationship(
         "User", secondary=post_upvotes, backref="post_upvoters", lazy="dynamic"
     )
 
     # Post's downvoters. users. contributes to the post's rating/score (reddit moment)
-    downvoters = db.relationship(
+    downvoters: Query = db.relationship(
         "User", secondary=post_downvotes, backref="post_downvoters", lazy="dynamic"
     )
 
     # The post's comments. will be filtered for naughty words or other bad things.
-    comments = db.relationship(
+    comments: Query = db.relationship(
         "PostComment", backref="comments", lazy="dynamic", viewonly=True
     )
 
