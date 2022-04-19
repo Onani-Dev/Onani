@@ -1,5 +1,5 @@
 {% set title = "{title} - ".format(title=post.title) %}
-{% set ogtitle = "{score}👍 | {comments}💬".format(score=post.score, comments=post.comments.all()|length) %}
+{% set ogtitle = "{title}".format(title=post.title, score=post.score, comments=post.comments.all()|length) %}
 {% set ogimage = post.files[0].thumbnail(500) %}
 
 {% if post.description %}
@@ -7,6 +7,8 @@
 {% else %}
   {% set ogdesc = "View on Onani." %}
 {% endif %}
+
+{% set ogdesc = "{score}👍 | {comments}💬\n {ogdesc}".format(score=post.score, comments=post.comments.all()|length, ogdesc=ogdesc) %}
 
 {% extends "base.jinja2" %}
 
@@ -59,7 +61,6 @@
       </div>
 
       <div id="table-container">
-
         <table>
           <tr>
             <th>Uploaded At</th>
