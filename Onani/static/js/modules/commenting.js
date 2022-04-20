@@ -2,11 +2,12 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-21 00:29:43
+ * @Last Modified time: 2022-04-21 03:48:12
  */
 
 import { ajax } from "jquery";
 import { DateTime } from "luxon";
+import { parse as twemojiParse } from "twemoji";
 
 class PostCommenter {
   constructor(postID) {
@@ -22,12 +23,12 @@ class PostCommenter {
     this.commentTextInput.onkeydown = (e) => {
       if (e.key == "Enter" && e.shiftKey) {
         e.preventDefault();
-        postComment();
+        this.postComment();
       }
     };
 
     this.postButton.onclick = () => {
-      postComment();
+      this.postComment();
     };
   }
 
@@ -79,7 +80,7 @@ class PostCommenter {
 
     commentBody.appendChild(commentInfoContainer);
 
-    commentBody.appendChild(twemoji.parse(commentContent));
+    commentBody.appendChild(twemojiParse(commentContent));
 
     commentPostContainer.appendChild(userProfileContainer);
     commentPostContainer.appendChild(commentBody);
@@ -95,16 +96,16 @@ class PostCommenter {
     };
 
     ajax(settings).done(function (response) {
-      commentContainer.innerHTML = "";
+      this.commentContainer.replaceChildren();
       if (response.data.length === 0) {
         let noCom = document.createElement("h2");
         noCom.id = "no-comments-message";
         noCom.classList.add("system-text");
         noCom.innerHTML = "No Comments on this post.";
-        commentContainer.appendChild(noCom);
+        this.commentContainer.appendChild(noCom);
       }
       response.data.forEach((comment) => {
-        commentContainer.appendChild(contructCommentElement(comment));
+        this.commentContainer.appendChild(this.contructCommentElement(comment));
       });
     });
   }
@@ -118,7 +119,7 @@ class PostCommenter {
           "Content-Type": "application/json",
         },
         data: JSON.stringify({
-          post_id: postID,
+          post_id: this.postID,
           content: this.commentTextInput.value,
         }),
       };
@@ -128,7 +129,7 @@ class PostCommenter {
         if (noCommentsMessage) {
           noCommentsMessage.parentNode.removeChild(noCommentsMessage);
         }
-        $(commentContainer).prepend(contructCommentElement(response));
+        $(this.commentContainer).prepend(this.contructCommentElement(response));
       });
     }
   }

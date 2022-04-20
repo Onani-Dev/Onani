@@ -2,10 +2,11 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:27:55
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-21 02:01:59
+ * @Last Modified time: 2022-04-21 03:43:54
  */
 import { DateTime } from "luxon";
 import { Converter } from "showdown";
+import { parse as twemojiParse } from "twemoji";
 
 /**
  * Element Formatter for formatting html elements with classes.
@@ -74,7 +75,7 @@ class ElementFormatter {
   twemojiFormat() {
     for (let element of document.getElementsByClassName("twemoji-format")) {
       try {
-        twemoji.parse(element);
+        twemojiParse(element);
       } catch (e) {
         console.error(e);
       }
@@ -88,10 +89,10 @@ class ElementFormatter {
     for (let element of document.getElementsByClassName("emote-format")) {
       try {
         element.innerHTML = element.innerHTML.replace(
-          customEmotes,
+          this.customEmotes,
           (current) => {
             let emote = document.createElement("img");
-            emote.src = emojiTable[current.replace(/:/g, "")];
+            emote.src = this.emojiTable[current.replace(/:/g, "")];
             emote.className = "emoji";
             emote.draggable = false;
             emote.alt = current;

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-20 23:44:57
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-21 03:27:29
+ * @Last Modified time: 2022-04-21 03:42:48
  */
 import { Croppie } from "croppie";
 
@@ -38,7 +38,7 @@ class Profile {
     );
     if (profilePictureSettings) {
       profilePictureSettings.onchange = () => {
-        readFile(profilePictureSettings);
+        this.readFile(profilePictureSettings);
       };
     }
 
