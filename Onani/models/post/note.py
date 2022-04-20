@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:20:05
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 14:30:51
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-20 16:17:05
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
@@ -23,17 +23,23 @@ class Note(db.Model):
     __tablename__ = "notes"
 
     id: int = db.Column(db.Integer, primary_key=True)
+
     file_id: int = db.Column(db.Integer, db.ForeignKey("files.id"), nullable=False)
     file: File = db.relationship(
         "File", backref="file_notes", lazy="joined", uselist=False, viewonly=True
     )
+
     text: str = db.Column(db.String)
+
     x: int = db.Column(db.Integer)
     """Horizontal offset from the top left corner"""
+
     y: int = db.Column(db.Integer)
     """Vertical offset from the top left corner"""
+
     width: int = db.Column(db.Integer)
     """Width (from left to right)"""
+
     height: int = db.Column(db.Integer)
     """Height (from top to bottom)"""
 

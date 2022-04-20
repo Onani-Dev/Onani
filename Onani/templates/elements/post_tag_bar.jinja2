@@ -11,7 +11,7 @@
           <h2>{{ t.name.capitalize() }}</h2>
           {% for tag in sorted_tags[t] %}
             <li class=" {{ tag.type.name.lower() }}" onclick="location.href='/posts/?tags={{ tag.name }}'">
-              <a href="/posts/?tags={{ tag.name }}" class="tag-list-item">{{ tag.name }}</a>
+              <a href="/posts/?tags={{ tag.name }}" class="tag-list-item">{{ tag.humanized }}</a>
             </li>
           {% endfor %}
         </div>

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-14 17:27:26
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-20 23:40:00
 
-from cgi import FieldStorage
 from typing import List
 
 from flask import request
@@ -13,6 +12,7 @@ from Onani.controllers.utils import startswith_min
 from Onani.forms import UploadForm
 from Onani.models import Post, PostComment, PostRating, Tag, TagType, User
 from PIL import UnidentifiedImageError
+from sqlalchemy import func
 
 from . import create_files, db
 
@@ -50,7 +50,7 @@ def format_tag(tag: str) -> str:
     if not tag:
         return ""
 
-    if len(tag) > 32:
+    if len(tag) > 64:
         # Maybe display a warning to the user?
         return ""
 
@@ -166,7 +166,9 @@ def upload_post(form: UploadForm):
             t.post_count += 1
 
         # increase the user's post count
-        current_user.post_count = len(current_user.posts.all())
+        current_user.post_count = current_user.posts.with_entities(
+            func.count()
+        ).scalar()
 
         # Add post to session
         db.session.add(post)

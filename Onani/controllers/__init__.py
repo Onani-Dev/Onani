@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-04 15:56:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-16 21:16:28
+# @Last Modified time: 2022-04-20 16:12:26
 
 from .. import db
 from .exceptions import OnaniApiException
@@ -16,3 +16,4 @@ from .database import (
     upload_post,
 )
 from .role import role_required
+from .permissions import permissions_required

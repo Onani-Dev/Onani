@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 13:02:37
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-20 16:13:00
 
 import datetime
 import time
@@ -23,7 +23,7 @@ db = SQLAlchemy()  # session_options={"autocommit": True}
 login_manager = LoginManager()
 ma = Marshmallow()
 migrate = Migrate()
-limiter = Limiter(key_func=lambda: current_user.api_key)
+limiter = Limiter(key_func=lambda: current_user.login_id)
 
 
 def init_app():

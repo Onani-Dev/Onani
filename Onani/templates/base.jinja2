@@ -55,7 +55,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.0.3/showdown.min.js" integrity="sha512-vx8rJNrYIZPDr290AV2tL04x0CKjLHSnTXrHMeb1kqbhfGwBnclPDOWIWxRiVS6Oe1oGzk5MzNz/eLzVku30kg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://kit.fontawesome.com/2eaffbb37a.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.0.2/interact.min.js" integrity="sha512-Ipef/NhGC7SlCer4041clfWKsriVhnGMcS15cVrl9j/NFtNmqeK28tbfOFwASlSfy4j8XjcpVw4HXvTvzgA8rA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js" integrity="sha512-XtmMtDEcNz2j7ekrtHvOVR4iwwaD6o/FUJe6+Zq+HgcCsk3kj4uSQQR8weQ2QVj1o0Pk6PwYLohm206ZzNfubg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  {# <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js" integrity="sha512-XtmMtDEcNz2j7ekrtHvOVR4iwwaD6o/FUJe6+Zq+HgcCsk3kj4uSQQR8weQ2QVj1o0Pk6PwYLohm206ZzNfubg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> #}
   {% block top_scripts %}
   {% endblock %}
 
@@ -117,7 +117,7 @@
       </div>
     {% endif %}
 
-    <div class="mobile-sidebar-open" onclick="openNav()">
+    <div class="mobile-sidebar-open" id="side-navigation-open-button" onclick="openNav()">
       <i class="fa-solid fa-bars fa-2x"></i>
     </div>
 
@@ -125,7 +125,7 @@
 
   <!-- Sidenav -->
   <div id="side-navigation" class="sidenav">
-    <a href="javascript:void(0)" class="close-button" onclick="closeNav()">&times;</a>
+    <a href="javascript:void(0)" id="side-navigation-close-button" class="close-button" onclick="closeNav()">&times;</a>
     <a href="/posts/">Posts</a>
     <a href="/collections/">Collections</a>
     <a href="/news/">News</a>

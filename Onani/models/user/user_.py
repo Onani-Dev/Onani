@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 13:04:54
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-20 16:13:52
 
 from __future__ import annotations
+
 import datetime
 import html
 import secrets
-from typing import TYPE_CHECKING, Optional
 import uuid
+from typing import TYPE_CHECKING, Optional
 
 import regex as re
 from flask_login import UserMixin
+from Onani.models.post.comment import PostComment
 from passlib.hash import argon2
 from sqlalchemy.orm import validates
-from sqlalchemy_utils import ChoiceType
 from sqlalchemy.orm.query import Query
-from Onani.models.post.comment import PostComment
+from sqlalchemy_utils import ChoiceType
 
 if TYPE_CHECKING:
     from Onani.models.post.post_ import Post
@@ -25,9 +26,9 @@ if TYPE_CHECKING:
 from Onani.models.tag.tag_ import Tag
 
 from . import Ban, db
+from .permissions import UserPermissions
 from .roles import UserRoles
 from .settings import UserSettings
-from .permissions import UserPermissions
 
 tag_blacklist = db.Table(
     "tag_blacklist",

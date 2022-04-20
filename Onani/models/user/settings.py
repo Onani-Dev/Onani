@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-13 00:59:27
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-23 16:08:40
+# @Last Modified time: 2022-04-20 16:15:01
 import html
+from typing import Dict
 
 import regex as re
 from sqlalchemy.orm import validates
@@ -27,25 +28,25 @@ class UserSettings(db.Model):
         "twitter": r"(?:^https:\/\/twitter\.com\/[\w]{1,15}|^@(\w){1,15})",
     }
 
-    id = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True)
 
     # The User that the settings belong to.
-    user = db.Column(db.Integer, db.ForeignKey("users.id"))
+    user: int = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     # User biography. allows custom text on the profile. (and hopefully not Cross Site Scripting)
-    biography = db.Column(db.UnicodeText)
+    biography: str = db.Column(db.UnicodeText)
 
     # The link to the user's avatar.
-    avatar = db.Column(db.String)
+    avatar: str = db.Column(db.String)
 
     # The user's custom css. overrides the default css that i worked so hard on :(
-    custom_css = db.Column(db.UnicodeText)
+    custom_css: str = db.Column(db.UnicodeText)
 
     # Custom colour for user profile
-    profile_colour = db.Column(db.String)
+    profile_colour: str = db.Column(db.String)
 
     # The user's connections to other website's accounts
-    connections = db.Column(
+    connections: Dict = db.Column(
         db.JSON,
         default={
             "deviantart": None,
