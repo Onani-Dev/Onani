@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:00:41
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-13 19:50:56
+ * @Last Modified time: 2022-04-22 00:42:58
  */
 div#profile-info-container {
     height: 175px;
@@ -163,6 +163,10 @@ div.settings-input-group {
         display: block;
         width: 150px;
         padding: 10px;
+
+        @include for-mobile-only {
+            width: auto;
+        }
     }
 
     input.profile-settings-submit {

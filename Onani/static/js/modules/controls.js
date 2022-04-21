@@ -2,29 +2,29 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 13:00:29
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-21 00:42:51
+ * @Last Modified time: 2022-04-22 00:45:17
  */
 
 class SideNavbarControls {
   constructor() {
-    this.sideNav = document.getElementById("side-navigation");
-
+    let closeNav = this.closeNav;
+    let openNav = this.openNav;
     // Register buttons to open navigation
     document.getElementById("side-navigation-close-button").onclick = () => {
-      this.closeNav();
+      closeNav();
     };
     document.getElementById("side-navigation-open-button").onclick = () => {
-      this.openNav();
+      openNav();
     };
   }
 
   // Opening side navigation bar (mobile)
   openNav() {
-    this.sideNav.style.width = "250px";
+    document.getElementById("side-navigation").style.width = "250px";
   }
   // Closing side navigation bar (mobile)
   closeNav() {
-    this.sideNav.style.width = "0";
+    document.getElementById("side-navigation").style.width = "0";
   }
 }
 

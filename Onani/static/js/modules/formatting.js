@@ -2,11 +2,11 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:27:55
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-21 03:43:54
+ * @Last Modified time: 2022-04-22 00:15:35
  */
-import { DateTime } from "luxon";
-import { Converter } from "showdown";
-import { parse as twemojiParse } from "twemoji";
+// import { DateTime } from "./external/luxon.min.js";
+// import { Converter } from "./external/showdown.min.js";
+// import { parse as twemojiParse } from "./external/twemoji.min.js";
 
 /**
  * Element Formatter for formatting html elements with classes.
@@ -48,7 +48,9 @@ class ElementFormatter {
   dateFormat() {
     for (let element of document.getElementsByClassName("date-format")) {
       try {
-        element.innerHTML = DateTime.fromISO(element.innerHTML).toFormat("fff");
+        element.innerHTML = luxon.DateTime.fromISO(element.innerHTML).toFormat(
+          "fff"
+        );
       } catch (e) {
         console.error(e);
       }
@@ -60,7 +62,7 @@ class ElementFormatter {
    */
   markdownFormat() {
     for (let element of document.getElementsByClassName("markdown-format")) {
-      let converter = new Converter();
+      let converter = new showdown.Converter();
       try {
         element.innerHTML = converter.makeHtml(element.innerHTML);
       } catch (e) {
@@ -75,7 +77,7 @@ class ElementFormatter {
   twemojiFormat() {
     for (let element of document.getElementsByClassName("twemoji-format")) {
       try {
-        twemojiParse(element);
+        twemoji.parse(element);
       } catch (e) {
         console.error(e);
       }
@@ -96,7 +98,7 @@ class ElementFormatter {
             emote.className = "emoji";
             emote.draggable = false;
             emote.alt = current;
-            return emote;
+            return emote.outerHTML;
           }
         );
       } catch (e) {

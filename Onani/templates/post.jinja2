@@ -21,14 +21,11 @@
 <!-- Left panel/Tags -->
 {% include "elements/post_tag_bar.jinja2" %}
 
-<div id="content-container">
-  <script>
-    const postID = {{ post.id }};
-  </script>
+<div id="content-container" data-post-id="{{ post.id }}">
   <div class="images-container">
     {% for file in post.files %}
       <div class="file-container">
-        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}"></a>
+        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}" alt="{{ post.title }}"></a>
       </div>
     {% endfor %}
   </div>
@@ -95,8 +92,8 @@
     <div id="comment-container">
       <h3>Loading Comments...</h3>
     </div>
-    <script src="/static/js/comments.min.js"></script>
+    <script type="module" src="/static/js/post-comments.min.js"></script>
   </div>
 </div>
-{# $(document).ready(function(){$('.images').slick({dots: true, infinite: false});}); #}
+
 {% endblock %}

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-09-10 02:40:26
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-03-19 14:57:19
+ * @Last Modified time: 2022-04-21 21:39:30
  */
 "use strict";
 let currentRoom = "general";
@@ -62,7 +62,7 @@ function init() {
       SendMessage();
     });
   inputArea.addEventListener("keypress", function (e) {
-    if (e.key == "Enter") {
+    if (e.key === "Enter") {
       e.preventDefault();
       SendMessage();
     }

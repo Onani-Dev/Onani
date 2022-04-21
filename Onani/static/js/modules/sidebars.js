@@ -2,10 +2,10 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 15:17:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-21 03:34:32
+ * @Last Modified time: 2022-04-21 19:38:13
  */
-import { parse as twemojiParse } from "twemoji";
-import { DateTime } from "luxon";
+// import { parse as twemojiParse } from "./external/twemoji.min.js";
+// import { DateTime } from "./external/luxon.min.js";
 
 class NewsBoxUpdater {
   /**
@@ -15,6 +15,7 @@ class NewsBoxUpdater {
    * @param {integer} milliseconds
    */
   constructor(milliseconds = 300000) {
+    this.getNews();
     setInterval(this.getNews, milliseconds);
   }
 
@@ -32,7 +33,9 @@ class NewsBoxUpdater {
     // Fetch new news from the api
     fetch("/api/news", { method: "GET" }).then((response) => {
       response.json().then((json) => {
-        let news = [];
+        // Clear news box and replace with new children
+        newsContainer.replaceChildren();
+
         json.data.forEach((news) => {
           // Make a list entry element
           let newsPost = document.createElement("li"),
@@ -46,23 +49,20 @@ class NewsBoxUpdater {
           newsLink.innerText = news.title;
 
           // set the content
-          newsTime.textContent = `(${DateTime.fromISO(
+          newsTime.textContent = `(${luxon.DateTime.fromISO(
             news.created_at
           ).toRelativeCalendar()})`;
 
           // make it twemoji
-          twemojiParse(newsLink);
+          twemoji.parse(newsLink);
 
           // append items
           newsPost.appendChild(newsLink);
           newsPost.appendChild(newsTime);
 
           // Add to news to add to element
-          news.push(newsPost);
+          newsContainer.appendChild(newsPost);
         });
-
-        // Clear news box and replace with new children
-        newsContainer.replaceChildren(news);
       });
     });
   }

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-20 23:40:00
+# @Last Modified time: 2022-04-22 02:32:12
 
 from typing import List
 
@@ -149,6 +149,9 @@ def upload_post(form: UploadForm):
     try:
         files, meta_tags = create_files(post, datas)
         tags.update(meta_tags)
+        # Add tagme tag for posts with less than 10 tags
+        if len(tags) <= 10:
+            tags.add("meta:tagme")
     except UnidentifiedImageError as e:
         form.files.errors.append("Image file could not be opened.")
     except ValueError as e:

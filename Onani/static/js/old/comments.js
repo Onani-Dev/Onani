@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-19 14:12:17
+ * @Last Modified time: 2022-04-21 21:39:25
  */
 const commentTextInput = document.getElementById("post-comment-input"),
   commentContainer = document.getElementById("comment-container"),
@@ -115,7 +115,7 @@ function postComment() {
 loadComments();
 commentTextInput.onkeydown = function (e) {
   "use strict";
-  if (e.key == "Enter" && e.shiftKey) {
+  if (e.key === "Enter" && e.shiftKey) {
     e.preventDefault();
     postComment();
   }

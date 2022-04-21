@@ -2,15 +2,16 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-20 16:13:52
+# @Last Modified time: 2022-04-21 22:32:20
 
 from __future__ import annotations
+from typing import Union
 
 import datetime
 import html
 import secrets
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 import regex as re
 from flask_login import UserMixin
@@ -233,13 +234,55 @@ class User(UserMixin, db.Model):
             return f"/thumbnail/{size}x{size}{self.settings.avatar}"
         return self.settings.avatar
 
+    def has_role(self, role: UserRoles) -> bool:
+        """Check if the user has a specific role or above.
+
+        Args:
+            role (UserRoles): The role to check for.
+
+        Returns:
+            bool: True if user has a role equal to or above the given role
+        """
+        return self.role.value >= role.value
+
+    def has_permissions(
+        self, permissions: Union[UserPermissions, List[UserPermissions]]
+    ) -> bool:
+        """Check if the user has the specified permissions
+
+        Args:
+            permissions (Union[UserPermissions, List[UserPermissions]]): The list of permissions or UserPermissions to check
+
+        Returns:
+            bool: True if the user has all of the permissions specified.
+        """
+        # Check if permissions are a list an iterate through them
+        if isinstance(permissions, list):
+            for p in permissions:
+                if p not in self.permissions:
+                    # User doesn't have these permissions
+                    return False
+        # Check for a single permission
+        elif permissions not in self.permissions:
+            return False
+        return True
+
     @property
-    def avatar_thumbnail(self):
+    def is_admin(self) -> bool:
+        """Check if the user has admin permissions, for use in jinja templates
+
+        Returns:
+            bool: True or False
+        """
+        return self.has_role(UserRoles.ADMIN)
+
+    @property
+    def avatar_thumbnail(self) -> str:
         return self.get_avatar(150)
 
     @property
-    def profile_colour(self):
+    def profile_colour(self) -> str:
         return self.settings.profile_colour or "#4a4a4a"
 
     def __repr__(self):
-        return f"<User {self.username}>"
+        return f"<User '{self.username}'>"

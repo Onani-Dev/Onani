@@ -1,66 +1,21 @@
 /**
  * @Author: kapsikkum
- * @Date:   2022-03-28 22:16:17
+ * @Date:   2022-04-21 18:33:12
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-18 14:01:48
+ * @Last Modified time: 2022-04-22 00:47:03
  */
+import {
+  ElementFormatter,
+  PostsSearch,
+  SideNavbarControls,
+} from "./modules/index.min.js";
 
-// Format all date-format elements
-for (let element of document.getElementsByClassName("date-format")) {
-  try {
-    element.innerHTML = luxon.DateTime.fromISO(element.innerHTML).toFormat(
-      "fff"
-    );
-  } catch (e) {
-    console.error(e);
-  }
-}
+// Formatter
+let formatter = new ElementFormatter();
+formatter.formatAll();
 
-// Format all markdown-format elements
-for (let element of document.getElementsByClassName("markdown-format")) {
-  let converter = new showdown.Converter();
-  try {
-    element.innerHTML = converter.makeHtml(element.innerHTML);
-  } catch (e) {
-    console.error(e);
-  }
-}
+// Search box
+let search = new PostsSearch();
 
-// Format all twemoji-format elements
-for (let element of document.getElementsByClassName("twemoji-format")) {
-  try {
-    twemoji.parse(element);
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-// Escape route
-document.onkeyup = function (e) {
-  if (e.key == "Escape") {
-    document.body.innerHTML = "";
-    location.href = "https://taiko.bui.pm/";
-  }
-};
-
-// Opening navigation
-function openNav() {
-  document.getElementById("side-navigation").style.width = "250px";
-}
-
-// Closing navigation
-function closeNav() {
-  document.getElementById("side-navigation").style.width = "0";
-}
-
-// Text copy function
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(
-    function () {
-      alert("Copied to clipboard!");
-    },
-    function () {
-      alert("Failed to copy.");
-    }
-  );
-}
+// Mobile sidenav
+let sideNav = new SideNavbarControls();
