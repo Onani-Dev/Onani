@@ -68,7 +68,6 @@ def parse_tags(post: Post, tags: List[str]) -> List[Tag]:
     Returns:
         List[Tag]: The tags to add to the post
     """
-
     taglist = []
 
     for tag_str in tags:
