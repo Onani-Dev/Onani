@@ -5,13 +5,12 @@
 # @Last Modified time: 2022-04-21 22:32:20
 
 from __future__ import annotations
-from typing import Union
+from typing import List, Optional, TYPE_CHECKING, Union
 
 import datetime
 import html
 import secrets
 import uuid
-from typing import TYPE_CHECKING, List, Optional
 
 import regex as re
 from flask_login import UserMixin
