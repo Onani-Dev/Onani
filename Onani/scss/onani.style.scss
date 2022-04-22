@@ -1,8 +1,8 @@
 /*
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
- * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-04-18 20:38:56
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-04-22 23:35:41
 */
 @import "mixins";
 
@@ -24,7 +24,7 @@
     -webkit-font-smoothing: subpixel-antialiased;
     color: var(--text-colour-1);
     font-family: 'Tajawal', sans-serif;
-    font-weight: 100;
+    // font-weight: 100;
     margin: 0;
     padding: 0;
     scrollbar-color: var(--ui-foreground-header) var(--ui-background-colour);

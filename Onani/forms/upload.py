@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-22 03:20:17
+# @Last Modified time: 2022-04-22 14:44:49
 
 from flask_wtf import FlaskForm, RecaptchaField
 from flask_wtf.file import FileAllowed, FileRequired
@@ -17,8 +17,7 @@ class UploadForm(FlaskForm):
         "Files",
         render_kw={
             "id": "file-upload",
-            "accept": "image/gif, image/jpeg, image/png, image/tiff, image/bmp, image/webp",
-            # "onchange": "displayImage(this)",
+            "accept": "image/gif, image/jpeg, image/png, image/webp",
             "class": "uploader-input",
         },
         validators=[
@@ -31,8 +30,6 @@ class UploadForm(FlaskForm):
                     "webp",
                     "jfif",
                     "pjpeg",
-                    "pjp",
-                    "tiff",
                     "webp",
                 ],
                 "Image Files only.",

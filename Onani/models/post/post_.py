@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 15:23:08
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-22 15:01:27
 
 from __future__ import annotations
 import datetime
@@ -188,6 +188,12 @@ class Post(db.Model):
             title = f"#{self.id}"
 
         return title
+
+    def first_file_thumbnail(self, size: int = 150) -> str:
+        if len(self.files) == 0:
+            return "/static/image/missing_file.png"
+        else:
+            return self.files[0].thumbnail(size)
 
     def __repr__(self):
         return f"<Post {self.__dict__}>"
