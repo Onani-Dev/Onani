@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-23 02:24:06
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-23 02:31:46
+# @Last Modified time: 2022-04-23 14:13:47
 from urllib.parse import urlparse
 
 from flask import current_app, make_response, render_template, request
@@ -11,8 +11,6 @@ from Onani.models import Post
 from . import db, main
 
 
-@main.route("/sitemap")
-@main.route("/sitemap/")
 @main.route("/sitemap.xml")
 def sitemap():
     """

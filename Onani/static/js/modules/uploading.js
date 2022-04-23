@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-21 14:56:40
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-22 04:08:50
+ * @Last Modified time: 2022-04-23 21:53:01
  */
 import { Pagination } from "./utils.min.js";
 
@@ -105,16 +105,19 @@ class PostUpload {
     document.getElementById("uploader-title-text").innerText =
       this.uploaderSlides.current.dataset.slideTitle;
     if (this.uploaderSlides.hasNext && this.uploaderSlides.hasPrev) {
+      // has next and prev
       leftButton.style.visibility = "visible";
       rightButton.style.visibility = "visible";
       rightButton.style.display = "block";
       uploadButton.style.display = "none";
     } else if (!this.uploaderSlides.hasNext && this.uploaderSlides.hasPrev) {
+      // Has no next but has prev
       leftButton.style.visibility = "visible";
       rightButton.style.visibility = "hidden";
       rightButton.style.display = "none";
       uploadButton.style.display = "block";
     } else if (this.uploaderSlides.hasNext && !this.uploaderSlides.hasPrev) {
+      // has next but no prev
       leftButton.style.visibility = "hidden";
       rightButton.style.visibility = "visible";
       rightButton.style.display = "block";

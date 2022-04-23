@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 23:17:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 19:37:53
+# @Last Modified time: 2022-04-23 15:01:53
 
 from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import PasswordField, StringField, SubmitField
@@ -53,6 +53,5 @@ class RegistrationForm(FlaskForm):
         "Submit",
         render_kw={
             "value": "Register",
-            "id": "submit",
         },
     )

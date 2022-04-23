@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-21 22:32:20
+# @Last Modified time: 2022-04-24 00:49:46
 
 from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING, Union
@@ -265,6 +265,28 @@ class User(UserMixin, db.Model):
         elif permissions not in self.permissions:
             return False
         return True
+
+    def has_upvoted(self, post: Post) -> bool:
+        """Check if a user has upvoted a post
+
+        Args:
+            post (Post): The post to check for an upvote on
+
+        Returns:
+            bool: True or false come on man
+        """
+        return bool(post.upvoters.filter_by(id=self.id).first())
+
+    def has_downvoted(self, post: Post) -> bool:
+        """Check if a user has downvoted a post
+
+        Args:
+            post (Post): The post to check for a downvote on
+
+        Returns:
+            bool: True or false come on man
+        """
+        return bool(post.downvoters.filter_by(id=self.id).first())
 
     @property
     def is_admin(self) -> bool:

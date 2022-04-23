@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:27:55
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-22 00:15:35
+ * @Last Modified time: 2022-04-23 17:19:16
  */
 // import { DateTime } from "./external/luxon.min.js";
 // import { Converter } from "./external/showdown.min.js";
@@ -48,9 +48,11 @@ class ElementFormatter {
   dateFormat() {
     for (let element of document.getElementsByClassName("date-format")) {
       try {
-        element.innerHTML = luxon.DateTime.fromISO(element.innerHTML).toFormat(
-          "fff"
-        );
+        let date = luxon.DateTime.fromISO(element.innerHTML);
+        element.innerHTML = date.toFormat("fff");
+        if (element.classList.contains("human-time")) {
+          element.innerHTML += ` (${date.toRelativeCalendar()})`;
+        }
       } catch (e) {
         console.error(e);
       }

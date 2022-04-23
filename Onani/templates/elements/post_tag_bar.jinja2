@@ -10,8 +10,8 @@
         <div class="tag-section">
           <h2>{{ t.name.capitalize() }}</h2>
           {% for tag in sorted_tags[t] %}
-            <li class=" {{ tag.type.name.lower() }}" onclick="location.href='/posts/?tags={{ tag.name }}'">
-              <a href="/posts/?tags={{ tag.name }}" class="tag-list-item">{{ tag.humanized }}</a>
+            <li class=" {{ tag.type.name.lower() }}" onclick="location.href='/posts/?tags={{ tag.name }}'" title="{{ tag.description }}">
+              <p>{{ tag.humanized }}</p>
             </li>
           {% endfor %}
         </div>

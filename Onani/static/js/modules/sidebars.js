@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 15:17:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-21 19:38:13
+ * @Last Modified time: 2022-04-23 22:11:58
  */
 // import { parse as twemojiParse } from "./external/twemoji.min.js";
 // import { DateTime } from "./external/luxon.min.js";
@@ -82,27 +82,32 @@ class TagsBoxUpdater {
           if (tag.post_count > 0 && tag.type != "banned") {
             // Create the elements to add properties to
             var tagListItem = document.createElement("li"),
-              tagLink = document.createElement("a"),
+              tagText = document.createElement("p"),
               postCount = document.createElement("div");
 
             // The link of the tag
-            tagLink.href = `/posts/?tags=${tag.name}`;
+            tagText.href = `/posts/?tags=${tag.name}`;
 
-            tagLink.innerText = tag.humanized;
+            tagText.innerText = tag.humanized;
 
             // Add post count to div
-            postCount.innerText = tag.post_count;
+            postCount.innerText = Humanize.compactInteger(tag.post_count, 1);
 
             // Add the classes
-            tagLink.classList.add("tag-list-item");
             tagListItem.classList.add(tag.type);
 
             // Add the elements to the page
-            tagListItem.appendChild(tagLink);
+            tagListItem.appendChild(tagText);
             tagListItem.appendChild(postCount);
+
+            // The onclick event
             tagListItem.onclick = () => {
               location.href = `/posts/?tags=${tag.name}`;
             };
+
+            // Hover title description thing
+            tagListItem.title = tag.description;
+
             tagContainer.appendChild(tagListItem);
           }
         });

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-18 20:37:59
+ * @Last Modified time: 2022-04-24 02:22:31
  */
 
 #posts-container {
@@ -183,6 +183,42 @@ img.post-thumbnail {
             justify-content: space-around;
             padding: 10px;
             width: 80px;
+
+            #post-score-count {
+                font-size: 1.5em;
+                &.positive {
+                    color: lightgreen;
+                }
+                &.negative {
+                    color: crimson;
+                }
+            }
+
+            #upvote-button {
+                margin-top: auto;
+                margin-bottom: auto;
+
+                &.disabled {
+                    cursor: wait;
+                }
+
+                &.voted {
+                    color: lightgreen;
+                }
+            }
+
+            #downvote-button {
+                margin-top: auto;
+                margin-bottom: auto;
+
+                &.disabled {
+                    cursor: wait;
+                }
+
+                &.voted {
+                    color: crimson;
+                }
+            }
         }
     }
 
