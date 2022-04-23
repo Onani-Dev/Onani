@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-11-08 21:54:05
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-01 02:19:39
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-04-23 16:19:51
 
 from flask import Blueprint
 
@@ -14,4 +14,7 @@ main_api = Blueprint("api", __name__)
 admin = Blueprint("admin", __name__)
 admin_api = Blueprint("api", __name__)
 
-from . import api, auth, data, errors, views
+atom = Blueprint("atom", __name__)
+rss = Blueprint("rss", __name__)
+
+from . import api, auth, data, errors, views, feed

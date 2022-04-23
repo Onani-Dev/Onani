@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 13:02:37
+# @Last Modified time: 2022-04-23 22:38:23
 
 import datetime
 import time
@@ -37,12 +37,14 @@ def init_app():
         datetime=datetime, time=time, emoji=emoji, humanize=humanize
     )
 
-    from .routes import admin, admin_api, main, main_api
+    from .routes import admin, admin_api, main, main_api, atom, rss
 
     app.register_blueprint(main)
     app.register_blueprint(main_api, url_prefix="/api")
     admin.register_blueprint(admin_api, url_prefix="/api")
     app.register_blueprint(admin, url_prefix="/admin")
+    app.register_blueprint(atom, url_prefix="/atom")
+    app.register_blueprint(rss, url_prefix="/rss")
 
     csrf.init_app(app)  # CSRF Protection init
     db.init_app(app)  # SQLAlchemy init
@@ -51,4 +53,6 @@ def init_app():
     ma.init_app(app)  # Marshmallow init
     migrate.init_app(app, db)  # flask migrate init
 
+    # Line belows prints all the registered routes, useful to debug
+    # print(app.url_map)
     return app
