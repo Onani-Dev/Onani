@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-04-23 14:56:46
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-23 23:51:23
+# @Last Modified time: 2022-04-24 00:27:27
 
 from datetime import datetime, timezone
 from typing import Callable
@@ -16,7 +16,6 @@ def make_feed_generator() -> FeedGenerator:
     """Makes a FeedGenerator with some fields already filled"""
     fg = FeedGenerator()
     # fg.author({"name": "Onani", "email": "onani@onani.xyz"})
-    fg.logo("https://onani.xyz/static/android-chrome-512x512.png")
     fg.logo(url_for("static", filename="android-chrome-512x512.png", _external=True))
     fg.language("en")
     fg.lastBuildDate(datetime.now(timezone.utc))
