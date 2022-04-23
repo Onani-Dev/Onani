@@ -2,17 +2,14 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-19 15:13:46
+ * @Last Modified time: 2022-04-22 01:13:06
  */
 
-import { ajax } from "jquery";
-import { DateTime } from "luxon";
+// import { ajax } from "jquery";
+// import { DateTime } from "./external/luxon.min.js";
+// import { parse as twemojiParse } from "./external/twemoji.min.js";
 
-const commentTextInput = document.getElementById("post-comment-input"),
-  commentContainer = document.getElementById("comment-container"),
-  postButton = document.getElementById("post-comment-submit");
-
-const contructCommentElement = (comment) => {
+const constructCommentElement = (comment) => {
   let userProfileContainer = document.createElement("div"),
     commentPostContainer = document.createElement("div"),
     userProfilePicture = document.createElement("img"),
@@ -28,7 +25,7 @@ const contructCommentElement = (comment) => {
   // Add the properties to the profile picture
   userProfilePicture.src = comment.author.avatar_thumbnail;
 
-  userProfilePicture.onclick = function (e) {
+  userProfilePicture.onclick = () => {
     location.href = `/users/${comment.author.id}`;
   };
 
@@ -46,9 +43,9 @@ const contructCommentElement = (comment) => {
   userProfileContainer.appendChild(userProfilePicture);
 
   // Use luxon to make human readable time
-  commentTime.innerHTML = `${DateTime.fromISO(comment.created_at).toFormat(
-    "fff"
-  )}`;
+  commentTime.innerText = `${luxon.DateTime.fromISO(
+    comment.created_at
+  ).toFormat("fff")}`;
 
   // Add comment author username and time
   commentInfoContainer.appendChild(userName);
@@ -68,62 +65,88 @@ const contructCommentElement = (comment) => {
   return commentPostContainer;
 };
 
-const loadComments = () => {
-  var settings = {
-    url: "/api/comments",
-    method: "GET",
-    data: { post_id: postID },
-  };
+class PostCommenter {
+  constructor() {
+    // Load the functions
+    this.loadComments();
 
-  ajax(settings).done(function (response) {
-    commentContainer.innerHTML = "";
-    if (response.data.length === 0) {
-      let noCom = document.createElement("h2");
-      noCom.id = "no-comments-message";
-      noCom.classList.add("system-text");
-      noCom.innerHTML = "No Comments on this post.";
-      commentContainer.appendChild(noCom);
-    }
-    response.data.forEach((comment) => {
-      commentContainer.appendChild(contructCommentElement(comment));
-    });
-  });
-};
-
-const postComment = () => {
-  if (commentTextInput.value) {
-    var settings = {
-      url: "/api/comments/post",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify({
-        post_id: postID,
-        content: commentTextInput.value,
-      }),
-    };
-    commentTextInput.value = "";
-    ajax(settings).done(function (response) {
-      let noCommentsMessage = document.getElementById("no-comments-message");
-      if (noCommentsMessage) {
-        noCommentsMessage.parentNode.removeChild(noCommentsMessage);
+    // Refresh comments on an interval
+    setInterval(() => {
+      if (document.hasFocus()) {
+        this.loadComments();
       }
-      $(commentContainer).prepend(contructCommentElement(response));
+    }, 30000);
+
+    // let postComment = this.postComment;
+    // Comment input shift enter to send
+    document.getElementById("post-comment-input").onkeydown = (e) => {
+      if (e.key === "Enter" && e.shiftKey) {
+        e.preventDefault();
+        this.postComment();
+      }
+    };
+
+    // Post button click to send
+    document.getElementById("post-comment-submit").onclick = (e) => {
+      this.postComment();
+    };
+  }
+
+  /**
+   * Load the comments into the search box
+   */
+  loadComments() {
+    let commentContainer = document.getElementById("comment-container");
+    let postID = document.getElementById("content-container").dataset.postId;
+
+    var settings = {
+      url: "/api/comments",
+      method: "GET",
+      data: { post_id: postID },
+    };
+
+    $.ajax(settings).done(function (response) {
+      commentContainer.replaceChildren();
+      if (response.data.length === 0) {
+        let noCom = document.createElement("h2");
+        noCom.id = "no-comments-message";
+        noCom.classList.add("system-text");
+        noCom.innerHTML = "No Comments on this post.";
+        commentContainer.appendChild(noCom);
+      }
+      response.data.forEach((comment) => {
+        commentContainer.appendChild(constructCommentElement(comment));
+      });
     });
   }
-};
 
-// loadComments();
-// commentTextInput.onkeydown = function (e) {
-//   "use strict";
-//   if (e.key == "Enter" && e.shiftKey) {
-//     e.preventDefault();
-//     postComment();
-//   }
-// };
+  postComment() {
+    let commentTextInput = document.getElementById("post-comment-input");
+    let commentContainer = document.getElementById("comment-container");
+    let postID = document.getElementById("content-container").dataset.postId;
 
-// postButton.onclick = function (e) {
-//   postComment();
-// };
-export { loadComments, postComment };
+    if (commentTextInput.value) {
+      var settings = {
+        url: "/api/comments/post",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          post_id: postID,
+          content: commentTextInput.value,
+        }),
+      };
+      commentTextInput.value = "";
+      $.ajax(settings).done(function (response) {
+        let noCommentsMessage = document.getElementById("no-comments-message");
+        if (noCommentsMessage) {
+          noCommentsMessage.parentNode.removeChild(noCommentsMessage);
+        }
+        $(commentContainer).prepend(constructCommentElement(response));
+      });
+    }
+  }
+}
+
+export { PostCommenter };

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 13:01:33
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-20 23:28:52
 
 from __future__ import annotations
 from email.policy import default
@@ -64,8 +64,8 @@ class Tag(db.Model):
         return bool(self.alias_of)
 
     @property
-    def humanize(self) -> str:
-        return self.name.replace("_", " ").capitalize()
+    def humanized(self) -> str:
+        return self.name.replace("_", " ")  # .capitalize()
 
     def save_to_db(self):
         db.session.add(self)

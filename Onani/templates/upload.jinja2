@@ -18,23 +18,23 @@
     <div id="uploader-title-bar">
       <div id="left-button" class="fa-solid fa-chevron-left" style="visibility:hidden;" title="Previous"></div>
       <h1 id="uploader-title-text">Select Files</h1>
-      <div id="right-button" class="fa-solid fa-chevron-right" onclick="slide2()" title="Next"></div>
-      <div id="upload-button" class="fa-solid fa-upload" onclick="invokeForm()" style="display:none;" title="Upload"></div>
+      <div id="right-button" class="fa-solid fa-chevron-right" title="Next"></div>
+      <div id="upload-button" class="fa-solid fa-upload" style="display:none;" title="Upload"></div>
     </div>
     {{ form.csrf_token }}
-    <div id="first-panel" class="uploader-panel">
+    <div class="uploader-panel" data-slide-title="Select Files" data-slide-name="files">
       <div class="uploader-input-group">
         {{ form.files.label }}
         {{ form.files() }}
       </div>
     </div>
-    <div id="second-panel" class="uploader-panel" style="display:none;">
+    <div class="uploader-panel" data-slide-title="Select Tags"  data-slide-name="tags" style="display:none;">
       <div class="uploader-input-group">
         {{ form.tags.label }}
         {{ form.tags() }}
       </div>
     </div>
-    <div id="third-panel" class="uploader-panel" style="display:none;">
+    <div class="uploader-panel" data-slide-title="Other Information"  data-slide-name="other" style="display:none;">
       <div class="uploader-input-group">
         {{ form.source.label }}
         {{ form.source() }}
@@ -58,12 +58,13 @@
     <div id="preview-image">
     </div>
     <div class="image-controls">
-      <div id="left-button-image" class="fa-solid fa-chevron-left clickable pop-out" title="Previous image"></div>
-      <div id="right-button-image" class="fa-solid fa-chevron-right clickable pop-out" title="Next image"></div>
+      <div id="left-button-image" class="fa-solid fa-chevron-left clickable" title="Previous image"></div>
+      <p id="image-count"></p>
+      <div id="right-button-image" class="fa-solid fa-chevron-right clickable" title="Next image"></div>
     </div>
   </div>
 </div>
-<script src="/static/js/uploader.min.js"></script>
+<script type="module" src="/static/js/uploader.min.js"></script>
 {% include "elements/form_errors.jinja2" %}
 {% include "elements/flashed_messages.jinja2" %}
 {% endblock %}

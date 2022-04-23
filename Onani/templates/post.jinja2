@@ -1,6 +1,6 @@
 {% set title = "{title} - ".format(title=post.title) %}
 {% set ogtitle = "{title}".format(title=post.title, score=post.score, comments=post.comments.all()|length) %}
-{% set ogimage = post.files[0].thumbnail(500) %}
+{% set ogimage = post.first_file_thumbnail(500) %}
 
 {% if post.description %}
   {% set ogdesc = post.description %}
@@ -14,21 +14,22 @@
 
 {% block meta %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{ post.files[0].thumbnail(500) }}">
+<meta name="twitter:image" content="{{ post.first_file_thumbnail(500) }}">
+{% endblock %}
+
+{% block bottom_scripts %}
+<script type="module" src="/static/js/post.min.js"></script>
 {% endblock %}
 
 {% block content %}
 <!-- Left panel/Tags -->
 {% include "elements/post_tag_bar.jinja2" %}
 
-<div id="content-container">
-  <script>
-    const postID = {{ post.id }};
-  </script>
+<div id="content-container" data-post-id="{{ post.id }}">
   <div class="images-container">
     {% for file in post.files %}
       <div class="file-container">
-        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}"></a>
+        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}" alt="{{ post.title }}"></a>
       </div>
     {% endfor %}
   </div>
@@ -41,9 +42,13 @@
       </div>
 
       <div id="voting-container">
-        <div id="upvote-button" class="fa-solid fa-thumbs-up clickable pop-out"></div>
-        <div id="post-score-count">{{ post.score }}</div>
-        <div id="downvote-button" class="fa-solid fa-thumbs-down clickable pop-out"></div>
+        {% if not current_user.is_anonymous %}
+          <div id="upvote-button" class="fa-solid fa-thumbs-up clickable pop-out{% if current_user.has_upvoted(post) %} voted{% endif %}"></div>
+        {% endif %}
+        <div id="post-score-count" class="{% if post.score < 0 %}negative{% elif post.score > 0 %}positive{% else %}neutral{% endif %}">{{ post.score }}</div>
+        {% if not current_user.is_anonymous %}
+          <div id="downvote-button" class="fa-solid fa-thumbs-down clickable pop-out{% if current_user.has_downvoted(post) %} voted{% endif %}"></div>
+        {% endif %}
       </div>
 
     </div>
@@ -64,7 +69,7 @@
         <table>
           <tr>
             <th>Uploaded At</th>
-            <td class="date-format">{{ post.uploaded_at.isoformat() }}</td>
+            <td class="date-format human-time">{{ post.uploaded_at.isoformat() }}</td>
           </tr>
           <tr>
             <th>Status</th>
@@ -95,8 +100,7 @@
     <div id="comment-container">
       <h3>Loading Comments...</h3>
     </div>
-    <script src="/static/js/comments.min.js"></script>
   </div>
 </div>
-{# $(document).ready(function(){$('.images').slick({dots: true, infinite: false});}); #}
+
 {% endblock %}

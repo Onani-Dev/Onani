@@ -2,12 +2,29 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 13:03:07
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-19 15:27:43
+ * @Last Modified time: 2022-04-24 02:01:22
  */
+import { ElementFormatter } from "./formatting.min.js";
+import { NewsBoxUpdater, TagsBoxUpdater } from "./sidebars.min.js";
+import { Pagination, escapeButton, copyText } from "./utils.min.js";
+import { PostCommenter } from "./commenting.min.js";
+import { PostsSearch } from "./searching.min.js";
+import { PostUpload } from "./uploading.min.js";
+import { PostVoting } from "./voting.min.js";
+import { Profile } from "./profile.min.js";
+import { SideNavbarControls } from "./controls.min.js";
 
-import "./formatting.min.js";
-import "./news.min.js";
-import { escapeButton, copyText } from "./utils.min.js";
-import { openNav, closeNav } from "./controls.min.js";
-
-export { closeNav, openNav, copyText, escapeButton };
+export {
+  copyText,
+  ElementFormatter,
+  escapeButton,
+  NewsBoxUpdater,
+  Pagination,
+  PostCommenter,
+  PostsSearch,
+  PostUpload,
+  PostVoting,
+  Profile,
+  SideNavbarControls,
+  TagsBoxUpdater,
+};

@@ -1,0 +1,119 @@
+/**
+ * @Author: kapsikkum
+ * @Date:   2022-04-19 15:17:46
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-04-23 22:11:58
+ */
+// import { parse as twemojiParse } from "./external/twemoji.min.js";
+// import { DateTime } from "./external/luxon.min.js";
+
+class NewsBoxUpdater {
+  /**
+   * @Mattlau04 cry about it
+   * @kero3009destiny laugh about it
+   * @kapsikkum troll about it
+   * @param {integer} milliseconds
+   */
+  constructor(milliseconds = 300000) {
+    this.getNews();
+    setInterval(this.getNews, milliseconds);
+  }
+
+  /**
+   * Fetch the news for the news box widget thing idk
+   */
+  getNews() {
+    // TODO: Only update if news container is visible for mobile etc
+    if (!document.hasFocus()) {
+      // We don't need to update the news in the background
+      return;
+    }
+
+    let newsContainer = document.getElementById("news-container");
+    // Fetch new news from the api
+    fetch("/api/news", { method: "GET" }).then((response) => {
+      response.json().then((json) => {
+        // Clear news box and replace with new children
+        newsContainer.replaceChildren();
+
+        json.data.forEach((news) => {
+          // Make a list entry element
+          let newsPost = document.createElement("li"),
+            newsLink = document.createElement("a"),
+            newsTime = document.createElement("h6");
+
+          // Set the href
+          newsLink.href = `/news/${news.id}`;
+
+          // set the title
+          newsLink.innerText = news.title;
+
+          // set the content
+          newsTime.textContent = `(${luxon.DateTime.fromISO(
+            news.created_at
+          ).toRelativeCalendar()})`;
+
+          // make it twemoji
+          twemoji.parse(newsLink);
+
+          // append items
+          newsPost.appendChild(newsLink);
+          newsPost.appendChild(newsTime);
+
+          // Add to news to add to element
+          newsContainer.appendChild(newsPost);
+        });
+      });
+    });
+  }
+}
+
+class TagsBoxUpdater {
+  constructor() {
+    this.getTags();
+  }
+
+  getTags() {
+    let tagContainer = document.getElementById("tag-container");
+    fetch("/api/tags?sort=post_count&order=desc").then((response) => {
+      response.json().then((json) => {
+        json.data.forEach((tag) => {
+          // Only show tag if it has more than 0 posts and isn't banned
+          if (tag.post_count > 0 && tag.type != "banned") {
+            // Create the elements to add properties to
+            var tagListItem = document.createElement("li"),
+              tagText = document.createElement("p"),
+              postCount = document.createElement("div");
+
+            // The link of the tag
+            tagText.href = `/posts/?tags=${tag.name}`;
+
+            tagText.innerText = tag.humanized;
+
+            // Add post count to div
+            postCount.innerText = Humanize.compactInteger(tag.post_count, 1);
+
+            // Add the classes
+            tagListItem.classList.add(tag.type);
+
+            // Add the elements to the page
+            tagListItem.appendChild(tagText);
+            tagListItem.appendChild(postCount);
+
+            // The onclick event
+            tagListItem.onclick = () => {
+              location.href = `/posts/?tags=${tag.name}`;
+            };
+
+            // Hover title description thing
+            tagListItem.title = tag.description;
+
+            tagContainer.appendChild(tagListItem);
+          }
+        });
+      });
+    });
+  }
+}
+
+export { NewsBoxUpdater, TagsBoxUpdater };

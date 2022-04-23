@@ -35,7 +35,7 @@
     <!-- PFP -->
     <div id="profile-picture-container">
       <img src="{{ user.get_avatar(size=150) }}"
-        id="profile-picture-image" class="{{ pfp_class }}"></a>
+        id="profile-picture-image" class="{{ pfp_class }}" alt="{{ user.username }}" title="{{ user.username }}"></a>
     </div>
     <div>
       <div id="profile-header-group">
@@ -75,16 +75,21 @@
   <!-- Profile content container -->
   <div id="profile-content-container">
     <div class="profile-tab-bar">
-      <button class="profile-tab-link" onclick="changeTab(event, 'bio-tab')" id="bio">Bio</button>
-      <button class="profile-tab-link" onclick="changeTab(event, 'posts-tab')" id="posts">Posts</button>
+      <button class="profile-tab-link" data-tab-content-id="bio-tab" data-tab-title="bio">Bio</button>
+      <button class="profile-tab-link" data-tab-content-id="posts-tab" data-tab-title="posts">Posts</button>
       {% if not current_user.is_anonymous %}
         {% if current_user.id == user.id %}
-          <button class="profile-tab-link" onclick="changeTab(event, 'settings-tab')" id="settings">Settings</button>
+          <button class="profile-tab-link" data-tab-content-id="settings-tab" data-tab-title="settings">Settings</button>
+        {% endif %}
+      {% endif %}
+      {% if not current_user.is_anonymous %}
+        {% if current_user.is_admin %}
+          <button class="profile-tab-link" data-tab-content-id="admin-tab" data-tab-title="admin">Admin</button>
         {% endif %}
       {% endif %}
     </div>
     <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea" class="{{ bio_class }} twemoji-format markdown-format">{{ user_bio }}</p>
+      <p id="profile-bio-textarea" class="{{ bio_class }} twemoji-format markdown-format emote-format">{{ user_bio }}</p>
     </div>
     <div id="posts-tab" class="profile-tab-content">
       {% if posts.items|length <= 0 %}
@@ -93,12 +98,12 @@
         <div class="grid">
           {% for post in posts.items %}
             <div class="post-thumbnail-container">
-              <a href="/posts/{{ post.id }}"><img src="{{ post.files[0].thumbnail() }}" class="post-thumbnail"></a>
+              <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
             </div>
           {% endfor %}
         </div>
         {% set pagination = posts %}
-        {% set extra_params = "&t=posts"%}
+        {% set extra_params = "#posts"%}
         {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
         {% include "elements/pagination.jinja2" %}
       {% endif %}
@@ -107,13 +112,13 @@
       {% if current_user.id == user.id %}
         <div id="settings-tab" class="profile-tab-content">
           <div class="profile-tab-bar sub">
-            <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-account-tab')" id="account-settings">Account</button>
-            <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-profile-tab')" id="profile-settings">Profile</button>
-            <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-platforms-tab')" id="platform-settings">Platforms</button>
-            <button class="settings-tab-link" onclick="changeSettingsTab(event, 'settings-site-tab')" id="site-settings">Site</button>
+            <button class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
+            <button class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
+            <button class="settings-tab-link" data-tab-content-id="settings-platforms-tab">Platforms</button>
+            <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>
           </div>
           <!-- Account settings -->
-          <div id="settings-account-tab" class="settings-tab-content">
+          <div id="settings-account-tab" class="settings-tab-content" style="display:block;">
             <form id="settings-account" action="/settings/account/" method="POST">
               {{ account_form.csrf_token }}
               <h2 style="padding: 15px;">Account settings</h2>
@@ -281,7 +286,14 @@
         </div>
       {% endif %}
     {% endif %}
-  <script src="/static/js/profile.min.js"></script>
+    {% if not current_user.is_anonymous %}
+      {% if current_user.is_admin %}
+        <div id="admin-tab" class="profile-tab-content">
+          Sorry nothing (Yet)
+        </div>
+      {% endif %}
+    {% endif %}
+  <script type="module" src="/static/js/profile.min.js"></script>
   </div>
 </div>
 <!-- Right panel/News -->

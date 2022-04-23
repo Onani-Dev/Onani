@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-07 01:15:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-18 21:06:02
+# @Last Modified time: 2022-04-23 15:02:04
 
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, SubmitField
@@ -30,6 +30,5 @@ class LoginForm(FlaskForm):
         "Submit",
         render_kw={
             "value": "Login",
-            "id": "submit",
         },
     )

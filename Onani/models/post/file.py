@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 14:29:53
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-20 16:18:04
 
 from __future__ import annotations
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy.orm import validates
 
@@ -24,18 +24,23 @@ class File(db.Model):
     __tablename__ = "files"
 
     id: int = db.Column(db.Integer, primary_key=True)
+
     post = db.Column(db.Integer, db.ForeignKey("posts.id"))
+
     url: str = db.Column(db.String, unique=True)
+
     sha256_hash: str = db.Column(db.String, unique=True, index=True)
+
     md5_hash: str = db.Column(db.String, index=True)
+
     width: int = db.Column(db.Integer)
+
     height: int = db.Column(db.Integer)
+
     filesize: int = db.Column(db.Integer)
 
     # The file's notes. those little thingys on the image over the japanese text :)
-    notes: Note = db.relationship(
-        "Note", backref="file_notes", lazy="joined"
-    )
+    notes: List[Note] = db.relationship("Note", backref="file_notes", lazy="joined")
 
     @validates("sha256_hash")
     def validate_hash(self, key, hash_):

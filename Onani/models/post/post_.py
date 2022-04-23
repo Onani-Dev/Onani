@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 15:23:08
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-24 02:11:57
 
 from __future__ import annotations
+
 import datetime
 import html
+from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, List
-
-from sqlalchemy.orm import validates
-from sqlalchemy.orm.query import Query
-from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from Onani.controllers.utils import natural_join
 from Onani.models.user.user_ import User
-from collections import defaultdict
+from sqlalchemy import func
+from sqlalchemy.orm import validates
+from sqlalchemy.orm.query import Query
+from sqlalchemy_utils import ChoiceType, JSONType, URLType
 
 from ..tag import Tag, TagType
 from . import PostRating, PostStatus, db
@@ -123,7 +124,10 @@ class Post(db.Model):
         Returns:
             int: The Score.
         """
-        return len(self.upvoters.all()) - len(self.downvoters.all())
+        return (
+            self.upvoters.with_entities(func.count()).scalar()
+            - self.downvoters.with_entities(func.count()).scalar()
+        )
 
     @property
     def sorted_tags(self) -> Dict[TagType, List[Tag]]:
@@ -188,6 +192,12 @@ class Post(db.Model):
             title = f"#{self.id}"
 
         return title
+
+    def first_file_thumbnail(self, size: int = 150) -> str:
+        if len(self.files) == 0:
+            return "/static/image/missing_file.png"
+        else:
+            return self.files[0].thumbnail(size)
 
     def __repr__(self):
         return f"<Post {self.__dict__}>"

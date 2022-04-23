@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-10 04:08:40
+# @Last Modified time: 2022-04-23 15:02:12
 from flask_wtf import FlaskForm
 from Onani.models import UserSettings
 from wtforms import HiddenField, PasswordField, StringField, SubmitField, TextAreaField
@@ -63,7 +63,6 @@ class AccountSettingsForm(FlaskForm):
         "Submit",
         render_kw={
             "value": "Save Changes",
-            "id": "submit",
             "class": "profile-settings-submit",
         },
     )
@@ -100,7 +99,6 @@ class AccountProfileForm(FlaskForm):
         "Submit",
         render_kw={
             "value": "Save Changes",
-            "id": "submit",
             "class": "profile-settings-submit",
         },
     )
@@ -171,7 +169,6 @@ class AccountPlatformForm(FlaskForm):
         "Submit",
         render_kw={
             "value": "Save Changes",
-            "id": "submit",
             "class": "profile-settings-submit",
         },
     )

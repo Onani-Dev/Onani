@@ -20,8 +20,8 @@
   {% else %}
     <div class="grid">
       {% for post in posts.items %}
-        <div class="post-thumbnail-container">
-          <a href="/posts/{{ post.id }}"><img src="{{ post.files[0].thumbnail() }}" class="post-thumbnail"></a>
+        <div class="post-thumbnail-container" title="{{ post.title }}">
+          <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
         </div>
       {% endfor %}
     </div>

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-05 01:52:03
+# @Last Modified time: 2022-04-22 19:36:34
 import os
 
 # Flask Config
@@ -20,7 +20,7 @@ if SECRET_KEY == "dev":
 SQLALCHEMY_DATABASE_URI = (
     f"postgresql://onani_db:{os.environ['DB_PASSWORD']}@postgres:5432/onani_db"
 )
-SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_TRACK_MODIFICATIONS = False  # WHY are you not disabled by default
 
 if os.environ.get("FLASK_SQLALCHEMY_ECHO"):
     print("SQLALCHEMY_ECHO enabled.")
@@ -31,3 +31,9 @@ if os.environ.get("FLASK_SQLALCHEMY_ECHO"):
 RECAPTCHA_PUBLIC_KEY = os.environ["RECAPTCHA_PUBLIC_KEY"]
 RECAPTCHA_PRIVATE_KEY = os.environ["RECAPTCHA_PRIVATE_KEY"]
 RECAPTCHA_DATA_ATTRS = {"theme": "dark"}
+
+
+# Cookie settings
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "strict"
+PREFERRED_URL_SCHEME = "https"

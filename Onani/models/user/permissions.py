@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 15:16:39
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-15 01:17:13
+# @Last Modified time: 2022-04-20 16:02:57
 from enum import IntFlag, auto
 
 # from functools import reduce
@@ -10,6 +10,8 @@ from enum import IntFlag, auto
 
 
 class UserPermissions(IntFlag):
+    """User Permissions Flags"""
+
     # POSTS
     CREATE_POSTS = auto()
     DELETE_POSTS = auto()

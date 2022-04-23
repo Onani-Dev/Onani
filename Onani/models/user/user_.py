@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 13:04:54
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-24 00:49:46
 
 from __future__ import annotations
+from typing import List, Optional, TYPE_CHECKING, Union
+
 import datetime
 import html
 import secrets
-from typing import TYPE_CHECKING, Optional
 import uuid
 
 import regex as re
 from flask_login import UserMixin
+from Onani.models.post.comment import PostComment
 from passlib.hash import argon2
 from sqlalchemy.orm import validates
-from sqlalchemy_utils import ChoiceType
 from sqlalchemy.orm.query import Query
-from Onani.models.post.comment import PostComment
+from sqlalchemy_utils import ChoiceType
 
 if TYPE_CHECKING:
     from Onani.models.post.post_ import Post
@@ -25,9 +26,9 @@ if TYPE_CHECKING:
 from Onani.models.tag.tag_ import Tag
 
 from . import Ban, db
+from .permissions import UserPermissions
 from .roles import UserRoles
 from .settings import UserSettings
-from .permissions import UserPermissions
 
 tag_blacklist = db.Table(
     "tag_blacklist",
@@ -232,13 +233,77 @@ class User(UserMixin, db.Model):
             return f"/thumbnail/{size}x{size}{self.settings.avatar}"
         return self.settings.avatar
 
+    def has_role(self, role: UserRoles) -> bool:
+        """Check if the user has a specific role or above.
+
+        Args:
+            role (UserRoles): The role to check for.
+
+        Returns:
+            bool: True if user has a role equal to or above the given role
+        """
+        return self.role.value >= role.value
+
+    def has_permissions(
+        self, permissions: Union[UserPermissions, List[UserPermissions]]
+    ) -> bool:
+        """Check if the user has the specified permissions
+
+        Args:
+            permissions (Union[UserPermissions, List[UserPermissions]]): The list of permissions or UserPermissions to check
+
+        Returns:
+            bool: True if the user has all of the permissions specified.
+        """
+        # Check if permissions are a list an iterate through them
+        if isinstance(permissions, list):
+            for p in permissions:
+                if p not in self.permissions:
+                    # User doesn't have these permissions
+                    return False
+        # Check for a single permission
+        elif permissions not in self.permissions:
+            return False
+        return True
+
+    def has_upvoted(self, post: Post) -> bool:
+        """Check if a user has upvoted a post
+
+        Args:
+            post (Post): The post to check for an upvote on
+
+        Returns:
+            bool: True or false come on man
+        """
+        return bool(post.upvoters.filter_by(id=self.id).first())
+
+    def has_downvoted(self, post: Post) -> bool:
+        """Check if a user has downvoted a post
+
+        Args:
+            post (Post): The post to check for a downvote on
+
+        Returns:
+            bool: True or false come on man
+        """
+        return bool(post.downvoters.filter_by(id=self.id).first())
+
     @property
-    def avatar_thumbnail(self):
+    def is_admin(self) -> bool:
+        """Check if the user has admin permissions, for use in jinja templates
+
+        Returns:
+            bool: True or False
+        """
+        return self.has_role(UserRoles.ADMIN)
+
+    @property
+    def avatar_thumbnail(self) -> str:
         return self.get_avatar(150)
 
     @property
-    def profile_colour(self):
+    def profile_colour(self) -> str:
         return self.settings.profile_colour or "#4a4a4a"
 
     def __repr__(self):
-        return f"<User {self.username}>"
+        return f"<User '{self.username}'>"
