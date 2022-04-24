@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 15:17:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-23 22:11:58
+ * @Last Modified time: 2022-04-24 19:06:34
  */
 // import { parse as twemojiParse } from "./external/twemoji.min.js";
 // import { DateTime } from "./external/luxon.min.js";
@@ -70,48 +70,98 @@ class NewsBoxUpdater {
 
 class TagsBoxUpdater {
   constructor() {
-    this.getTags();
+    if (!sessionStorage.getItem("tagsCache")) {
+      console.log("No cache");
+      let tagsCache = JSON.stringify({
+        cacheExpires: luxon.DateTime.now().toObject(),
+        data: [],
+      });
+      sessionStorage.setItem("tagsCache", JSON.stringify(tagsCache));
+    }
+
+    this.displayTags();
   }
 
-  getTags() {
-    let tagContainer = document.getElementById("tag-container");
-    fetch("/api/tags?sort=post_count&order=desc").then((response) => {
-      response.json().then((json) => {
-        json.data.forEach((tag) => {
-          // Only show tag if it has more than 0 posts and isn't banned
-          if (tag.post_count > 0 && tag.type != "banned") {
-            // Create the elements to add properties to
-            var tagListItem = document.createElement("li"),
-              tagText = document.createElement("p"),
-              postCount = document.createElement("div");
+  constructTag(tag) {
+    // Create the elements to add properties to
+    let tagListItem = document.createElement("li"),
+      tagText = document.createElement("p"),
+      postCount = document.createElement("div");
 
-            // The link of the tag
-            tagText.href = `/posts/?tags=${tag.name}`;
+    // The link of the tag
+    tagText.href = `/posts/?tags=${tag.name}`;
 
-            tagText.innerText = tag.humanized;
+    tagText.innerText = tag.humanized;
 
-            // Add post count to div
-            postCount.innerText = Humanize.compactInteger(tag.post_count, 1);
+    // Add post count to div
+    postCount.innerText = Humanize.compactInteger(tag.post_count, 1);
 
-            // Add the classes
-            tagListItem.classList.add(tag.type);
+    // Add the classes
+    tagListItem.classList.add(tag.type);
 
-            // Add the elements to the page
-            tagListItem.appendChild(tagText);
-            tagListItem.appendChild(postCount);
+    // Add the elements to the page
+    tagListItem.appendChild(tagText);
+    tagListItem.appendChild(postCount);
 
-            // The onclick event
-            tagListItem.onclick = () => {
-              location.href = `/posts/?tags=${tag.name}`;
-            };
+    // The onclick event
+    tagListItem.onclick = () => {
+      location.href = `/posts/?tags=${tag.name}`;
+    };
 
-            // Hover title description thing
-            tagListItem.title = tag.description;
+    // Hover title description thing
+    tagListItem.title = tag.description;
 
-            tagContainer.appendChild(tagListItem);
-          }
-        });
+    return tagListItem;
+  }
+
+  async fetchTags() {
+    // let tagContainer = document.getElementById("tag-container");
+    let tagElements = [];
+
+    let apiURL = new URL(`${location.origin}/api/tags`);
+    apiURL.searchParams.append("sort", "post_count");
+    apiURL.searchParams.append("order", "desc");
+
+    const response = await fetch(apiURL);
+    await response.json().then((json) => {
+      json.data.forEach((tag) => {
+        // Only show tag if it has more than 0 posts and isn't banned
+        if (tag.post_count > 0 && tag.type != "banned") {
+          tagElements.push(tag);
+        }
       });
+    });
+    return tagElements;
+  }
+
+  async getTags() {
+    let tagsCache = JSON.parse(sessionStorage.getItem("tagsCache"));
+    if (
+      luxon.DateTime.now() < luxon.DateTime.fromObject(tagsCache.cacheExpires)
+    ) {
+      return tagsCache.data;
+    } else {
+      sessionStorage.removeItem("tagsCache");
+      let newData = await this.fetchTags();
+      this.setTags(newData);
+      return newData;
+    }
+  }
+
+  setTags(data) {
+    let tagsCache = {
+      cacheExpires: luxon.DateTime.now().plus({ minutes: 10 }).toObject(),
+      data: data,
+    };
+    sessionStorage.setItem("tagsCache", JSON.stringify(tagsCache));
+  }
+
+  displayTags() {
+    let tagContainer = document.getElementById("tag-container");
+    this.getTags().then((tags) => {
+      for (let tag of tags) {
+        tagContainer.appendChild(this.constructTag(tag));
+      }
     });
   }
 }

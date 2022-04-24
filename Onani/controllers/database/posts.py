@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-22 02:32:12
+# @Last Modified time: 2022-04-25 00:04:39
 
 from typing import List
 
+from emoji import emojize
 from flask import request
 from flask_login import current_user
 from Onani.controllers.utils import startswith_min
@@ -31,7 +32,7 @@ def create_comment(author: User, post: Post, content: str) -> PostComment:
     comment = PostComment()
     comment.author = author
     comment.post = post
-    comment.content = content
+    comment.content = emojize(content, language="alias", use_aliases=True)
 
     db.session.add(comment)
     db.session.commit()

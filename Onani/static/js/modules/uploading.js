@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-21 14:56:40
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-23 21:53:01
+ * @Last Modified time: 2022-04-25 02:17:53
  */
 import { Pagination } from "./utils.min.js";
 
@@ -136,57 +136,5 @@ class PostUpload {
     }
   }
 }
-
-// function slide1() {
-//   // Update the title
-//   document.getElementById("uploader-title-text").innerText = "Select Files";
-
-//   // update the buttons
-//   document.getElementById("left-button").style.visibility = "hidden";
-//   document.getElementById("right-button").style.visibility = "visible";
-//   document.getElementById("right-button").onclick = () => {
-//     slide2();
-//   };
-//   document.getElementById("upload-button").style.display = "none";
-//   document.getElementById("right-button").style.display = "block";
-//   // Make all other slides invisible
-//   hideOtherSlides("first-panel");
-// }
-
-// function slide2() {
-//   // Update the title
-//   document.getElementById("uploader-title-text").innerText = "Select Tags";
-
-//   // update the buttons
-//   document.getElementById("left-button").style.visibility = "visible";
-//   document.getElementById("left-button").onclick = () => {
-//     slide1();
-//   };
-//   document.getElementById("right-button").style.visibility = "visible";
-//   document.getElementById("right-button").onclick = () => {
-//     slide3();
-//   };
-//   document.getElementById("right-button").style.display = "block";
-//   document.getElementById("upload-button").style.display = "none";
-//   // Make all other slides invisible
-//   hideOtherSlides("second-panel");
-// }
-
-// function slide3() {
-//   // Update the title
-//   document.getElementById("uploader-title-text").innerText =
-//     "Extra Information";
-
-//   // update the buttons
-//   document.getElementById("left-button").style.visibility = "visible";
-//   document.getElementById("left-button").onclick = () => {
-//     slide2();
-//   };
-//   document.getElementById("right-button").style.display = "none";
-//   document.getElementById("upload-button").style.display = "block";
-
-//   // Make all other slides invisible
-//   hideOtherSlides("third-panel");
-// }
 
 export { PostUpload };
