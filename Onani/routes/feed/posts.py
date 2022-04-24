@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-04-23 16:12:45
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-23 23:46:07
+# @Last Modified time: 2022-04-24 18:48:05
 
 from feedgen.feed import FeedGenerator
 from Onani.models.post import Post
@@ -21,7 +21,7 @@ def posts() -> FeedGenerator:
     fg.subtitle("The latest onani posts")
     fg.link(href=url_for("main.get_posts", _external=True), rel="alternate")
 
-    for p in Post.query.order_by(Post.id.desc()).limit(10):
+    for p in Post.query.order_by(Post.id.asc()).limit(10):
         p: Post
         fe = fg.add_entry()
         fe.id(f"onani.feed.posts.{p.id}")
@@ -33,7 +33,7 @@ def posts() -> FeedGenerator:
         # We need to do both, one for atom and one for RSS
         fe.author({"name": p.uploader.username})
         fe.author({"email": p.uploader.username})
-        
+
         fe.published(p.uploaded_at)
         fe.description(", ".join(t.name for t in p.tags))
         for file in reversed(p.files):
