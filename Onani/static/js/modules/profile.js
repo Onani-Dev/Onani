@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-20 23:44:57
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-22 01:33:26
+ * @Last Modified time: 2022-04-25 15:51:48
  */
 // import { Croppie } from "./external/croppie.min.js";
 
@@ -39,7 +39,7 @@ class Profile {
 
         // Make linked content tab visible
         document.getElementById(element.dataset.tabContentId).style.display =
-          "block";
+          "flex";
 
         // Add hash to location url to remember current tab if page is reloaded
         location.hash = element.dataset.tabTitle;
@@ -73,7 +73,7 @@ class Profile {
 
         // Make linked content tab visible
         document.getElementById(element.dataset.tabContentId).style.display =
-          "block";
+          "flex";
       };
       if (firstElement) {
         element.click();
@@ -157,7 +157,7 @@ class Profile {
       }
     }
 
-    document.getElementById(tabName).style.display = "block";
+    document.getElementById(tabName).style.display = "flex";
     evt.currentTarget.classList.push("active");
   }
 }

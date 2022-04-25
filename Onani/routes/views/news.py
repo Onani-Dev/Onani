@@ -2,9 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-18 22:02:33
+# @Last Modified time: 2022-04-25 18:18:54
 
-from flask import abort, render_template, request
+from flask import abort, render_template, request, current_app
 from flask_login import current_user, login_required
 from Onani.models import NewsPost, NewsPostSchema, User
 
@@ -20,7 +20,7 @@ def news(article_id=None):
         # Convert the page to an int if it is a digit, if it is not, default to 0
         page = int(page) if page.isdigit() else 0
         news = NewsPost.query.order_by(NewsPost.id.desc()).paginate(
-            per_page=10, page=page, error_out=False
+            per_page=current_app.config["PER_PAGE_NEWS"], page=page, error_out=False
         )
 
         return render_template("/news.jinja2", news=news)

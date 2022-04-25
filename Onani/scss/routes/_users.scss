@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:00:41
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-25 01:34:15
+ * @Last Modified time: 2022-04-25 15:56:47
  */
 div#profile-info-container {
     height: 175px;
@@ -101,13 +101,13 @@ div.profile-tab-bar {
     button.active {
         background-color: var(--ui-item-active);
     }
-}
 
-div.profile-tab-bar.sub {
-    background-color: var(--ui-foreground-2);
-    border-top: none;
-    border-left: none;
-    border-right: none;
+    &.sub {
+        background-color: var(--ui-foreground-2);
+        border-top: none;
+        border-left: none;
+        border-right: none;
+    }
 }
 
 div.profile-tab-content {
@@ -117,6 +117,12 @@ div.profile-tab-content {
     margin-top: 5px;
     min-height: 50vh;
     padding: 15px;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .settings-tab-content {
+        flex-direction: column;
+    }
 }
 
 p#profile-bio-textarea {

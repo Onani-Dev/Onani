@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-22 19:36:34
+# @Last Modified time: 2022-04-25 18:15:18
 import os
 
 # Flask Config
@@ -37,3 +37,11 @@ RECAPTCHA_DATA_ATTRS = {"theme": "dark"}
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "strict"
 PREFERRED_URL_SCHEME = "https"
+
+
+# Onani settings
+PER_PAGE_POSTS = 90
+PER_PAGE_USER_POSTS = 50
+PER_PAGE_USERS = 30
+PER_PAGE_NEWS = 30
+PER_PAGE_COLLECTIONS = 80

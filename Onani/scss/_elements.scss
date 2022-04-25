@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-23 17:09:02
+ * @Last Modified time: 2022-04-25 17:10:49
  */
 
 html {
@@ -116,10 +116,9 @@ td {
     padding: 10px;
 
     @include for-mobile-only {
-        padding: 1px;
-        text-align: center;
-        font-size: 17px;
-        text-overflow: ellipsis;
+    padding: 5px;
+    font-size: .85em;
+    text-overflow: ellipsis;
     }
 }
 

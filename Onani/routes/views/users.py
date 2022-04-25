@@ -2,11 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 02:47:04
+# @Last Modified time: 2022-04-25 18:19:07
 
 import html
 
-from flask import abort, render_template, request
+from flask import abort, render_template, request, current_app
 from flask_login import current_user
 from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
 from Onani.models import Post, User
@@ -24,7 +24,7 @@ def users(user_id=None):
         # Convert the page to an int if it is a digit, if it is not, default to 0
         page = int(page) if page.isdigit() else 0
         users = User.query.order_by(User.post_count.desc()).paginate(
-            per_page=10, page=page, error_out=False
+            per_page=current_app.config["PER_PAGE_USERS"], page=page, error_out=False
         )
 
         return render_template(
@@ -52,7 +52,7 @@ def users(user_id=None):
     page = request.args.get("p", "0")
     page = int(page) if page.isdigit() else 0
     posts = user.posts.order_by(Post.id.desc()).paginate(
-        per_page=20, page=page, error_out=False
+        per_page=current_app.config["PER_PAGE_USER_POSTS"], page=page, error_out=False
     )
 
     account_form = AccountSettingsForm()

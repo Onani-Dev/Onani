@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Mattlau04
 # @Date:   2022-04-23 16:12:45
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-24 18:48:05
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-25 17:43:03
 
 from feedgen.feed import FeedGenerator
 from Onani.models.post import Post
@@ -21,7 +21,7 @@ def posts() -> FeedGenerator:
     fg.subtitle("The latest onani posts")
     fg.link(href=url_for("main.get_posts", _external=True), rel="alternate")
 
-    for p in Post.query.order_by(Post.id.asc()).limit(10):
+    for p in reversed(Post.query.order_by(Post.id.desc()).limit(10).all()):
         p: Post
         fe = fg.add_entry()
         fe.id(f"onani.feed.posts.{p.id}")

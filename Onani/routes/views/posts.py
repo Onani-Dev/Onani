@@ -2,9 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-20 00:57:10
+# @Last Modified time: 2022-04-25 18:18:09
 
-from flask import abort, render_template, request
+from flask import abort, render_template, request, current_app
 from flask_login import current_user
 from Onani.models import Post, PostSchema, Tag
 from sqlalchemy import func, distinct
@@ -37,11 +37,15 @@ def get_posts(post_id=None):
             .group_by(Post)
             .having(func.count(distinct(Tag.id)) == len(tags))
             .order_by(Post.id.desc())
-            .paginate(per_page=35, page=page, error_out=False)
+            .paginate(
+                per_page=current_app.config["PER_PAGE_POSTS"],
+                page=page,
+                error_out=False,
+            )
         )
     else:
         posts = Post.query.order_by(Post.id.desc()).paginate(
-            per_page=35, page=page, error_out=False
+            per_page=current_app.config["PER_PAGE_POSTS"], page=page, error_out=False
         )
 
     # render the index template
