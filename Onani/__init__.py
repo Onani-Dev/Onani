@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-23 23:58:18
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-26 01:09:17
 
 import datetime
 import time
@@ -10,6 +10,7 @@ import time
 import emoji
 import humanize
 from flask import Flask
+from flask_dramatiq import Dramatiq
 from flask_limiter import Limiter
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
@@ -20,10 +21,13 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 csrf = CSRFProtect()
 db = SQLAlchemy()  # session_options={"autocommit": True}
+dramatiq = Dramatiq()
+limiter = Limiter(key_func=lambda: current_user.login_id)
 login_manager = LoginManager()
 ma = Marshmallow()
 migrate = Migrate()
-limiter = Limiter(key_func=lambda: current_user.login_id)
+
+from .tasks import test
 
 
 def init_app():
@@ -37,7 +41,7 @@ def init_app():
         datetime=datetime, time=time, emoji=emoji, humanize=humanize
     )
 
-    from .routes import admin, admin_api, main, main_api, atom, rss
+    from .routes import admin, admin_api, atom, main, main_api, rss
 
     app.register_blueprint(main)
     app.register_blueprint(main_api, url_prefix="/api")
@@ -48,11 +52,14 @@ def init_app():
 
     csrf.init_app(app)  # CSRF Protection init
     db.init_app(app)  # SQLAlchemy init
+    dramatiq.init_app(app)  # dramatiq init
     limiter.init_app(app)  # Flask limiter init
     login_manager.init_app(app)  # login manager init
     ma.init_app(app)  # Marshmallow init
     migrate.init_app(app, db)  # flask migrate init
 
     # Line belows prints all the registered routes, useful to debug
-    # print(app.url_map)
+    if app.testing:
+        print(app.url_map)  # Then why is it not????
+
     return app

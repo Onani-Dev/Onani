@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-25 15:39:59
+ * @Last Modified time: 2022-04-26 18:11:23
  */
 // Main Onani logo
 #logo {
@@ -450,6 +450,16 @@ div#left-panel {
 
             &.meta {
                 background-color: var(--tag-meta);
+            }
+
+            p {
+                hyphens: auto;
+                word-break: break-word;
+            }
+
+            div {
+                white-space: nowrap;
+                margin-left: 0.3em;
             }
         }
     }

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-25 18:15:18
+# @Last Modified time: 2022-04-26 01:22:25
 import os
 
 # Flask Config
@@ -10,21 +10,13 @@ STATIC_PATH = "/static/"
 SECRET_KEY = os.environ["FLASK_SECRET_KEY"]
 TESTING = bool(os.environ.get("TESTING", False))
 
-if SECRET_KEY == "dev":
-    print(
-        "Warning! SECRET_KEY is not set. Make sure to run 'python generate.py' before starting Onani."
-    )
-
-
 # SQLAlchemy Config
 SQLALCHEMY_DATABASE_URI = (
     f"postgresql://onani_db:{os.environ['DB_PASSWORD']}@postgres:5432/onani_db"
 )
 SQLALCHEMY_TRACK_MODIFICATIONS = False  # WHY are you not disabled by default
 
-if os.environ.get("FLASK_SQLALCHEMY_ECHO"):
-    print("SQLALCHEMY_ECHO enabled.")
-    SQLALCHEMY_ECHO = True
+SQLALCHEMY_ECHO = bool(os.environ.get("FLASK_SQLALCHEMY_ECHO"))
 
 
 # Recaptcha
@@ -45,3 +37,6 @@ PER_PAGE_USER_POSTS = 50
 PER_PAGE_USERS = 30
 PER_PAGE_NEWS = 30
 PER_PAGE_COLLECTIONS = 80
+
+# Dramatiq
+DRAMATIQ_BROKER_URL = f"amqp://onani_mq:{os.environ['DB_PASSWORD']}@rabbitmq"
