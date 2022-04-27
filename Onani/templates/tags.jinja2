@@ -1,0 +1,43 @@
+{% set title = "Tags - " %}
+{% set ogtitle = "Tags" %}
+{% set ogdesc = "List of all tags on Onani." %}
+{% set ogimage = "/static/android-chrome-512x512.png" %}
+
+{% extends "base.jinja2" %}
+
+{% block content %}
+<!-- Left panel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+
+<div id="content-container">
+  <table>
+    <tr>
+      <th><a href="/tags/?sort=name">Tag</a></th>
+      <th><a href="/tags/?sort=type">Type</a></th>
+      <th><a href="/tags/?sort=posts">Post Count</a></th>
+      <th>Explicit</th>
+      <th>Alias</th>
+      <th>Category</th>
+    </tr>
+    {% for tag in tags.items %}
+        <tr class="{{ tag.type.name.lower() }}">
+          <td><a href="/tags/{{ tag.id }}">{{ tag.humanized }}</a></td>
+          <td>{{ tag.type.name.capitalize() }}</td>
+          <td><a href="/posts/?tags={{ tag.name }}">{{ humanize.intcomma(tag.post_count) }} post{% if tag.post_count == 1 %}{% else %}s{% endif %}</a></td>
+          <td>{% if tag.explicit %}Yes{% else %}No{% endif %}</td>
+          <td>{% if tag.is_alias %}Yes{% else %}No{% endif %}</td>
+          <td>Not implemented.</td>
+        </tr>
+    {% endfor %}
+  </table>
+  {% if request.args.get("sort") %}
+    {% set extra_params = "&sort={sort}".format(sort=request.args.get("sort")) %}
+  {% endif %}
+  {% set pagination = tags %}
+  {% set page_url = "/tags/" %}
+  {% include "elements/pagination.jinja2" %}
+</div>
+
+<!-- Right panel/News -->
+{% include "elements/right_bar.jinja2" %}
+{% endblock %}

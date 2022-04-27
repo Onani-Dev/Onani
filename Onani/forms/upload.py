@@ -2,13 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-22 14:44:49
+# @Last Modified time: 2022-04-27 18:05:30
 
 from flask_wtf import FlaskForm, RecaptchaField
-from flask_wtf.file import FileAllowed, FileRequired
+from flask_wtf.file import FileAllowed
 from Onani.models import PostRating
 from wtforms import MultipleFileField, SelectField, StringField, SubmitField
-from wtforms.validators import URL, DataRequired, Length, Optional
+from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
 from wtforms.widgets import TextArea
 
 
@@ -52,7 +52,10 @@ class UploadForm(FlaskForm):
             "id": "file-source",
             "class": "uploader-input",
         },
-        validators=[Optional(), URL(message="Must be a valid URL.")],
+        validators=[
+            Optional(),
+            URL(message="Must be a valid URL."),
+        ],
     )
 
     description = StringField(

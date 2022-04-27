@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-24 00:49:46
+# @Last Modified time: 2022-04-27 19:00:05
 
 from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING, Union
@@ -298,7 +298,21 @@ class User(UserMixin, db.Model):
         return self.has_role(UserRoles.ADMIN)
 
     @property
+    def is_mod(self) -> bool:
+        """Check if the user has moderator permissions, for use in jinja templates
+
+        Returns:
+            bool: True or False
+        """
+        return self.has_role(UserRoles.MODERATOR)
+
+    @property
     def avatar_thumbnail(self) -> str:
+        """Get the thumbnail for the avatar for this user
+
+        Returns:
+            str: The avatar url
+        """
         return self.get_avatar(150)
 
     @property

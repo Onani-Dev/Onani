@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:19:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-25 01:38:01
+ * @Last Modified time: 2022-04-27 18:25:34
  */
  .uploader-container {
     width: 50em;
@@ -115,6 +115,12 @@
         }
         #upload-button {
             @extend #left-button;
+        }
+
+        #uploader-title-text {
+            @include for-mobile-only {
+                font-size: larger;
+            }
         }
     }
 

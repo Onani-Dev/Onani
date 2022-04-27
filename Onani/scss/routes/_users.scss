@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:00:41
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-26 19:14:37
+ * @Last Modified time: 2022-04-27 16:24:18
  */
 div#profile-info-container {
     height: 175px;
@@ -123,6 +123,9 @@ div.profile-tab-content {
 
     .settings-tab-content {
         flex-direction: column;
+        h2 {
+            padding: 15px;
+        }
     }
 }
 
