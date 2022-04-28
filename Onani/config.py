@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-27 19:20:38
+# @Last Modified time: 2022-04-28 21:59:51
 import os
+from dramatiq.brokers.redis import RedisBroker
 
 # Flask Config
 STATIC_PATH = "/static/"
@@ -40,4 +41,5 @@ PER_PAGE_COLLECTIONS = 80
 PER_PAGE_TAGS = 30
 
 # Dramatiq
-DRAMATIQ_BROKER_URL = f"amqp://onani_mq:{os.environ['DB_PASSWORD']}@rabbitmq"
+DRAMATIQ_BROKER_URL = "redis://redis:6379/0"
+DRAMATIQ_BROKER = RedisBroker
