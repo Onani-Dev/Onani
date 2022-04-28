@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-12 03:44:36
+# @Last Modified time: 2022-04-28 20:07:14
 version: '3.8'
 
 services:
@@ -9,7 +9,7 @@ services:
     build:
       context: .
       dockerfile:
-        dockerfile.debug
+        dockerfile.dev
     ports:
     - 5000:5000
     environment:
@@ -23,6 +23,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-onani_db} 
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
     - images:/images
@@ -58,12 +60,45 @@ services:
       - POSTGRES_DB=onani_db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
-      interval: 10s
+      interval: 1s
       timeout: 5s
+      retries: 10
+  
+  redis:
+    image: redis:7.0.0-alpine
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
       retries: 5
-    
-  # redis:
-  #   image: redis:alpine
+
+  dramatiq:
+    build:
+      context: .
+      dockerfile:
+        ./dramatiq/dockerfile
+    environment:
+      FLASK_APP: run
+      FLASK_ENV: development
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev}
+      FLASK_SQLALCHEMY_ECHO: "True"
+      TESTING: "True"
+      RECAPTCHA_PUBLIC_KEY: ${RECAPTCHA_PUBLIC_KEY}
+      RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
+      DB_PASSWORD: ${DB_PASSWORD:-onani_db} 
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+    - images:/images
+    - avatars:/avatars
+    - migrations:/onani/migrations
+    - logs:/logs
+    - ./:/onani
 
 volumes:
   database:

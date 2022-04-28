@@ -115,13 +115,13 @@
             <button class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
             <button class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
             <button class="settings-tab-link" data-tab-content-id="settings-platforms-tab">Platforms</button>
-            <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>
+            <!-- <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>-->
           </div>
           <!-- Account settings -->
           <div id="settings-account-tab" class="settings-tab-content" style="display:block;">
             <form id="settings-account" action="/settings/account/" method="POST">
               {{ account_form.csrf_token }}
-              <h2 style="padding: 15px;">Account settings</h2>
+              <h2>Account settings</h2>
 
               <!-- User Info Settings -->
               <div class="settings-input-group">
@@ -167,7 +167,7 @@
           <div id="settings-profile-tab" class="settings-tab-content">
             <form id="settings-profile" action="/settings/profile/" method="POST">
               {{ profile_form.csrf_token }}
-              <h2 style="padding: 15px;">Profile settings</h2>
+              <h2>Profile settings</h2>
 
               <!-- Profile Picture Settings -->
               <div class="settings-input-group">
@@ -207,7 +207,7 @@
             <!-- Platform settings -->
             <form id="settings-platforms" action="/settings/platforms/" method="POST">
               {{ platform_form.csrf_token }}
-              <h2 style="padding: 15px;">Platform settings</h2>
+              <h2>Platform settings</h2>
 
               <div class="settings-input-group">
                 <div class="row">
@@ -248,11 +248,10 @@
               </div>
             </form>
           </div>
-
+          <!--
           <div id="settings-site-tab" class="settings-tab-content">
-            <!-- Site settings -->
             <form id="">
-              <h2 style="padding: 15px;">Site settings</h2>
+              <h2 >Site settings</h2>
 
               <div class="settings-input-group">
                 <div class="row">
@@ -277,12 +276,12 @@
                   </div>
                 </div>
               </div>
-              <!-- Save Button For Site -->
               <div class="settings-input-group">
                 <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveSiteSettings()">
               </div>
             </form>
           </div>
+          -->
         </div>
       {% endif %}
     {% endif %}

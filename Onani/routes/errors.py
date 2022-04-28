@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 03:10:42
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-18 22:06:08
+# @Last Modified time: 2022-04-28 19:48:10
 import traceback
 
 from flask import current_app, flash, redirect, request, render_template
@@ -15,7 +15,7 @@ from .api import make_api_response
 
 @main.app_errorhandler(Exception)
 def error_handler(e):
-    # Print traceback if app is in debug mode
+    # Print traceback if app is in testing mode
     if current_app.testing:
         print(traceback.print_tb(e.__traceback__))
 

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:27:55
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-25 17:11:32
+ * @Last Modified time: 2022-04-28 12:35:54
  */
 // import { DateTime } from "./external/luxon.min.js";
 // import { Converter } from "./external/showdown.min.js";
@@ -16,7 +16,7 @@ class ElementFormatter {
    * Regex for the Onani emotes.
    */
   get customEmotes() {
-    return /(:don:|:katsu:|:desuwa:|:dirt:|:armagan:)/g;
+    return /(:don:|:katsu:|:desuwa:|:dirt:|:kib:)/g;
   }
 
   /**
@@ -28,7 +28,7 @@ class ElementFormatter {
       katsu: "/static/svg/katsu.svg",
       desuwa: "/static/svg/desuwa.svg",
       dirt: "/static/image/dirt_small.gif",
-      armagan: "/static/image/armagan_small.gif",
+      kib: "/static/svg/kib.svg",
     };
   }
 

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-25 17:10:49
+ * @Last Modified time: 2022-04-27 20:15:18
  */
 
 html {
@@ -153,4 +153,28 @@ tr {
         white-space: nowrap;
         padding: 5px 5px 0px 5px;
     }
+
+    &.general {
+        background-color: var(--tag-general);
+    }
+
+    &.artist {
+        background-color: var(--tag-artist);
+    }
+
+    &.character {
+        background-color: var(--tag-character);
+    }
+
+    &.copyright {
+        background-color: var(--tag-copyright);
+    }
+
+    &.meta {
+        background-color: var(--tag-meta);
+    }
+
+    // &:hover {
+    //     background-color: var(--ui-item-hover);
+    // }
 }

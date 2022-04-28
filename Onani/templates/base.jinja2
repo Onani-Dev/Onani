@@ -14,13 +14,14 @@
   <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
   <meta name="apple-mobile-web-app-title" content="Onani">
   <meta name="application-name" content="Onani">
-  <meta name="msapplication-TileColor" content="#dc143c">
-  <meta name="theme-color" content="#dc143c">
+  <meta name="msapplication-TileColor" content="#000000">
+  <meta name="theme-color" content="#000000">
   <meta name="description" content="{{ ogdesc }}">
   <meta name="twitter:image:src" content="{{ ogimage }}" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="{{ ogtitle }}" />
   <meta name="twitter:description" content="{{ ogdesc }}" />
+  <meta name="twitter:site" content="{{ request.base_url }}">
   <meta property="og:image" content="{{ ogimage }}" />
   <meta property="og:image:alt" content="{{ ogdesc }}" />
   <meta property="og:type" content="profile" />
@@ -57,12 +58,6 @@
   {% block top_scripts %}
   {% endblock %}
 
-  {% if current_user.is_authenticated %}
-    {% if current_user.settings.custom_css %}
-      <style type="text/css">{{ current_user.settings.custom_css }}</style>
-    {% endif %}
-  {% endif %}
-
 </head>
 
 <body>
@@ -76,8 +71,9 @@
     <div class="site-links">
       <a href="/posts/">Posts</a>
       <a href="/collections/">Collections</a>
-      <a href="/news/">News</a>
+      <a href="/tags/">Tags</a>
       <a href="/users/">Users</a>
+      <a href="/news/">News</a>
       <a href="/upload/">Upload</a>
       <!-- we have a load of fun :) -->
       <a style="display:none;" href="/fun">Fun</a> 
@@ -126,8 +122,9 @@
     <a href="javascript:void(0)" id="side-navigation-close-button" class="close-button">&times;</a>
     <a href="/posts/">Posts</a>
     <a href="/collections/">Collections</a>
-    <a href="/news/">News</a>
+    <a href="/tags/">Tags</a>
     <a href="/users/">Users</a>
+    <a href="/news/">News</a>
     <a href="/upload/">Upload</a>
     {% if current_user.is_authenticated %}
       <!-- User customized card -->
