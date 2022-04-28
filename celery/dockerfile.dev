@@ -1,0 +1,29 @@
+# Container Image
+FROM python:3.10-alpine
+
+# Environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Install the shit required to install pip requirements
+RUN apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev \
+    && apk add libffi-dev
+
+# FFmpeg for transcoding videos
+RUN apk add --no-cache ffmpeg
+
+# Install requirements
+COPY requirements.txt /
+RUN pip3 install -r /requirements.txt
+
+# Copy static folder
+COPY ./Onani/static /static
+
+# Copy working dir to root of virtual drive
+COPY . /onani
+
+# Set workdir
+WORKDIR /onani
+
+# Load entrypoint
+ENTRYPOINT ["./celery/entrypoint.dev.sh"]

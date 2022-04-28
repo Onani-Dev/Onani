@@ -26,4 +26,4 @@ COPY . /onani
 WORKDIR /onani
 
 # Load entrypoint
-ENTRYPOINT ["./dramatiq/entrypoint.sh"]
+ENTRYPOINT ["./celery/entrypoint.sh"]

@@ -2,9 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-28 21:59:51
+# @Last Modified time: 2022-04-29 01:35:30
 import os
-from dramatiq.brokers.redis import RedisBroker
 
 # Flask Config
 STATIC_PATH = "/static/"
@@ -40,6 +39,6 @@ PER_PAGE_NEWS = 30
 PER_PAGE_COLLECTIONS = 80
 PER_PAGE_TAGS = 30
 
-# Dramatiq
-DRAMATIQ_BROKER_URL = "redis://redis:6379/0"
-DRAMATIQ_BROKER = RedisBroker
+# Celery
+CELERY_RESULT_BACKEND = "redis://redis:6379/"
+CELERY_BROKER_URL = "redis://redis:6379/"
