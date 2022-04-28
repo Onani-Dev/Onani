@@ -33,3 +33,4 @@ traceback-with-variables>=2.0.4
 ujson>=3.2.0
 watchdog>=2.1.7
 Werkzeug>=2.0.3
+ffmpeg-python>=0.18.2
