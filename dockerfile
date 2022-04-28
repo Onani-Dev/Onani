@@ -26,4 +26,4 @@ COPY . /onani
 WORKDIR /onani
 
 # Load entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoints/entrypoint.sh"]

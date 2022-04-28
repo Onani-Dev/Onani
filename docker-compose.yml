@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-07 21:28:39
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-04-28 22:31:04
 version: '3.8'
 
 services:
@@ -19,6 +19,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+  
     volumes:
     - images:/images
     - avatars:/avatars
@@ -54,6 +57,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  dramatiq:
+    build:
+      context: .
+    environment:
+      FLASK_APP: run
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
+      RECAPTCHA_PUBLIC_KEY: ${RECAPTCHA_PUBLIC_KEY}
+      RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
+      DB_PASSWORD: ${DB_PASSWORD} 
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    volumes:
+    - images:/images
+    - avatars:/avatars
+    - migrations:/onani/migrations
+    - logs:/logs
 
 volumes:
   database:
