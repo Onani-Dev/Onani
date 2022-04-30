@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-29 02:40:40
+# @Last Modified time: 2022-04-30 16:22:56
 version: '3.8'
 
 services:
@@ -25,7 +25,7 @@ services:
     volumes:
     - images:/images
     - avatars:/avatars
-    - migrations:/onani/migrations
+    - ./migrations:/onani/migrations
     - logs:/logs
 
   nginx:
@@ -78,7 +78,7 @@ services:
     volumes:
     - images:/images
     - avatars:/avatars
-    - migrations:/onani/migrations
+    - ./migrations:/onani/migrations
     - logs:/logs
 
 volumes:

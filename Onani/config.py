@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-29 01:35:30
+# @Last Modified time: 2022-04-30 16:33:42
 import os
 
 # Flask Config
@@ -42,3 +42,5 @@ PER_PAGE_TAGS = 30
 # Celery
 CELERY_RESULT_BACKEND = "redis://redis:6379/"
 CELERY_BROKER_URL = "redis://redis:6379/"
+# CELERY_TASK_SERIALIZER = "pickle"
+# CELERY_ACCEPT_CONTENT = ["pickle"]
