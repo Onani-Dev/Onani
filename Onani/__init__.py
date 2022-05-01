@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-29 02:12:40
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-05-01 03:55:51
 
 import datetime
 import time
@@ -41,6 +41,7 @@ def init_app():
     )
 
     from .routes import admin, admin_api, atom, main, main_api, rss
+    import Onani.importers
 
     # Main Routes
     app.register_blueprint(main)
