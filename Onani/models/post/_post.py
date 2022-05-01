@@ -2,15 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 01:17:44
+# @Last Modified time: 2022-05-02 02:11:02
 
 from __future__ import annotations
-from ctypes import Union
 
 import datetime
 import html
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Union
 
 from Onani.controllers.utils import natural_join
 from Onani.models.user._user import User
