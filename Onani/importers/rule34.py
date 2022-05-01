@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:16:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 01:57:55
+# @Last Modified time: 2022-05-02 02:08:05
 
 
 from typing import Optional
@@ -55,8 +55,8 @@ class Ruler34Importer(BaseImporter, URLs=["rule34.xxx", "hypnohub.net"]):
         r = r.json()[0]
         return ImportedPost(
             tags=r["tags"].split(" "),
-            sources=[self.normalize_url(url)],
+            sources=[self.normalize_url(url)],  # Rule34's API doesn't return source...
             file_urls=[r["file_url"]],
             description="",
             rating=PostRating.QUESTIONABLE,  # TODO CHANGE THESE TO THE ACTUAL VALUES
-        )  # Rule34's API doesn't return source...
+        )
