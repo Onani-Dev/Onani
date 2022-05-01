@@ -2,15 +2,17 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-20 16:18:04
+# @Last Modified time: 2022-05-02 01:14:29
 
 from __future__ import annotations
+
 import os
 from typing import TYPE_CHECKING, List
 
 from sqlalchemy.orm import validates
+from sqlalchemy_utils import ChoiceType
 
-from . import db
+from . import FileType, db
 
 if TYPE_CHECKING:
     from Onani.models.post.note import Note
@@ -29,6 +31,8 @@ class File(db.Model):
 
     url: str = db.Column(db.String, unique=True)
 
+    sample_url: str = db.Column(db.String, unique=True)
+
     sha256_hash: str = db.Column(db.String, unique=True, index=True)
 
     md5_hash: str = db.Column(db.String, index=True)
@@ -41,6 +45,12 @@ class File(db.Model):
 
     # The file's notes. those little thingys on the image over the japanese text :)
     notes: List[Note] = db.relationship("Note", backref="file_notes", lazy="joined")
+
+    type: FileType = db.Column(
+        ChoiceType(FileType, impl=db.Integer()),
+        default=FileType.IMAGE,
+        nullable=False,
+    )
 
     @validates("sha256_hash")
     def validate_hash(self, key, hash_):

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-05 01:33:34
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 11:55:04
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-02 00:00:03
 import datetime
 import html
 
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType
 
-from Onani.models.user.user_ import User
+from Onani.models.user._user import User
 
 from . import NewsType, db
 
@@ -37,11 +37,7 @@ class NewsPost(db.Model):
         nullable=False,
     )
 
-    @validates("title")
-    def validate_title(self, key, title):
-        return html.escape(title)
-
-    @validates("content")
+    @validates("title", "content")
     def validate_content(self, key, content):
         return html.escape(content)
 

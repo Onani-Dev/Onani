@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-04 01:02:36
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 13:04:34
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-01 22:16:02
 import datetime
 import enum
 
 from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType
 
-from Onani.models.post.post_ import Post
+from Onani.models.post._post import Post
 
 from . import CollectionStatus, db
 

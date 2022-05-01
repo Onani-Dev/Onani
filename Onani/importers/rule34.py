@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:16:51
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-01 04:04:43
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-02 01:57:55
 
 
 from typing import Optional
 from urllib.parse import parse_qs, urlparse
 
 import requests
+
+from Onani.models.post.rating import PostRating
 
 from . import BaseImporter, ImportedPost
 
@@ -36,7 +38,7 @@ class Ruler34Importer(BaseImporter, URLs=["rule34.xxx", "hypnohub.net"]):
             return None
 
         r = requests.get(
-            f"https://api.{self.URL}/index.php?",
+            f"https://api.{self.URL}/index.php",
             params={
                 "page": "dapi",
                 "s": "post",
@@ -51,9 +53,10 @@ class Ruler34Importer(BaseImporter, URLs=["rule34.xxx", "hypnohub.net"]):
             return None
 
         r = r.json()[0]
-        post = ImportedPost(
+        return ImportedPost(
             tags=r["tags"].split(" "),
-            sources=[self.normalize_url(url)],  # Rule34's API doesn't return source...
+            sources=[self.normalize_url(url)],
             file_urls=[r["file_url"]],
-        )
-        return post
+            description="",
+            rating=PostRating.QUESTIONABLE,  # TODO CHANGE THESE TO THE ACTUAL VALUES
+        )  # Rule34's API doesn't return source...

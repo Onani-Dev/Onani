@@ -2,13 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-20 23:28:52
+# @Last Modified time: 2022-05-01 18:09:00
 
 from __future__ import annotations
-from email.policy import default
-import enum
+
 from typing import List
 
+from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType
 
 from . import TagType, db
@@ -56,15 +56,34 @@ class Tag(db.Model):
     # The post count for this tag's posts
     post_count: int = db.Column(db.Integer, default=0)
 
+    # ARTIST ONLY
     # The url that will be associated with this tag. only used for artists.
     url: str = db.Column(db.String)
 
+    # user relationship for the artist if they are registered on Onani
+    user_id: int = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+    @validates("url", "user", "user_id")
+    def validate_description(self, key, value):
+        # ARTISTS ONLY!!!!!
+        return None if self.type != TagType.ARTIST else value
+
     @property
     def is_alias(self) -> bool:
+        """Property to check if the tag is an alias or not
+
+        Returns:
+            bool
+        """
         return bool(self.alias_of)
 
     @property
     def humanized(self) -> str:
+        """Return a humanized version of the tag's name
+
+        Returns:
+            str: The humanized string (name)
+        """
         return self.name.replace("_", " ")  # .capitalize()
 
     def save_to_db(self):

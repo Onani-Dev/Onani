@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:05:06
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-01 04:04:43
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-01 17:27:39
 
 from typing import Optional, Tuple, Type
 
@@ -27,14 +27,15 @@ def find_importer(url: str) -> Optional[Type[BaseImporter]]:
         # URL was malformed, so we return None
         return None
 
-    # Then we find the importer that corresponds to this url, if any
-    for base_url in IMPORTERS.keys():
-        if base_url in normalized_url:
-            # This importer supports this site, we return it
-            return IMPORTERS[base_url]
-
-    # None of the importers support that site, we return None
-    return None
+    # Then we find the importer that corresponds to this url, if any, else we return None
+    return next(
+        (
+            IMPORTERS[base_url]
+            for base_url in IMPORTERS.keys()
+            if base_url in normalized_url
+        ),
+        None,
+    )
 
 
 def get_post(url: str) -> ImportedPost:

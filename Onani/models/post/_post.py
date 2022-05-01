@@ -2,9 +2,10 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-24 02:11:57
+# @Last Modified time: 2022-05-02 01:17:44
 
 from __future__ import annotations
+from ctypes import Union
 
 import datetime
 import html
@@ -12,7 +13,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, List
 
 from Onani.controllers.utils import natural_join
-from Onani.models.user.user_ import User
+from Onani.models.user._user import User
 from sqlalchemy import func
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.query import Query
@@ -22,7 +23,7 @@ from ..tag import Tag, TagType
 from . import PostRating, PostStatus, db
 
 if TYPE_CHECKING:
-    from Onani.models.post.file import File
+    from Onani.models.file._file import File
 
 post_upvotes = db.Table(
     "post_upvotes",
@@ -109,6 +110,9 @@ class Post(db.Model):
         "PostComment", backref="comments", lazy="dynamic", viewonly=True
     )
 
+    # Will be the link to the original post that it is imported from. will be none if the post is not imported
+    imported_from: Union[str, None] = db.Column(db.String)
+
     @validates("description")
     def validate_description(self, key, description):
         return html.escape(description)
@@ -128,6 +132,10 @@ class Post(db.Model):
             self.upvoters.with_entities(func.count()).scalar()
             - self.downvoters.with_entities(func.count()).scalar()
         )
+
+    @property
+    def is_imported(self) -> bool:
+        return bool(self.imported_from)
 
     @property
     def sorted_tags(self) -> Dict[TagType, List[Tag]]:
@@ -160,9 +168,8 @@ class Post(db.Model):
             char_str = ""
 
         if artists is not None:
-            artist_str = "drawn by " + natural_join(
-                [a.name.capitalize() for a in artists], max_lenght=3
-            )
+            artist_str = f"drawn by {natural_join([a.name.capitalize() for a in artists], max_lenght=3)}"
+
         else:
             artist_str = ""
 

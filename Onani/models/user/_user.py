@@ -2,15 +2,15 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-27 19:00:05
+# @Last Modified time: 2022-05-01 22:17:07
 
 from __future__ import annotations
-from typing import List, Optional, TYPE_CHECKING, Union
 
 import datetime
 import html
 import secrets
 import uuid
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import regex as re
 from flask_login import UserMixin
@@ -21,9 +21,7 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType
 
 if TYPE_CHECKING:
-    from Onani.models.post.post_ import Post
-
-from Onani.models.tag.tag_ import Tag
+    from Onani.models.post._post import Post
 
 from . import Ban, db
 from .permissions import UserPermissions
