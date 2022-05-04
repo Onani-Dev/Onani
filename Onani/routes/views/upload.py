@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-10 22:13:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-01 01:02:28
+# @Last Modified time: 2022-05-04 12:51:46
 from cgi import FieldStorage
 
 from flask import redirect, render_template, request
@@ -21,4 +21,4 @@ def upload():
         if post := upload_post(form):
             return redirect(f"/posts/{post.id}")
 
-    return render_template("/upload.jinja2", form=form)
+    return render_template("/routes/upload/index.jinja2", form=form)

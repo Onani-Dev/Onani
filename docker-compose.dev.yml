@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-30 16:27:14
+# @Last Modified time: 2022-05-03 18:13:54
 version: '3.8'
 
 services:
@@ -10,6 +10,9 @@ services:
       context: .
       dockerfile:
         dockerfile.dev
+    deploy:
+      restart_policy: 
+        condition: always
     ports:
     - 5000:5000
     environment:
@@ -29,7 +32,6 @@ services:
     volumes:
     - images:/images
     - avatars:/avatars
-    # - migrations:/onani/migrations
     - logs:/logs
     - ./:/onani
 
@@ -37,6 +39,9 @@ services:
     build: 
       context: .
       dockerfile: ./nginx/dockerfile
+    deploy:
+      restart_policy: 
+        condition: always
     ports:
       - 8080:80
     depends_on:
@@ -49,6 +54,9 @@ services:
 
   postgres:
     image: postgres:14-alpine
+    deploy:
+      restart_policy: 
+        condition: always
     ports:
       - 5432:5432
     volumes:
@@ -66,6 +74,9 @@ services:
   
   redis:
     image: redis:7.0.0-alpine
+    deploy:
+      restart_policy: 
+        condition: always
     ports:
       - 6379:6379
     healthcheck:
@@ -77,8 +88,10 @@ services:
   celery:
     build:
       context: .
-      dockerfile:
-        ./celery/dockerfile.dev
+      dockerfile: ./celery/dockerfile.dev
+    deploy:
+      restart_policy: 
+        condition: always
     environment:
       FLASK_APP: run
       FLASK_ENV: development
@@ -97,7 +110,6 @@ services:
     volumes:
     - images:/images
     - avatars:/avatars
-    # - ./migrations:/onani/migrations
     - logs:/logs
     - ./:/onani
 
@@ -105,5 +117,4 @@ volumes:
   database:
   images:
   avatars:
-  # migrations:
   logs:

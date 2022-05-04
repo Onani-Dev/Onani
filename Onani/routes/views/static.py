@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 03:00:18
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-05 00:53:29
+# @Last Modified time: 2022-05-04 12:51:24
 
 from flask import render_template
 
@@ -16,9 +16,9 @@ def gen_204():
 
 @main.route("/dmca/")
 def dmca_page():
-    return render_template("/dmca.jinja2")
+    return render_template("/routes/dmca/index.jinja2")
+
 
 @main.route("/developers/")
 def devs_page():
-    return render_template("/developers.jinja2")
-
+    return render_template("/routes/developers/index.jinja2")
