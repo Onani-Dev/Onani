@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-18 22:19:09
+# @Last Modified time: 2022-05-04 12:42:18
 import html
 from datetime import datetime, timedelta, timezone
 
@@ -38,7 +38,7 @@ def login():
         return user_login(user, form.password.data)
 
     # Render the login page when visited.
-    return render_template("/login.jinja2", form=form)
+    return render_template("/routes/login/index.jinja2", form=form)
 
 
 @main.route("/register/", methods=["GET", "POST"])
@@ -69,7 +69,7 @@ def register():
         return user_login(user, form.password.data)
 
     # Render the registration page
-    return render_template("/register.jinja2", form=form)
+    return render_template("/routes/register/index.jinja2", form=form)
 
 
 @main.route("/logout/")

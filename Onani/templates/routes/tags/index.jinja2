@@ -19,6 +19,11 @@
       <th>Alias</th>
       <th>Category</th>
     </tr>
+    {% if tags.total == 0 %}
+      <tr>
+        <td class="no-data" colspan="6"><h1>Sorry Nothing</h1></td>
+      </tr>
+    {% endif %}
     {% for tag in tags.items %}
         <tr class="{{ tag.type.name.lower() }}">
           <td><a href="/tags/{{ tag.id }}">{{ tag.humanized }}</a></td>
@@ -29,6 +34,7 @@
           <td>Not implemented.</td>
         </tr>
     {% endfor %}
+
   </table>
   {% if request.args.get("sort") %}
     {% set extra_params = "&sort={sort}".format(sort=request.args.get("sort")) %}

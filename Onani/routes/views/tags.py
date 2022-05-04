@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-27 19:17:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-27 20:08:22
+# @Last Modified time: 2022-05-04 12:23:26
 
 import html
 
@@ -39,7 +39,7 @@ def tags(tag_id=None):
         )
 
         return render_template(
-            "/tags.jinja2",
+            "/routes/tags/index.jinja2",
             tags=tags,
         )
 
@@ -54,4 +54,4 @@ def tags(tag_id=None):
     tag = Tag.query.filter_by(id=tag_id).first_or_404()
 
     # Render the user page
-    return render_template("/tag.jinja2", tag=tag)
+    return render_template("/routes/tags/tag.jinja2", tag=tag)

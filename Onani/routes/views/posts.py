@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-25 18:18:09
+# @Last Modified time: 2022-05-04 10:31:54
 
 from flask import abort, render_template, request, current_app
 from flask_login import current_user
@@ -18,7 +18,7 @@ def get_posts(post_id=None):
     if post_id:
         post = Post.query.filter_by(id=post_id).first_or_404()
 
-        return render_template("/post.jinja2", post=post)
+        return render_template("/routes/posts/post.jinja2", post=post)
 
     # Get the tags from the request args
     tags = request.args.get("tags").split(" ") if request.args.get("tags") else None
@@ -50,6 +50,6 @@ def get_posts(post_id=None):
 
     # render the index template
     return render_template(
-        "/posts.jinja2",
+        "/routes/posts/index.jinja2",
         posts=posts,
     )

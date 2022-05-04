@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-25 18:19:07
+# @Last Modified time: 2022-05-04 11:47:43
 
 import html
 
@@ -28,7 +28,7 @@ def users(user_id=None):
         )
 
         return render_template(
-            "/users.jinja2",
+            "/routes/users/index.jinja2",
             users=users,
         )
 
@@ -83,7 +83,7 @@ def users(user_id=None):
 
     # Render the user page
     return render_template(
-        "/profile.jinja2",
+        "/routes/users/user.jinja2",
         user=user,
         posts=posts,
         account_form=account_form,

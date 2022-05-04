@@ -18,6 +18,11 @@
       <th>Post Count</th>
       <th>Date Joined</th>
     </tr>
+    {% if users.total == 0 %}
+      <tr>
+        <td class="no-data" colspan="5"><h1>Sorry Nothing</h1></td>
+      </tr>
+    {% endif %}
     {% for user in users.items %}
         <tr>
           <td class="profile-picture-cell"><a href="/users/{{ user.id }}" alt="{{ user.username }}"><img src="{{ user.get_avatar(size=50) }}"></a></td>

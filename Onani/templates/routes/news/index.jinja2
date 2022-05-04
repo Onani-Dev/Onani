@@ -17,6 +17,11 @@
       <th>Date</th>
       <th>Author</th>
     </tr>
+    {% if news.total == 0 %}
+      <tr>
+        <td class="no-data" colspan="4"><h1>Sorry Nothing</h1></td>
+      </tr>
+    {% endif %}
     {% for news in news.items %}
         <tr>
           <td><a href="/news/{{ news.id }}" class="twemoji-format">{{ news.title }}</a></td>
