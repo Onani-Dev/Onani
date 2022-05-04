@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-04 12:42:18
+# @Last Modified time: 2022-05-05 01:11:53
 import html
 from datetime import datetime, timedelta, timezone
 
@@ -19,7 +19,7 @@ from . import db, main
 def login():
     # We don't need to login again!
     if current_user.is_authenticated:
-        return redirect(f"/users/{current_user.id}")
+        return redirect(url_for("main.get_users", user_id=current_user.id))
 
     # Create the login form
     form = LoginForm(request.form)
@@ -48,7 +48,7 @@ def register():
 
     # Logged in users don't need to register again.
     if current_user.is_authenticated:
-        return redirect(f"/users/{current_user.id}")
+        return redirect(url_for("main.users", user_id=current_user.id))
 
     if form.validate_on_submit():
         user = User()
@@ -77,4 +77,4 @@ def register():
 def logout():
     logout_user()
     flash("Successfully logged out.")
-    return redirect("/login")
+    return redirect(url_for("main.login"))

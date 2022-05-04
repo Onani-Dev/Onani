@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-01 03:55:51
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-05 02:40:46
 
 import datetime
+import html
 import time
 
 import emoji
@@ -37,11 +38,12 @@ def init_app():
     app.config.from_pyfile("./config.py")
 
     app.jinja_env.globals.update(
-        datetime=datetime, time=time, emoji=emoji, humanize=humanize
+        datetime=datetime, time=time, emoji=emoji, humanize=humanize, html=html
     )
 
-    from .routes import admin, admin_api, atom, main, main_api, rss
     import Onani.importers
+
+    from .routes import admin, admin_api, atom, main, main_api, rss
 
     # Main Routes
     app.register_blueprint(main)

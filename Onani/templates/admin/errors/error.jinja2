@@ -1,0 +1,18 @@
+{% set title = "Error Viewer - " %}
+{% set ogtitle = "Error Log" %}
+{% set ogdesc = "You shouldn't be seeing this..." %}
+
+{% extends "base.jinja2" %}
+
+{% block content %}
+<div id="content-container">
+  <div id="news-article-header">
+    <h1>{{ error.id }}</h1>
+    <h2>{{ html.escape(error.exception_type) }}</h2>
+  </div>
+  <div id="news-article-body">
+    <pre><code>{{ html.escape(error.traceback) }}</code></pre>
+  </div>
+</div>
+
+{% endblock %}

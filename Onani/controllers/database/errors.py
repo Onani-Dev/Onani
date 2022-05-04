@@ -2,9 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-04-11 21:20:25
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-12 16:29:38
-
-import uuid
+# @Last Modified time: 2022-05-05 02:38:19
 
 from Onani.models import Error
 from traceback_with_variables import format_exc
@@ -23,7 +21,7 @@ def log_error(e: Exception) -> Error:
     """
     traceback = format_exc(e)
 
-    err = Error(traceback=traceback)
+    err = Error(traceback=traceback, exception_type=str(type(e).__name__))
 
     db.session.add(err)
     db.session.commit()

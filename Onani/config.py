@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-30 16:33:42
+# @Last Modified time: 2022-05-05 02:29:18
 import os
 
 # Flask Config
@@ -38,6 +38,9 @@ PER_PAGE_USERS = 30
 PER_PAGE_NEWS = 30
 PER_PAGE_COLLECTIONS = 80
 PER_PAGE_TAGS = 30
+
+# ADMIN ONLY SETTINGS
+PER_PAGE_ERRORS = 30
 
 # Celery
 CELERY_RESULT_BACKEND = "redis://redis:6379/"

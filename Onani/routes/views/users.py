@@ -2,12 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-04 11:47:43
+# @Last Modified time: 2022-05-05 02:57:45
 
 import html
 
-from flask import abort, render_template, request, current_app
+from flask import abort, current_app, render_template, request
 from flask_login import current_user
+from Onani.controllers.utils import get_page
 from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
 from Onani.models import Post, User
 
@@ -17,12 +18,9 @@ from . import main
 @main.route("/users/")
 @main.route("/users/<user_id>")
 # @login_required
-def users(user_id=None):
+def get_users(user_id=None):
     if not user_id:
-        page = request.args.get("p", "0")
-
-        # Convert the page to an int if it is a digit, if it is not, default to 0
-        page = int(page) if page.isdigit() else 0
+        page = get_page()
         users = User.query.order_by(User.post_count.desc()).paginate(
             per_page=current_app.config["PER_PAGE_USERS"], page=page, error_out=False
         )
@@ -49,8 +47,7 @@ def users(user_id=None):
         # Query for the user, if not found throw a 404
         user = User.query.filter_by(id=user_id).first_or_404()
 
-    page = request.args.get("p", "0")
-    page = int(page) if page.isdigit() else 0
+    page = get_page()
     posts = user.posts.order_by(Post.id.desc()).paginate(
         per_page=current_app.config["PER_PAGE_USER_POSTS"], page=page, error_out=False
     )

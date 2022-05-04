@@ -2,10 +2,10 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 03:10:42
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-28 19:48:10
+# @Last Modified time: 2022-05-04 21:54:07
 import traceback
 
-from flask import current_app, flash, redirect, request, render_template
+from flask import current_app, flash, redirect, request, render_template, url_for
 from Onani.controllers.database.errors import log_error
 from werkzeug.exceptions import HTTPException
 
@@ -32,7 +32,7 @@ def error_handler(e):
     # Flash a login message if a 401 code
     if isinstance(e, HTTPException) and e.code == 401:
         flash("You must login to do this.")
-        return redirect("/login/")
+        return redirect(url_for("main.login"))
 
     if code == 500:
         # we log the error and get the error id

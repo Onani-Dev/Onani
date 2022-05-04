@@ -2,13 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-04-27 19:17:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-04 12:23:26
-
-import html
-
-from flask import abort, render_template, request, current_app
-from flask_login import current_user
-from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
+# @Last Modified time: 2022-05-05 03:04:47
+from flask import abort, current_app, render_template, request
+from Onani.controllers.utils import get_page
 from Onani.models import Tag
 
 from . import main
@@ -17,9 +13,9 @@ from . import main
 @main.route("/tags/")
 @main.route("/tags/<tag_id>")
 # @login_required
-def tags(tag_id=None):
+def get_tags(tag_id=None):
     if not tag_id:
-        page = request.args.get("p", "0")
+        page = get_page()
         sort = request.args.get("sort", "posts")
 
         match sort.lower():
@@ -32,8 +28,6 @@ def tags(tag_id=None):
             case _:
                 tags = Tag.query.order_by(Tag.id)
 
-        # Convert the page to an int if it is a digit, if it is not, default to 0
-        page = int(page) if page.isdigit() else 0
         tags = tags.paginate(
             per_page=current_app.config["PER_PAGE_TAGS"], page=page, error_out=False
         )

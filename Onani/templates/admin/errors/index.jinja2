@@ -1,0 +1,32 @@
+{% set title = "Error Index - " %}
+{% set ogtitle = "Error Index" %}
+{% set ogdesc = "You shouldn't be seeing this..." %}
+
+{% extends "base.jinja2" %}
+
+{% block content %}
+<div id="content-container" class="grid-container">
+  <table>
+    <tr>
+      <th>UUID</th>
+      <th>Type</th>
+      <th>Occured at</th>
+    </tr>
+    {% if errors.total == 0 %}
+      <tr>
+        <td class="no-data" colspan="3"><h1>Sorry Nothing 😊👍</h1></td>
+      </tr>
+    {% endif %}
+    {% for error in errors.items %}
+        <tr>
+          <td><a href="{{ url_for('admin.error_view', error_id=error.id) }}">{{ error.id }}</a></td>
+          <td>{{ html.escape(error.exception_type) }}</td>
+          <td class="date-format">{{ error.created_at.isoformat() }}</td>
+        </tr>
+    {% endfor %}
+  </table>
+  {% set pagination = errors %}
+  {% set page_url = url_for('admin.error_index') %}
+  {% include "elements/pagination.jinja2" %}
+</div>
+{% endblock %}

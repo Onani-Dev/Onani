@@ -2,8 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2022-03-20 01:04:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-31 18:35:48
-from flask import redirect, render_template, request
+# @Last Modified time: 2022-05-05 01:11:52
+from flask import redirect, render_template, request, url_for
 from flask_login import current_user
 from Onani.controllers import create_avatar
 from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
@@ -28,8 +28,7 @@ def settings_account():
             current_user.set_password(form.new_password.data)
 
         db.session.commit()
-
-    return redirect(f"/users/{current_user.id}?t=settings")
+    return redirect(url_for("main.get_users", user_id=current_user.id))
 
 
 @main.route("/settings/profile/", methods=["POST"])
@@ -49,7 +48,7 @@ def settings_profile():
 
         db.session.commit()
 
-    return redirect(f"/users/{current_user.id}?t=settings")
+    return redirect(url_for("main.get_users", user_id=current_user.id))
 
 
 @main.route("/settings/platforms/", methods=["POST"])
@@ -67,4 +66,4 @@ def settings_platforms():
 
         db.session.commit()
 
-    return redirect(f"/users/{current_user.id}?t=settings")
+    return redirect(url_for("main.get_users", user_id=current_user.id))

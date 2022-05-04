@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-16 21:12:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-16 21:17:19
+# @Last Modified time: 2022-05-05 01:10:23
 from datetime import datetime, timedelta, timezone
 
 import humanize
@@ -35,7 +35,7 @@ def user_login(user: User, password: str):
                 flash("User is deleted.")
                 return redirect(url_for("main.login"))
 
-        return redirect(f"/users/{current_user.id}")
+        return redirect(url_for("main.get_users", user_id=current_user.id))
 
     # Password was wrong, show message
     flash("Invalid Login.")

@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 # @Author: Mattlau04
 # @Date:   2022-04-11 20:11:48
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-19 11:54:12
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-05 02:12:22
 
 import datetime
-import enum
 from uuid import uuid4
 
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy_utils import ChoiceType
 
 from . import db
 
@@ -28,7 +26,9 @@ class Error(db.Model):
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
 
+    exception_type: str = db.Column(db.String, nullable=False)
+
     traceback: str = db.Column(db.String, nullable=False)
 
     def __repr__(self):
-        return "<Error {0!r}>".format(self.__dict__)
+        return f"<Error '{self.id}'>"

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-04-18 23:46:40
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-05 02:54:07
 
 from typing import List, Optional
+
+from flask import request
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:
@@ -37,3 +39,18 @@ def natural_join(l: List[str], *, max_lenght: Optional[int] = None) -> str:
         l.append(extra)  # and replace it with "X more"
 
     return f"{', '.join(l[:-1])}, and {l[-1]}"
+
+
+def get_page() -> int:
+    """Get the current page from the current request's params.
+
+    Returns:
+        int: The current page
+    """
+    # Get the page, will default to 0 if there is no args
+    page = request.args.get("p", "0")
+
+    # Convert the page to an int if it is a digit, if it is not, default to 0
+    page = int(page) if page.isdigit() else 0
+
+    return page

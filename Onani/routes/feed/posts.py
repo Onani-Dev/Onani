@@ -19,7 +19,7 @@ def posts() -> FeedGenerator:
     fg.id("onani.feed.posts")
     fg.title("Onani posts")
     fg.subtitle("The latest onani posts")
-    fg.link(href=url_for("main.get_posts", _external=True), rel="alternate")
+    fg.link(href=url_for("main.post_index", _external=True), rel="alternate")
 
     for p in reversed(Post.query.order_by(Post.id.desc()).limit(10).all()):
         p: Post
@@ -27,7 +27,7 @@ def posts() -> FeedGenerator:
         fe.id(f"onani.feed.posts.{p.id}")
         fe.title(p.title)
         fe.link(
-            href=url_for("main.get_posts", post_id=p.id, _external=True),
+            href=url_for("main.post_index", post_id=p.id, _external=True),
             rel="alternate",
         )
         # We need to do both, one for atom and one for RSS
