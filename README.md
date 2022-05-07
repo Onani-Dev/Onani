@@ -6,7 +6,7 @@ Docker is required.
 
 Generate a .env file with generate.py by using `python generate.py` to create a password and secret key.
 
-To run: `./build.dev.sh` (Development) or `./build.sh` (Production)
+To run: `./build.sh dev` (Development) or `./build.sh` (Production)
 
 
 For default tags, Run `flask default-tags --filename <meta.json|explicit.json>` inside the onani_flask container. This allows meta and explicit tag checking to work.

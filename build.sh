@@ -2,10 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 20:54:49
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-23 14:25:16
-docker compose -f docker-compose.yml down
-docker compose -f docker-compose.yml up -d --build
-
+# @Last Modified time: 2022-05-07 18:39:02
 #                        .:--=++****########***++==-::.                                 
 #                 .-=*#%%%#**+++====--------====++#%@%#%%%#*+=:.                        
 #              -*%%@%*=::::::::::::::::::::::-++==:. .:-==+*#%@@@#*=:                   
@@ -39,5 +36,21 @@ docker compose -f docker-compose.yml up -d --build
 #         =@=        *@+.          =@=        +#+++*%@#=.         *@=       =@%:        
 #          +@%+---=*%%+:           :@*.      .#@**++=:.            =%@#*+*#@%*-.        
 #           .-+****+=:.             -#@*+==+#@#=:                    .-===-::.          
-#                                     .-++++=:.                                         
-                                                                                    
+#                                     .-++++=:.                                                                                                                         
+function start_docker {
+    if [ "$1" = "dev" ]
+    then
+        docker compose -f docker-compose.dev.yml down
+        docker compose -f docker-compose.dev.yml up -d --build
+    else
+        docker compose -f docker-compose.yml down
+        docker compose -f docker-compose.yml up -d --build
+    fi
+}
+
+if test -f ./.env
+then
+    start_docker "$@"
+else
+    echo "Environment file does not exist. Please run 'python generate_env.py' to create it."
+fi
