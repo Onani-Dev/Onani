@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-03 18:14:08
+# @Last Modified time: 2022-05-09 14:01:02
 version: '3.8'
 
 services:
@@ -9,48 +9,48 @@ services:
     build:
       context: .
     deploy:
-      restart_policy: 
+      restart_policy:
         condition: always
     expose:
-    - 5000
+      - 5000
     environment:
       FLASK_APP: run
       FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
       RECAPTCHA_PUBLIC_KEY: ${RECAPTCHA_PUBLIC_KEY}
       RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
-      DB_PASSWORD: ${DB_PASSWORD} 
+      DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-  
+
     volumes:
-    - images:/images
-    - avatars:/avatars
-    - ./migrations:/onani/migrations
-    - logs:/logs
+      - images:/images
+      - avatars:/avatars
+      - ./migrations:/onani/migrations
+      - logs:/logs
 
   nginx:
-    build: 
+    build:
       context: .
       dockerfile: ./nginx/dockerfile
     deploy:
-      restart_policy: 
+      restart_policy:
         condition: always
     ports:
       - 8080:80
     depends_on:
       - flask
     volumes:
-    - images:/images
-    - avatars:/avatars
-    - logs:/logs
+      - images:/images
+      - avatars:/avatars
+      - logs:/logs
 
   postgres:
     image: postgres:14-alpine
     deploy:
-      restart_policy: 
+      restart_policy:
         condition: always
     expose:
       - 5432
@@ -62,9 +62,22 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=onani_db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: [ "CMD-SHELL", "pg_isready" ]
       interval: 10s
       timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.0.0-alpine
+    deploy:
+      restart_policy:
+        condition: always
+    expose:
+      - 6379
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
       retries: 5
 
   celery:
@@ -72,14 +85,14 @@ services:
       context: .
       dockerfile: ./celery/dockerfile
     deploy:
-      restart_policy: 
+      restart_policy:
         condition: always
     environment:
       FLASK_APP: run
       FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
       RECAPTCHA_PUBLIC_KEY: ${RECAPTCHA_PUBLIC_KEY}
       RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
-      DB_PASSWORD: ${DB_PASSWORD} 
+      DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,10 +100,10 @@ services:
         condition: service_healthy
 
     volumes:
-    - images:/images
-    - avatars:/avatars
-    - ./migrations:/onani/migrations
-    - logs:/logs
+      - images:/images
+      - avatars:/avatars
+      - ./migrations:/onani/migrations
+      - logs:/logs
 
 volumes:
   database:
