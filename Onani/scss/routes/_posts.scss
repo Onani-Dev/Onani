@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-26 18:41:18
+ * @Last Modified time: 2022-05-11 15:02:35
  */
 
 #posts-container {
@@ -186,10 +186,16 @@ img.post-thumbnail {
             flex-wrap: nowrap;
             justify-content: space-around;
             padding: 10px;
-            width: 80px;
+            // width: 80px;
 
             #post-score-count {
+                cursor: default;
                 font-size: 1.5em;
+                min-width: 13px;
+                padding: 0 0.5em 0 0.5em;
+                text-align: center;
+                user-select: none;
+
                 &.positive {
                     color: lightgreen;
                 }
@@ -201,6 +207,8 @@ img.post-thumbnail {
             #upvote-button {
                 margin-top: auto;
                 margin-bottom: auto;
+                padding: 0 0.5em 0 0.5em;
+                user-select: none;
 
                 &.disabled {
                     cursor: wait;
@@ -212,13 +220,8 @@ img.post-thumbnail {
             }
 
             #downvote-button {
-                margin-top: auto;
-                margin-bottom: auto;
-
-                &.disabled {
-                    cursor: wait;
-                }
-
+                @extend #upvote-button;
+                
                 &.voted {
                     color: crimson;
                 }

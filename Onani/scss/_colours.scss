@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:16
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-12 18:32:10
+ * @Last Modified time: 2022-05-11 14:45:58
  */
 :root {
     // UI Colours
@@ -33,4 +33,10 @@
     --tag-character: #00ff1a40;
     --tag-copyright: #D100D140;
     --tag-meta: #B97B8740;
+
+    // Alert colours
+    --alert-error: #f44336;
+    --alert-message: var(--ui-foreground-header);
+    --alert-success: #288828;
+    --alert-warning: #656c00;
 }

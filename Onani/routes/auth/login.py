@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-05 01:11:53
+# @Last Modified time: 2022-05-11 14:47:50
 import html
 from datetime import datetime, timedelta, timezone
 
@@ -32,7 +32,7 @@ def login():
 
         if not user:
             # user doesn't exist here
-            flash("Invalid Login.")
+            flash("Invalid Login.", "error")
             return redirect(url_for("main.login"))
 
         return user_login(user, form.password.data)
@@ -55,13 +55,13 @@ def register():
         try:
             user.username = form.username.data
         except ValueError as e:
-            flash(str(e))
+            flash(str(e), "error")
             return redirect(url_for("main.register"))
         if form.email.data:
             try:
                 user.email = form.email.data
             except ValueError as e:
-                flash(str(e))
+                flash(str(e), "error")
                 return redirect(url_for("main.register"))
         user.set_password(form.password.data)
         user.save_to_db()
@@ -76,5 +76,5 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash("Successfully logged out.")
+    flash("Successfully logged out.", "success")
     return redirect(url_for("main.login"))
