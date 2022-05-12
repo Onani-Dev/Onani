@@ -25,7 +25,7 @@
     {% endif %}
     {% for user in users.items %}
         <tr>
-          <td class="profile-picture-cell"><a href="/users/{{ user.id }}" alt="{{ user.username }}"><img src="{{ user.get_avatar(size=50) }}"></a></td>
+          <td class="profile-picture-cell"><a href="/users/{{ user.id }}" alt="{{ user.username }}"><img src="{{ user.get_avatar(size=50) }}" onerror="this.src='/static/image/missing_file.png'"></a></td>
           <td><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}</a></td>
           <td>{{ user.role.name.capitalize() }}</td>
           <td><a href="/users/{{ user.id }}#posts">{{ humanize.intcomma(user.post_count) }} post{% if user.post_count == 1 %}{% else %}s{% endif %}</a></td>

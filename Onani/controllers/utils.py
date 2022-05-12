@@ -2,9 +2,9 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-05 02:54:07
+# @Last Modified time: 2022-05-12 08:41:29
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from flask import request
 
@@ -54,3 +54,40 @@ def get_page() -> int:
     page = int(page) if page.isdigit() else 0
 
     return page
+
+
+def hex_to_rgb(hex_code: str) -> Tuple[int, int, int]:
+    """Convert a hex value into an RGB one.
+
+    Args:
+        hex_code (str): The hex code to convert
+
+    Returns:
+        Tuple[int, int, int]: The RGB tuple.
+    """
+    return tuple(int(hex_code.strip("#")[i : i + 2], 16) for i in (0, 2, 4))
+
+
+def rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
+    """Convert an RGB tuple to a hex code string
+
+    Args:
+        rgb (Tuple[int, int, int]): The RGB values in a tuple
+
+    Returns:
+        str: The hex code
+    """
+    return "#%02x%02x%02x" % rgb
+
+
+def colour_contrast(colour: str) -> str:
+    rgb = hex_to_rgb(colour)
+
+    luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255
+
+    if luminance > 0.5:
+        d = 0  # bright colors - black font
+    else:
+        d = 255  # dark colors - white font
+
+    return rgb_to_hex((d, d, d))

@@ -35,14 +35,14 @@
     <!-- PFP -->
     <div id="profile-picture-container">
       <img src="{{ user.get_avatar(size=150) }}"
-        id="profile-picture-image" class="{{ pfp_class }}" alt="{{ user.username }}" title="{{ user.username }}"></a>
+        id="profile-picture-image" class="{{ pfp_class }}" alt="{{ user.username }}" title="{{ user.username }}" onerror="this.src='/static/image/missing_file.png'"></a>
     </div>
     <div>
       <div id="profile-header-group">
         <!-- Username -->
-        <h1 id="profile-username-header" class="{{ username_class }}">{{ user.username }}</h1>
+        <h1 id="profile-username-header" class="{{ username_class }}" style="color:{{ user.profile_text_colour }};">{{ user.username }}</h1>
         <!-- Permission value -->
-        <h3 id="profile-user-role">{{ user.role.name.capitalize() }}</h3>
+        <h3 id="profile-user-role" style="color:{{ user.profile_text_colour }};">{{ user.role.name.capitalize() }}</h3>
       </div>
       <div id="profile-platforms-group">
         <!-- User Platforms -->
@@ -75,16 +75,16 @@
   <!-- Profile content container -->
   <div id="profile-content-container">
     <div class="profile-tab-bar">
-      <button class="profile-tab-link" data-tab-content-id="bio-tab" data-tab-title="bio">Bio</button>
-      <button class="profile-tab-link" data-tab-content-id="posts-tab" data-tab-title="posts">Posts</button>
+      <button class="profile-tab-link" data-tab-content-id="bio-tab" data-tab-title="bio" style="color:{{ user.profile_text_colour }};">Bio</button>
+      <button class="profile-tab-link" data-tab-content-id="posts-tab" data-tab-title="posts" style="color:{{ user.profile_text_colour }};">Posts</button>
       {% if not current_user.is_anonymous %}
         {% if current_user.id == user.id %}
-          <button class="profile-tab-link" data-tab-content-id="settings-tab" data-tab-title="settings">Settings</button>
+          <button class="profile-tab-link" data-tab-content-id="settings-tab" data-tab-title="settings" style="color:{{ user.profile_text_colour }};">Settings</button>
         {% endif %}
       {% endif %}
       {% if not current_user.is_anonymous %}
         {% if current_user.is_admin %}
-          <button class="profile-tab-link" data-tab-content-id="admin-tab" data-tab-title="admin">Admin</button>
+          <button class="profile-tab-link" data-tab-content-id="admin-tab" data-tab-title="admin" style="color:{{ user.profile_text_colour }};">Admin</button>
         {% endif %}
       {% endif %}
     </div>

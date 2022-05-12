@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-01 22:17:07
+# @Last Modified time: 2022-05-12 08:58:51
 
 from __future__ import annotations
 
@@ -14,19 +14,20 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import regex as re
 from flask_login import UserMixin
-from Onani.models.post.comment import PostComment
+from Onani.controllers.utils import colour_contrast
 from passlib.hash import argon2
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType
 
-if TYPE_CHECKING:
-    from Onani.models.post._post import Post
-
 from . import Ban, db
 from .permissions import UserPermissions
 from .roles import UserRoles
 from .settings import UserSettings
+
+if TYPE_CHECKING:
+    from Onani.models.post._post import Post
+
 
 tag_blacklist = db.Table(
     "tag_blacklist",
@@ -316,6 +317,10 @@ class User(UserMixin, db.Model):
     @property
     def profile_colour(self) -> str:
         return self.settings.profile_colour or "#4a4a4a"
+
+    @property
+    def profile_text_colour(self) -> str:
+        return colour_contrast(self.profile_colour)
 
     def __repr__(self):
         return f"<User '{self.username}'>"
