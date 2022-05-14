@@ -1,7 +1,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 15:19:02
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-11 14:00:47
+# @Last Modified time: 2022-05-14 05:46:15
 version: '3.8'
 
 services:
@@ -11,7 +11,7 @@ services:
       dockerfile: dockerfile.dev
     deploy:
       restart_policy:
-        condition: always
+        condition: unless-stopped
     ports:
       - 5000:5000
     environment:
@@ -40,7 +40,7 @@ services:
       dockerfile: ./nginx/dockerfile
     deploy:
       restart_policy:
-        condition: always
+        condition: unless-stopped
     ports:
       - 8080:80
     depends_on:
@@ -55,7 +55,7 @@ services:
     image: postgres:14-alpine
     deploy:
       restart_policy:
-        condition: always
+        condition: unless-stopped
     ports:
       - 5432:5432
     volumes:
@@ -75,7 +75,7 @@ services:
     image: redis:7.0.0-alpine
     deploy:
       restart_policy:
-        condition: always
+        condition: unless-stopped
     ports:
       - 6379:6379
     healthcheck:
@@ -90,7 +90,7 @@ services:
       dockerfile: ./celery/dockerfile.dev
     deploy:
       restart_policy:
-        condition: always
+        condition: unless-stopped
     environment:
       FLASK_APP: run
       FLASK_ENV: development

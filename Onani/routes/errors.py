@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 03:10:42
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-11 14:45:00
+# @Last Modified time: 2022-05-14 09:07:12
 import traceback
 
 from flask import current_app, flash, redirect, request, render_template, url_for
@@ -10,7 +10,6 @@ from Onani.controllers.database.errors import log_error
 from werkzeug.exceptions import HTTPException
 
 from . import main
-from .api import make_api_response
 
 
 @main.app_errorhandler(Exception)
@@ -23,11 +22,11 @@ def error_handler(e):
     code = e.code if isinstance(e, HTTPException) else 500
 
     # Return api response if in an api view
-    if request.path.startswith("/api/") or request.path.startswith("/admin/api/"):
-        if code == 500:
-            # we log the error and get the error id
-            log_error(e)
-        return make_api_response(error=str(e), code=code)
+    # if request.path.startswith("/api/") or request.path.startswith("/admin/api/"):
+    #     if code == 500:
+    #         # we log the error and get the error id
+    #         log_error(e)
+    #     return make_api_response(error=str(e), code=code)
 
     # Flash a login message if a 401 code
     if isinstance(e, HTTPException) and e.code == 401:
