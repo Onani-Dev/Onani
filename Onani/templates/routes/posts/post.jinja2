@@ -90,7 +90,7 @@
     </div>
   </div>
   <div class="comments-box">
-    <h1>Comments</h1>
+    <h1 id="comments-header">Comments</h1>
     {% if not current_user.is_anonymous %}
       <div class="post-comment-input-container">
         <textarea id="post-comment-input" placeholder="Type your comment here..."></textarea>
@@ -99,6 +99,11 @@
     {% endif %}
     <div id="comment-container">
       <h3>Loading Comments...</h3>
+    </div>
+    <div class="page-navigation">
+      <a href="javascript:void(0)" class="fa-solid fa-chevron-left" id="comments-control-left" style="visibility:hidden;"></a>
+      <span style="width:2em;height:1em;"></span>
+      <a href="javascript:void(0)" class="fa-solid fa-chevron-right" id="comments-control-right" style="visibility:hidden;"></a>
     </div>
   </div>
 </div>

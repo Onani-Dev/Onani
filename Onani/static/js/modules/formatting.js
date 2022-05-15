@@ -2,11 +2,8 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:27:55
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-28 12:35:54
+ * @Last Modified time: 2022-05-15 04:19:11
  */
-// import { DateTime } from "./external/luxon.min.js";
-// import { Converter } from "./external/showdown.min.js";
-// import { parse as twemojiParse } from "./external/twemoji.min.js";
 
 /**
  * Element Formatter for formatting html elements with classes.

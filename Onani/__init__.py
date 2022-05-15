@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-14 09:05:24
+# @Last Modified time: 2022-05-15 08:23:47
 
 import datetime
 import html
@@ -12,6 +12,7 @@ import emoji
 import humanize
 from flask import Flask
 from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
@@ -23,7 +24,13 @@ from .flask_celery import make_celery
 
 csrf = CSRFProtect()
 db = SQLAlchemy()
-limiter = Limiter(key_func=lambda: current_user.login_id)
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[
+        "100 per minute",
+    ],
+)
+
 login_manager = LoginManager()
 ma = Marshmallow()
 migrate = Migrate()
@@ -32,7 +39,7 @@ migrate = Migrate()
 def init_app():
     app = Flask(__name__, static_url_path="/static/", static_folder="/static")
 
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2)
 
     app.config.from_pyfile("./config.py")
 

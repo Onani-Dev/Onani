@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-11 14:47:50
+# @Last Modified time: 2022-05-15 08:46:06
 import html
 from datetime import datetime, timedelta, timezone
 
@@ -12,10 +12,11 @@ from Onani.controllers import user_login
 from Onani.forms import LoginForm, RegistrationForm
 from Onani.models import User
 
-from . import db, main
+from . import db, main, limiter
 
 
 @main.route("/login/", methods=["GET", "POST"])
+@limiter.limit("10/minute", methods=["POST"])
 def login():
     # We don't need to login again!
     if current_user.is_authenticated:
@@ -42,13 +43,14 @@ def login():
 
 
 @main.route("/register/", methods=["GET", "POST"])
+@limiter.limit("1/hour", methods=["POST"])
 def register():
     # The registration form object
     form = RegistrationForm()
 
     # Logged in users don't need to register again.
     if current_user.is_authenticated:
-        return redirect(url_for("main.users", user_id=current_user.id))
+        return redirect(url_for("main.get_users", user_id=current_user.id))
 
     if form.validate_on_submit():
         user = User()

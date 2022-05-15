@@ -9,4 +9,12 @@ COPY ./nginx/nginx.conf /etc/nginx/conf.d
 
 RUN rm /etc/nginx/nginx.conf
 COPY ./nginx/nginx_sys.conf /etc/nginx/nginx.conf
-# RUN echo "load_module /etc/nginx/modules/ngx_http_image_filter_module.so;" >> /etc/nginx/nginx.conf
+
+# COPY ./nginx/proxy_params /etc/nginx/proxy_params
+
+
+# Cloudflare specific
+COPY ./nginx/cloudflare-sync-ips.sh /cloudflare-sync-ips.sh
+RUN chmod 755 /cloudflare-sync-ips.sh
+RUN /cloudflare-sync-ips.sh
+

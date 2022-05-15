@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 15:17:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-24 19:06:34
+ * @Last Modified time: 2022-05-15 05:39:12
  */
 // import { parse as twemojiParse } from "./external/twemoji.min.js";
 // import { DateTime } from "./external/luxon.min.js";
@@ -118,7 +118,7 @@ class TagsBoxUpdater {
     // let tagContainer = document.getElementById("tag-container");
     let tagElements = [];
 
-    let apiURL = new URL(`${location.origin}/api/tags`);
+    let apiURL = new URL(`${location.origin}/api/v1/tags`);
     apiURL.searchParams.append("sort", "post_count");
     apiURL.searchParams.append("order", "desc");
 
