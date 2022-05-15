@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-01 02:10:13
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-14 12:18:02
+# @Last Modified time: 2022-05-15 15:57:12
 from flask import current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
@@ -66,6 +66,14 @@ class Comments(Resource):
             "page", location="args", type=int, required=False, nullable=False
         )
 
+        parser.add_argument(
+            "per_page",
+            location="args",
+            type=int,
+            required=False,
+            default=current_app.config["API_PER_PAGE_COMMENTS"],
+        )
+
         # Parse request args
         args = parser.parse_args()
 
@@ -73,7 +81,7 @@ class Comments(Resource):
         post: Post = Post.query.filter_by(id=args["post_id"]).first_or_404()
 
         comments = post.comments.order_by(PostComment.id.desc()).paginate(
-            per_page=current_app.config["API_PER_PAGE_COMMENTS"],
+            per_page=args["per_page"],
             page=args["page"],
             error_out=False,
         )

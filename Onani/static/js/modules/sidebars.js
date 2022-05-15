@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 15:17:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-15 05:39:12
+ * @Last Modified time: 2022-05-15 15:58:51
  */
 // import { parse as twemojiParse } from "./external/twemoji.min.js";
 // import { DateTime } from "./external/luxon.min.js";
@@ -31,7 +31,7 @@ class NewsBoxUpdater {
 
     let newsContainer = document.getElementById("news-container");
     // Fetch new news from the api
-    fetch("/api/news", { method: "GET" }).then((response) => {
+    fetch("/api/v1/news", { method: "GET" }).then((response) => {
       response.json().then((json) => {
         // Clear news box and replace with new children
         newsContainer.replaceChildren();

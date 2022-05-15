@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-05-14 07:44:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-15 05:38:33
+# @Last Modified time: 2022-05-15 15:54:41
 from flask import Blueprint
 from flask_restful import Api
 
@@ -14,4 +14,5 @@ api = Api(api_v1, decorators=[csrf.exempt])
 
 from .comments import *
 from .index import *
+from .news import *
 from .tags import *
