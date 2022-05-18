@@ -2,14 +2,15 @@
 # @Author: kapsikkum
 # @Date:   2022-05-01 23:57:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 01:08:29
-from typing import Dict, List, NamedTuple, Tuple, Union
+# @Last Modified time: 2022-05-18 08:42:34
+from typing import TYPE_CHECKING, Dict, List, NamedTuple, Tuple, Union
 
 import requests
 from bs4 import BeautifulSoup
-from Onani.models import PostRating
 
 from . import BaseImporter, ImportedPost
+
+from Onani.models import PostRating
 
 
 class DeviantArtImporter(BaseImporter, URLs=["deviantart.com", "www.deviantart.com"]):
@@ -20,12 +21,13 @@ class DeviantArtImporter(BaseImporter, URLs=["deviantart.com", "www.deviantart.c
     BEARER_HEADERS = {
         "Host": "www.deviantart.com",
         "Da-Session-Id": "5fed3074052019bee084e20e75d8f8d0",
-        "Da-Minor-Version": "20210526",  # 😭😭😭😭
+        "Da-Minor-Version": "20210526",  # 😭😭😭😭 - Dirt is a PDF File
         "User-Agent": "DeviantFart-Android/6.9",
         "Content-Type": "application/x-www-form-urlencoded",
     }
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__()
         self.session = requests.session()
         self._access_token = None
 
@@ -119,7 +121,7 @@ class DeviantArtImporter(BaseImporter, URLs=["deviantart.com", "www.deviantart.c
             [t["tag_name"] for t in data["tags"]],
         )
 
-    def get_post(self, post_url: str) -> NamedTuple:
+    def get_post(self, url: str) -> NamedTuple:
         """Get the post from a DA URL
 
         Args:
@@ -128,7 +130,7 @@ class DeviantArtImporter(BaseImporter, URLs=["deviantart.com", "www.deviantart.c
         Returns:
             NamedTuple: Lazy mf.
         """
-        post_uuid = self._get_uuid(post_url)
+        post_uuid = self._get_uuid(url)
         params_deviation = {
             "access_token": self.access_token,
             "expand": "user.watch%2Cdeviation.fulltext",
@@ -145,7 +147,7 @@ class DeviantArtImporter(BaseImporter, URLs=["deviantart.com", "www.deviantart.c
         description, user, tags = self._get_meta(post_uuid)
         return ImportedPost(
             tags=tags,
-            sources=[post_url],
+            sources=[url],
             file_urls=[image],
             description=description,
             rating=self._determine_rating(data["is_mature"]),

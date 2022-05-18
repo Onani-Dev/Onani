@@ -2,16 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2022-04-16 21:12:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-11 14:42:29
+# @Last Modified time: 2022-05-18 01:59:28
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING
 
 import humanize
 from flask import flash, redirect, url_for
 from flask_login import current_user, login_user
-from Onani.models import User
+
+if TYPE_CHECKING:
+    from Onani.models import User
 
 
-def user_login(user: User, password: str):
+def user_login(user: "User", password: str):
     # Check if password is correct
     if user.check_password(password):
         # Authentication passed

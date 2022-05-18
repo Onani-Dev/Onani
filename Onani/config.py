@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-15 15:29:55
+# @Last Modified time: 2022-05-18 02:31:46
 import os
 
 # Flask Config
@@ -46,9 +46,9 @@ API_AUTOCOMPLETE_LIMIT = 10
 PER_PAGE_ERRORS = 30
 
 # Celery
-CELERY_RESULT_BACKEND = "redis://redis:6379/"
-CELERY_BROKER_URL = "redis://redis:6379/"
+CELERY_RESULT_BACKEND = "redis://redis:6379/1"
+CELERY_BROKER_URL = "redis://redis:6379/1"
 
 # Flask Limiter
 RATELIMIT_ENABLED = True
-RATELIMIT_STORAGE_URI = "redis://redis:6379/"
+RATELIMIT_STORAGE_URI = "redis://redis:6379/0"

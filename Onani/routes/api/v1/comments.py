@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-01 02:10:13
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-15 15:57:12
+# @Last Modified time: 2022-05-18 14:21:51
 from flask import current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
@@ -10,7 +10,7 @@ from Onani.controllers import create_comment, permissions_required
 from Onani.models import Post, PostComment, PostCommentSchema
 from Onani.models.user.permissions import UserPermissions
 
-from . import api
+from . import api, limiter
 
 
 def min_max_length(min_length, max_length):
@@ -26,7 +26,7 @@ def min_max_length(min_length, max_length):
 
 class Comments(Resource):
 
-    # decorators = [login_required]
+    decorators = [limiter.limit("5/minute", methods=["POST"])]
 
     @login_required
     @permissions_required(UserPermissions.CREATE_COMMENTS)
@@ -49,6 +49,7 @@ class Comments(Resource):
 
         # Look for post in db, if not found raise 404
         post: Post = Post.query.filter_by(id=args["post_id"]).first_or_404()
+
         # Create the comment
         comment: PostComment = create_comment(current_user, post, args["content"])
 

@@ -2,10 +2,10 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:33:26
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 00:29:09
+# @Last Modified time: 2022-05-18 08:36:05
 
 from dataclasses import dataclass
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from Onani.models import PostRating
 

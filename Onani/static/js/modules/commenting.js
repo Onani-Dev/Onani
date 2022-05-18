@@ -2,15 +2,18 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-15 05:32:46
+ * @Last Modified time: 2022-05-18 14:09:24
  */
 
-// import { ajax } from "jquery";
+import { Alerter } from "./index.min.js";
 // import { DateTime } from "./external/luxon.min.js";
 // import { parse as twemojiParse } from "./external/twemoji.min.js";
 
 class PostCommenter {
   constructor() {
+    // Alerter
+    this.alerter = new Alerter();
+
     // Values
     this.next = null;
     this.prev = null;
@@ -203,8 +206,12 @@ class PostCommenter {
         }),
       };
       this.commentTextInput.value = "";
-      $.ajax(settings).done(() => {
-        this.loadComments();
+      $.ajax(settings).always((response) => {
+        if (response.status === 429) {
+          this.alerter.error("You're commenting too fast! Slow down.", true);
+        } else {
+          this.loadComments();
+        }
       });
     }
   }

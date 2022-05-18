@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-15 08:23:47
+# @Last Modified time: 2022-05-18 08:16:30
 
 import datetime
 import html
@@ -11,6 +11,7 @@ import time
 import emoji
 import humanize
 from flask import Flask
+from flask_celeryext import FlaskCeleryExt
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, current_user
@@ -20,20 +21,19 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .flask_celery import make_celery
-
 csrf = CSRFProtect()
 db = SQLAlchemy()
+ext = FlaskCeleryExt()
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[
         "100 per minute",
     ],
 )
-
 login_manager = LoginManager()
 ma = Marshmallow()
 migrate = Migrate()
+celery = ext.celery
 
 
 def init_app():
@@ -67,6 +67,7 @@ def init_app():
 
     csrf.init_app(app)  # CSRF Protection init
     db.init_app(app)  # SQLAlchemy init
+    ext.init_app(app)  # Celery init
     limiter.init_app(app)  # Flask limiter init
     login_manager.init_app(app)  # login manager init
     ma.init_app(app)  # Marshmallow init

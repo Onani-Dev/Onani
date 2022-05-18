@@ -2,15 +2,14 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:16:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 02:08:05
+# @Last Modified time: 2022-05-18 08:38:37
 
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import parse_qs, urlparse
 
 import requests
-
-from Onani.models.post.rating import PostRating
+from Onani.models import PostRating
 
 from . import BaseImporter, ImportedPost
 
