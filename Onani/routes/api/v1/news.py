@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-05-15 15:04:53
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-15 15:52:31
+# @Last Modified time: 2022-05-24 08:31:49
 from flask import current_app
 from flask_restful import Resource, reqparse
 from Onani.models import NewsPost, NewsPostSchema
@@ -26,7 +26,9 @@ class News(Resource):
             default=current_app.config["API_PER_PAGE_NEWS"],
         )
 
-        parser.add_argument("id", location="args", type=int, default=None)
+        parser.add_argument(
+            "id", location="args", type=int, default=None, required=False
+        )
 
         # Parse request args
         args = parser.parse_args()

@@ -37,7 +37,7 @@
     <div id="post-info-header">
 
       <div id="poster-container" style="background-color:{{ post.uploader.profile_colour }}">
-        <img src="{{ post.uploader.get_avatar(size=30) }}" alt="{{ post.uploader.username }}" title="{{ post.uploader.username }}" onerror="this.src='/static/image/missing_file.png'">
+        <img src="{{ post.uploader.get_avatar(size=30) }}" alt="{{ post.uploader.username }}" title="{{ post.uploader.username }}">
         <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
       </div>
 

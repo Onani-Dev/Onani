@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-18 02:31:46
+# @Last Modified time: 2022-05-24 08:29:17
 import os
 
 # Flask Config
@@ -40,6 +40,7 @@ PER_PAGE_TAGS = 30
 API_PER_PAGE_COMMENTS = 30
 API_PER_PAGE_TAGS = 30
 API_PER_PAGE_NEWS = 30
+API_PER_PAGE_POSTS = 30
 API_AUTOCOMPLETE_LIMIT = 10
 
 # ADMIN ONLY SETTINGS

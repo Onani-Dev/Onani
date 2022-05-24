@@ -94,7 +94,7 @@
       <!-- User customized card -->
       <div class="user-profile-card">
         <div class="user-container" style="background-color:{{ current_user.profile_colour }};">
-          <img id="user-pfp" src="{{ current_user.get_avatar(size=40) }}" alt="{{ current_user.username }}" title="Wow look at you :)" onerror="this.src='/static/image/missing_file.png'">
+          <img id="user-pfp" src="{{ current_user.get_avatar(size=40) }}" alt="{{ current_user.username }}" title="Wow look at you :)">
           <div class="user-profile-link" onclick="location.href='/users/{{ current_user.id }}'" title="View your profile">
             <h5 style="color:{{ current_user.profile_text_colour }};">{{ current_user.username }}</h5>
             <h6 style="color:{{ current_user.profile_text_colour }};">{{ current_user.role.name.capitalize() }}</h6>
@@ -130,7 +130,7 @@
       <!-- User customized card -->
       <div class="user-profile-card sidenav-menu">
         <div class="user-container sidenav-menu" style="background-color:{{ current_user.profile_colour }};">
-          <img id="user-pfp" src="{{ current_user.get_avatar(size=40) }}" alt="{{ current_user.username }}" title="Wow look at you :)" onerror="this.src='/static/image/missing_file.png'">
+          <img id="user-pfp" src="{{ current_user.get_avatar(size=40) }}" alt="{{ current_user.username }}" title="Wow look at you :)">
           <div class="user-profile-link" onclick="location.href='/users/{{ current_user.id }}'" title="View your profile">
             <h5>{{ current_user.username }}</h5>
             <h6>{{ current_user.role.name.capitalize() }}</h6>

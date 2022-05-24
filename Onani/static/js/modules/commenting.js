@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-04 01:58:23
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-18 14:09:24
+ * @Last Modified time: 2022-05-24 08:42:19
  */
 
 import { Alerter } from "./index.min.js";
@@ -88,13 +88,23 @@ class PostCommenter {
     // Add the properties to the profile picture
     userProfilePicture.src = comment.author.avatar_thumbnail;
 
+    // Replace profile picture on load error
+    userProfilePicture.onerror = function () {
+      this.src = "/static/image/missing_file.png";
+    };
+
+    // Open comment author's profile
     userProfilePicture.onclick = () => {
       location.href = `/users/${comment.author.id}`;
     };
 
+    // text for user to view profile
+    userProfilePicture.title = `View ${comment.author.username}'s Profile`;
+
     // Add the link to the user's profile
     userName.href = `/users/${comment.author.id}`;
     userName.innerText = comment.author.username;
+    userName.title = `View ${comment.author.username}'s Profile`;
 
     // add the comment content
     commentContent.innerHTML = comment.content;
