@@ -20,7 +20,7 @@ from . import db, main, limiter
 def login():
     # We don't need to login again!
     if current_user.is_authenticated:
-        return redirect(url_for("main.get_users", user_id=current_user.id))
+        return redirect(url_for("main.get_user", user_id=current_user.id))
 
     # Create the login form
     form = LoginForm(request.form)
@@ -50,7 +50,7 @@ def register():
 
     # Logged in users don't need to register again.
     if current_user.is_authenticated:
-        return redirect(url_for("main.get_users", user_id=current_user.id))
+        return redirect(url_for("main.get_user", user_id=current_user.id))
 
     if form.validate_on_submit():
         user = User()

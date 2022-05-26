@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-24 01:29:16
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-15 04:10:15
+ * @Last Modified time: 2022-05-26 15:26:29
  */
 
 class PostVoting {
@@ -21,6 +21,21 @@ class PostVoting {
     };
   }
 
+  sendVote(type) {
+    let settings = {
+      url: "/api/v1/posts/vote",
+      method: "POST",
+      data: JSON.stringify({ post_id: this.postID, type: type }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    $.ajax(settings).done((response) => {
+      this.updateButtons(response);
+    });
+  }
+
   addUpvote() {
     if (this.upvoteButton.classList.contains("disabled")) {
       return;
@@ -28,23 +43,7 @@ class PostVoting {
     this.upvoteButton.classList.add("disabled");
     this.downvoteButton.classList.add("disabled");
 
-    let newHeaders = new Headers();
-    newHeaders.append("Content-Type", "application/json");
-
-    let requestOptions = {
-      method: "POST",
-      headers: newHeaders,
-      body: JSON.stringify({
-        post_id: this.postID,
-      }),
-    };
-
-    fetch("/api/posts/upvote", requestOptions)
-      .then((response) => response.json())
-      .then((data) => {
-        this.updateButtons(data);
-      })
-      .catch((error) => console.error(error));
+    this.sendVote("upvote");
   }
 
   addDownvote() {
@@ -54,23 +53,7 @@ class PostVoting {
     this.upvoteButton.classList.add("disabled");
     this.downvoteButton.classList.add("disabled");
 
-    let newHeaders = new Headers();
-    newHeaders.append("Content-Type", "application/json");
-
-    let requestOptions = {
-      method: "POST",
-      headers: newHeaders,
-      body: JSON.stringify({
-        post_id: this.postID,
-      }),
-    };
-
-    fetch("/api/posts/downvote", requestOptions)
-      .then((response) => response.json())
-      .then((data) => {
-        this.updateButtons(data);
-      })
-      .catch((error) => console.error(error));
+    this.sendVote("downvote");
   }
 
   updateButtons(apiData) {

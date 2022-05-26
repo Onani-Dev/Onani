@@ -2,12 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-05 02:57:45
+# @Last Modified time: 2022-05-26 15:54:47
 
 import html
 
 from flask import abort, current_app, render_template, request
-from flask_login import current_user
+from flask_login import current_user, login_required
 from Onani.controllers.utils import get_page
 from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
 from Onani.models import Post, User
@@ -16,20 +16,21 @@ from . import main
 
 
 @main.route("/users/")
+@login_required
+def get_users():
+    page = get_page()
+    users = User.query.order_by(User.post_count.desc()).paginate(
+        per_page=current_app.config["PER_PAGE_USERS"], page=page, error_out=False
+    )
+
+    return render_template(
+        "/routes/users/index.jinja2",
+        users=users,
+    )
+
+
 @main.route("/users/<user_id>")
-# @login_required
-def get_users(user_id=None):
-    if not user_id:
-        page = get_page()
-        users = User.query.order_by(User.post_count.desc()).paginate(
-            per_page=current_app.config["PER_PAGE_USERS"], page=page, error_out=False
-        )
-
-        return render_template(
-            "/routes/users/index.jinja2",
-            users=users,
-        )
-
+def get_user(user_id=None):
     # Check if it is a valid number
     if not user_id.isdigit():
         # abort, it's not a number

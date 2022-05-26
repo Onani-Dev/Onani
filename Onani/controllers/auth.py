@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-16 21:12:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-18 01:59:28
+# @Last Modified time: 2022-05-26 15:54:59
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
@@ -39,7 +39,7 @@ def user_login(user: "User", password: str):
                 flash("User is deleted.", "error")
                 return redirect(url_for("main.login"))
 
-        return redirect(url_for("main.get_users", user_id=current_user.id))
+        return redirect(url_for("main.get_user", user_id=current_user.id))
 
     # Password was wrong, show message
     flash("Invalid Login.", "error")
