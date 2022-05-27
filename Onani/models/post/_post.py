@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 02:11:02
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-05-27 23:12:42
 
 from __future__ import annotations
 
@@ -198,6 +198,11 @@ class Post(db.Model):
             title = f"#{self.id}"
 
         return title
+
+    @property
+    def tag_string(self) -> str:
+        """A string with all the post's tag"""
+        return " ".join(t.name for t in self.tags)
 
     def first_file_thumbnail(self, size: int = 150) -> str:
         if len(self.files) == 0:
