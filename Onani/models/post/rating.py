@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-21 23:07:34
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:46:56
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-05-27 22:24:13
 from enum import Enum, auto
 
 
@@ -11,9 +11,10 @@ class PostRating(Enum):
     Ratings for Post objects
     """
 
-    QUESTIONABLE = auto()
-    SAFE = auto()
-    EXPLICIT = auto()
+    # TODO: CHANGE THIS TO CHARACTERS!!!
+    SAFE = 0
+    QUESTIONABLE = 1
+    EXPLICIT = 2
 
     @classmethod
     def get_all(cls):

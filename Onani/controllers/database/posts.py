@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-25 00:04:39
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-05-27 22:49:58
 
-from typing import List
+from typing import Iterable, List, Set
 
 from emoji import emojize
 from flask import request
@@ -59,12 +59,12 @@ def format_tag(tag: str) -> str:
     return tag
 
 
-def parse_tags(post: Post, tags: List[str]) -> List[Tag]:
-    """Parses a list of tags, and returns the list of tags to actually add to the post
+def parse_tags(post: Post, tags: Iterable[str]) -> List[Tag]:
+    """Parses a list of tags for meta tags, and returns the list of tags to actually add to the post
 
     Args:
         post (Post): The post that the tags will be added to (used by meta tags)
-        tags (List[str]): a list of the tags to parse
+        tags (Iterable[str]): a list of the tags to parse
 
     Returns:
         List[Tag]: The tags to add to the post

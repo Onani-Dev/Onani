@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-24 08:29:17
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-05-27 18:17:02
 import os
 
 # Flask Config
@@ -53,3 +53,6 @@ CELERY_BROKER_URL = "redis://redis:6379/1"
 # Flask Limiter
 RATELIMIT_ENABLED = True
 RATELIMIT_STORAGE_URI = "redis://redis:6379/0"
+
+# Flask Restful
+BUNDLE_ERRORS = True
