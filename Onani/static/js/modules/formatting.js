@@ -1,9 +1,11 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:27:55
- * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-15 04:19:11
+ * @Last Modified by:   dirt3009
+ * @Last Modified time: 2022-05-27 20:29:43
  */
+
+let mdImgRegex = /\!\[([^\]]+)\]\(([^\)]+)\)/g
 
 /**
  * Element Formatter for formatting html elements with classes.
@@ -63,7 +65,8 @@ class ElementFormatter {
     for (let element of document.getElementsByClassName("markdown-format")) {
       let converter = new showdown.Converter();
       try {
-        element.innerHTML = converter.makeHtml(element.innerHTML);
+        // The below doesn't need to be a oneliner but it is anyway.
+        element.innerHTML = DOMPurify.sanitize(converter.makeHtml(element.innerHTML.replace(mdImgRegex, (m1, m2, m3) => `![${m2}](https://external-content.duckduckgo.com/iu/?u=${m3})`)), { USE_PROFILES: { html: true } });
       } catch (e) {
         console.error(e);
       }

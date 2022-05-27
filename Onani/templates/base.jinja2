@@ -1,175 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <title>{{ title }}Onani</title>
-  <!-- META -->
-  <meta charset="utf-8">
-  <link rel="manifest" href="/manifest.json" />
-  <script type="module">
+    <head>
+        <title>{{ title }}Onani</title>
+        <!-- META -->
+        <meta charset="utf-8">
+        <link rel="manifest" href="/manifest.json" />
+        <script type="module">
    import '/static/js/pwaupdate.js';
    const el = document.createElement('pwa-update');
    document.body.appendChild(el);
-  </script>
-  <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
-  <meta name="apple-mobile-web-app-title" content="Onani">
-  <meta name="application-name" content="Onani">
-  <meta name="msapplication-TileColor" content="#000000">
-  <meta name="theme-color" content="#000000">
-  <meta name="description" content="{{ ogdesc }}">
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:description" content="{{ ogdesc }}" />
-  <meta name="twitter:image:src" content="{{ ogimage }}" />
-  <meta name="twitter:site" content="{{ request.base_url }}">
-  <meta name="twitter:title" content="{{ ogtitle }}" />
-  <meta property="og:description" content="{{ ogdesc }}" />
-  <meta property="og:image:alt" content="{{ ogdesc }}" />
-  <meta property="og:image" content="{{ ogimage }}" />
-  <meta property="og:title" content="{{ ogtitle }}" />
-  <meta property="og:type" content="profile" />
-  {# <meta name="trafficjunky-site-verification" content="z3onxx500" /> 
-  <meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
-  <meta name="exoclick-site-verification" content="bc71ddb7a4f0e8e0b29f4839dfdfd6c9"> #}
-  {% block meta %}
-  {% endblock %}
-
-  <!-- LINKS -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
-  <link rel="search" type="application/opensearchdescription+xml" href="/static/opensearch.xml" title="Onani">
-  <link rel="manifest" href="/static/site.webmanifest">
-
-  <!-- STYLES -->
-  <link rel="stylesheet" type="text/css" href="/static/css/onani.style.min.css">
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
-  {% block styles %}
-  {% endblock %}
-
-  <!-- SCRIPTS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js" integrity="sha512-Gs+PsXsGkmr+15rqObPJbenQ2wB3qYvTHuJO6YJzPe/dTLvhy0fmae2BcnaozxDo5iaF8emzmCZWbQ1XXiX2Ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/humanize-plus/1.8.2/humanize.min.js" integrity="sha512-i5ry9VKty7VUHowBnTcSMcorLT3BZvbIZ7Xi5AhZ/URDcV3GdijKKlyZxIZ+DzW4CUKm/HAWZ3UxLppWJ7cQFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.0.2/interact.min.js" integrity="sha512-Ipef/NhGC7SlCer4041clfWKsriVhnGMcS15cVrl9j/NFtNmqeK28tbfOFwASlSfy4j8XjcpVw4HXvTvzgA8rA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.3.1/luxon.min.js" integrity="sha512-Nw0Abk+Ywwk5FzYTxtB70/xJRiCI0S2ORbXI3VBlFpKJ44LM6cW2WxIIolyKEOxOuMI90GIfXdlZRJepu7cczA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.0.3/showdown.min.js" integrity="sha512-vx8rJNrYIZPDr290AV2tL04x0CKjLHSnTXrHMeb1kqbhfGwBnclPDOWIWxRiVS6Oe1oGzk5MzNz/eLzVku30kg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://twemoji.maxcdn.com/v/14.0.0/twemoji.min.js" integrity="sha384-L1ViA0v9uyiBlZsOGT/z9RVgs+Gku2SDCuzaAoLco0hEgfYZYiztb+pRgWYHkDwb" crossorigin="anonymous"></script>
-  <script src="https://kit.fontawesome.com/2eaffbb37a.js" crossorigin="anonymous"></script>
-  {% block top_scripts %}
-  {% endblock %}
-
-</head>
-
-<body>
-  {% include "elements/flashed_messages.jinja2" %}
-  <!-- Navbar/header -->
-  <header class="navbar">
-
-    <!-- logo -->
-    <img id="logo" src="/static/svg/onani.svg" alt="Onani" onclick="location.href='/'">
-
-    <!-- Navbar links -->
-    <div class="site-links">
-      <a href="/posts/">Posts</a>
-      <a href="/collections/">Collections</a>
-      <a href="/tags/">Tags</a>
-      <a href="/users/">Users</a>
-      <a href="/news/">News</a>
-      <a href="/upload/">Upload</a>
-      <!-- we have a load of fun :) -->
-      <a style="display:none;" href="/fun">Fun</a> 
-    </div>
-
-    <!-- Search Box -->
-    <div id="search-box">
-      <div class="search-autocomplete">
-        <input id="search-input" type="text" placeholder="Search posts..." spellcheck="false" autocapitalize="off" autocomplete="off" value="{{ search_box_value }}">
-      </div>
-      <i class="fas fa-search clickable pop-out" id="search-icon"></i>
-      {# <script src="/static/js/search.min.js"></script> #}
-    </div>
-
-    <!-- User Profile Picture -->
-    {% if current_user.is_authenticated %}
-      <!-- User customized card -->
-      <div class="user-profile-card">
-        <div class="user-container" style="background-color:{{ current_user.profile_colour }};">
-          <img id="user-pfp" src="{{ current_user.get_avatar(size=40) }}" alt="{{ current_user.username }}" title="Wow look at you :)">
-          <div class="user-profile-link" onclick="location.href='/users/{{ current_user.id }}'" title="View your profile">
-            <h5 style="color:{{ current_user.profile_text_colour }};">{{ current_user.username }}</h5>
-            <h6 style="color:{{ current_user.profile_text_colour }};">{{ current_user.role.name.capitalize() }}</h6>
-          </div>
-          <div class="logout-button" onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}" title="Logout">
-            <i class="fa-solid fa-right-from-bracket" style="color:{{ current_user.profile_text_colour }};"></i>
-          </div>
+        </script>
+        <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1"
+              name="viewport">
+        <meta name="apple-mobile-web-app-title" content="Onani">
+        <meta name="application-name" content="Onani">
+        <meta name="msapplication-TileColor" content="#000000">
+        <meta name="theme-color" content="#000000">
+        <meta name="description" content="{{ ogdesc }}">
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:description" content="{{ ogdesc }}" />
+        <meta name="twitter:image:src" content="{{ ogimage }}" />
+        <meta name="twitter:site" content="{{ request.base_url }}">
+        <meta name="twitter:title" content="{{ ogtitle }}" />
+        <meta property="og:description" content="{{ ogdesc }}" />
+        <meta property="og:image:alt" content="{{ ogdesc }}" />
+        <meta property="og:image" content="{{ ogimage }}" />
+        <meta property="og:title" content="{{ ogtitle }}" />
+        <meta property="og:type" content="profile" />
+        {#
+        <meta name="trafficjunky-site-verification" content="z3onxx500" />
+        <meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
+        <meta name="exoclick-site-verification"
+              content="bc71ddb7a4f0e8e0b29f4839dfdfd6c9">
+        #}
+        {% block meta %}{% endblock %}
+        <!-- LINKS -->
+        <link rel="apple-touch-icon"
+              sizes="180x180"
+              href="/static/apple-touch-icon.png">
+        <link rel="icon"
+              type="image/png"
+              sizes="32x32"
+              href="/static/favicon-32x32.png">
+        <link rel="icon"
+              type="image/png"
+              sizes="16x16"
+              href="/static/favicon-16x16.png">
+        <link rel="search"
+              type="application/opensearchdescription+xml"
+              href="/static/opensearch.xml"
+              title="Onani">
+        <link rel="manifest" href="/static/site.webmanifest">
+        <!-- STYLES -->
+        <link rel="stylesheet"
+              type="text/css"
+              href="/static/css/onani.style.min.css">
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+        {% block styles %}{% endblock %}
+        <!-- SCRIPTS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.8/purify.min.js" integrity="sha512-M72KfQy4kPuLYC6CeTrN0eA17U1lXEMrr5qEJC/40CLdZGC3HpwPS0esQLqBHnxty2FIcuNdP9EqwSOCLEVJXQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js" integrity="sha512-Gs+PsXsGkmr+15rqObPJbenQ2wB3qYvTHuJO6YJzPe/dTLvhy0fmae2BcnaozxDo5iaF8emzmCZWbQ1XXiX2Ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/humanize-plus/1.8.2/humanize.min.js" integrity="sha512-i5ry9VKty7VUHowBnTcSMcorLT3BZvbIZ7Xi5AhZ/URDcV3GdijKKlyZxIZ+DzW4CUKm/HAWZ3UxLppWJ7cQFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.0.2/interact.min.js" integrity="sha512-Ipef/NhGC7SlCer4041clfWKsriVhnGMcS15cVrl9j/NFtNmqeK28tbfOFwASlSfy4j8XjcpVw4HXvTvzgA8rA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.3.1/luxon.min.js" integrity="sha512-Nw0Abk+Ywwk5FzYTxtB70/xJRiCI0S2ORbXI3VBlFpKJ44LM6cW2WxIIolyKEOxOuMI90GIfXdlZRJepu7cczA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.0.3/showdown.min.js" integrity="sha512-vx8rJNrYIZPDr290AV2tL04x0CKjLHSnTXrHMeb1kqbhfGwBnclPDOWIWxRiVS6Oe1oGzk5MzNz/eLzVku30kg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://twemoji.maxcdn.com/v/14.0.0/twemoji.min.js" integrity="sha384-L1ViA0v9uyiBlZsOGT/z9RVgs+Gku2SDCuzaAoLco0hEgfYZYiztb+pRgWYHkDwb" crossorigin="anonymous"></script>
+        <script src="https://kit.fontawesome.com/2eaffbb37a.js" crossorigin="anonymous"></script>
+        {% block top_scripts %}{% endblock %}
+    </head>
+    <body>
+        {% include "elements/flashed_messages.jinja2" %}
+        <!-- Navbar/header -->
+        <header class="navbar">
+            <!-- logo -->
+            <img id="logo"
+                 src="/static/svg/onani.svg"
+                 alt="Onani"
+                 onclick="location.href='/'">
+            <!-- Navbar links -->
+            <div class="site-links">
+                <a href="/posts/">Posts</a>
+                <a href="/collections/">Collections</a>
+                <a href="/tags/">Tags</a>
+                <a href="/users/">Users</a>
+                <a href="/news/">News</a>
+                <a href="/upload/">Upload</a>
+                <!-- we have a load of fun :) -->
+                <a style="display:none;" href="/fun">Fun</a>
+            </div>
+            <!-- Search Box -->
+            <div id="search-box">
+                <div class="search-autocomplete">
+                    <input id="search-input"
+                           type="text"
+                           placeholder="Search posts..."
+                           spellcheck="false"
+                           autocapitalize="off"
+                           autocomplete="off"
+                           value="{{ search_box_value }}">
+                </div>
+                <i class="fas fa-search clickable pop-out" id="search-icon"></i>
+                {# <script src="/static/js/search.min.js"></script> #}
+            </div>
+            <!-- User Profile Picture -->
+            {% if current_user.is_authenticated %}
+                <!-- User customized card -->
+                <div class="user-profile-card">
+                    <div class="user-container"
+                         style="background-color:{{ current_user.profile_colour }};">
+                        <img id="user-pfp"
+                             src="{{ current_user.get_avatar(size=40) }}"
+                             alt="{{ current_user.username }}"
+                             title="Wow look at you :)">
+                        <div class="user-profile-link"
+                             onclick="location.href='/users/{{ current_user.id }}'"
+                             title="View your profile">
+                            <h5 style="color:{{ current_user.profile_text_colour }};">{{ current_user.username }}</h5>
+                            <h6 style="color:{{ current_user.profile_text_colour }};">{{ current_user.role.name.capitalize() }}</h6>
+                        </div>
+                        <div class="logout-button"
+                             onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}"
+                             title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"
+                               style="color:{{ current_user.profile_text_colour }};"></i>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Login/Register buttons -->
+                <div class="login-register-buttons">
+                    <a href="/register">Register</a>
+                    <a href="/login">Login</a>
+                </div>
+            {% endif %}
+            <div class="mobile-sidebar-open" id="side-navigation-open-button">
+                <i class="fa-solid fa-bars fa-2x"></i>
+            </div>
+        </header>
+        <!-- Sidenav -->
+        <div id="side-navigation" class="sidenav">
+            <a href="javascript:void(0)"
+               id="side-navigation-close-button"
+               class="close-button">&times;</a>
+            <a href="/posts/">Posts</a>
+            <a href="/collections/">Collections</a>
+            <a href="/tags/">Tags</a>
+            <a href="/users/">Users</a>
+            <a href="/news/">News</a>
+            <a href="/upload/">Upload</a>
+            {% if current_user.is_authenticated %}
+                <!-- User customized card -->
+                <div class="user-profile-card sidenav-menu">
+                    <div class="user-container sidenav-menu"
+                         style="background-color:{{ current_user.profile_colour }};">
+                        <img id="user-pfp"
+                             src="{{ current_user.get_avatar(size=40) }}"
+                             alt="{{ current_user.username }}"
+                             title="Wow look at you :)">
+                        <div class="user-profile-link"
+                             onclick="location.href='/users/{{ current_user.id }}'"
+                             title="View your profile">
+                            <h5>
+                                {{ current_user.username }}
+                            </h5>
+                            <h6>
+                                {{ current_user.role.name.capitalize() }}
+                            </h6>
+                        </div>
+                        <div class="logout-button"
+                             onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}"
+                             title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Login/Register buttons -->
+                <div class="login-register-buttons sidenav-menu">
+                    <a href="/register">Register</a>
+                    <a href="/login">Login</a>
+                </div>
+            {% endif %}
         </div>
-      </div>
-    {% else %}
-      <!-- Login/Register buttons -->
-      <div class="login-register-buttons">
-        <a href="/register">Register</a>
-        <a href="/login">Login</a>
-      </div>
-    {% endif %}
-
-    <div class="mobile-sidebar-open" id="side-navigation-open-button">
-      <i class="fa-solid fa-bars fa-2x"></i>
-    </div>
-
-  </header>
-  <!-- Sidenav -->
-  <div id="side-navigation" class="sidenav">
-    <a href="javascript:void(0)" id="side-navigation-close-button" class="close-button">&times;</a>
-    <a href="/posts/">Posts</a>
-    <a href="/collections/">Collections</a>
-    <a href="/tags/">Tags</a>
-    <a href="/users/">Users</a>
-    <a href="/news/">News</a>
-    <a href="/upload/">Upload</a>
-    {% if current_user.is_authenticated %}
-      <!-- User customized card -->
-      <div class="user-profile-card sidenav-menu">
-        <div class="user-container sidenav-menu" style="background-color:{{ current_user.profile_colour }};">
-          <img id="user-pfp" src="{{ current_user.get_avatar(size=40) }}" alt="{{ current_user.username }}" title="Wow look at you :)">
-          <div class="user-profile-link" onclick="location.href='/users/{{ current_user.id }}'" title="View your profile">
-            <h5>{{ current_user.username }}</h5>
-            <h6>{{ current_user.role.name.capitalize() }}</h6>
-          </div>
-          <div class="logout-button" onclick="if(confirm('Are you sure you want to logout?')) {location.href='/logout'}" title="Logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-          </div>
+        <!-- Page content -->
+        <div id="content" class="{{ content_class }}">
+            {% block content %}{% endblock %}
         </div>
-      </div>
-    {% else %}
-      <!-- Login/Register buttons -->
-      <div class="login-register-buttons sidenav-menu">
-        <a href="/register">Register</a>
-        <a href="/login">Login</a>
-      </div>
-    {% endif %}
-  </div>
-
-  <!-- Page content -->
-  <div id="content" class="{{ content_class }}">
-    {% block content %}
-    {% endblock %}
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <a href="/wiki/">Wiki</a>
-    <a href="/forum/">Forum</a>
-    <a href="/artists/">Artists</a>
-    <a href="/developers/">Developers</a>
-    <a href="/dmca/">DMCA</a>
-    <a href="https://discord.gg/w7NYSwwFMz">Discord</a>
-    <a href="https://github.com/Onani-Dev">GitHub</a>
-  </footer>
-
-  <!-- Bottom Scripts -->
-  <script type="module" src="/static/js/base.min.js"></script>
-  {% block bottom_scripts %}
-  {% endblock %}
-</body>
-
+        <!-- Footer -->
+        <footer>
+            <a href="/wiki/">Wiki</a>
+            <a href="/forum/">Forum</a>
+            <a href="/artists/">Artists</a>
+            <a href="/developers/">Developers</a>
+            <a href="/dmca/">DMCA</a>
+            <a href="https://discord.gg/w7NYSwwFMz">Discord</a>
+            <a href="https://github.com/Onani-Dev">GitHub</a>
+        </footer>
+        <!-- Bottom Scripts -->
+        <script type="module" src="/static/js/base.min.js"></script>
+        {% block bottom_scripts %}{% endblock %}
+    </body>
 </html>
