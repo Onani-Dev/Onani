@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-27 18:16:18
+# @Last Modified time: 2022-05-27 22:59:22
 
 import datetime
 import html
@@ -42,6 +42,9 @@ def init_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2)
 
     app.config.from_pyfile("./config.py")
+
+    # Make it so it ignores trailing slashes in URL
+    app.url_map.strict_slashes = False
 
     app.jinja_env.globals.update(
         datetime=datetime, time=time, emoji=emoji, humanize=humanize, html=html
