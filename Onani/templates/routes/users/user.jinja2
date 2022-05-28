@@ -3,252 +3,273 @@
 {% set ogdesc = "Check out {name}'s profile on Onani!".format(name=user.username) %}
 {% set ogimage = user.get_avatar() %}
 {% extends "base.jinja2" %}
-
-{% block meta %}
-<meta name="theme-color" content="{{ user.profile_colour }}">
-{% endblock %}
-
+{% block meta %}<meta name="theme-color" content="{{ user.profile_colour }}">{% endblock %}
 {% if user.ban %}
-  {% set username_class = "banned" %}
-  {% set pfp_class = "banned" %}
-  {% set bio_class = "system-text" %}
-  {% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires))  %}
-{% else %}
-  {% set username_class = "" %}
-  {% set pfp_class = "" %}
-  {% set bio_class = "system-text" %}
-  {% if user.settings.biography is not none %}
-    {% set user_bio = emoji.emojize(user.settings.biography, use_aliases=true) %}
-    {% set bio_class = "" %}
-  {% else %}
-    {% set user_bio = "User has no Bio." %}
+    {% set username_class = "banned" %}
+    {% set pfp_class = "banned" %}
     {% set bio_class = "system-text" %}
-  {% endif %}
+    {% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires))  %}
+{% else %}
+    {% set username_class = "" %}
+    {% set pfp_class = "" %}
+    {% set bio_class = "system-text" %}
+    {% if user.settings.biography is not none %}
+        {% set user_bio = emoji.emojize(user.settings.biography, use_aliases=true) %}
+        {% set bio_class = "" %}
+    {% else %}
+        {% set user_bio = "User has no Bio." %}
+        {% set bio_class = "system-text" %}
+    {% endif %}
 {% endif %}
-
 {% block content %}
-<!-- Left panel/Tags -->
-{% include "elements/tag_bar.jinja2" %}
-<!-- User profile -->
-<div id="content-container" style="background-color:{{ user.profile_colour }};">
-  <div id="profile-info-container">
-    <!-- PFP -->
-    <div id="profile-picture-container">
-      <img src="{{ user.get_avatar(size=150) }}"
-        id="profile-picture-image" class="{{ pfp_class }}" alt="{{ user.username }}" title="{{ user.username }}"></a>
-    </div>
-    <div>
-      <div id="profile-header-group">
-        <!-- Username -->
-        <h1 id="profile-username-header" class="{{ username_class }}" style="color:{{ user.profile_text_colour }};">{{ user.username }}</h1>
-        <!-- Permission value -->
-        <h3 id="profile-user-role" style="color:{{ user.profile_text_colour }};">{{ user.role.name.capitalize() }}</h3>
-      </div>
-      <div id="profile-platforms-group">
-        <!-- User Platforms -->
-        {% if user.settings.connections.get('twitter') %}
-          <a href="{{ user.settings.connections.get('twitter') }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
-        {% endif %}
-        {% if user.settings.connections.get('pixiv') %}
-          <a href="{{ user.settings.connections.get('pixiv') }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
-        {% endif %}
-        {% if user.settings.connections.get('patreon') %}
-          <a href="{{ user.settings.connections.get('patreon') }}" target="_blank"><i class="fa-brands fa-patreon fa-2x"></i></a>
-        {% endif %}
-        {% if user.settings.connections.get('deviantart') %}
-          <a href="{{ user.settings.connections.get('deviantart') }}" target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
-        {% endif %}
-        {% if user.settings.connections.get('discord') %}
-          <a onclick="copyText('{{ user.settings.connections.get('discord') }}')" class="clickable">
-            <i class="fa-brands fa-discord fa-2x" title="{{ user.settings.connections.get('discord') }}"></i>
-          </a>
-        {% endif %}
-        {% if user.settings.connections.get('paypal') %}
-          <a href="{{ user.settings.connections.get('paypal') }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
-        {% endif %}
-        {% if user.settings.connections.get('github') %}
-          <a href="{{ user.settings.connections.get('github') }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  <!-- Profile content container -->
-  <div id="profile-content-container">
-    <div class="profile-tab-bar">
-      <button class="profile-tab-link" data-tab-content-id="bio-tab" data-tab-title="bio" style="color:{{ user.profile_text_colour }};">Bio</button>
-      <button class="profile-tab-link" data-tab-content-id="posts-tab" data-tab-title="posts" style="color:{{ user.profile_text_colour }};">Posts</button>
-      {% if not current_user.is_anonymous %}
-        {% if current_user.id == user.id %}
-          <button class="profile-tab-link" data-tab-content-id="settings-tab" data-tab-title="settings" style="color:{{ user.profile_text_colour }};">Settings</button>
-        {% endif %}
-      {% endif %}
-      {% if not current_user.is_anonymous %}
-        {% if current_user.is_admin %}
-          <button class="profile-tab-link" data-tab-content-id="admin-tab" data-tab-title="admin" style="color:{{ user.profile_text_colour }};">Admin</button>
-        {% endif %}
-      {% endif %}
-    </div>
-    <div id="bio-tab" class="profile-tab-content">
-      <p id="profile-bio-textarea" class="{{ bio_class }} twemoji-format markdown-format emote-format">{{ user_bio }}</p>
-    </div>
-    <div id="posts-tab" class="profile-tab-content">
-      {% if posts.items|length <= 0 %}
-        <p id="profile-bio-textarea" class="system-text">User has no posts.</p>
-      {% else %}
-        <div class="grid">
-          {% for post in posts.items %}
-            <div class="post-thumbnail-container">
-              <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
-            </div>
-          {% endfor %}
+    <!-- Left panel/Tags -->
+    {% include "elements/tag_bar.jinja2" %}
+    <!-- User profile -->
+    <div id="content-container"
+         style="background-color:{{ user.profile_colour }};">
+        <div id="profile-info-container">
+            <!-- PFP -->
+            <div id="profile-picture-container">
+                <img src="{{ user.get_avatar(size=150) }}"
+                     id="profile-picture-image"
+                     class="{{ pfp_class }}"
+                     alt="{{ user.username }}"
+                     title="{{ user.username }}">
+            </a>
         </div>
-        {% set pagination = posts %}
-        {% set extra_params = "#posts"%}
-        {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
-        {% include "elements/pagination.jinja2" %}
-      {% endif %}
+        <div>
+            <div id="profile-header-group">
+                <!-- Username -->
+                <h1 id="profile-username-header"
+                    class="{{ username_class }}"
+                    style="color:{{ user.profile_text_colour }};">
+                    {{ user.username }}
+                </h1>
+                <!-- Permission value -->
+                <h3 id="profile-user-role" style="color:{{ user.profile_text_colour }};">{{ user.role.name.capitalize() }}</h3>
+            </div>
+            <div id="profile-platforms-group">
+                <!-- User Platforms -->
+                {% if user.settings.connections.get('twitter') %}
+                    <a href="{{ user.settings.connections.get('twitter') }}" target="_blank"><i class="fab fa-twitter fa-2x"></i></a>
+                {% endif %}
+                {% if user.settings.connections.get('pixiv') %}
+                    <a href="{{ user.settings.connections.get('pixiv') }}" target="_blank"><i class="icon-pixiv fa-2x"></i></a>
+                {% endif %}
+                {% if user.settings.connections.get('patreon') %}
+                    <a href="{{ user.settings.connections.get('patreon') }}" target="_blank"><i class="fa-brands fa-patreon fa-2x"></i></a>
+                {% endif %}
+                {% if user.settings.connections.get('deviantart') %}
+                    <a href="{{ user.settings.connections.get('deviantart') }}"
+                       target="_blank"><i class="fab fa-deviantart fa-2x"></i></a>
+                {% endif %}
+                {% if user.settings.connections.get('discord') %}
+                    <a onclick="copyText('{{ user.settings.connections.get('discord') }}')"
+                       class="clickable">
+                        <i class="fa-brands fa-discord fa-2x"
+                           title="{{ user.settings.connections.get('discord') }}"></i>
+                    </a>
+                {% endif %}
+                {% if user.settings.connections.get('paypal') %}
+                    <a href="{{ user.settings.connections.get('paypal') }}" target="_blank"><i class="fab fa-paypal fa-2x"></i></a>
+                {% endif %}
+                {% if user.settings.connections.get('github') %}
+                    <a href="{{ user.settings.connections.get('github') }}" target="_blank"><i class="fab fa-github fa-2x"></i></a>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    {% if not current_user.is_anonymous %}
-      {% if current_user.id == user.id %}
-        <div id="settings-tab" class="profile-tab-content">
-          <div class="profile-tab-bar sub">
-            <button class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
-            <button class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
-            <button class="settings-tab-link" data-tab-content-id="settings-platforms-tab">Platforms</button>
-            <!-- <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>-->
-          </div>
-          <!-- Account settings -->
-          <div id="settings-account-tab" class="settings-tab-content" style="display:block;">
-            <form id="settings-account" action="/settings/account/" method="POST">
-              {{ account_form.csrf_token }}
-              <h2>Account settings</h2>
-
-              <!-- User Info Settings -->
-              <div class="settings-input-group">
-                <div class="row">
-                  <div class="input-section">
-                    {{ account_form.username.label }}
-                    {{ account_form.username(placeholder=user.username) }}
-                  </div> 
-                  <div class="input-section">
-                    {{ account_form.email.label }}
-                    {{ account_form.email(placeholder=user.email) }}
-                  </div>  
+    <!-- Profile content container -->
+    <div id="profile-content-container">
+        <div class="profile-tab-bar">
+            <button class="profile-tab-link"
+                    data-tab-content-id="bio-tab"
+                    data-tab-title="bio"
+                    style="color:{{ user.profile_text_colour }};">
+                Bio
+            </button>
+            <button class="profile-tab-link"
+                    data-tab-content-id="posts-tab"
+                    data-tab-title="posts"
+                    style="color:{{ user.profile_text_colour }};">
+                Posts
+            </button>
+            {% if not current_user.is_anonymous %}
+                {% if current_user.id == user.id %}
+                    <button class="profile-tab-link"
+                            data-tab-content-id="settings-tab"
+                            data-tab-title="settings"
+                            style="color:{{ user.profile_text_colour }};">
+                        Settings
+                    </button>
+                {% endif %}
+            {% endif %}
+            {% if not current_user.is_anonymous %}
+                {% if current_user.is_admin %}
+                    <button class="profile-tab-link"
+                            data-tab-content-id="admin-tab"
+                            data-tab-title="admin"
+                            style="color:{{ user.profile_text_colour }};">
+                        Admin
+                    </button>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div id="bio-tab" class="profile-tab-content">
+            <p id="profile-bio-textarea"
+               class="{{ bio_class }} twemoji-format markdown-format emote-format">
+                {{ user_bio }}
+            </p>
+        </div>
+        <div id="posts-tab" class="profile-tab-content">
+            {% if posts.items|length <= 0 %}
+                <p id="profile-bio-textarea" class="system-text">
+                    User has no posts.
+                </p>
+            {% else %}
+                <div class="grid">
+                    {% for post in posts.items %}
+                        <div class="post-thumbnail-container">
+                            <a href="/posts/{{ post.id }}">
+                                <img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail">
+                            </a>
+                        </div>
+                    {% endfor %}
                 </div>
-              </div>
-
-              <!-- Password settings -->
-              <div class="settings-input-group">
-                <div class="row">
-                  <div class="input-section">
-                    {{ account_form.current_password.label }}
-                    {{ account_form.current_password() }}
-                  </div>
-                  <div class="input-section">
-                    {{ account_form.new_password.label }}
-                    {{ account_form.new_password() }}
-                  </div>
-                  <div class="input-section">
-                    {{ account_form.confirm_new_password.label }}
-                    {{ account_form.confirm_new_password() }}
-                  </div>  
-                </div>
-              </div>
-              <!-- Save Button For account -->
-              <div class="settings-input-group">
-                {{ account_form.submit() }}
-              </div>
-            </form>
-          </div>
-          
-          
-
-          <!-- Profile settings -->
-          <div id="settings-profile-tab" class="settings-tab-content">
-            <form id="settings-profile" action="/settings/profile/" method="POST">
-              {{ profile_form.csrf_token }}
-              <h2>Profile settings</h2>
-
-              <!-- Profile Picture Settings -->
-              <div class="settings-input-group">
-                <div class="row">
-                  <div class="input-section">
-                    {{ profile_form.profile_picture.label }}
-                    <input type="file" name="settings-profile-picture" id="profile-settings-profile-picture"
-                      accept="image/png, image/jpeg">
-                    {{ profile_form.profile_picture() }}
-                    <!-- Croppie container -->
-                    <div id="upload-image"></div>
-                  </div>
-                  <div class="input-section">
-                    {{ profile_form.profile_colour.label}}
-                    {{ profile_form.profile_colour(value=user.profile_colour)}}
-                  </div>  
-                </div>
-              </div>
-
-              <!-- Bio Settings -->
-              <div class="settings-input-group">
-                <div class="row">
-                  <div class="input-section">
-                    {{ profile_form.biography.label}}
-                    {{ profile_form.biography()}}
-                  </div>  
-                </div>
-              </div>
-              <!-- Save Button For profile -->
-              <div class="settings-input-group">
-                {{ profile_form.submit() }}
-              </div>
-            </form>
-          </div>
-
-          <div id="settings-platforms-tab" class="settings-tab-content">
-            <!-- Platform settings -->
-            <form id="settings-platforms" action="/settings/platforms/" method="POST">
-              {{ platform_form.csrf_token }}
-              <h2>Platform settings</h2>
-
-              <div class="settings-input-group">
-                <div class="row">
-                  <div class="input-section">
-                    {{ platform_form.twitter.label }}
-                    {{ platform_form.twitter() }}
-                  </div>
-
-                  <div class="input-section">
-                    {{ platform_form.pixiv.label }}
-                    {{ platform_form.pixiv() }}
-                  </div>
-
-                  <div class="input-section">
-                    {{ platform_form.patreon.label }}
-                    {{ platform_form.patreon() }}
-                  </div>
-
-                  <div class="input-section">
-                    {{ platform_form.deviantart.label }}
-                    {{ platform_form.deviantart() }}
-                  </div>                      
-
-                  <div class="input-section">
-                    {{ platform_form.discord.label }}
-                    {{ platform_form.discord() }}
-                  </div>                    
-                    
-                  <div class="input-section">
-                    {{ platform_form.github.label }}
-                    {{ platform_form.github() }}
-                  </div>  
-                </div>
-              </div>
-              <!-- Save Button For Platforms -->
-              <div class="settings-input-group">
-                {{ platform_form.submit() }}
-              </div>
-            </form>
-          </div>
-          <!--
+                {% set pagination = posts %}
+                {% set extra_params = "#posts" %}
+                {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
+                {% include "elements/pagination.jinja2" %}
+            {% endif %}
+        </div>
+        {% if not current_user.is_anonymous %}
+            {% if current_user.id == user.id %}
+                <div id="settings-tab" class="profile-tab-content">
+                    <div class="profile-tab-bar sub">
+                        <button class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
+                        <button class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
+                        <button class="settings-tab-link"
+                                data-tab-content-id="settings-platforms-tab">Platforms</button>
+                        <!-- <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>-->
+                    </div>
+                    <!-- Account settings -->
+                    <div id="settings-account-tab"
+                         class="settings-tab-content"
+                         style="display:block;">
+                        <form id="settings-account" action="/settings/account/" method="POST">
+                            {{ account_form.csrf_token }}
+                            <h2>Account settings</h2>
+                            <!-- User Info Settings -->
+                            <div class="settings-input-group">
+                                <div class="row">
+                                    <div class="input-section">
+                                        {{ account_form.username.label }}
+                                        {{ account_form.username(placeholder=user.username) }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ account_form.email.label }}
+                                        {{ account_form.email(placeholder=user.email) }}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Password settings -->
+                            <div class="settings-input-group">
+                                <div class="row">
+                                    <div class="input-section">
+                                        {{ account_form.current_password.label }}
+                                        {{ account_form.current_password() }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ account_form.new_password.label }}
+                                        {{ account_form.new_password() }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ account_form.confirm_new_password.label }}
+                                        {{ account_form.confirm_new_password() }}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Save Button For account -->
+                            <div class="settings-input-group">{{ account_form.submit() }}</div>
+                        </form>
+                    </div>
+                    <!-- Profile settings -->
+                    <div id="settings-profile-tab" class="settings-tab-content">
+                        <form id="settings-profile" action="/settings/profile/" method="POST">
+                            {{ profile_form.csrf_token }}
+                            <h2>Profile settings</h2>
+                            <!-- Profile Picture Settings -->
+                            <div class="settings-input-group">
+                                <div class="row">
+                                    <div class="input-section">
+                                        {{ profile_form.profile_picture.label }}
+                                        <input type="file"
+                                               name="settings-profile-picture"
+                                               id="profile-settings-profile-picture"
+                                               accept="image/png, image/jpeg">
+                                        {{ profile_form.profile_picture() }}
+                                        <!-- Croppie container -->
+                                        <div id="upload-image"></div>
+                                    </div>
+                                    <div class="input-section">
+                                        {{ profile_form.profile_colour.label }}
+                                        {{ profile_form.profile_colour(value=user.profile_colour)}}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Bio Settings -->
+                            <div class="settings-input-group">
+                                <div class="row">
+                                    <div class="input-section">
+                                        {{ profile_form.biography.label }}
+                                        {{ profile_form.biography()}}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Load SimpleMDE -->
+                            <script>var simplemde = new SimpleMDE({ element: document.getElementById("profile-settings-bio"), spellChecker: false, status: false});</script>
+                            <!-- Save Button For profile -->
+                            <div class="settings-input-group">{{ profile_form.submit() }}</div>
+                        </form>
+                    </div>
+                    <div id="settings-platforms-tab" class="settings-tab-content">
+                        <!-- Platform settings -->
+                        <form id="settings-platforms" action="/settings/platforms/" method="POST">
+                            {{ platform_form.csrf_token }}
+                            <h2>Platform settings</h2>
+                            <div class="settings-input-group">
+                                <div class="row">
+                                    <div class="input-section">
+                                        {{ platform_form.twitter.label }}
+                                        {{ platform_form.twitter() }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ platform_form.pixiv.label }}
+                                        {{ platform_form.pixiv() }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ platform_form.patreon.label }}
+                                        {{ platform_form.patreon() }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ platform_form.deviantart.label }}
+                                        {{ platform_form.deviantart() }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ platform_form.discord.label }}
+                                        {{ platform_form.discord() }}
+                                    </div>
+                                    <div class="input-section">
+                                        {{ platform_form.github.label }}
+                                        {{ platform_form.github() }}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Save Button For Platforms -->
+                            <div class="settings-input-group">{{ platform_form.submit() }}</div>
+                        </form>
+                    </div>
+                    <!--
           <div id="settings-site-tab" class="settings-tab-content">
             <form id="">
               <h2 >Site settings</h2>
@@ -259,41 +280,43 @@
                     <label for="settings-blacklist">Tag Blacklist (split by newlines)</label>
                   </div>
                   <div class="column">
-                    <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off"
-                      autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
+                    <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off" autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
+                                                                                                  </div>
+                                                                            </div>
+                                                      </div>
+                                                      <div class="settings-input-group">
+                                                        <div class="row">
+                                                          <div class="column">
+                                                            <label for="settings-custom-css">Custom CSS</label>
+                                      </div>
+                                      <div class="column">
+                                        <textarea name="settings-custom-css"
+                                                  id="profile-settings-custom-css"
+                                                  cols="30"
+                                                  rows="10"
+                                                  autocorrect="off"
+                                                  autocapitalize="off"
+                                                  spellcheck="false">{% if user.settings.custom_css %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
                   </div>
                 </div>
               </div>
               <div class="settings-input-group">
-                <div class="row">
-                  <div class="column">
-                    <label for="settings-custom-css">Custom CSS</label>
-                  </div>
-                  <div class="column">
-                    <textarea name="settings-custom-css" id="profile-settings-custom-css" cols="30" rows="10"
-                      autocorrect="off" autocapitalize="off"
-                      spellcheck="false">{% if user.settings.custom_css %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
-                  </div>
-                </div>
-              </div>
-              <div class="settings-input-group">
-                <input type="button" value="Save Changes" class="profile-settings-submit" onclick="SaveSiteSettings()">
+                <input type="button"
+                       value="Save Changes"
+                       class="profile-settings-submit"
+                       onclick="SaveSiteSettings()">
               </div>
             </form>
           </div>
           -->
-        </div>
-      {% endif %}
-    {% endif %}
-    {% if not current_user.is_anonymous %}
-      {% if current_user.is_admin %}
-        <div id="admin-tab" class="profile-tab-content">
-          Sorry nothing (Yet)
-        </div>
-      {% endif %}
-    {% endif %}
-  <script type="module" src="/static/js/profile.min.js"></script>
-  </div>
+</div>
+{% endif %}
+{% endif %}
+{% if not current_user.is_anonymous %}
+    {% if current_user.is_admin %}<div id="admin-tab" class="profile-tab-content">Sorry nothing (Yet)</div>{% endif %}
+{% endif %}
+<script type="module" src="/static/js/profile.min.js"></script>
+</div>
 </div>
 <!-- Right panel/News -->
 {% include "elements/right_bar.jinja2" %}
