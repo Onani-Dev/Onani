@@ -13,3 +13,5 @@ Disallow:
 Crawl-delay: 5
 Disallow: /users/
 Disallow: /admin/
+# You have been warned.
+Disallow: /fun/

@@ -281,22 +281,22 @@
                   </div>
                   <div class="column">
                     <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off" autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
-                                                                                                  </div>
-                                                                            </div>
-                                                      </div>
-                                                      <div class="settings-input-group">
-                                                        <div class="row">
-                                                          <div class="column">
-                                                            <label for="settings-custom-css">Custom CSS</label>
-                                      </div>
-                                      <div class="column">
-                                        <textarea name="settings-custom-css"
-                                                  id="profile-settings-custom-css"
-                                                  cols="30"
-                                                  rows="10"
-                                                  autocorrect="off"
-                                                  autocapitalize="off"
-                                                  spellcheck="false">{% if user.settings.custom_css %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
+                                                                                                                                  </div>
+                                                                                                    </div>
+                                                                      </div>
+                                                                      <div class="settings-input-group">
+                                                                        <div class="row">
+                                                                          <div class="column">
+                                                                            <label for="settings-custom-css">Custom CSS</label>
+                                              </div>
+                                              <div class="column">
+                                                <textarea name="settings-custom-css"
+                                                          id="profile-settings-custom-css"
+                                                          cols="30"
+                                                          rows="10"
+                                                          autocorrect="off"
+                                                          autocapitalize="off"
+                                                          spellcheck="false">{% if user.settings.custom_css %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
                   </div>
                 </div>
               </div>
