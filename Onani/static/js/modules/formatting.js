@@ -2,10 +2,10 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:27:55
  * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-05-27 20:29:43
+ * @Last Modified time: 2022-05-28 21:45:03
  */
 
-let mdImgRegex = /\!\[([^\]]+)\]\(([^\)]+)\)/g
+let mdImgRegex = /\!\[([^\]]+)?\]\(([^\)]+)\)/g
 
 /**
  * Element Formatter for formatting html elements with classes.
@@ -66,7 +66,7 @@ class ElementFormatter {
       let converter = new showdown.Converter();
       try {
         // The below doesn't need to be a oneliner but it is anyway.
-        element.innerHTML = DOMPurify.sanitize(converter.makeHtml(element.innerHTML.replace(mdImgRegex, (m1, m2, m3) => `![${m2}](https://external-content.duckduckgo.com/iu/?u=${m3})`)), { USE_PROFILES: { html: true } });
+        element.innerHTML = DOMPurify.sanitize(converter.makeHtml(element.innerHTML.replace(mdImgRegex, (m1, m2, m3) => `![${m2 || ""}](https://external-content.duckduckgo.com/iu/?u=${m3})`)), { USE_PROFILES: { html: true } });
       } catch (e) {
         console.error(e);
       }
