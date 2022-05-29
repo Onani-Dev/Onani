@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-27 18:05:30
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-05-28 10:36:45
 
 from flask_wtf import FlaskForm, RecaptchaField
 from flask_wtf.file import FileAllowed
@@ -42,6 +42,7 @@ class UploadForm(FlaskForm):
         render_kw={"placeholder": "The rating for this post"},
         choices=PostRating.choices(),
         coerce=PostRating.coerce,
+        default=PostRating.QUESTIONABLE.value,
         validators=[DataRequired()],
     )
 

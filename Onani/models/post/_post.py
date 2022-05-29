@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-27 23:12:42
+# @Last Modified time: 2022-05-28 10:22:01
 
 from __future__ import annotations
 
@@ -68,7 +68,7 @@ class Post(db.Model):
 
     # The explicitness rating of a post. will be manually set by uploader and can be changed by an admin or moderator.
     rating: PostRating = db.Column(
-        ChoiceType(PostRating, impl=db.Integer()),
+        ChoiceType(PostRating, impl=db.String(length=1)),
         default=PostRating.QUESTIONABLE,
         nullable=False,
     )

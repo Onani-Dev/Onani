@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-05-24 07:29:27
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-27 22:49:31
+# @Last Modified time: 2022-05-28 13:06:01
 import contextlib
 from flask import current_app
 from flask_login import current_user, login_required
@@ -11,7 +11,7 @@ from Onani.controllers import create_comment, permissions_required
 from Onani.controllers.database.posts import parse_tags
 from Onani.models import PostSchema
 import Onani.models
-from Onani.routes.api.v1._utils import str_to_rating
+from Onani.models.post.rating import PostRating
 
 from . import api, csrf, db, limiter
 
@@ -175,7 +175,9 @@ class Post(Resource):
         ).first_or_404()
 
         if args["rating"] is not None:
-            post.rating = str_to_rating(args["rating"])
+            post.rating = PostRating(
+                args["rating"]
+            )  # It's already lowercase and stripped
 
         if args["source"] is not None:
             post.source = args["source"]
