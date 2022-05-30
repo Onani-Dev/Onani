@@ -8,5 +8,6 @@ Generate a .env file with generate.py by using `python generate.py` to create a 
 
 To run: `./build.sh dev` (Development) or `./build.sh` (Production)
 
+For default tags, Run `flask tags --filename <meta.json|explicit.json>` inside the onani_flask container. This allows meta and explicit tag checking to work.
 
-For default tags, Run `flask default-tags --filename <meta.json|explicit.json>` inside the onani_flask container. This allows meta and explicit tag checking to work.
+To make a user an owner, Run `flask add-owner --id <User ID>` inside the onani_flask container.
