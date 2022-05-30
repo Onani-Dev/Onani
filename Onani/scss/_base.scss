@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-27 11:09:40
+ * @Last Modified time: 2022-05-30 17:05:13
  */
 // Main Onani logo
 #logo {
@@ -48,11 +48,11 @@ header.navbar {
         padding: 14px 16px;
 
         @include for-mobile-only {
-            display: block; 
+            display: block;
         }
 
         @include for-tablet-portrait-only {
-            display: block; 
+            display: block;
         }
 
         @include for-tablet-landscape-only {
@@ -118,6 +118,7 @@ header.navbar {
         @include for-tablet-landscape-only {
             display: none;
         }
+
         div.user-container {
             background-color: var(--ui-foreground-header);
             display: flex;
@@ -158,10 +159,13 @@ header.navbar {
     }
 
     div.site-links {
-        @extend header, .navbar;
+        @extend header,
+        .navbar;
+
         @include for-mobile-only {
             display: none;
         }
+
         @include for-tablet-portrait-only {
             display: none;
         }
@@ -186,6 +190,7 @@ header.navbar {
             }
         }
     }
+
     // Onani search box
     #search-box {
         position: relative;
@@ -209,6 +214,7 @@ header.navbar {
         .search-autocomplete {
             position: relative;
             display: inline-block;
+
             #search-input {
                 background-color: var(--ui-foreground-1);
                 border: 0;
@@ -220,7 +226,7 @@ header.navbar {
                 width: 215px;
             }
         }
-        
+
 
         @include for-mobile-only {
             display: none;
@@ -312,9 +318,11 @@ div.sidenav {
 
             div.user-profile-link {
                 cursor: pointer;
+
                 h5 {
                     font-size: 20px;
                 }
+
                 h6 {
                     font-size: 17px;
                 }
@@ -345,9 +353,10 @@ div#content {
         flex-direction: column;
         padding: 10px;
     }
-    
+
     &.uploader {
         justify-content: space-evenly;
+
         @include for-mobile-only {
             flex-direction: column;
             justify-content: space-between;
@@ -364,6 +373,8 @@ div#content-container {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+
+    position: relative;
 
     @include for-mobile-only {
         margin-right: auto;
@@ -538,7 +549,7 @@ div.side-container {
             a {
                 text-decoration: none;
             }
-            
+
             h6 {
                 color: var(--text-colour-2);
             }
@@ -572,6 +583,7 @@ div.side-container {
         background-color: #ffffff27;
     }
 }
+
 #alert-container {
     border-radius: 0;
     left: 0;
@@ -588,7 +600,8 @@ div.side-container {
 
     // No scrollbar
     -ms-overflow-style: none;
-    scrollbar-width: none;  
+    scrollbar-width: none;
+
     &::-webkit-scrollbar {
         display: none;
     }
@@ -603,37 +616,37 @@ div.side-container {
         transition: opacity 100ms;
 
         &.success {
-        background-color: var(--alert-success);
+            background-color: var(--alert-success);
         }
 
         &.message {
-        background-color: var(--alert-message);
+            background-color: var(--alert-message);
         }
 
         &.warning {
-        background-color: var(--alert-warning);
+            background-color: var(--alert-warning);
         }
 
         &.error {
-        background-color: var(--alert-error);
+            background-color: var(--alert-error);
         }
 
         .close-button {
-        color: white;
-        cursor: pointer;
-        float: right;
-        font-size: 22px;
-        font-weight: bold;
-        line-height: 20px;
-        margin-left: 15px;
-        transition: 0.3s;
-        user-select: none;
+            color: white;
+            cursor: pointer;
+            float: right;
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 20px;
+            margin-left: 15px;
+            transition: 0.3s;
+            user-select: none;
 
-        &:hover {
-            color: var(--ui-item-hover);
+            &:hover {
+                color: var(--ui-item-hover);
+            }
         }
     }
-  }
 }
 
 

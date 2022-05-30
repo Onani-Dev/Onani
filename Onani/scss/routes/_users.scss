@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:00:41
- * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-05-28 21:38:08
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-05-30 15:57:20
  */
 div#profile-info-container {
     height: 175px;
@@ -28,7 +28,7 @@ div#profile-picture-container {
     max-width: 150px;
     min-height: 150px;
     min-width: 150px;
-    
+
     @include for-mobile-only {
         max-height: 75px;
         max-width: 75px;
@@ -40,6 +40,7 @@ div#profile-picture-container {
 img#profile-picture-image {
     max-width: 150px;
     max-height: 150px;
+
     @include for-mobile-only {
         max-height: 75px;
         max-width: 75px;
@@ -123,6 +124,7 @@ div.profile-tab-content {
 
     .settings-tab-content {
         flex-direction: column;
+
         h2 {
             padding: 15px;
         }
@@ -134,6 +136,13 @@ p#profile-bio-textarea {
     background-color: var(--ui-foreground-2);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+
+    p {
+        &>* {
+            max-width: 100%;
+        }
+    }
+
 }
 
 div.settings-input-group {
@@ -171,8 +180,8 @@ div.settings-input-group {
 
     label {
         display: block;
-        width: 150px;
-        padding: 10px;
+        padding-bottom: 0.5em;
+        padding-top: 0.5em;
 
         @include for-mobile-only {
             width: auto;
@@ -190,7 +199,6 @@ div.settings-input-group {
 
         .column {
             float: left;
-            // width: 50%;
             display: grid;
         }
 
@@ -200,7 +208,15 @@ div.settings-input-group {
             flex-wrap: wrap;
             align-content: center;
             justify-content: center;
-            & > * {border-radius: 0px;}
+            max-width: 100%;
+
+            .mde-editor {
+                max-width: 33em;
+
+                @include for-mobile-only {
+                    max-width: 320px;
+                }
+            }
         }
 
         &:after {
@@ -235,3 +251,11 @@ div.settings-input-group {
     }
 }
 
+#bio-tab {
+
+    img,
+    iframe {
+        max-width: 100%;
+        max-height: 720px;
+    }
+}

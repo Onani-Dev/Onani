@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-12 08:58:51
+# @Last Modified time: 2022-05-30 16:38:47
 
 from __future__ import annotations
 
@@ -286,6 +286,22 @@ class User(UserMixin, db.Model):
             bool: True or false come on man
         """
         return bool(post.downvoters.filter_by(id=self.id).first())
+
+    def can_edit_post(self, post: Post) -> bool:
+        """Check if a user has permissions to edit a post.
+
+        Args:
+            post (Post): The post to check.
+
+        Returns:
+            bool: True if user can edit, False if not.
+        """
+        return bool(
+            (
+                self.has_permissions(UserPermissions.EDIT_POSTS)
+                or self.id == post.uploader.id
+            )
+        )
 
     @property
     def is_admin(self) -> bool:

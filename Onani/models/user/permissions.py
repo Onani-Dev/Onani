@@ -2,62 +2,59 @@
 # @Author: kapsikkum
 # @Date:   2022-03-16 15:16:39
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-20 16:02:57
-from enum import IntFlag, auto
-
-# from functools import reduce
-# from operator import or_ as _or_
+# @Last Modified time: 2022-05-30 16:52:11
+from enum import IntFlag
 
 
 class UserPermissions(IntFlag):
     """User Permissions Flags"""
 
     # POSTS
-    CREATE_POSTS = auto()
-    DELETE_POSTS = auto()
-    EDIT_POSTS = auto()
-    IMPORT_POSTS = auto()
-    MERGE_POSTS = auto()
+    CREATE_POSTS = 1
+    DELETE_POSTS = 2
+    EDIT_POSTS = 4
+    IMPORT_POSTS = 8
+    MERGE_POSTS = 16
 
     # TAGS
-    CREATE_TAGS = auto()
-    DELETE_TAGS = auto()
-    EDIT_TAGS = auto()
-    IMPORT_TAGS = auto()
-    MERGE_TAGS = auto()
+    CREATE_TAGS = 32
+    DELETE_TAGS = 64
+    EDIT_TAGS = 128
+    IMPORT_TAGS = 256
+    MERGE_TAGS = 512
 
     # COLLECTIONS
-    CREATE_COLLECTIONS = auto()
-    DELETE_COLLECTIONS = auto()
-    EDIT_COLLECTIONS = auto()
-    MERGE_COLLECTIONS = auto()
+    CREATE_COLLECTIONS = 1024
+    DELETE_COLLECTIONS = 2048
+    EDIT_COLLECTIONS = 4096
+    MERGE_COLLECTIONS = 8192
 
     # FLAGGING
-    CAN_FLAG = auto()
-    PRIORITY_FLAG = auto()
+    CAN_FLAG = 16384
+    PRIORITY_FLAG = 32768
 
     # COMMENTS
-    CREATE_COMMENTS = auto()
-    DELETE_COMMENTS = auto()
-    LOCK_COMMENTS = auto()
+    CREATE_COMMENTS = 65536
+    DELETE_COMMENTS = 131072
+    LOCK_COMMENTS = 262144
 
     # NEWS
-    CREATE_NEWS = auto()
-    DELETE_NEWS = auto()
-    EDIT_NEWS = auto()
+    CREATE_NEWS = 524288
+    DELETE_NEWS = 1048576
+    EDIT_NEWS = 2097152
 
     # USERS
-    BAN_USERS = auto()
-    CREATE_USERS = auto()
-    DELETE_USERS = auto()
-    EDIT_USERS = auto()
+    BAN_USERS = 4194304
+    CREATE_USERS = 8388608
+    DELETE_USERS = 16777216
+    EDIT_USERS = 33554432
 
     # SITE
-    BYPASS_RATELIMIT = auto()
-    VIEW_LOGS = auto()
+    BYPASS_RATELIMIT = 67108864
+    VIEW_LOGS = 134217728
 
     # PRESETS
-    READONLY = 0
+    READONLY = 268435456
 
     DEFAULT = CREATE_POSTS | CREATE_COMMENTS | CREATE_COLLECTIONS | CAN_FLAG
 
@@ -90,16 +87,3 @@ class UserPermissions(IntFlag):
         | BYPASS_RATELIMIT
         | VIEW_LOGS
     )
-
-    # @classmethod
-    # def all(cls):
-    #     cls_name = cls.__name__
-    #     if not cls:
-    #         raise AttributeError(f"Empty {cls_name} does not have an ALL value")
-    #     value = cls(reduce(_or_, cls))
-    #     cls._member_map_["ALL"] = value
-    #     return value
-
-    # @classmethod
-    # def none(cls):
-    #     return cls(0)

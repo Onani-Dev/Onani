@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-24 09:52:55
+ * @Last Modified time: 2022-05-30 17:16:54
  */
 
 #posts-container {
@@ -15,6 +15,10 @@
     flex-direction: column;
     justify-content: space-between;
     min-height: 50vh;
+
+    h1 {
+        margin: 0.5em;
+    }
 
     @include for-mobile-only {
         margin-right: auto;
@@ -43,7 +47,7 @@
     justify-content: center;
     margin: 0 auto;
     padding: 10px;
-    transition: transform 0.2s cubic-bezier(1,-0.76,.5,1.48);
+    transition: transform 0.2s cubic-bezier(1, -0.76, .5, 1.48);
     width: 10em;
 
     &:hover {
@@ -61,6 +65,7 @@
         height: 5em;
         width: 5em;
         transition: none;
+
         &:hover {
             transform: none;
         }
@@ -70,6 +75,7 @@
         height: 8em;
         width: 8em;
         transition: none;
+
         &:hover {
             transform: none;
         }
@@ -179,6 +185,13 @@ img.post-thumbnail {
             }
         }
 
+        #post-edit-button {
+            margin-left: 0.5em;
+            margin-top: auto;
+            margin-bottom: auto;
+            margin-right: auto;
+        }
+
         #voting-container {
             align-content: center;
             background-color: var(--ui-foreground-1);
@@ -223,7 +236,7 @@ img.post-thumbnail {
 
             #downvote-button {
                 @extend #upvote-button;
-                
+
                 &.voted {
                     color: crimson;
                 }
@@ -367,7 +380,7 @@ img.post-thumbnail {
 
         h3 {
             transform: scale(1);
-	        animation: pulse 2s infinite;
+            animation: pulse 2s infinite;
         }
 
         .comment-post {
@@ -383,15 +396,26 @@ img.post-thumbnail {
 
             .comment-post-data {
                 width: 100%;
-                
+
                 .comment-post-info {
                     display: flex;
                     padding: 5px;
                     margin-bottom: -10px;
-                    
+
+                    @include for-mobile-only {
+                        flex-direction: column;
+                    }
+
                     a {
                         margin-top: auto;
                         margin-bottom: auto;
+
+                        @include for-mobile-only {
+                            max-width: 10em;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
                     }
 
                     div {
@@ -400,6 +424,10 @@ img.post-thumbnail {
                         font-size: smaller;
                         margin-top: auto;
                         margin-bottom: auto;
+
+                        @include for-mobile-only {
+                            margin-left: auto;
+                        }
                     }
                 }
 
@@ -418,7 +446,7 @@ img.post-thumbnail {
 
             .comment-post-profile {
                 display: flex;
-                
+
                 img {
                     width: 50px;
                     height: 50px;

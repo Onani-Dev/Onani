@@ -6,8 +6,8 @@
  * @license MIT
  * @Author: Next Step Webs, Inc.
  * @Date:   2022-05-28 18:01:06
- * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-05-28 18:29:42
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-05-30 14:36:54
  */
 
 .CodeMirror-gutter-filler,
@@ -590,6 +590,8 @@ span.CodeMirror-selectedtext {
     border-bottom: 0;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
     font-size: 18px;
     padding: 0 14px;
     position: relative;

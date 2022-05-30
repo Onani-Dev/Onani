@@ -41,6 +41,12 @@
         <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
       </div>
 
+      {% if not current_user.is_anonymous %}
+        {% if current_user.can_edit_post(post) %}
+          <a id="post-edit-button" class="fa-solid fa-pen-to-square fa-2x" href="/posts/edit/{{ post.id }}"></a>
+        {% endif %}
+      {% endif %}
+
       <div id="voting-container">
         {% if not current_user.is_anonymous %}
           <div id="upvote-button" class="fa-solid fa-thumbs-up clickable pop-out{% if current_user.has_upvoted(post) %} voted{% endif %}"></div>

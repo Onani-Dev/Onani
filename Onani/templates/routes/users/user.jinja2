@@ -116,16 +116,11 @@
             {% endif %}
         </div>
         <div id="bio-tab" class="profile-tab-content">
-            <p id="profile-bio-textarea"
-               class="{{ bio_class }} twemoji-format markdown-format emote-format">
-                {{ user_bio }}
-            </p>
+            <p id="profile-bio-textarea" class="{{ bio_class }} twemoji-format markdown-format emote-format">{{ user_bio }}</p>
         </div>
         <div id="posts-tab" class="profile-tab-content">
             {% if posts.items|length <= 0 %}
-                <p id="profile-bio-textarea" class="system-text">
-                    User has no posts.
-                </p>
+                <p id="profile-bio-textarea" class="system-text">User has no posts.</p>
             {% else %}
                 <div class="grid">
                     {% for post in posts.items %}
@@ -222,12 +217,22 @@
                                 <div class="row">
                                     <div class="input-section">
                                         {{ profile_form.biography.label }}
-                                        {{ profile_form.biography()}}
+                                        <div class="mde-editor">
+                                            {{ profile_form.biography()}}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <!-- Load SimpleMDE -->
-                            <script>var simplemde = new SimpleMDE({ element: document.getElementById("profile-settings-bio"), spellChecker: false, status: false});</script>
+                            <script>
+                                let interval = setInterval(function() {
+                                    if (document.querySelector('[data-tab-content-id="settings-profile-tab"].active')) {
+                                        clearInterval(interval)
+                                        simplemde.codemirror.refresh()
+                                    }
+                                }, 100)
+                                const simplemde = new SimpleMDE({ element: document.getElementById("profile-settings-bio"), spellChecker: false, status: false, lineWrapping: true});
+                            </script>
                             <!-- Save Button For profile -->
                             <div class="settings-input-group">{{ profile_form.submit() }}</div>
                         </form>
@@ -269,46 +274,6 @@
                             <div class="settings-input-group">{{ platform_form.submit() }}</div>
                         </form>
                     </div>
-                    <!--
-          <div id="settings-site-tab" class="settings-tab-content">
-            <form id="">
-              <h2 >Site settings</h2>
-
-              <div class="settings-input-group">
-                <div class="row">
-                  <div class="column">
-                    <label for="settings-blacklist">Tag Blacklist (split by newlines)</label>
-                  </div>
-                  <div class="column">
-                    <textarea name="settings-blacklist" id="profile-settings-blacklist" cols="30" rows="10" autocorrect="off" autocapitalize="off" spellcheck="false">{{ '\n'.join(user.settings.tag_blacklist) }}</textarea>
-                                                                                                                                  </div>
-                                                                                                    </div>
-                                                                      </div>
-                                                                      <div class="settings-input-group">
-                                                                        <div class="row">
-                                                                          <div class="column">
-                                                                            <label for="settings-custom-css">Custom CSS</label>
-                                              </div>
-                                              <div class="column">
-                                                <textarea name="settings-custom-css"
-                                                          id="profile-settings-custom-css"
-                                                          cols="30"
-                                                          rows="10"
-                                                          autocorrect="off"
-                                                          autocapitalize="off"
-                                                          spellcheck="false">{% if user.settings.custom_css %}{{ user.settings.custom_css }}{% else %}{% endif %}</textarea>
-                  </div>
-                </div>
-              </div>
-              <div class="settings-input-group">
-                <input type="button"
-                       value="Save Changes"
-                       class="profile-settings-submit"
-                       onclick="SaveSiteSettings()">
-              </div>
-            </form>
-          </div>
-          -->
 </div>
 {% endif %}
 {% endif %}
