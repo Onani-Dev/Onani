@@ -1,5 +1,5 @@
 {% for field, errors in form.errors.items() %}
-  <script>
+<script>
     alert("{{ form[field].name }}: {{ ', '.join(errors) }}");
-  </script>
+</script>
 {% endfor %}

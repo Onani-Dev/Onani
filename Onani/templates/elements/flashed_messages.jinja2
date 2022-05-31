@@ -1,33 +1,35 @@
 <!-- Alerts -->
 <div id="alert-container">
-  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert {{category}}">
-          <span class="close-button">&times;</span>
-          {{ message }}
-        </div>
-      {% endfor %}
+    {% for category, message in messages %}
+    <div class="alert {{category}}">
+        <span class="close-button">&times;</span>
+        {{ message }}
+    </div>
+    {% endfor %}
     {% endif %}
-  {% endwith %}
-  <script>
-  // Get all elements with class="closebtn"
-  const closeButtonElements = document.getElementsByClassName("close-button");
+    {% endwith %}
+    <script>
+        // Get all elements with class="closebtn"
+        const closeButtonElements = document.getElementsByClassName("close-button");
 
-  // Loop through all close buttons
-  for (let element of closeButtonElements) {
-    // When someone clicks on a close button
-    element.onclick = function() {
+        // Loop through all close buttons
+        for (let element of closeButtonElements) {
+            // When someone clicks on a close button
+            element.onclick = function () {
 
-      // Get the parent of <span class="closebtn"> (<div class="alert">)
-      let div = this.parentElement;
+                // Get the parent of <span class="closebtn"> (<div class="alert">)
+                let div = this.parentElement;
 
-      // Set the opacity of div to 0 (transparent)
-      div.style.opacity = "0";
+                // Set the opacity of div to 0 (transparent)
+                div.style.opacity = "0";
 
-      // Hide the div after 600ms (the same amount of milliseconds it takes to fade out)
-      setTimeout(() => { div.style.display = "none"; }, 100);
-    }
-  }
-  </script>
+                // Hide the div after 600ms (the same amount of milliseconds it takes to fade out)
+                setTimeout(() => {
+                    div.style.display = "none";
+                }, 100);
+            }
+        }
+    </script>
 </div>

@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-12 08:41:29
+# @Last Modified time: 2022-05-31 09:08:00
 
 from typing import List, Optional, Tuple
 
@@ -81,13 +81,30 @@ def rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
 
 
 def colour_contrast(colour: str) -> str:
+    """Get the colour contrast from a specified colour.
+
+    Args:
+        colour (str): The colour to get the background for
+
+    Returns:
+        str: The background colour
+    """
     rgb = hex_to_rgb(colour)
 
     luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255
 
-    if luminance > 0.5:
-        d = 0  # bright colors - black font
-    else:
-        d = 255  # dark colors - white font
+    d = 0 if luminance > 0.5 else 255
 
     return rgb_to_hex((d, d, d))
+
+
+def complete_file_url(file_url: str) -> str:
+    """Get the full url for a file.
+
+    Args:
+        file_url (str): The partial url
+
+    Returns:
+        str: The full url
+    """
+    return f"{request.base_url}{file_url.lstrip('/')}"

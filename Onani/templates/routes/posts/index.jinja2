@@ -4,9 +4,9 @@
 {% set ogimage = "/static/android-chrome-512x512.png" %}
 
 {% if request.args.get("tags") %}
-  {% set search_box_value = request.args.get("tags") %}
+{% set search_box_value = request.args.get("tags") %}
 {% else %}
-  {% set search_box_value = "" %}
+{% set search_box_value = "" %}
 {% endif %}
 {% extends "base.jinja2" %}
 
@@ -15,19 +15,19 @@
 {% include "elements/tag_bar.jinja2" %}
 <!-- Post thumbnails -->
 <div id="posts-container">
-  {% if posts.items|length <= 0 %}
+    {% if posts.items|length <= 0 %}
     <h1>Sorry nothing</h1>
-  {% else %}
+    {% else %}
     <div class="grid">
-      {% for post in posts.items %}
+        {% for post in posts.items %}
         <div class="post-thumbnail-container" title="{{ post.title }}">
-          <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
         </div>
-      {% endfor %}
+        {% endfor %}
     </div>
     {% set pagination = posts %}
     {% set page_url = "/posts/" %}
     {% include "elements/pagination.jinja2" %}
-  {% endif %}
+    {% endif %}
 </div>
 {% endblock %}

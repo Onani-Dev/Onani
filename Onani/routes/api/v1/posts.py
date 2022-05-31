@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-05-24 07:29:27
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-28 13:06:01
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-31 08:55:37
 import contextlib
+
 from flask import current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.controllers import create_comment, permissions_required
-from Onani.controllers.database.posts import parse_tags
-from Onani.models import PostSchema
-import Onani.models
-from Onani.models.post.rating import PostRating
+from Onani.controllers.database import parse_tags
+from Onani.models import Post as _Post
+from Onani.models import PostRating, PostSchema
 
 from . import api, csrf, db, limiter
 
@@ -42,7 +42,7 @@ class Posts(Resource):
         args = parser.parse_args()
 
         # Multiple posts
-        posts = Onani.models.Post.query.order_by(Onani.models.Post.id.desc()).paginate(
+        posts = _Post.query.order_by(_Post.id.desc()).paginate(
             per_page=args["per_page"], page=args["page"], error_out=False
         )
         return {
@@ -73,7 +73,7 @@ class PostVote(Resource):
         args = parser.parse_args()
 
         # Get the post from database
-        post = Onani.models.Post.query.filter_by(id=args["post_id"]).first_or_404()
+        post = _Post.query.filter_by(id=args["post_id"]).first_or_404()
 
         # Check type of vote
         match args["type"]:
@@ -125,7 +125,7 @@ class Post(Resource):
         # Parse request args
         args = parser.parse_args()
 
-        post = Onani.models.Post.query.filter_by(id=args["id"]).first_or_404()
+        post = _Post.query.filter_by(id=args["id"]).first_or_404()
         return PostSchema().dump(post)
 
     def put(self):
@@ -170,9 +170,7 @@ class Post(Resource):
         # Parse request args
         args = parser.parse_args()
 
-        post: Onani.models.Post = Onani.models.Post.query.filter_by(
-            id=args["id"]
-        ).first_or_404()
+        post: _Post = _Post.query.filter_by(id=args["id"]).first_or_404()
 
         if args["rating"] is not None:
             post.rating = PostRating(

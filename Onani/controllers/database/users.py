@@ -2,8 +2,8 @@
 # @Author: kapsikkum
 # @Date:   2022-03-06 12:43:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-13 01:16:49
-from Onani.models.user import User, UserRoles, UserSettings
+# @Last Modified time: 2022-05-31 08:51:32
+from Onani.models import User, UserRoles, UserSettings
 
 from . import db
 

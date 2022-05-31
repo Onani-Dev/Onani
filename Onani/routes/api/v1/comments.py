@@ -2,13 +2,12 @@
 # @Author: kapsikkum
 # @Date:   2022-04-01 02:10:13
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-18 14:21:51
+# @Last Modified time: 2022-05-31 08:54:41
 from flask import current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.controllers import create_comment, permissions_required
-from Onani.models import Post, PostComment, PostCommentSchema
-from Onani.models.user.permissions import UserPermissions
+from Onani.models import Post, PostComment, PostCommentSchema, UserPermissions
 
 from . import api, limiter
 

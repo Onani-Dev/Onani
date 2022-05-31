@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-17 02:37:00
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-20 16:15:50
+# @Last Modified time: 2022-05-31 08:16:58
 
 import datetime
 
@@ -17,12 +17,16 @@ class Ban(db.Model):
     __tablename__ = "bans"
 
     id: int = db.Column(db.Integer, primary_key=True)
+
     user: int = db.Column(db.Integer, db.ForeignKey("users.id"))
+
     since: datetime.datetime = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
+
     expires: datetime.datetime = db.Column(db.DateTime(timezone=True), nullable=False)
+
     reason: str = db.Column(db.UnicodeText)
 
     @property

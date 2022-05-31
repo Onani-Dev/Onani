@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-12 08:27:01
+ * @Last Modified time: 2022-05-31 13:02:29
  */
 
 html {
@@ -181,4 +181,28 @@ tr {
     // &:hover {
     //     background-color: var(--ui-item-hover);
     // }
+}
+
+code {
+    padding: .2em;
+    border-radius: 3px;
+    font-size: 85%;
+    font-family: 'Consolas';
+    white-space: pre-wrap;
+    background-color: var(--text-code-background);
+}
+
+pre {
+    code {
+        background: var(--text-code-background);
+        border-radius: 4px;
+        border: var(--ui-border-colour);
+        color: var(--text-colour-3);
+        display: block;
+        font-family: 'Consolas';
+        font-size: 0.85rem;
+        line-height: 1.25rem;
+        padding: .5em;
+        white-space: pre-wrap;
+    }
 }

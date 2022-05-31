@@ -8,31 +8,32 @@
 
 <!-- Register box -->
 <div class="login-box">
-  <h1 class="login-header">Register</h1>
-  <!-- Form -->
-  <form action="/register/" method="POST" enctype='multipart/form-data'>
-    {{ form.csrf_token }}
-    {{ form.username() }}
-    {{ form.email() }}
-    {{ form.password() }}
-    {{ form.confirm() }}
-    {{ form.recaptcha() }}
-    {{ form.submit() }}
-  </form>
-  <script>
-    const password = document.getElementById("password"),
-      confirmPassword = document.getElementById("confirm-password");
-    function validatePassword() {
-      if (password.value != confirmPassword.value) {
-        confirmPassword.setCustomValidity("Password doesn't match!");
-      } else {
-        confirmPassword.setCustomValidity('');
-      }
-    }
-    password.onchange = validatePassword;
-    confirmPassword.onkeyup = validatePassword;
-  </script>
-  {% include "elements/form_errors.jinja2" %}
+    <h1 class="login-header">Register</h1>
+    <!-- Form -->
+    <form action="/register/" method="POST" enctype='multipart/form-data'>
+        {{ form.csrf_token }}
+        {{ form.username() }}
+        {{ form.email() }}
+        {{ form.password() }}
+        {{ form.confirm() }}
+        {{ form.recaptcha() }}
+        {{ form.submit() }}
+    </form>
+    <script>
+        const password = document.getElementById("password"),
+            confirmPassword = document.getElementById("confirm-password");
+
+        function validatePassword() {
+            if (password.value != confirmPassword.value) {
+                confirmPassword.setCustomValidity("Password doesn't match!");
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        }
+        password.onchange = validatePassword;
+        confirmPassword.onkeyup = validatePassword;
+    </script>
+    {% include "elements/form_errors.jinja2" %}
 </div>
 
 {% endblock %}

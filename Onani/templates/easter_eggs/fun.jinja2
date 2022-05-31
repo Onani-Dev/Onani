@@ -2,34 +2,34 @@
 <html lang="en">
 
 <head>
-  <title>Fun</title>
-  <link href="/static/css/fun.min.css" rel="stylesheet">
-  <link href="/static/image/sonic_fun.png" rel="icon" type="image/png">
-  <meta charset="utf-8">
-  <meta property="og:title" content="たのしさ∞" />
-  <meta property="og:description" content="セガ・エンタープライゼス" />
-  <meta property="og:image" content="/static/image/sonic_fun.png" />
-  <meta name="theme-color" content="#000080">
-  <script>
-    function unmuteAudio(){
-      var audio = document.getElementById("infinite-fun");
-      audio.muted = false;
-    }
-  </script>
+    <title>Fun</title>
+    <link href="/static/css/fun.min.css" rel="stylesheet">
+    <link href="/static/image/sonic_fun.png" rel="icon" type="image/png">
+    <meta charset="utf-8">
+    <meta property="og:title" content="たのしさ∞" />
+    <meta property="og:description" content="セガ・エンタープライゼス" />
+    <meta property="og:image" content="/static/image/sonic_fun.png" />
+    <meta name="theme-color" content="#000080">
+    <script>
+        function unmuteAudio() {
+            var audio = document.getElementById("infinite-fun");
+            audio.muted = false;
+        }
+    </script>
 </head>
 
 <body onload="unmuteAudio();" onbeforeunload="while(true){window.alert(0);} return false;" class="sonic">
-  <iframe src="/static/audio/s.mp3" allow="autoplay" id="audio" style="display:none"></iframe>
-  <audio id="infinite-fun" autoplay muted loop>
-    <source src="/static/audio/funisinfinite.mp3" type="audio/mp3">
-  </audio>
-  <div class="center sonic">
-    <h1 class="sonic">たのしさ∞</h1>
-    <h1 class="sonic">セガ・エンタープライゼス</h1>
-  </div>
-  <div class="bottom-right sonic">
-    <h1 class="sonic">まぢん　画</h1>
-  </div>
+    <iframe src="/static/audio/s.mp3" allow="autoplay" id="audio" style="display:none"></iframe>
+    <audio id="infinite-fun" autoplay muted loop>
+        <source src="/static/audio/funisinfinite.mp3" type="audio/mp3">
+    </audio>
+    <div class="center sonic">
+        <h1 class="sonic">たのしさ∞</h1>
+        <h1 class="sonic">セガ・エンタープライゼス</h1>
+    </div>
+    <div class="bottom-right sonic">
+        <h1 class="sonic">まぢん　画</h1>
+    </div>
 </body>
 
 </html>

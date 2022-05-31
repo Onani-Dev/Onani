@@ -7,15 +7,15 @@
 {% block content %}
 <!-- Login box -->
 <div class="login-box">
-  <h1 class="login-header">Login</h1>
-  <!-- Form -->
-  <form action="/login/" method="POST">
-    {{ form.csrf_token }}
-    {{ form.username() }}
-    {{ form.password() }}
-    {{ form.submit() }}
-  </form>
-  {% include "elements/form_errors.jinja2" %}
+    <h1 class="login-header">Login</h1>
+    <!-- Form -->
+    <form action="/login/" method="POST">
+        {{ form.csrf_token }}
+        {{ form.username() }}
+        {{ form.password() }}
+        {{ form.submit() }}
+    </form>
+    {% include "elements/form_errors.jinja2" %}
 </div>
 
 {% endblock %}

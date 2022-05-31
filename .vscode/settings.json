@@ -9,5 +9,14 @@
         }
     ],
     "es6-css-minify.minifyOnSave": "yes",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "beautify.language": {
+        "css": [
+            "css",
+            "scss"
+        ],
+        "html": [
+            "jinja-html"
+        ]
+    },
 }

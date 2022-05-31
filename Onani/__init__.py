@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-27 22:59:22
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-05-31 09:12:38
 
 import datetime
 import html
@@ -35,6 +35,8 @@ ma = Marshmallow()
 migrate = Migrate()
 celery = ext.celery
 
+from Onani.controllers.utils import complete_file_url
+
 
 def init_app():
     app = Flask(__name__, static_url_path="/static/", static_folder="/static")
@@ -47,7 +49,12 @@ def init_app():
     app.url_map.strict_slashes = False
 
     app.jinja_env.globals.update(
-        datetime=datetime, time=time, emoji=emoji, humanize=humanize, html=html
+        datetime=datetime,
+        time=time,
+        emoji=emoji,
+        humanize=humanize,
+        html=html,
+        complete_file_url=complete_file_url,
     )
 
     from .routes import admin, atom, main, main_api, rss

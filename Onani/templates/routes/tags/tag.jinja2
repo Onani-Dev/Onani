@@ -10,10 +10,12 @@
 {% include "elements/tag_bar.jinja2" %}
 
 <div id="content-container">
-  <div id="news-article-header">
-    <h1>{{ tag.humanized }}</h1>
-  </div>
-  <div id="news-article-body"><p>{{ tag.description }}</p></div>
+    <div id="news-article-header">
+        <h1>{{ tag.humanized }}</h1>
+    </div>
+    <div id="news-article-body">
+        <p>{{ tag.description }}</p>
+    </div>
 </div>
 
 {% endblock %}

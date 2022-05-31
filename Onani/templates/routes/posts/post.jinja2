@@ -3,9 +3,9 @@
 {% set ogimage = post.first_file_thumbnail(500) %}
 
 {% if post.description %}
-  {% set ogdesc = post.description %}
+{% set ogdesc = post.description %}
 {% else %}
-  {% set ogdesc = "View on Onani." %}
+{% set ogdesc = "View on Onani." %}
 {% endif %}
 
 {% set ogdesc = "{score}👍 | {comments}💬\n{ogdesc}".format(score=post.score, comments=post.comments.all()|length, ogdesc=ogdesc) %}
@@ -26,92 +26,104 @@
 {% include "elements/post_tag_bar.jinja2" %}
 
 <div id="content-container" data-post-id="{{ post.id }}">
-  <div class="images-container">
-    {% for file in post.files %}
-      <div class="file-container">
-        <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}" alt="{{ post.title }}"></a>
-      </div>
-    {% endfor %}
-  </div>
-  <div class="post-info-box">
-    <div id="post-info-header">
+    <div class="images-container">
+        {% for file in post.files %}
+        <div class="file-container">
+            <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}"
+                    alt="{{ post.title }}"></a>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="post-info-box">
+        <div id="post-info-header">
 
-      <div id="poster-container" style="background-color:{{ post.uploader.profile_colour }}">
-        <img src="{{ post.uploader.get_avatar(size=30) }}" alt="{{ post.uploader.username }}" title="{{ post.uploader.username }}">
-        <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
-      </div>
+            <div id="poster-container" style="background-color:{{ post.uploader.profile_colour }}">
+                <img src="{{ post.uploader.get_avatar(size=30) }}" alt="{{ post.uploader.username }}"
+                    title="{{ post.uploader.username }}">
+                <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
+            </div>
 
-      {% if not current_user.is_anonymous %}
-        {% if current_user.can_edit_post(post) %}
-          <a id="post-edit-button" class="fa-solid fa-pen-to-square fa-2x" href="/posts/edit/{{ post.id }}"></a>
-        {% endif %}
-      {% endif %}
+            {% if not current_user.is_anonymous %}
+            {% if current_user.can_edit_post(post) %}
+            <a id="post-edit-button" class="fa-solid fa-pen-to-square fa-2x" href="/posts/edit/{{ post.id }}"></a>
+            {% endif %}
+            {% endif %}
 
-      <div id="voting-container">
+            <div id="voting-container">
+                {% if not current_user.is_anonymous %}
+                <div id="upvote-button"
+                    class="fa-solid fa-thumbs-up clickable pop-out{% if current_user.has_upvoted(post) %} voted{% endif %}">
+                </div>
+                {% endif %}
+                <div id="post-score-count"
+                    class="{% if post.score < 0 %}negative{% elif post.score > 0 %}positive{% else %}neutral{% endif %}">
+                    {{ post.score }}</div>
+                {% if not current_user.is_anonymous %}
+                <div id="downvote-button"
+                    class="fa-solid fa-thumbs-down clickable pop-out{% if current_user.has_downvoted(post) %} voted{% endif %}">
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div id="post-info-body">
+            <div id="description-container">
+                {% if post.description %}
+                {% set description = post.description %}
+                {% set description_class = "" %}
+                {% else %}
+                {% set description = "Post has no description." %}
+                {% set description_class = "system-text" %}
+                {% endif %}
+                <p class="{{ description_class }}">{{ description }}</p>
+            </div>
+
+            <div id="table-container">
+                <table>
+                    <tr>
+                        <th>Uploaded At</th>
+                        <td class="date-format human-time">{{ post.uploaded_at.isoformat() }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>{{ post.status.name.capitalize() }}</td>
+                    </tr>
+                    <tr>
+                        <th>Rating</th>
+                        <td>{{ post.rating.name.capitalize() }}</td>
+                    </tr>
+                    <tr>
+                        <th>Source</th>
+                        <td>{% if post.source %}<a
+                                href="{{ '{source}?pid={pid}'.format(source=post.source, pid=post.id)  }}"
+                                target="_blank">{{ post.source }}</a>{% else %}No source available.{% endif %}</td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+    <div class="comments-box">
+        <h1 id="comments-header">Comments</h1>
         {% if not current_user.is_anonymous %}
-          <div id="upvote-button" class="fa-solid fa-thumbs-up clickable pop-out{% if current_user.has_upvoted(post) %} voted{% endif %}"></div>
+        <div class="post-comment-input-container">
+            <textarea id="post-comment-input" placeholder="Type your comment here..."></textarea>
+            <button id="post-comment-submit">Post</button>
+        </div>
         {% endif %}
-        <div id="post-score-count" class="{% if post.score < 0 %}negative{% elif post.score > 0 %}positive{% else %}neutral{% endif %}">{{ post.score }}</div>
-        {% if not current_user.is_anonymous %}
-          <div id="downvote-button" class="fa-solid fa-thumbs-down clickable pop-out{% if current_user.has_downvoted(post) %} voted{% endif %}"></div>
-        {% endif %}
-      </div>
-
+        <div id="comment-container">
+            <h3>Loading Comments...</h3>
+        </div>
+        <div class="page-navigation">
+            <a href="javascript:void(0)" class="fa-solid fa-chevron-left" id="comments-control-left"
+                style="visibility:hidden;"></a>
+            <span style="width:2em;height:1em;"></span>
+            <a href="javascript:void(0)" class="fa-solid fa-chevron-right" id="comments-control-right"
+                style="visibility:hidden;"></a>
+        </div>
     </div>
-
-    <div id="post-info-body">
-      <div id="description-container">
-        {% if post.description %}
-          {% set description = post.description %}
-          {% set description_class = "" %}
-        {% else %}
-          {% set description = "Post has no description." %}
-          {% set description_class = "system-text" %}
-        {% endif %}
-        <p class="{{ description_class }}">{{ description }}</p>
-      </div>
-
-      <div id="table-container">
-        <table>
-          <tr>
-            <th>Uploaded At</th>
-            <td class="date-format human-time">{{ post.uploaded_at.isoformat() }}</td>
-          </tr>
-          <tr>
-            <th>Status</th>
-            <td>{{ post.status.name.capitalize() }}</td>
-          </tr>
-          <tr>
-            <th>Rating</th>
-            <td>{{ post.rating.name.capitalize() }}</td>
-          </tr>
-          <tr>
-            <th>Source</th>
-            <td>{% if post.source %}<a href="{{ '{source}?pid={pid}'.format(source=post.source, pid=post.id)  }}" target="_blank">{{ post.source }}</a>{% else %}No source available.{% endif %}</td>
-          </tr>
-        </table>
-
-      </div>
-
-    </div>
-  </div>
-  <div class="comments-box">
-    <h1 id="comments-header">Comments</h1>
-    {% if not current_user.is_anonymous %}
-      <div class="post-comment-input-container">
-        <textarea id="post-comment-input" placeholder="Type your comment here..."></textarea>
-        <button id="post-comment-submit">Post</button>
-      </div>
-    {% endif %}
-    <div id="comment-container">
-      <h3>Loading Comments...</h3>
-    </div>
-    <div class="page-navigation">
-      <a href="javascript:void(0)" class="fa-solid fa-chevron-left" id="comments-control-left" style="visibility:hidden;"></a>
-      <span style="width:2em;height:1em;"></span>
-      <a href="javascript:void(0)" class="fa-solid fa-chevron-right" id="comments-control-right" style="visibility:hidden;"></a>
-    </div>
-  </div>
 </div>
 
 {% endblock %}

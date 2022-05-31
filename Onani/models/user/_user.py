@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-30 16:38:47
+# @Last Modified time: 2022-05-31 08:49:57
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from .roles import UserRoles
 from .settings import UserSettings
 
 if TYPE_CHECKING:
-    from Onani.models.post._post import Post
+    from Onani.models import Post
 
 
 tag_blacklist = db.Table(

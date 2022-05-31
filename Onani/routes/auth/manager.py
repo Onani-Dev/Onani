@@ -2,9 +2,10 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:52:28
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-21 21:10:56
+# @Last Modified time: 2022-05-31 13:33:22
 
 from Onani.models import User
+from flask import session, request, redirect, url_for, flash
 
 from . import login_manager
 
@@ -25,3 +26,10 @@ def request_loader(request):
             return
         return None if user.ban else user
     return
+
+
+@login_manager.unauthorized_handler
+def unauthorized_redirect():
+    session["return_url"] = request.path
+    flash("You must login to do this.", "warning")
+    return redirect(url_for("main.login"))
