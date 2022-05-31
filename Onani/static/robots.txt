@@ -1,7 +1,3 @@
-# HERE AT ONANI WE DO NOT BELIEVE IN FREE INTERNET OR PERMANENT RECORDS
-User-agent: ia_archiver
-Disallow: /
-
 # WE DO NOT LIKE THE CHINESE
 User-agent: baiduspider
 Disallow: /
