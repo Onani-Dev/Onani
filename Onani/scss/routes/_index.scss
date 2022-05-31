@@ -1,0 +1,66 @@
+/**
+ * @Author: kapsikkum
+ * @Date:   2022-05-31 14:37:38
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-05-31 15:17:24
+ */
+
+.index-post-group {
+
+    margin-bottom: 3em;
+
+    .post-group-header {
+        padding: 10px;
+        background-color: var(--ui-foreground-header);
+        border-radius: 15px 15px 0px 0px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        align-content: center;
+
+        h2 {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+
+            i {
+                margin-right: 0.4em;
+            }
+        }
+
+        a {
+            display: flex;
+            align-content: center;
+            align-items: center;
+            justify-content: space-evenly;
+            flex-direction: row;
+            flex-wrap: nowrap;
+
+            i {
+                margin-left: 0.5em;
+                margin-right: 0.3em;
+            }
+        }
+    }
+
+    .post-group-grid {
+        background-color: var(--ui-foreground-2);
+        padding: 10px;
+        min-height: 10em;
+        border-radius: 0px 0px 15px 15px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(11em, 1fr));
+
+        @include for-mobile-only {
+            grid-template-columns: repeat(auto-fill, minmax(6em, 1fr));
+        }
+
+        @include for-tablet-portrait-only {
+            grid-template-columns: repeat(auto-fill, minmax(9em, 1fr));
+        }
+    }
+}

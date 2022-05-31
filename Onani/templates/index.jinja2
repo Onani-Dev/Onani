@@ -6,8 +6,108 @@
 {% extends "base.jinja2" %}
 
 {% block content %}
-<div class="login-box">
-    <img src="/static/svg/onani.svg" alt="Onani">
+<!-- Left panel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+<!-- Post thumbnails -->
+<div id="posts-container">
+    <div class="index-post-group">
+        <div class="post-group-header">
+            <h2><i class="fa-solid fa-clock"></i>Latest</h2>
+            <a href="/posts/">
+                <h3>View all</h3> <i class="fa-solid fa-angles-right"></i></i>
+            </a>
+        </div>
+        <div class="post-group-grid">
+            {% for post in latest %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="index-post-group">
+        <div class="post-group-header">
+            <h2><i class="fa-solid fa-wand-magic-sparkles"></i>Recommended</h2>
+            <a href="/posts/">
+                <h3>View all</h3> <i class="fa-solid fa-angles-right"></i></i>
+            </a>
+        </div>
+        <div class="post-group-grid">
+            {% for post in latest %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="index-post-group">
+        <div class="post-group-header">
+            <h2><i class="fa-solid fa-palette"></i>Featured Artist</h2>
+            <a href="/posts/">
+                <h3>View all</h3> <i class="fa-solid fa-angles-right"></i></i>
+            </a>
+        </div>
+        <div class="post-group-grid">
+            {% for post in latest %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="index-post-group">
+        <div class="post-group-header">
+            <h2><i class="fa-solid fa-circle-check"></i>Newly Approved</h2>
+            <a href="/posts/">
+                <h3>View all</h3> <i class="fa-solid fa-angles-right"></i></i>
+            </a>
+        </div>
+        <div class="post-group-grid">
+            {% for post in latest %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="index-post-group">
+        <div class="post-group-header">
+            <h2><i class="fa-solid fa-bed"></i>Mirmirmirmirmir</h2>
+            <a href="/posts/">
+                <h3>View all</h3> <i class="fa-solid fa-angles-right"></i></i>
+            </a>
+        </div>
+        <div class="post-group-grid">
+            {% for post in latest %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="index-post-group">
+        <div class="post-group-header">
+            <h2><i class="fa-solid fa-person-through-window"></i>Dirt Jumping Out A Window</h2>
+            <a href="/posts/">
+                <h3>View all</h3> <i class="fa-solid fa-angles-right"></i></i>
+            </a>
+        </div>
+        <div class="post-group-grid">
+            {% for post in latest %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
 </div>
 
+<!-- Right panel/News -->
+{% include "elements/right_bar.jinja2" %}
 {% endblock %}

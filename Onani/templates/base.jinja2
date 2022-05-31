@@ -3,19 +3,20 @@
 
 <head>
     <title>{{ title }}Onani</title>
-    <!-- META -->
-    <meta charset="utf-8">
-    <link rel="manifest" href="/manifest.json" />
+
     <script type="module">
         import '/static/js/pwaupdate.js';
         const el = document.createElement('pwa-update');
         document.body.appendChild(el);
     </script>
+
+    <!-- META -->
+    <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
     <meta name="apple-mobile-web-app-title" content="Onani">
     <meta name="application-name" content="Onani">
-    <meta name="msapplication-TileColor" content="#000000">
-    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-TileColor" content="#010101">
+    <meta name="theme-color" content="#010101">
     <meta name="description" content="{{ ogdesc }}">
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:description" content="{{ ogdesc }}" />
@@ -27,26 +28,28 @@
     <meta property="og:image" content="{{ ogimage }}" />
     <meta property="og:title" content="{{ ogtitle }}" />
     <meta property="og:type" content="profile" />
-    {#
-        <meta name="trafficjunky-site-verification" content="z3onxx500" />
-        <meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
-        <meta name="exoclick-site-verification"
-              content="bc71ddb7a4f0e8e0b29f4839dfdfd6c9">
-        #}
+
     {% block meta %}
     {% endblock %}
+
     <!-- LINKS -->
     <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
     <link rel="search" type="application/opensearchdescription+xml" href="/static/opensearch.xml" title="Onani">
     <link rel="manifest" href="/static/site.webmanifest">
+    <link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+
+
     <!-- STYLES -->
     <link rel="stylesheet" type="text/css" href="/static/css/onani.style.min.css">
     <link rel="stylesheet" href="/static/css/simplemde.css">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+
     {% block styles %}
     {% endblock %}
+
     <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"
         integrity="sha512-Gs+PsXsGkmr+15rqObPJbenQ2wB3qYvTHuJO6YJzPe/dTLvhy0fmae2BcnaozxDo5iaF8emzmCZWbQ1XXiX2Ig=="
