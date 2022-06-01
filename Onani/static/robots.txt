@@ -1,4 +1,4 @@
-# WE DO NOT LIKE THE CHINESE
+# WE DO NOT LIKE THE [Redacted]
 User-agent: baiduspider
 Disallow: /
 
@@ -7,9 +7,10 @@ User-agent: *
 Disallow: /register
 Disallow: /login
 Disallow: /users
-Disallow: /admin/
+Disallow: /admin
+
 # You have been warned.
-Disallow: /fun/
+Disallow: /fun
 Crawl-delay: 5
 
 # SITEMAP
