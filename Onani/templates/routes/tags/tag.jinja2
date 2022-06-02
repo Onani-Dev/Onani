@@ -10,12 +10,31 @@
 {% include "elements/tag_bar.jinja2" %}
 
 <div id="content-container">
-    <div id="news-article-header">
-        <h1>{{ tag.humanized }}</h1>
+    <div id="article-header">
+        <h1><b class="{{ tag.type.name.lower() }}">{{ tag.humanized }}</b></h1>
+        <h4><b class="{{ tag.type.name.lower() }}">{{ tag.type.name.capitalize() }}</b></h4>
+        <h4>{{ tag.post_count }} Posts</h4>
     </div>
-    <div id="news-article-body">
-        <p>{{ tag.description }}</p>
+    <div id="article-body">
+        {{- '<p>' + tag.description + '</p>' -}} {# fuck html #}
     </div>
+    <div class="index-post-group article">
+        <div class="post-group-header">
+            <h2><i class="fa-solid fa-box-archive"></i>Posts with the tag "{{ tag.humanized }}"</h2>
+            <a href="/posts/?tags={{ tag.name }}">
+                <h3>View all</h3> <i class="fa-solid fa-angles-right"></i></i>
+            </a>
+        </div>
+        <div class="post-group-grid">
+            {% for post in tag.posts %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</div>
 </div>
 
 {% endblock %}

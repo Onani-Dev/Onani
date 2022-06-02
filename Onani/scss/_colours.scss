@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:16
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-31 13:01:44
+ * @Last Modified time: 2022-06-02 13:01:15
  */
 :root {
     // UI Colours
@@ -35,6 +35,15 @@
     --tag-character: #00ff1a40;
     --tag-copyright: #D100D140;
     --tag-meta: #B97B8740;
+
+    // Solid tag colour versions
+    --tag-banned-solid: #ff0000;
+    --tag-general-solid: #9e0909;
+    --tag-artist-solid: #ffff00;
+    --tag-circle-solid: #12BBBB;
+    --tag-character-solid: #00ff1a;
+    --tag-copyright-solid: #D100D1;
+    --tag-meta-solid: #B97B87;
 
     // Alert colours
     --alert-error: #f44336;

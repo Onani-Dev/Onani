@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-27 19:17:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-05 03:04:47
+# @Last Modified time: 2022-06-02 12:18:07
 from flask import abort, current_app, render_template, request
 from Onani.controllers.utils import get_page
 from Onani.models import Tag

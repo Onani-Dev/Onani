@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-01 15:56:46
+ * @Last Modified time: 2022-06-02 13:01:22
  */
 
 html {
@@ -12,6 +12,29 @@ html {
 
 a {
     text-decoration: none;
+}
+
+b {
+    font-weight: bolder;
+    &.general {
+        color: var(--tag-general-solid);
+    }
+
+    &.artist {
+        color: var(--tag-artist-solid);
+    }
+
+    &.character {
+        color: var(--tag-character-solid);
+    }
+
+    &.copyright {
+        color: var(--tag-copyright-solid);
+    }
+
+    &.meta {
+        color: var(--tag-meta-solid);
+    }
 }
 
 h6 {

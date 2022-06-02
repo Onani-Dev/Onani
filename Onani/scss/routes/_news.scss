@@ -2,9 +2,9 @@
  * @Author: kapsikkum
  * @Date:   2022-04-12 18:00:57
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-13 20:25:51
+ * @Last Modified time: 2022-06-02 12:33:42
  */
-#news-article-header {
+#article-header {
     padding: 1em;
     background-color: var(--ui-foreground-header);
     border-radius: 1em 1em 0em 0em;
@@ -14,7 +14,7 @@
     }
 }
 
-#news-article-body {
+#article-body {
     background-color: var(--ui-foreground-2);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -32,5 +32,13 @@
                 
             }
         }
+    }
+}
+
+
+.index-post-group.article {
+    .post-group-header, .post-group-grid  {
+        padding: .5em;
+        margin: 0 1em 0 1em;
     }
 }

@@ -6,11 +6,11 @@
 
 {% block content %}
 <div id="content-container">
-    <div id="news-article-header">
+    <div id="article-header">
         <h1>{{ error.id }}</h1>
         <h2>{{ html.escape(error.exception_type) }}</h2>
     </div>
-    <div id="news-article-body">
+    <div id="article-body">
         <pre><code>{{ html.escape(error.traceback) }}</code></pre>
     </div>
 </div>
