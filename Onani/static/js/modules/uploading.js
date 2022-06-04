@@ -1,10 +1,12 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-04-21 14:56:40
- * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-25 02:17:53
+ * @Last Modified by:   dirt3009
+ * @Last Modified time: 2022-06-05 01:04:16
  */
-import { Pagination } from "./utils.min.js";
+import {
+  Pagination
+} from "./utils.min.js";
 
 class PostUpload {
   constructor() {
@@ -137,4 +139,6 @@ class PostUpload {
   }
 }
 
-export { PostUpload };
+export {
+  PostUpload
+};

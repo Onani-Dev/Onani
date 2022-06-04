@@ -33,6 +33,17 @@
 {% endblock %} #}
 
 {% block content %}
+<script defer>
+var translator = new Translator({
+  filesLocation: '/static/i18n',
+});
+
+// This will fetch "/i18n/de.json" and "/i18n/en.json"
+translator.fetch(['tr', 'en']).then(() => {
+  // You now have both languages available to you
+  translator.translatePageTo('en');
+});
+</script>
 <!-- Left panel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
 <!-- User profile -->
@@ -144,16 +155,16 @@
         {% if current_user.id == user.id %}
         <div id="settings-tab" class="profile-tab-content">
             <div class="profile-tab-bar sub">
-                <button class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
-                <button class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
-                <button class="settings-tab-link" data-tab-content-id="settings-platforms-tab">Platforms</button>
+                <button data-i18n="settings.TAB_ACCOUNT" class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
+                <button data-i18n="settings.TAB_PROFILE" class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
+                <button data-i18n="settings.TAB_PLATFORMS" class="settings-tab-link" data-tab-content-id="settings-platforms-tab">Platforms</button>
                 <!-- <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>-->
             </div>
             <!-- Account settings -->
             <div id="settings-account-tab" class="settings-tab-content" style="display:block;">
                 <form id="settings-account" action="/settings/account/" method="POST">
                     {{ account_form.csrf_token }}
-                    <h2>Account settings</h2>
+                    <h2 data-i18n="settings.ACCOUNT_SETTINGS_HEADER">Account settings</h2>
                     <!-- User Info Settings -->
                     <div class="settings-input-group">
                         <div class="row">
