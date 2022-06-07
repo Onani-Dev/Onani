@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-05-31 14:37:38
  * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-06-07 01:01:34
+ * @Last Modified time: 2022-06-07 18:23:44
  */
 
 .index-post-group {
@@ -81,13 +81,29 @@
     }
     
     .text {
+        position: relative;
+        top: 13em;
+        left:2em;
+        display: flex;
+        align-content: center;
+        align-items: flex-start;
+        flex-wrap: nowrap;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 100;
+
         h1 {
+            margin: unset !important;
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 800;
             position: absolute;
-            z-index: 100;
             bottom: 0.5em;
-            left: 0.5em;
+        }
+
+        p {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            position: absolute;
         }
     }
     .image-overlay {
