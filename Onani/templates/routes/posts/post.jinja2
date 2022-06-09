@@ -29,7 +29,7 @@
     <div class="images-container">
         {% for file in post.files %}
         <div class="file-container">
-            <a href="{{ file.url }}"><img class="main-image" src="{{ file.thumbnail(1000) }}" title="{{ post.title }}"
+            <a href="{{ file.url }}"><img class="main-image" src="{{ file.sample }}" title="{{ post.title }}"
                     alt="{{ post.title }}"></a>
         </div>
         {% endfor %}
@@ -38,7 +38,7 @@
         <div id="post-info-header">
 
             <div id="poster-container" style="background-color:{{ post.uploader.profile_colour }}">
-                <img src="{{ post.uploader.get_avatar(size=30) }}" alt="{{ post.uploader.username }}"
+                <img src="{{ post.uploader.get_avatar(size='xsmall') }}" alt="{{ post.uploader.username }}"
                     title="{{ post.uploader.username }}">
                 <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
             </div>

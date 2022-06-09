@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:33:12
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 01:14:29
+# @Last Modified time: 2022-06-09 05:38:55
 
 from __future__ import annotations
 
@@ -60,8 +60,12 @@ class File(db.Model):
             return hash_
         return None
 
-    def thumbnail(self, size: int = 150) -> str:
-        return f"/thumbnail/{size}x{size}{self.url}"
+    def thumbnail(self, size: str = "small") -> str:
+        return f"/thumbnail{self.url}?size={size}"
+
+    @property
+    def sample(self) -> str:
+        return f"/sample/{self.url.split('/')[-1]}"
 
     def delete(self):
         """Delete this file from the database and the disk.

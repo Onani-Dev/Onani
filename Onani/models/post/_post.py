@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-31 08:50:53
+# @Last Modified time: 2022-06-09 05:39:45
 
 from __future__ import annotations
 
@@ -204,7 +204,7 @@ class Post(db.Model):
         """A string with all the post's tag"""
         return " ".join(t.name for t in self.tags)
 
-    def first_file_thumbnail(self, size: int = 150) -> str:
+    def first_file_thumbnail(self, size: str = "small") -> str:
         if len(self.files) == 0:
             return "/static/image/missing_file.png"
         else:

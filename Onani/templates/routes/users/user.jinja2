@@ -34,15 +34,15 @@
 
 {% block content %}
 <script defer>
-var translator = new Translator({
-  filesLocation: '/static/i18n',
-});
+    var translator = new Translator({
+        filesLocation: '/static/i18n',
+    });
 
-// This will fetch "/i18n/de.json" and "/i18n/en.json"
-translator.fetch(['tr', 'en']).then(() => {
-  // You now have both languages available to you
-  translator.translatePageTo('en');
-});
+    // This will fetch "/i18n/de.json" and "/i18n/en.json"
+    translator.fetch(['tr', 'en']).then(() => {
+        // You now have both languages available to you
+        translator.translatePageTo('en');
+    });
 </script>
 <!-- Left panel/Tags -->
 {% include "elements/tag_bar.jinja2" %}
@@ -51,7 +51,7 @@ translator.fetch(['tr', 'en']).then(() => {
     <div id="profile-info-container">
         <!-- PFP -->
         <div id="profile-picture-container">
-            <img src="{{ user.get_avatar(size=150) }}" id="profile-picture-image" class="{{ pfp_class }}"
+            <img src="{{ user.get_avatar(size='xsmall') }}" id="profile-picture-image" class="{{ pfp_class }}"
                 alt="{{ user.username }}" title="{{ user.username }}">
             </a>
         </div>
@@ -155,9 +155,12 @@ translator.fetch(['tr', 'en']).then(() => {
         {% if current_user.id == user.id %}
         <div id="settings-tab" class="profile-tab-content">
             <div class="profile-tab-bar sub">
-                <button data-i18n="settings.TAB_ACCOUNT" class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
-                <button data-i18n="settings.TAB_PROFILE" class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
-                <button data-i18n="settings.TAB_PLATFORMS" class="settings-tab-link" data-tab-content-id="settings-platforms-tab">Platforms</button>
+                <button data-i18n="settings.TAB_ACCOUNT" class="settings-tab-link"
+                    data-tab-content-id="settings-account-tab">Account</button>
+                <button data-i18n="settings.TAB_PROFILE" class="settings-tab-link"
+                    data-tab-content-id="settings-profile-tab">Profile</button>
+                <button data-i18n="settings.TAB_PLATFORMS" class="settings-tab-link"
+                    data-tab-content-id="settings-platforms-tab">Platforms</button>
                 <!-- <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>-->
             </div>
             <!-- Account settings -->

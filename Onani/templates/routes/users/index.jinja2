@@ -28,7 +28,7 @@
         {% for user in users.items %}
         <tr>
             <td class="profile-picture-cell"><a href="/users/{{ user.id }}" alt="{{ user.username }}"><img
-                        src="{{ user.get_avatar(size=50) }}"></a></td>
+                        src="{{ user.get_avatar(size='xsmall') }}"></a></td>
             <td><a href="/users/{{ user.id }}" alt="{{ user.username }}">{{ user.username }}</a></td>
             <td>{{ user.role.name.capitalize() }}</td>
             <td><a href="/users/{{ user.id }}#posts">{{ humanize.intcomma(user.post_count) }}

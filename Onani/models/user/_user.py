@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-31 08:49:57
+# @Last Modified time: 2022-06-09 05:36:58
 
 from __future__ import annotations
 
@@ -217,7 +217,7 @@ class User(UserMixin, db.Model):
             active = False
         return active
 
-    def get_avatar(self, size: int = None) -> str:
+    def get_avatar(self, size: str = None) -> str:
         """Return the avatar for this user.
 
         Args:
@@ -229,7 +229,7 @@ class User(UserMixin, db.Model):
         if not self.settings.avatar:
             return "/static/image/default.png"
         if size:
-            return f"/thumbnail/{size}x{size}{self.settings.avatar}"
+            return f"/thumbnail{self.settings.avatar}?size={size}"
         return self.settings.avatar
 
     def has_role(self, role: UserRoles) -> bool:
