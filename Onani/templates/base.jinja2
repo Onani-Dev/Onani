@@ -151,14 +151,16 @@
         </div>
     </header>
     <!-- Sidenav -->
-    <div id="side-navigation" class="sidenav">
+    <div id="side-navigation">
         <a href="javascript:void(0)" id="side-navigation-close-button" class="close-button">&times;</a>
-        <a href="/posts/">Posts</a>
-        <a href="/collections/">Collections</a>
-        <a href="/tags/">Tags</a>
-        <a href="/users/">Users</a>
-        <a href="/news/">News</a>
-        <a href="/upload/">Upload</a>
+        <div class="link-container">
+            <a href="/posts/">Posts</a>
+            <a href="/collections/">Collections</a>
+            <a href="/tags/">Tags</a>
+            <a href="/users/">Users</a>
+            <a href="/news/">News</a>
+            <a href="/upload/">Upload</a>
+        </div>
         {% if current_user.is_authenticated %}
         <!-- User customized card -->
         <div class="user-profile-card sidenav-menu">
