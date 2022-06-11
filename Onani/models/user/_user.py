@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-09 05:36:58
+# @Last Modified time: 2022-06-11 06:01:44
 
 from __future__ import annotations
 
@@ -229,7 +229,7 @@ class User(UserMixin, db.Model):
         if not self.settings.avatar:
             return "/static/image/default.png"
         if size:
-            return f"/thumbnail{self.settings.avatar}?size={size}"
+            return f"/{self.settings.avatar.split('/')[1]}/thumbnail/{self.settings.avatar.split('/')[-1]}?size={size}"
         return self.settings.avatar
 
     def has_role(self, role: UserRoles) -> bool:

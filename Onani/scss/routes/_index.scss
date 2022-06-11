@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-05-31 14:37:38
- * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-06-07 18:23:44
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-06-11 06:47:18
  */
 
 .index-post-group {
@@ -90,7 +90,7 @@
         flex-wrap: nowrap;
         justify-content: center;
         flex-direction: column;
-        z-index: 100;
+        z-index: 3;
 
         h1 {
             margin: unset !important;

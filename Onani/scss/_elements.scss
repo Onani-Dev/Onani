@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-02 13:01:22
+ * @Last Modified time: 2022-06-11 05:51:52
  */
 
 html {
@@ -109,6 +109,10 @@ footer {
     a{
         margin: 1em;
     }
+}
+
+iframe {
+    border-radius: 0;
 }
 
 textarea {
