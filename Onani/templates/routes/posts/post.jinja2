@@ -1,6 +1,6 @@
 {% set title = "{title} - ".format(title=post.title) %}
 {% set ogtitle = "{title}".format(title=post.title, score=post.score, comments=post.comments.all()|length) %}
-{% set ogimage = post.first_file_thumbnail(500) %}
+{% set ogimage = post.first_file_thumbnail("xlarge") %}
 
 {% if post.description %}
 {% set ogdesc = post.description %}
@@ -14,7 +14,7 @@
 
 {% block meta %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{ post.first_file_thumbnail(500) }}">
+<meta name="twitter:image" content="{{ post.first_file_thumbnail('xlarge') }}">
 {% endblock %}
 
 {% block bottom_scripts %}
