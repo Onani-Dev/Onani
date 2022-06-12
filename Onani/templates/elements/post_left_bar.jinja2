@@ -1,0 +1,77 @@
+<div id="left-panel">
+    <!-- Tags Section -->
+    <div class="side-container">
+        <h2 class="title">Tags</h2>
+        <ul id="tag-container">
+            {% set sorted_tags = post.sorted_tags %}
+            {% if sorted_tags|length == 0 %}
+            No tags on this post.
+            {% endif %}
+            {% for t in sorted_tags %}
+            <div class="tag-section">
+                <h2>{{ t.name.capitalize() }}</h2>
+                {% for tag in sorted_tags[t] %}
+                <li class=" {{ tag.type.name.lower() }}" onclick="location.href='/posts/?tags={{ tag.name }}'"
+                    title="{{ tag.description }}">
+                    <p>{{ tag.humanized }}</p>
+                </li>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Info Section -->
+    <div class="side-container">
+        <h2 class="title">Info</h2>
+        <ul id="tag-container">
+            {# Date uploaded #}
+            <div class="tag-section">
+                <h4>Date Uploaded</h4>
+                <li class="non-clickable">
+                    <p class="date-format human-time">{{ post.uploaded_at.isoformat() }}</p>
+                </li>
+            </div>
+
+            {# Status #}
+            <div class="tag-section">
+                <h4>Status</h4>
+                <li class="non-clickable">
+                    <p>{{ post.status.name.capitalize() }}</p>
+                </li>
+            </div>
+
+            {# Rating #}
+            <div class="tag-section">
+                <h4>Rating</h4>
+                <li class="non-clickable">
+                    <p>{{ post.rating.name.capitalize() }}</p>
+                </li>
+            </div>
+
+            {# Sources TODO: #115 #}
+            <div class="tag-section">
+                <h4>Sources</h4>
+                <li class="non-clickable" title="{{ post.source }}">
+                    <p>{% if post.source %}<a style="text-decoration:underline;"
+                            href="{{ '{source}?pid={pid}'.format(source=post.source, pid=post.id)  }}"
+                            target="_blank">{{ post.source_hostname }}</a>{% else %}No source
+                        available.{% endif %}</p>
+                </li>
+            </div>
+
+            <div class="tag-section">
+                <h4>Actions</h4>
+                {% if not current_user.is_anonymous %}
+                {% if current_user.can_edit_post(post) %}
+                <li>
+                    <p>Edit Post</p>
+                </li>
+                {% endif %}
+                {% endif %}
+
+            </div>
+
+        </ul>
+    </div>
+</div>

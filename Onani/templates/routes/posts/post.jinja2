@@ -23,7 +23,7 @@
 
 {% block content %}
 <!-- Left panel/Tags -->
-{% include "elements/post_tag_bar.jinja2" %}
+{% include "elements/post_left_bar.jinja2" %}
 
 <div id="content-container" data-post-id="{{ post.id }}">
     <div class="images-container">
@@ -42,12 +42,6 @@
                     title="{{ post.uploader.username }}">
                 <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
             </div>
-
-            {% if not current_user.is_anonymous %}
-            {% if current_user.can_edit_post(post) %}
-            <a id="post-edit-button" class="fa-solid fa-pen-to-square fa-2x" href="/posts/edit/{{ post.id }}"></a>
-            {% endif %}
-            {% endif %}
 
             <div id="voting-container">
                 {% if not current_user.is_anonymous %}
@@ -77,30 +71,6 @@
                 {% set description_class = "system-text" %}
                 {% endif %}
                 <p class="{{ description_class }}">{{ description }}</p>
-            </div>
-
-            <div id="table-container">
-                <table>
-                    <tr>
-                        <th>Uploaded At</th>
-                        <td class="date-format human-time">{{ post.uploaded_at.isoformat() }}</td>
-                    </tr>
-                    <tr>
-                        <th>Status</th>
-                        <td>{{ post.status.name.capitalize() }}</td>
-                    </tr>
-                    <tr>
-                        <th>Rating</th>
-                        <td>{{ post.rating.name.capitalize() }}</td>
-                    </tr>
-                    <tr>
-                        <th>Source</th>
-                        <td>{% if post.source %}<a
-                                href="{{ '{source}?pid={pid}'.format(source=post.source, pid=post.id)  }}"
-                                target="_blank">{{ post.source }}</a>{% else %}No source available.{% endif %}</td>
-                    </tr>
-                </table>
-
             </div>
 
         </div>

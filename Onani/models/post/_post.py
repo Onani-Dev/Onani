@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-09 05:39:45
+# @Last Modified time: 2022-06-12 13:53:41
 
 from __future__ import annotations
 
@@ -121,6 +121,15 @@ class Post(db.Model):
         return html.escape(source)
 
     @property
+    def source_hostname(self) -> Union[str, None]:
+        """Return the hostname for the post's source
+
+        Returns:
+            Union[str, None]: The sources Hostname, or None if there is no source
+        """
+        return self.source.split("/")[2] if self.source else None
+
+    @property
     def score(self) -> int:
         """Get the rating score of this post.
 
@@ -161,20 +170,20 @@ class Post(db.Model):
         # TODO: pick char based on popularity and not alphabetically
         if characters is not None:
             char_str = natural_join(
-                [c.name.capitalize() for c in characters], max_lenght=5
+                [c.humanized.capitalize() for c in characters], max_lenght=5
             )
         else:
             char_str = ""
 
         if artists is not None:
-            artist_str = f"drawn by {natural_join([a.name.capitalize() for a in artists], max_lenght=3)}"
+            artist_str = f"drawn by {natural_join([a.humanized.capitalize() for a in artists], max_lenght=3)}"
 
         else:
             artist_str = ""
 
         if copyrights is not None:
             copyright_str = natural_join(
-                [a.name.capitalize() for a in copyrights], max_lenght=1
+                [a.humanized.capitalize() for a in copyrights], max_lenght=1
             )
         else:
             copyright_str = ""
