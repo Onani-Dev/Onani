@@ -207,8 +207,7 @@ class Post(db.Model):
     def first_file_thumbnail(self, size: str = "small") -> str:
         if len(self.files) == 0:
             return "/static/image/missing_file.png"
-        else:
-            return self.files[0].thumbnail(size)
+        return self.files[0].thumbnail(size)
 
     def __repr__(self):
         return f"<Post {self.__dict__}>"
