@@ -6,8 +6,6 @@
 {% extends "base.jinja2" %}
 
 {% block content %}
-<!-- Left panel/Tags -->
-{% include "elements/tag_bar.jinja2" %}
 
 <div id="content-container">
     <div id="article-header">
@@ -21,4 +19,5 @@
     </div>
 </div>
 
+{% include "elements/right_bar.jinja2" %}
 {% endblock %}
