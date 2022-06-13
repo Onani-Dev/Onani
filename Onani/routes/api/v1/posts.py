@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-05-24 07:29:27
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-13 20:58:11
+# @Last Modified by:   dirt3009
+# @Last Modified time: 2022-06-13 20:48:35
 import contextlib
 
 from flask import current_app
@@ -221,13 +221,13 @@ class Post(Resource):
         return self.put()
 
 
-# class PostTemplated(Resource):
-#     def get(self, id):
-#         post = _Post.query.filter_by(id=id).first_or_404()
-#         return PostSchema().dump(post)
+class PostTemplated(Resource):
+    def get(self, id):
+        post = _Post.query.filter_by(id=id).first_or_404()
+        return PostSchema().dump(post)
 
 
 api.add_resource(Posts, "/posts")
 api.add_resource(PostVote, "/posts/vote")
-# api.add_resource(PostTemplated, "/posts/<id>")
+api.add_resource(PostTemplated, "/posts/<id>")
 api.add_resource(Post, "/post")
