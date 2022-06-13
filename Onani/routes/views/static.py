@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-09 03:00:18
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-31 08:57:52
+# @Last Modified by:   dirt3009
+# @Last Modified time: 2022-06-14 00:24:51
 
 from flask import render_template
 from flask_login import login_required
@@ -17,7 +17,17 @@ def gen_204():
 
 @main.route("/dmca/")
 def dmca_page():
-    return render_template("/routes/dmca/index.jinja2")
+    return render_template("/routes/legal/dmca.jinja2")
+
+
+@main.route("/terms/")
+def terms_page():
+    return render_template("/routes/legal/terms.jinja2")
+
+
+@main.route("/privacy/")
+def privacy_page():
+    return render_template("/routes/legal/privacy.jinja2")
 
 
 @main.route("/developers/")
