@@ -31,7 +31,6 @@ class Comments(Resource):
     @permissions_required(UserPermissions.CREATE_COMMENTS)
     def post(self):
         """Create a comment on a post. Requires UserPermissions.CREATE_COMMENTS"""
-
         # Init parser
         parser = reqparse.RequestParser()
 
