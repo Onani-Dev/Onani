@@ -47,7 +47,6 @@ class BaseImporter(ABC):
 
     def __init_subclass__(cls, URLs: List[str]) -> None:
         """Registers the subclass to IMPORTERS. One instance is made per url in URLs"""
-
         # We register instances of the importer to the dict
         # IMPORTERS.append(cls())
         for url in URLs:
