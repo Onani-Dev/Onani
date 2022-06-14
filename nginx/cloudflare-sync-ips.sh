@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-05-15 06:44:45
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-15 07:25:27
+# @Last Modified time: 2022-06-14 06:59:05
 
 CLOUDFLARE_FILE_PATH=${1:-/etc/nginx/cloudflare}
 
@@ -21,7 +21,7 @@ for i in `curl -s -L https://www.cloudflare.com/ips-v6`; do
 done
 
 echo "" >> $CLOUDFLARE_FILE_PATH;
-echo "real_ip_header X-Forwarded-For;" >> $CLOUDFLARE_FILE_PATH;
+# echo "real_ip_header X-Forwarded-For;" >> $CLOUDFLARE_FILE_PATH;
 
 #test configuration and reload nginx
 # nginx -t && rc-service nginx restart

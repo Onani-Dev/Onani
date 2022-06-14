@@ -8,7 +8,7 @@ COPY ./nginx/nginx.conf /etc/nginx/conf.d
 
 
 RUN rm /etc/nginx/nginx.conf
-COPY ./nginx/nginx_sys.conf /etc/nginx/nginx.conf
+COPY ./nginx/nginx_main.conf /etc/nginx/nginx.conf
 
 # COPY ./nginx/proxy_params /etc/nginx/proxy_params
 
