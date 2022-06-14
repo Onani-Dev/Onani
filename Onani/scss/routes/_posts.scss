@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-12 13:14:54
+ * @Last Modified time: 2022-06-14 13:39:02
  */
 
 #posts-container {
@@ -441,7 +441,7 @@ img.post-thumbnail {
                         margin-bottom: auto;
 
                         @include for-mobile-only {
-                            margin-left: auto;
+                            margin-left: unset;
                         }
                     }
                 }

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-14 11:04:46
+ * @Last Modified time: 2022-06-14 13:36:07
  */
 // Main Onani logo
 #logo {
@@ -304,6 +304,10 @@ header.navbar {
 
 
     div.login-register-buttons {
+        @extend .link-container;
+        overflow: unset;
+        height: unset;
+        
         bottom: 65px;
         margin-left: auto;
         position: absolute;
