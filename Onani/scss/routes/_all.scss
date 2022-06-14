@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:06:35
- * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-06-13 22:20:28
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-06-14 11:07:05
  */
 
 img.emoji {
@@ -34,9 +34,10 @@ img.emoji {
         left: initial;
         transform: initial;
         padding: 1em;
+        border-radius: 5px;
     }
 
-    h1.login-header {
+    .login-header {
         flex-direction: column;
         font-family: 'Tomorrow', sans-serif;
         font-size: 2em;
@@ -47,8 +48,13 @@ img.emoji {
         user-select: none;
     }
 
-    div.auth-footer {
+    .login-box-footer {
         margin: 1em 0.5em 1em 0.5em;
+
+        .login-box-terms {
+            margin-top: 1em;
+            font-size: x-small;
+        }
     }
 
     form {
@@ -71,6 +77,7 @@ img.emoji {
             padding: 5px 10px 5px 10px;
             text-align: center;
             width: 210px;
+
             @include for-mobile-only {
                 margin: 10px;
                 padding: 15px;

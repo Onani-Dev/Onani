@@ -23,7 +23,7 @@
     @include for-mobile-only {
         margin-right: auto;
         margin-left: auto;
-        padding: 0px;
+        padding: 0;
     }
 }
 
@@ -270,7 +270,7 @@ img.post-thumbnail {
             background-color: var(--ui-foreground-1);
             padding: 20px;
             min-height: 10em;
-            // margin: 1.25em 1.25em 0em 0em;
+            // margin: 1.25em 1.25em 0 0;
 
             @include for-mobile-only {
                 width: auto;

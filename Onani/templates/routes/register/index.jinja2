@@ -10,7 +10,7 @@
 <div class="login-box">
     <h1 class="login-header">Register</h1>
     <!-- Form -->
-    <form action="/register/" method="POST" enctype='multipart/form-data'>
+    <form action="/register/" method="POST" enctype="multipart/form-data">
         {{ form.csrf_token }}
         {{ form.username() }}
         {{ form.email() }}
@@ -34,11 +34,10 @@
         password.onchange = validatePassword;
         confirmPassword.onkeyup = validatePassword;
     </script>
-    <div class="auth-footer">
-        <p class="have-account">Already have an account? <a href="/login/"><b>Login</b></a></p>
-        <p class="i-accept">By registering, you agree to our <a href="/terms/"><b>Terms of Service</b></a> and <a
-                href="/privacy/"><b>Privacy
-                    Policy</b></a>.</p>
+    <div class="login-box-footer">
+        <p>Already have an account? <a href="/login/"><b>Login</b></a></p>
+        <p class="login-box-terms">By registering, you agree to our <a href="/terms/"><b>Terms of Service</b></a> and <a
+                href="/privacy/"><b>Privacy Policy</b></a>.</p>
     </div>
     {% include "elements/form_errors.jinja2" %}
 </div>

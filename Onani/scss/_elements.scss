@@ -98,7 +98,7 @@ footer {
     align-content: center;
     align-items: center;
     background-color: var(--ui-foreground-2);
-    border-radius: 15px 15px 0px 0px;
+    border-radius: 15px 15px 0 0;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -123,7 +123,7 @@ textarea {
 }
 
 table {
-    border-spacing: 0px 0px;
+    border-spacing: 0 0;
     width: 100%;
     empty-cells: show;
     table-layout: fixed;
@@ -173,7 +173,7 @@ tr {
     td.profile-picture-cell {
         width: 50px;
         white-space: nowrap;
-        padding: 5px 5px 0px 5px;
+        padding: 5px 5px 0 5px;
 
         img {
             width: 50px;
@@ -184,7 +184,7 @@ tr {
     th.profile-picture-cell {
         width: 50px;
         white-space: nowrap;
-        padding: 5px 5px 0px 5px;
+        padding: 5px 5px 0 5px;
     }
 
     &.general {

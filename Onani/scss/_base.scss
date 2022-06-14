@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-23 13:21:42
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-12 13:32:28
+ * @Last Modified time: 2022-06-14 11:04:46
  */
 // Main Onani logo
 #logo {
@@ -220,7 +220,7 @@ header.navbar {
                 border: 0;
                 display: inline-flex;
                 font-size: 16px;
-                padding: 0px 15px 0px 15px;
+                padding: 0 15px 0 15px;
                 text-align: start;
                 vertical-align: middle;
                 width: 215px;
@@ -247,7 +247,7 @@ header.navbar {
 
 #side-navigation {
     background-color: var(--ui-foreground-header);
-    border-radius: 15px 0px 15px 15px;
+    border-radius: 15px 0 15px 15px;
     height: 100%;
     overflow-x: hidden;
     position: fixed;
@@ -401,7 +401,7 @@ div#content-container {
     @include for-mobile-only {
         margin-right: auto;
         margin-left: auto;
-        padding: 0px;
+        padding: 0;
     }
 }
 
@@ -430,7 +430,7 @@ div#left-panel {
         background-color: var(--ui-foreground-2);
         padding: 10px;
         min-height: 6em;
-        border-radius: 0px 0px 15px 15px;
+        border-radius: 0 0 15px 15px;
 
         .tag-section {
             margin-bottom: 10px;
@@ -538,13 +538,13 @@ div#right-panel {
     h2.title {
         padding: 10px;
         background-color: var(--ui-foreground-header);
-        border-radius: 15px 15px 0px 0px;
+        border-radius: 15px 15px 0 0;
     }
 
     .side-title {
         display: flex;
         background-color: var(--ui-foreground-header);
-        border-radius: 15px 15px 0px 0px;
+        border-radius: 15px 15px 0 0;
 
         i {
             margin-top: auto;
@@ -564,7 +564,7 @@ div#right-panel {
         height: 18em;
         background-color: var(--ui-foreground-2);
         overflow-y: scroll;
-        border-radius: 0px 0px 15px 15px;
+        border-radius: 0 0 15px 15px;
 
         li {
             background-color: var(--ui-foreground-1);
@@ -710,7 +710,7 @@ div#right-panel {
 // div.dropdown-content {
 //     animation: fadein 0.2s;
 //     background-color: var(--ui-back-colour);
-//     box-shadow: 0px 8px 16px 0px var(--ui-box-shadow);
+//     box-shadow: 0 8px 16px 0 var(--ui-box-shadow);
 //     display: none;
 //     min-width: 50px;
 //     opacity: 100%;

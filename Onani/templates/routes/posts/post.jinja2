@@ -8,7 +8,15 @@
 {% set ogdesc = "View on Onani." %}
 {% endif %}
 
-{% set ogdesc = "{score}👍 | {comments}💬\n{ogdesc}".format(score=post.score, comments=post.comments.all()|length, ogdesc=ogdesc) %}
+{% if post.score|int > 0 %}
+{% set score_icon = "👍" %}
+{% elif post.score|int < 0 %}
+{% set score_icon = "👎" %}
+{% else %}
+{% set score_icon = "🤜" %}
+{% endif %}
+
+{% set ogdesc = "{score} {score_icon} | {comments}💬\n{ogdesc}".format(score=post.score, score_icon=score_icon, comments=post.comments.all()|length, ogdesc=ogdesc) %}
 
 {% extends "base.jinja2" %}
 

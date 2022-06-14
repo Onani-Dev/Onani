@@ -12,7 +12,7 @@
     .post-group-header {
         padding: 10px;
         background-color: var(--ui-foreground-header);
-        border-radius: 15px 15px 0px 0px;
+        border-radius: 15px 15px 0 0;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -51,7 +51,7 @@
         background-color: var(--ui-foreground-2);
         padding: 10px;
         min-height: 10em;
-        border-radius: 0px 0px 15px 15px;
+        border-radius: 0 0 15px 15px;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(11em, 1fr));
 
