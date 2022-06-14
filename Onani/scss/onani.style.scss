@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-01 11:59:50
+ * @Last Modified time: 2022-06-14 13:50:12
 */
 @import "mixins";
 
@@ -31,6 +31,7 @@
     scrollbar-color: var(--ui-foreground-header) var(--ui-background-colour);
     scrollbar-width: thin;
     border-radius: 1em;
+    list-style-position: inside;
 }
 
 [class*="cm-"],
