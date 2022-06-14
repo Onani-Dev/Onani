@@ -18,7 +18,6 @@ def sitemap():
     lastmod and priority tags omitted on static pages.
     lastmod included on dynamic content such as blog posts.
     """
-
     host_components = urlparse(request.host_url)
     host_base = f"{host_components.scheme}://{host_components.netloc}"
 

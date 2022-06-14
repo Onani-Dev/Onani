@@ -17,7 +17,6 @@ def find_importer(url: str) -> Optional[Type[BaseImporter]]:
     Finds the appropriate importer from a URL
     This functions also handles normalising the URL
     """
-
     # First we fix and normalise the URL
     try:
         normalized_url = url_fix(url)
