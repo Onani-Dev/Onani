@@ -1,0 +1,77 @@
+{% set title = "Roleplay - " %}
+{% set ogtitle = "Roleplay" %}
+{% set ogdesc = "Internal component test." %}
+{% set ogimage = "/static/android-chrome-512x512.png" %}
+
+{% extends "base.jinja2" %}
+
+{% block content %}
+<!-- Left panel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+
+<div id="content-container">
+    <div id="roleplay-listings">
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Saul Goodman</h1>
+                <p>If I ever get anal polyps, I'll know what to name them.</p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Walter White</h1>
+                <p>I watched Jane die. I was there. And I
+                    watched her die.</p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Badger</h1>
+                <p>Put me on your magical boat, man, and sail me down your chocolaty river of meth!</p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Jesse Pinkman</h1>
+                <p>Did you know that there's an acceptable level of rat turds that can go into candy bars? It's the...
+                </p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Walter White</h1>
+                <p>I did it for me. I liked it. I was good at it. And I was really... I was alive.</p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Hank Schrader</h1>
+                <p>You're the smartest guy I ever met, and you're too stupid to see he made up his mind 10 minutes ago.
+                </p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Jesse Pinkman</h1>
+                <p>Alright, tell you what. Both of you pull it out your butts right now, or I go grab a flashlight and
+                    some pliers...</p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Jesse Pinkman</h1>
+                <p>This is my own private domicile and I will not be harassed... bitch!</p>
+            </div>
+        </div>
+        <div id="roleplay-box">
+            <div id="box-content">
+                <h1>Gustavo Fring</h1>
+                <p>May his death satisfy you.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Right panel/News -->
+{% include "elements/right_bar.jinja2" %}
+{% endblock %}
