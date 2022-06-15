@@ -140,7 +140,7 @@
                 {% for post in posts.items %}
                 <div class="post-thumbnail-container">
                     <a href="/posts/{{ post.id }}">
-                        <img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail">
+                        <img src="{{ post.thumbnail() }}" class="post-thumbnail">
                     </a>
                 </div>
                 {% endfor %}

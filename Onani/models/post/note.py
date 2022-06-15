@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-03 00:20:05
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-20 16:17:05
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-06-15 15:51:45
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
@@ -12,7 +12,7 @@ from sqlalchemy.orm import validates
 from . import db
 
 if TYPE_CHECKING:
-    from Onani.models.post.file import File
+    from Onani.models.post import Post
 
 
 class Note(db.Model):
@@ -24,9 +24,9 @@ class Note(db.Model):
 
     id: int = db.Column(db.Integer, primary_key=True)
 
-    file_id: int = db.Column(db.Integer, db.ForeignKey("files.id"), nullable=False)
-    file: File = db.relationship(
-        "File", backref="file_notes", lazy="joined", uselist=False, viewonly=True
+    post_id: int = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
+    post: Post = db.relationship(
+        "Post", backref="post_notes", lazy="joined", uselist=False, viewonly=True
     )
 
     text: str = db.Column(db.String)

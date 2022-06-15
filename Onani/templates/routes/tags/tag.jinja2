@@ -27,7 +27,7 @@
         <div class="post-group-grid">
             {% for post in tag.posts %}
             <div class="post-thumbnail-container" title="{{ post.title }}">
-                <a href="/posts/{{ post.id }}"><img src="{{ post.first_file_thumbnail() }}" class="post-thumbnail"></a>
+                <a href="/posts/{{ post.id }}"><img src="{{ post.thumbnail() }}" class="post-thumbnail"></a>
             </div>
             {% endfor %}
         </div>

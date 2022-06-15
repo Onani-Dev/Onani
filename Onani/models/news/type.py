@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-04-09 01:56:43
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-13 23:06:26
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-06-15 13:15:23
 import enum
 
 
 class NewsType(enum.Enum):
-    ANNOUNCEMENT = enum.auto()
-    MAINTENENCE = enum.auto()
-    WARNING = enum.auto()
-    COMMUNITY = enum.auto()
-    UPDATE = enum.auto()
-    POLL = enum.auto()
-    DISCUSSION = enum.auto()
+    ANNOUNCEMENT = 0
+    MAINTENENCE = 1
+    WARNING = 2
+    COMMUNITY = 3
+    UPDATE = 4
+    POLL = 5
+    DISCUSSION = 6
 
     def __int__(self):
         return self.value
