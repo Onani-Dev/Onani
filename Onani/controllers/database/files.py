@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-15 15:25:43
+# @Last Modified time: 2022-06-15 17:29:42
 
 import hashlib
 import io
@@ -89,9 +89,11 @@ def create_avatar(user: User, base64_file: str) -> str:
         hash_md5,
         width,
         height,
-        url,
+        filename,
         file_type,
-    ) = get_file_data(avatar, path="/avatars/")
+    ) = get_file_data(avatar)
+
+    url = f"/avatars/{filename}"
 
     # Check the width and height
     if width != height:
