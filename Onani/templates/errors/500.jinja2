@@ -7,17 +7,18 @@
 {% block content %}
 <div id="error-container">
     <h1>Internal Server Error</h1>
+    <img src="/static/image/missing_file.png">
     <p>
         {% if current_user.is_authenticated %}
         {% if current_user.is_admin %}
-        Error id: <strong><a href="{{ url_for('admin.error_view', error_id=error.id) }}">{{ error.id }}</a></strong><br>
+        Error Trace ID: <strong><a
+                href="{{ url_for('admin.error_view', error_id=error.id) }}">{{ error.id }}</a></strong><br>
         {% else %}
-        Error id: <strong>{{ error.id }}</strong><br>
+        Error Trace ID: <strong>{{ error.id }}</strong><br>
         {% endif %}
         {% else %}
-        Error id: <strong>{{ error.id }}</strong><br>
+        Error Trace ID: <strong>{{ error.id }}</strong><br>
         {% endif %}
-        HTTP error code: <strong>{{ code }}</strong><br>
     </p>
 </div>
 {% endblock %}

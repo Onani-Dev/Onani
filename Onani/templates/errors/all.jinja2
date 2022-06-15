@@ -1,12 +1,17 @@
-{% set title = "Error - " %}
-{% set ogtitle = "Error" %}
-{% set ogdesc = "Oops" %}
+{% set title = "{code} - ".format(code=exception.code) %}
+{% set ogtitle = "Error {code}".format(code=exception.code) %}
+{% set ogdesc = exception.description %}
 
 {% extends "base.jinja2" %}
 
 {% block content %}
 <div id="error-container">
     <h1>{{ exception.code }}: {{ exception.name }}</h1>
+    {% if exception.code in [404, 403, 418, 429] %}
+    <img src="/static/image/{{ exception.code }}.gif">
+    {% else %}
+    <img src="/static/image/missing_file.png">
+    {% endif %}
     <p>{{ exception.description }}</p>
 </div>
 {% endblock %}
