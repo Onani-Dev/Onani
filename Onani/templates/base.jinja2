@@ -37,6 +37,8 @@
     {# That way they can be overwritten by child template if need be #}
     {% if ogimage is not defined %}
         {% set ogimage = "/static/android-chrome-512x512.png" %}
+    {% else %}
+        {% set twitterimage = ogimage %}
     {% endif %}
 
     <!-- META -->
@@ -49,7 +51,9 @@
     <meta name="description" content="{{ ogdesc }}">
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:description" content="{{ ogdesc }}" />
-    <meta name="twitter:image:src" content="{{ ogimage }}" />
+    {% if twitterimage is defined %}
+    <meta name="twitter:image:src" content="{{ twitterimage }}" />
+    {% endif %}
     <meta name="twitter:site" content="{{ request.base_url }}">
     <meta name="twitter:title" content="{{ ogtitle }}" />
     <meta property="og:description" content="{{ ogdesc }}" />
