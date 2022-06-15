@@ -1,8 +1,8 @@
 /*
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
- * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-15 08:48:55
+ * @Last Modified by:   dirt3009
+ * @Last Modified time: 2022-06-15 16:43:12
 */
 @import "mixins";
 
@@ -21,6 +21,7 @@
 @import "routes/dmca";
 @import "routes/index";
 @import "routes/roleplay";
+@import "routes/errors";
 
 * {
     -webkit-font-smoothing: subpixel-antialiased;

@@ -1,0 +1,37 @@
+/**
+ * @Author: kapsikkum
+ * @Date:   2022-06-15 13:42:41
+ * @Last Modified by:   kapsikkum
+ * @Last Modified time: 2022-06-15 14:19:13
+ */
+
+#error-container {
+    @extend .login-box;
+
+    max-width: 25em;
+    width: 25em;
+    max-height: 70vh;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: space-between;
+
+    @include for-mobile-only {
+        width: 85vw;
+    }
+
+    img {
+        width: 100%;
+        border-radius: 5px;
+    }
+
+    h1 {
+        margin-bottom: 1em;
+        font-family: 'Tomorrow', sans-serif;
+    }
+
+    p {
+        margin-top: 1em;
+    }
+
+}
