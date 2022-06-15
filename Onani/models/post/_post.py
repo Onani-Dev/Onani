@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-12 13:53:41
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-06-15 16:47:45
 
 from __future__ import annotations
 
 import datetime
 import html
 from collections import defaultdict
+import os
 from typing import TYPE_CHECKING, Dict, List, Union
 
 from Onani.controllers.utils import natural_join
@@ -16,13 +17,14 @@ from Onani.models.user._user import User
 from sqlalchemy import func
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.query import Query
-from sqlalchemy_utils import ChoiceType, JSONType, URLType
+from sqlalchemy_utils import ChoiceType, JSONType
 
 from ..tag import Tag, TagType
 from . import PostRating, PostStatus, db
+from . import FileType, db
 
 if TYPE_CHECKING:
-    from Onani.models.file._file import File
+    from Onani.models.post.note import Note
 
 post_upvotes = db.Table(
     "post_upvotes",
@@ -79,12 +81,8 @@ class Post(db.Model):
     # the post's description
     description: str = db.Column(db.String)
 
-    # The post's file(s). has information on file sizes etc
-    files: File = db.relationship("File", backref="post_files", lazy="joined")
-
     # The post's uploader. is a user.
     uploader_id: int = db.Column(db.Integer, db.ForeignKey("users.id"))
-
     uploader: User = db.relationship(
         "User", backref="uploads", lazy="joined", uselist=False
     )
@@ -111,6 +109,26 @@ class Post(db.Model):
 
     # Will be the link to the original post that it is imported from. will be none if the post is not imported
     imported_from: Union[str, None] = db.Column(db.String)
+
+    # The file's notes. those little thingys on the image over the japanese text :)
+    notes: List[Note] = db.relationship("Note", backref="file_notes", lazy="joined")
+
+    # ===== File =====
+    filename: str = db.Column(db.String, unique=True)
+
+    sha256_hash: str = db.Column(db.String, unique=True, index=True)
+    md5_hash: str = db.Column(db.String, index=True)
+
+    width: int = db.Column(db.Integer)
+    height: int = db.Column(db.Integer)
+
+    filesize: int = db.Column(db.Integer)
+
+    type: FileType = db.Column(
+        ChoiceType(FileType, impl=db.Integer()),
+        default=FileType.IMAGE,
+        nullable=False,
+    )
 
     @validates("description")
     def validate_description(self, key, description):
@@ -213,10 +231,34 @@ class Post(db.Model):
         """A string with all the post's tag"""
         return " ".join(t.name for t in self.tags)
 
-    def first_file_thumbnail(self, size: str = "small") -> str:
-        if len(self.files) == 0:
-            return "/static/image/missing_file.png"
-        return self.files[0].thumbnail(size)
+    # ===== File =====
+
+    @validates("sha256_hash")
+    def validate_hash(self, key, hash_):
+        if hash_:
+            if Post.query.filter(Post.sha256_hash == hash_).first():
+                raise ValueError("Post already exists.")
+            return hash_
+        return None
+
+    def thumbnail(self, size: str = "small") -> str:
+        return (
+            f"/images/thumbnail/{self.filename}?size={size}"
+        )
+
+    @property
+    def sample(self) -> str:
+        return f"/sample/{self.filename}"
+
+    def delete(self):
+        """Delete this file from the database and the disk.
+
+        Raises:
+            Exception: The file couldn't be deleted.
+        """
+        os.remove(self.url)
+        db.session.delete(self)
+        db.session.commit()
 
     def __repr__(self):
         return f"<Post {self.__dict__}>"

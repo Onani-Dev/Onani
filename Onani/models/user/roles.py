@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-13 00:37:46
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-22 00:47:17
-from enum import Enum, auto
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-06-15 13:17:38
 
+import enum
 
-class UserRoles(Enum):
+class UserRoles(enum.Enum):
     """
     role for User models.
     """
 
-    MEMBER = auto()
-    ARTIST = auto()
-    PREMIUM = auto()
-    HELPER = auto()
-    MODERATOR = auto()
-    ADMIN = auto()
+    MEMBER = 0
+    ARTIST = 1
+    PREMIUM = 2
+    HELPER = 100
+    MODERATOR = 200
+    ADMIN = 300
     OWNER = 666
 
     def __int__(self):

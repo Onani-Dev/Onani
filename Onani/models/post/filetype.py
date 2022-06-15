@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# @Author: kapsikkum
-# @Date:   2022-05-01 21:55:41
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-01 22:15:46
-import enum
+# @Author: Mattlau04
+# @Date:   2022-06-15 13:00:32
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-06-15 13:14:49
 
+import enum
 
 class FileType(enum.Enum):
     """
@@ -12,8 +12,8 @@ class FileType(enum.Enum):
     Can be: VIDEO or IMAGE
     """
 
-    IMAGE = enum.auto()
-    VIDEO = enum.auto()
+    IMAGE = 0
+    VIDEO = 1
 
     def __int__(self):
         return self.value

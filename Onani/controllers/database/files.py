@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-13 13:24:14
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2022-06-15 15:25:43
 
 import hashlib
 import io
@@ -13,13 +13,14 @@ from typing import List, Tuple
 from urllib.request import urlopen
 
 from flask_login import current_user
-from Onani.models import File, Post, User
+from Onani.models import User
 from PIL import Image
 
 from . import db
 
+"""All those functions are used by Post, but in a different file for posts.py not to be too long"""
 
-def determine_meta_tags(width, height, filesize, file_type) -> list:
+def determine_meta_tags(width, height, filesize, file_type) -> list[str]:
     meta_tags = []
 
     # Determine width
@@ -52,7 +53,7 @@ def determine_meta_tags(width, height, filesize, file_type) -> list:
     return meta_tags
 
 
-def get_file_data(file_data: bytes, path: str = "/images/"):
+def get_file_data(file_data: bytes):
     # The File-Like image object
     image_file = io.BytesIO(file_data)
 
@@ -70,49 +71,10 @@ def get_file_data(file_data: bytes, path: str = "/images/"):
     width, height = im.size
     file_type = im.format.lower()
 
-    # The files URL to write to
-    url = f"{path}{hash_sha256}.{file_type}"
+    # The filename to write to
+    filename = f"{hash_sha256}.{file_type}"
 
-    return image_file, filesize, hash_sha256, hash_md5, width, height, url, file_type
-
-
-def create_files(post: Post, file_datas: List[bytes]) -> List[File]:
-    meta_tags = []
-
-    for file_data in file_datas:
-        (
-            image_file,
-            filesize,
-            hash_sha256,
-            hash_md5,
-            width,
-            height,
-            url,
-            file_type,
-        ) = get_file_data(file_data)
-
-        # File is here to prevent writing to disk if this fails.
-        file = File(
-            url=url,
-            md5_hash=hash_md5,
-            sha256_hash=hash_sha256,
-            width=width,
-            height=height,
-            filesize=filesize,
-        )
-
-        # write to file
-        with open(url, "wb") as f:
-            image_file.seek(0)
-            f.write(image_file.read())
-
-        post.files.append(file)
-
-        # Get meta tags based off of this shit idfk
-        meta_tags.extend(determine_meta_tags(width, height, filesize, file_type))
-
-    # Return the files
-    return post.files, meta_tags
+    return image_file, filesize, hash_sha256, hash_md5, width, height, filename, file_type
 
 
 def create_avatar(user: User, base64_file: str) -> str:

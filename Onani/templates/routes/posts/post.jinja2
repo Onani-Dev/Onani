@@ -1,19 +1,19 @@
 {% set title = "{title} - ".format(title=post.title) %}
 {% set ogtitle = "{title}".format(title=post.title, score=post.score, comments=post.comments.all()|length) %}
-{% set ogimage = post.first_file_thumbnail("xlarge") %}
+{% set ogimage = post.thumbnail("xlarge") %}
 
 {% if post.description %}
-{% set ogdesc = post.description %}
+    {% set ogdesc = post.description %}
 {% else %}
-{% set ogdesc = "View on Onani." %}
+    {% set ogdesc = "View on Onani." %}
 {% endif %}
 
 {% if post.score|int > 0 %}
-{% set score_icon = "👍" %}
+    {% set score_icon = "👍" %}
 {% elif post.score|int < 0 %}
-{% set score_icon = "👎" %}
+    {% set score_icon = "👎" %}
 {% else %}
-{% set score_icon = "🤜" %}
+    {% set score_icon = "🤜" %}
 {% endif %}
 
 {% set ogdesc = "{score} {score_icon} | {comments}💬\n{ogdesc}".format(score=post.score, score_icon=score_icon, comments=post.comments.all()|length, ogdesc=ogdesc) %}
@@ -22,7 +22,7 @@
 
 {% block meta %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{ post.first_file_thumbnail('xlarge') }}">
+<meta name="twitter:image" content="{{ post.thumbnail('xlarge') }}">
 {% endblock %}
 
 {% block bottom_scripts %}
@@ -35,12 +35,10 @@
 
 <div id="content-container" data-post-id="{{ post.id }}">
     <div class="images-container">
-        {% for file in post.files %}
         <div class="file-container">
-            <a href="{{ file.url }}"><img class="main-image" src="{{ file.sample }}" title="{{ post.title }}"
+            <a href="{{ post.url }}"><img class="main-image" src="{{ post.sample }}" title="{{ post.title }}"
                     alt="{{ post.title }}"></a>
         </div>
-        {% endfor %}
     </div>
     <div class="post-info-box">
         <div id="post-info-header">

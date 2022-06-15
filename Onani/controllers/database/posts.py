@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-27 22:49:58
+# @Last Modified time: 2022-06-15 16:32:07
 
 from typing import Iterable, List, Set
 
@@ -15,7 +15,8 @@ from Onani.models import Post, PostComment, PostRating, Tag, TagType, User
 from PIL import UnidentifiedImageError
 from sqlalchemy import func
 
-from . import create_files, db
+from . import db
+from .files import get_file_data, determine_meta_tags
 
 
 def create_comment(author: User, post: Post, content: str) -> PostComment:
@@ -136,29 +137,43 @@ def upload_post(form: UploadForm):
     post.uploader = current_user
     post.rating = form.rating.data
 
-    # Get the files
-    files = request.files.getlist(form.files.name)
+    # Get the file
+    file = request.files.getlist(form.file.name)[0]
 
-    # Turn the files into bytes.
-    datas = (f.stream.read() for f in files)
+    # Turn the file into bytes.
+    file_data = file.stream.read()
 
     # Split and Delete duplicate tags
-    tags = set(form.tags.data.split(" "))
-
-    # save the files and add them to the post
+    tags: set[str] = set(form.tags.data.split(" "))
+        
+    # Get metadata from the file
     try:
-        files, meta_tags = create_files(post, datas)
-        tags.update(meta_tags)
+        (
+            image_file,
+            filesize,
+            hash_sha256,
+            hash_md5,
+            width,
+            height,
+            filename,
+            file_type,
+        ) = get_file_data(file_data)
+    except UnidentifiedImageError as e:
+        form.file.errors.append("Image file could not be opened.")
+    except ValueError as e:
+        form.file.errors.append(str(e))
+    else:
         # Add tagme tag for posts with less than 10 tags
         if len(tags) <= 10:
             tags.add("meta:tagme")
-    except UnidentifiedImageError as e:
-        form.files.errors.append("Image file could not be opened.")
-    except ValueError as e:
-        form.files.errors.append(str(e))
-    else:
-        tags = parse_tags(post, tags)
-        for t in tags:
+            
+        # Get meta tags based off of this shit idfk
+        tags.update(determine_meta_tags(width, height, filesize, file_type))
+
+        # Then turn all those strings into actual tags
+        parsed_tags = parse_tags(post, tags)
+            
+        for t in parsed_tags:
             # add the tag to the post
             post.tags.append(t)
 
@@ -173,6 +188,20 @@ def upload_post(form: UploadForm):
             func.count()
         ).scalar()
 
+
+
+        post.filename = filename
+        post.md5_hash = hash_md5
+        post.sha256_hash = hash_sha256
+        post.width = width
+        post.height = height
+        post.filesize = filesize
+
+        # write to file
+        with open(f"/images/{filename}", "wb") as f:
+            image_file.seek(0)
+            f.write(image_file.read())
+    
         # Add post to session
         db.session.add(post)
 

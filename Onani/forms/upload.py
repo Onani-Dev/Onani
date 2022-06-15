@@ -2,19 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-28 10:36:45
+# @Last Modified time: 2022-06-15 14:32:12
 
 from flask_wtf import FlaskForm, RecaptchaField
 from flask_wtf.file import FileAllowed
 from Onani.models import PostRating
-from wtforms import MultipleFileField, SelectField, StringField, SubmitField
+from wtforms import SelectField, StringField, SubmitField, FileField
 from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
 from wtforms.widgets import TextArea
 
 
 class UploadForm(FlaskForm):
-    files = MultipleFileField(
-        "Files",
+    file = FileField(
+        "File",
         render_kw={
             "id": "file-upload",
             "accept": "image/gif, image/jpeg, image/png, image/webp",
