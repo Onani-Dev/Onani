@@ -23,6 +23,11 @@
         })(window, document, "clarity", "script", "c53mpr32xa");
     </script>
 
+    {# That way they can be overwritten by child template if need be #}
+    {% if ogimage is not defined %}
+        {% set ogimage = "/static/android-chrome-512x512.png" %}
+    {% endif %}
+
     <!-- META -->
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1" name="viewport">
@@ -41,6 +46,8 @@
     <meta property="og:image" content="{{ ogimage }}" />
     <meta property="og:title" content="{{ ogtitle }}" />
     <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content="Onani" />
+    <meta property="og:url" content="{{ request.base_url }}" />
 
     {% block meta %}
     {% endblock %}

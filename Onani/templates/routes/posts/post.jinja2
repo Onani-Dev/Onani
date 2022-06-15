@@ -3,17 +3,17 @@
 {% set ogimage = post.first_file_thumbnail("xlarge") %}
 
 {% if post.description %}
-{% set ogdesc = post.description %}
+    {% set ogdesc = post.description %}
 {% else %}
-{% set ogdesc = "View on Onani." %}
+    {% set ogdesc = "View on Onani." %}
 {% endif %}
 
 {% if post.score|int > 0 %}
-{% set score_icon = "👍" %}
+    {% set score_icon = "👍" %}
 {% elif post.score|int < 0 %}
-{% set score_icon = "👎" %}
+    {% set score_icon = "👎" %}
 {% else %}
-{% set score_icon = "🤜" %}
+    {% set score_icon = "🤜" %}
 {% endif %}
 
 {% set ogdesc = "{score} {score_icon} | {comments}💬\n{ogdesc}".format(score=post.score, score_icon=score_icon, comments=post.comments.all()|length, ogdesc=ogdesc) %}
