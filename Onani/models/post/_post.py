@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-15 16:47:45
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-06-16 12:29:27
 
 from __future__ import annotations
 
@@ -242,13 +242,15 @@ class Post(db.Model):
         return None
 
     def thumbnail(self, size: str = "small") -> str:
-        return (
-            f"/images/thumbnail/{self.filename}?size={size}"
-        )
+        return f"/images/thumbnail/{self.filename}?size={size}"
 
     @property
     def sample(self) -> str:
         return f"/sample/{self.filename}"
+
+    @property
+    def file_url(self) -> str:
+        return f"/images/{self.filename}"
 
     def delete(self):
         """Delete this file from the database and the disk.
@@ -256,7 +258,7 @@ class Post(db.Model):
         Raises:
             Exception: The file couldn't be deleted.
         """
-        os.remove(self.url)
+        os.remove(self.file_url)
         db.session.delete(self)
         db.session.commit()
 

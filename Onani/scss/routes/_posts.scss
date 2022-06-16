@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-14 13:39:02
+ * @Last Modified time: 2022-06-16 13:13:18
  */
 
 #posts-container {
@@ -122,9 +122,18 @@ img.post-thumbnail {
     }
 }
 
-.images-container {
+.file-container {
+    align-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    margin-bottom: auto;
     margin-left: auto;
     margin-right: auto;
+    margin-top: auto;
+    margin: 0 auto;
     padding: 1em;
     text-decoration: none;
     user-select: none;
@@ -137,24 +146,13 @@ img.post-thumbnail {
         padding: 0.5rem;
     }
 
-    .file-container {
-        display: flex;
-        margin: 0 auto;
-        margin-top: auto;
-        margin-bottom: auto;
-        flex-wrap: nowrap;
-        flex-direction: row;
-        align-content: center;
-        justify-content: center;
-        align-items: center;
-    }
 }
 
 .post-info-box {
     background-color: var(--ui-foreground-2);
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 50px;
+    margin-bottom: 1em;
     min-height: 6em;
     padding: 1em;
     width: 60vw;
@@ -305,7 +303,7 @@ img.post-thumbnail {
     }
 }
 
-.comments-box {
+.post-comments-box {
     margin-left: auto;
     margin-right: auto;
     padding: 50px;
@@ -470,5 +468,21 @@ img.post-thumbnail {
                 }
             }
         }
+    }
+}
+
+.post-edit-box {
+    display: none;
+    background-color: var(--ui-foreground-2);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1em;
+    min-height: 6em;
+    padding: 1em;
+    width: 60vw;
+    overflow-wrap: anywhere;
+
+    @include for-mobile-only {
+        width: 80vw;
     }
 }

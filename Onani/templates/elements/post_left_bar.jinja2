@@ -24,7 +24,7 @@
     <!-- Info Section -->
     <div class="side-container">
         <h2 class="title">Info</h2>
-        <ul id="tag-container">
+        <ul class="tag-container">
             {# Date uploaded #}
             <div class="tag-section">
                 <h4>Date Uploaded</h4>
@@ -37,7 +37,7 @@
             <div class="tag-section">
                 <h4>Status</h4>
                 <li class="non-clickable">
-                    <p>{{ post.status.name.capitalize() }}</p>
+                    {{ post.status.name.capitalize() }}
                 </li>
             </div>
 
@@ -45,18 +45,17 @@
             <div class="tag-section">
                 <h4>Rating</h4>
                 <li class="non-clickable">
-                    <p>{{ post.rating.name.capitalize() }}</p>
+                    {{ post.rating.name.capitalize() }}
                 </li>
             </div>
 
             {# Sources TODO: #115 #}
             <div class="tag-section">
-                <h4>Sources</h4>
+                <h4>Source</h4>
                 <li class="non-clickable" title="{{ post.source }}">
-                    <p>{% if post.source %}<a style="text-decoration:underline;"
-                            href="{{ '{source}?pid={pid}'.format(source=post.source, pid=post.id)  }}"
-                            target="_blank">{{ post.source_hostname }}</a>{% else %}No source
-                        available.{% endif %}</p>
+                    {% if post.source %}<a style="text-decoration:underline;" href="{{ post.source  }}"
+                        target="_blank">{{ post.source_hostname }}</a>{% else %}No source
+                    available.{% endif %}
                 </li>
             </div>
 
@@ -64,12 +63,14 @@
                 <h4>Actions</h4>
                 {% if not current_user.is_anonymous %}
                 {% if current_user.can_edit_post(post) %}
-                <li>
-                    <p>Edit Post</p>
+                <li id="edit-mode-button">
+                    Edit Post
                 </li>
                 {% endif %}
                 {% endif %}
-
+                <li>
+                    Report Post
+                </li>
             </div>
 
         </ul>

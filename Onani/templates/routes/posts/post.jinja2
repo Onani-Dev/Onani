@@ -3,17 +3,17 @@
 {% set ogimage = post.thumbnail("xlarge") %}
 
 {% if post.description %}
-    {% set ogdesc = post.description %}
+{% set ogdesc = post.description %}
 {% else %}
-    {% set ogdesc = "View on Onani." %}
+{% set ogdesc = "View on Onani." %}
 {% endif %}
 
 {% if post.score|int > 0 %}
-    {% set score_icon = "👍" %}
+{% set score_icon = "👍" %}
 {% elif post.score|int < 0 %}
-    {% set score_icon = "👎" %}
+{% set score_icon = "👎" %}
 {% else %}
-    {% set score_icon = "🤜" %}
+{% set score_icon = "🤜" %}
 {% endif %}
 
 {% set ogdesc = "{score} {score_icon} | {comments}💬\n{ogdesc}".format(score=post.score, score_icon=score_icon, comments=post.comments.all()|length, ogdesc=ogdesc) %}
@@ -34,15 +34,14 @@
 {% include "elements/post_left_bar.jinja2" %}
 
 <div id="content-container" data-post-id="{{ post.id }}">
-    <div class="images-container">
-        <div class="file-container">
-            <a href="{{ post.url }}"><img class="main-image" src="{{ post.sample }}" title="{{ post.title }}"
-                    alt="{{ post.title }}"></a>
-        </div>
+    <div class="file-container">
+        <a href="{{ post.file_url }}"><img class="main-image" loading="lazy" src="{{ post.sample }}"
+                title="{{ post.title }}" alt="{{ post.title }}"></a>
     </div>
-    <div class="post-info-box">
-        <div id="post-info-header">
 
+    {# Post info box #}
+    <div class="post-info-box" id="info-box">
+        <div id="post-info-header">
             <div id="poster-container" style="background-color:{{ post.uploader.profile_colour }}">
                 <img src="{{ post.uploader.get_avatar(size='xsmall') }}" alt="{{ post.uploader.username }}"
                     title="{{ post.uploader.username }}">
@@ -81,7 +80,9 @@
 
         </div>
     </div>
-    <div class="comments-box">
+
+    {# Comments Box #}
+    <div class="post-comments-box" id="comments-box">
         <h1 id="comments-header">Comments</h1>
         {% if not current_user.is_anonymous %}
         <div class="post-comment-input-container">
@@ -99,6 +100,12 @@
             <a href="javascript:void(0)" class="fa-solid fa-chevron-right" id="comments-control-right"
                 style="visibility:hidden;"></a>
         </div>
+    </div>
+
+    {# Edit Mode Box #}
+    <div class="post-edit-box" id="edit-box">
+        <div class="radio-container"> </div>
+
     </div>
 </div>
 
