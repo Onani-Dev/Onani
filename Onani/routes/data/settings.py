@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-20 01:04:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-26 15:55:16
+# @Last Modified time: 2022-06-16 07:52:02
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user
 from Onani.controllers import create_avatar
+from Onani.controllers.utils import flash_form_errors
 from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
 from Onani.models import Ban, Post, Tag
 
@@ -28,6 +29,10 @@ def settings_account():
             current_user.set_password(form.new_password.data)
 
         db.session.commit()
+
+    # Flash all the errors that may be present in the form
+    flash_form_errors(form)
+
     return redirect(url_for("main.get_user", user_id=current_user.id))
 
 
@@ -47,6 +52,8 @@ def settings_profile():
             )  # TODO Validation of hex code
 
         db.session.commit()
+    # Flash all the errors that may be present in the form
+    flash_form_errors(form)
 
     return redirect(url_for("main.get_user", user_id=current_user.id))
 
@@ -65,5 +72,8 @@ def settings_platforms():
         }
 
         db.session.commit()
+
+    # Flash all the errors that may be present in the form
+    flash_form_errors(form)
 
     return redirect(url_for("main.get_user", user_id=current_user.id))

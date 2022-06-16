@@ -2,17 +2,18 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-14 12:12:06
+# @Last Modified time: 2022-06-16 07:50:54
 import html
 from datetime import datetime, timedelta, timezone
 
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, logout_user
 from Onani.controllers import user_login
+from Onani.controllers.utils import flash_form_errors
 from Onani.forms import LoginForm, RegistrationForm
 from Onani.models import User
 
-from . import db, main, limiter
+from . import db, limiter, main
 
 
 @main.route("/login/", methods=["GET", "POST"])
@@ -37,6 +38,9 @@ def login():
             return redirect(url_for("main.login"))
 
         return user_login(user, form.password.data)
+
+    # Flash all the errors that may be present in the form
+    flash_form_errors(form)
 
     # Render the login page when visited.
     return render_template("/routes/login/index.jinja2", form=form)
@@ -69,6 +73,9 @@ def register():
         user.save_to_db()
 
         return user_login(user, form.password.data)
+
+    # Flash all the errors that may be present in the form
+    flash_form_errors(form)
 
     # Render the registration page
     return render_template("/routes/register/index.jinja2", form=form)

@@ -2,11 +2,11 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-31 09:08:00
+# @Last Modified time: 2022-06-16 07:57:16
 
 from typing import List, Optional, Tuple
 
-from flask import request
+from flask import flash, request
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:
@@ -108,3 +108,9 @@ def complete_file_url(file_url: str) -> str:
         str: The full url
     """
     return f"{request.base_url}{file_url.lstrip('/')}"
+
+
+def flash_form_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(error, "error")  # f"Error in the {field.capitalize()} field: {error}"
