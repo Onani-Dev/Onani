@@ -2,11 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-16 07:50:54
+# @Last Modified time: 2022-06-17 15:01:19
 import html
 from datetime import datetime, timedelta, timezone
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, logout_user
 from Onani.controllers import user_login
 from Onani.controllers.utils import flash_form_errors
@@ -84,6 +84,17 @@ def register():
 @main.route("/logout/")
 @login_required
 def logout():
+    # Call the logout user for flask-login
     logout_user()
+
+    # Show a success message
     flash("Successfully logged out.", "success")
-    return redirect(url_for("main.login"))
+
+    # Create the response to set a cookie
+    response = redirect(url_for("main.login"))
+
+    # Delete current user's ID cookie
+    response.delete_cookie("current_user_id")
+
+    # Redirect to login page
+    return response
