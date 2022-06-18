@@ -9,7 +9,8 @@
 {% include "elements/tag_bar.jinja2" %}
 <!-- Post thumbnails -->
 <div id="posts-container">
-    <div class="index-hero-post">
+
+    <div class="index-hero-post" onclick="location.href='/posts/{{ first_post.id }}'">
         <div class="index-hero-image-overlay" style="background-image:url('{{ first_post.sample }}');">
             <div class="index-hero-text-container">
                 <h1>{{ first_post.title }}</h1>
@@ -17,6 +18,7 @@
             </div>
         </div>
     </div>
+
     <div class="index-post-group">
         <div class="post-group-header">
             <h2><i class="fa-solid fa-clock"></i>Latest</h2>
