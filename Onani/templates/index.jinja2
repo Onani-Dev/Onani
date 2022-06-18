@@ -10,12 +10,11 @@
 <!-- Post thumbnails -->
 <div id="posts-container">
     <div class="index-hero-post">
-        <div class="text">
-            <h1>Title</h1>
-            <p>Hello</p>
-        </div>
-        <div class="image-overlay">
-            <img src="https://onani.xyz/sample/0821bde9a7f9f793cc6d137e2f0f9305f1b6fb54b1b0e18e8c6d0bab641731be.jpeg">
+        <div class="index-hero-image-overlay" style="background-image:url('{{ first_post.sample }}');">
+            <div class="index-hero-text-container">
+                <h1>{{ first_post.title }}</h1>
+                <p>Uploaded by {{ first_post.uploader.username }}</p>
+            </div>
         </div>
     </div>
     <div class="index-post-group">

@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-05-31 14:37:38
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-11 06:47:18
+ * @Last Modified time: 2022-06-18 10:52:54
  */
 
 .index-post-group {
@@ -67,47 +67,38 @@
 
 .index-hero-post {
     // background-color: var(--ui-foreground-2);
-    padding: 10px;
+    padding-bottom: 1em;
     min-height: 10em;
     border-radius: 15px;
     display: grid;
     position: relative;
 
-    img {
-        // position: absolute;
-        width: 100%;
-        max-height: 15em;
-        object-fit: cover;
-    }
-    
-    .text {
+    .index-hero-image-overlay {
         position: relative;
-        top: 13em;
-        left:2em;
         display: flex;
-        align-content: center;
-        align-items: flex-start;
-        flex-wrap: nowrap;
-        justify-content: center;
-        flex-direction: column;
-        z-index: 3;
+        background-color: var(--ui-foreground-header);
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        min-height: 15em;
+        flex-direction: row;
+        align-content: flex-start;
+        justify-content: flex-start;
+        align-items: flex-end;
 
-        h1 {
-            margin: unset !important;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 800;
-            position: absolute;
-            bottom: 0.5em;
+        .index-hero-text-container {
+            margin: 1em;
+            padding: 1em;
+            z-index: 2;
+            background-color: rgba(0, 0, 0, 0.726);
+
+            h1, p {
+                margin: unset !important;
+                // font-family: 'Plus Jakarta Sans', sans-serif;
+            }
+
         }
 
-        p {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 600;
-            position: absolute;
-        }
-    }
-    .image-overlay {
-        position: relative;
         &::after {
             content: '';
             position: absolute;
