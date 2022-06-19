@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 12:55:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-18 14:08:59
+ * @Last Modified time: 2022-06-19 13:38:02
  */
 
 /**
@@ -177,12 +177,13 @@ const escapeButton = (e) => {
 
 // Text copy function
 const copyText = (text) => {
+  let alerter = new Alerter();
   navigator.clipboard.writeText(text).then(
     function () {
-      alert("Copied to clipboard!");
+      alerter.success("Copied to clipboard!", true);
     },
     function () {
-      alert("Failed to copy.");
+      alerter.error("Failed to copy.", true);
     }
   );
 };

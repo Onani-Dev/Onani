@@ -30,6 +30,7 @@
 {% endblock %}
 
 {% block content %}
+
 <!-- Left panel/Tags -->
 {% include "elements/post_left_bar.jinja2" %}
 
@@ -75,7 +76,9 @@
                 {% set description = "Post has no description." %}
                 {% set description_class = "system-text" %}
                 {% endif %}
-                <p class="{{ description_class }}">{{ description }}</p>
+                <p class="{{ description_class }} twemoji-format">
+                    {{- emoji.emojize(description, language="alias", use_aliases=True) -}}
+                </p>
             </div>
 
         </div>
@@ -104,7 +107,14 @@
 
     {# Edit Mode Box #}
     <div class="post-edit-box" id="edit-box">
-
+        {{ edit_form.parent() }}
+        {{ edit_form.rating() }}
+        {{ edit_form.source() }}
+        {{ edit_form.description() }}
+        {{ edit_form.tags() }}
+        {{ edit_form.old_tags() }}
+        <button id="post-edit-box-save" type="button">Save</button>
+        <button id="post-edit-box-cancel" type="button">Cancel</button>
     </div>
 </div>
 

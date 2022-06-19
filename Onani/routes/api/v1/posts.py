@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-05-24 07:29:27
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-13 20:58:11
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-06-19 13:56:28
 import contextlib
 
 from flask import current_app
@@ -132,20 +132,20 @@ class Post(Resource):
         parser = reqparse.RequestParser()
 
         parser.add_argument(
-            "id", location="args", type=int, default=None, required=True
+            "id", location="json", type=int, default=None, required=True
         )
 
         parser.add_argument(
-            "old_tags", location="args", type=str, default=None, required=False
+            "old_tags", location="json", type=str, default=None, required=False
         )
 
         parser.add_argument(
-            "tags", location="args", type=str, default=None, required=False
+            "tags", location="json", type=str, default=None, required=False
         )
 
         parser.add_argument(
             "rating",
-            location="args",
+            location="json",
             type=str,
             default=None,
             required=False,
@@ -155,12 +155,12 @@ class Post(Resource):
         )
 
         parser.add_argument(
-            "source", location="args", type=str, default=None, required=False, trim=True
+            "source", location="json", type=str, default=None, required=False, trim=True
         )
 
         parser.add_argument(
             "description",
-            location="args",
+            location="json",
             type=str,
             default=None,
             required=False,

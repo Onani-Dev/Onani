@@ -59,6 +59,31 @@
                 </li>
             </div>
 
+            {# Dimensions #}
+            <div class="tag-section">
+                <h4>File Dimensions</h4>
+                <li class="non-clickable">
+                    {{ post.width }} x {{ post.height }}
+                </li>
+            </div>
+
+            {# Filesize #}
+            <div class="tag-section">
+                <h4>Filesize</h4>
+                <li class="non-clickable">
+                    {{ humanize.naturalsize(post.filesize) }}
+                </li>
+            </div>
+
+            {# Hashes #}
+            <div class="tag-section">
+                <h4>MD5 Hash</h4>
+                <li class="non-clickable">
+                    <code>{{ post.md5_hash }}</code>
+                </li>
+            </div>
+
+            {# User Actions #}
             <div class="tag-section">
                 <h4>Actions</h4>
                 {% if not current_user.is_anonymous %}

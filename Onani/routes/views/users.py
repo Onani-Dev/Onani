@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-26 15:54:47
+# @Last Modified time: 2022-06-19 13:45:05
 
 import html
 
@@ -32,7 +32,7 @@ def get_users():
 @main.route("/users/<user_id>")
 def get_user(user_id=None):
     # Check if it is a valid number
-    if not user_id.isdigit():
+    if not user_id or not user_id.isdigit():
         # abort, it's not a number
         abort(404)
 

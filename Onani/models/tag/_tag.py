@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-01 18:09:00
+# @Last Modified time: 2022-06-19 09:56:26
 
 from __future__ import annotations
 
@@ -64,7 +64,7 @@ class Tag(db.Model):
     user_id: int = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     @validates("url", "user", "user_id")
-    def validate_description(self, key, value):
+    def validate_artist_tag(self, key, value):
         # ARTISTS ONLY!!!!!
         return None if self.type != TagType.ARTIST else value
 
@@ -85,6 +85,19 @@ class Tag(db.Model):
             str: The humanized string (name)
         """
         return self.name.replace("_", " ")  # .capitalize()
+
+    @property
+    def text_format(self) -> str:
+        """Return a string for the Tag used in user specifying tag types.
+
+        Returns:
+            str: The string
+        """
+        return (
+            f"{self.type.name.lower()}:{self.name}"
+            if self.type != TagType.GENERAL
+            else self.name
+        )
 
     def save_to_db(self):
         db.session.add(self)
