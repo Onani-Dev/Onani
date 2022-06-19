@@ -38,7 +38,7 @@ def natural_join(l: List[str], *, max_lenght: Optional[int] = None) -> str:
         l = l[:max_lenght]  # We remove the excess
         l.append(extra)  # and replace it with "X more"
 
-    return f"{', '.join(l[:-1])}, and {l[-1]}"
+    return f"{', '.join(l[:-1])} and {l[-1]}"
 
 
 def get_page() -> int:
