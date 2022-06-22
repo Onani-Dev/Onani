@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-10 22:13:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-16 07:52:17
+# @Last Modified time: 2022-06-19 15:57:14
 from flask import redirect, render_template, url_for
 from flask_login import login_required
 from Onani.controllers import upload_post
@@ -18,7 +18,7 @@ def upload():
     form = UploadForm()
     if form.validate_on_submit():
         if post := upload_post(form):
-            return redirect(url_for("main.post_index", post_id=post.id))
+            return redirect(url_for("main.post_page", post_id=post.id))
 
     # Flash all the errors that may be present in the form
     flash_form_errors(form)
