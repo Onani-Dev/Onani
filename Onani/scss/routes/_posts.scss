@@ -1,8 +1,8 @@
 /**
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
- * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-19 13:29:49
+ * @Last Modified by:   dirt3009
+ * @Last Modified time: 2022-06-23 18:40:04
  */
 
 #posts-container {
@@ -487,6 +487,18 @@ img.post-thumbnail {
     padding: 1em;
     width: 60vw;
 
+    .post-edit-tesc {
+        display: flex;
+        padding: 1em;
+        gap: 0.5em;
+    }
+
+    .post-edit-buttons {
+        display: flex;
+        padding: 1em;
+        gap: 0.5em;
+    }
+
     select {
         background-color: var(--ui-foreground-1);
         width: 11em;
@@ -520,10 +532,16 @@ img.post-thumbnail {
         width: auto;
     }
 
+    #post-edit-box-cancel {
+        color: var(--tag-banned-solid);
+    }
+
     textarea {
         resize: none;
         width: 25em;
         height: 10em;
+        padding: 10px;
+        text-align: left;
         background-color: var(--ui-foreground-1);
     }
 

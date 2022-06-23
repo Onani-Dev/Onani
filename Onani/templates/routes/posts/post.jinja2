@@ -107,14 +107,23 @@
 
     {# Edit Mode Box #}
     <div class="post-edit-box" id="edit-box">
-        {{ edit_form.parent() }}
-        {{ edit_form.rating() }}
-        {{ edit_form.source() }}
-        {{ edit_form.description() }}
-        {{ edit_form.tags() }}
+        <div class="post-edit-tesc" style="
+            display: grid;
+            grid-template-columns: repeat(2, auto);
+            padding: 1em;
+            gap: 0.5em;
+        ">
+            {{ edit_form.description() }}
+            {{ edit_form.tags() }}
+        </div>
         {{ edit_form.old_tags() }}
-        <button id="post-edit-box-save" type="button">Save</button>
-        <button id="post-edit-box-cancel" type="button">Cancel</button>
+        {{ edit_form.parent() }}
+        {{ edit_form.source() }}
+        {{ edit_form.rating() }}
+        <div class="post-edit-buttons">
+            <button id="post-edit-box-save" type="button">Save</button>
+            <button id="post-edit-box-cancel" type="button">Cancel</button>
+        </div>
     </div>
 </div>
 
