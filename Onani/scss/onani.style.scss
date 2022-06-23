@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2020-08-14 21:37:59
  * @Last Modified by:   dirt3009
- * @Last Modified time: 2022-06-15 16:43:12
+ * @Last Modified time: 2022-06-23 21:41:29
 */
 @import "mixins";
 
@@ -22,11 +22,12 @@
 @import "routes/index";
 @import "routes/roleplay";
 @import "routes/errors";
+@import "routes/collections";
 
 * {
     -webkit-font-smoothing: subpixel-antialiased;
     color: var(--text-colour-1);
-    font-family: 'Lato', sans-serif;
+    font-family: "Lato", sans-serif;
     margin: 0;
     padding: 0;
     scrollbar-color: var(--ui-foreground-header) var(--ui-background-colour);

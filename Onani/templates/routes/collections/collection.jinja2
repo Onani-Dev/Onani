@@ -1,0 +1,47 @@
+{% set title = "Collection - " %}
+{% set ogtitle = "Onani" %}
+{% set ogdesc = "i forgor." %}
+
+{% if request.args.get("tags") %}
+{% set search_box_value = request.args.get("tags") %}
+{% else %}
+{% set search_box_value = "" %}
+{% endif %}
+{% extends "base.jinja2" %}
+
+{% block content %}
+<!-- Left panel/Tags -->
+{% include "elements/tag_bar.jinja2" %}
+<!-- Post thumbnails -->
+<div class="collection-content">
+    <div class="collection-info-box">
+        <div class="collection-info-box-header">
+            <h2><i class="fa-solid fa-info"></i>Child gore • 175 posts</h2>
+        </div>
+        <div class="collection-info">
+            <div>
+                Created by <b>dirt</b><br>
+                Last updated <b>April 10, 2022, 3:59 AM GMT+10</b><br>
+                Created <b>April 10, 2022, 3:59 AM GMT+10</b><br>
+            </div>
+        </div>
+    </div>
+    <div class="collection-posts" id="posts-container">
+        {% if posts.items|length <= 0 %}
+        <h1>Sorry nothing</h1>
+        {% else %}
+        <div class="grid">
+            {% for post in posts.items %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.thumbnail() }}" class="post-thumbnail"></a>
+            </div>
+            {% endfor %}
+        </div>
+        {% set pagination = posts %}
+        {% set page_url = "/posts/" %}
+        {% include "elements/pagination.jinja2" %}
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
