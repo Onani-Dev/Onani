@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-27 18:17:02
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-06-26 09:36:16
 import os
 
 # Flask Config
@@ -29,6 +29,8 @@ SESSION_COOKIE_SAMESITE = "strict"
 PREFERRED_URL_SCHEME = "https"
 
 # Onani settings
+POST_MIN_TAGS = 10
+TAG_CHAR_LIMIT = 64
 PER_PAGE_POSTS = 90
 PER_PAGE_USER_POSTS = 50
 PER_PAGE_USERS = 30

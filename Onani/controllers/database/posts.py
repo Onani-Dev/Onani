@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-15 16:32:07
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-06-26 10:57:50
 
 from typing import Iterable, List, Set
 
 from emoji import emojize
-from flask import request
+from flask import current_app, flash, request
 from flask_login import current_user
 from Onani.controllers.utils import startswith_min
 from Onani.forms import UploadForm
@@ -16,7 +16,7 @@ from PIL import UnidentifiedImageError
 from sqlalchemy import func
 
 from . import db
-from .files import get_file_data, determine_meta_tags
+from .files import determine_meta_tags, get_file_data
 
 
 def create_comment(author: User, post: Post, content: str) -> PostComment:
@@ -52,19 +52,21 @@ def format_tag(tag: str) -> str:
     if not tag:
         return ""
 
-    if len(tag) > 64:
-        # Maybe display a warning to the user?
+    if len(tag) > current_app.config["TAG_CHAR_LIMIT"]:
+        flash(
+            f'Tag "{tag}" was not added due to it being over the tag character limit ({current_app.config["TAG_CHAR_LIMIT"]}).',
+            "warning",
+        )
         return ""
 
     tag = tag.replace(" ", "_")
     return tag
 
 
-def parse_tags(post: Post, tags: Iterable[str]) -> List[Tag]:
+def parse_tags(tags: Iterable[str]) -> List[Tag]:
     """Parses a list of tags for meta tags, and returns the list of tags to actually add to the post
 
     Args:
-        post (Post): The post that the tags will be added to (used by meta tags)
         tags (Iterable[str]): a list of the tags to parse
 
     Returns:
@@ -85,17 +87,6 @@ def parse_tags(post: Post, tags: Iterable[str]) -> List[Tag]:
             prefix, tag_no_prefix = tag_str.split(":", 1)
             prefix = prefix.strip()
             tag_no_prefix = tag_no_prefix.strip()
-            # Checks for meta tags
-            if prefix == "pool" or startswith_min("collection", prefix, 3):
-                # TODO: Add the post to the pool
-                continue  # don't add the tag to the post
-
-            if startswith_min("source", prefix, 3):
-                # TODO: add source validation
-                post.source = tag_no_prefix
-                continue  # don't add the tag to the post
-
-            # TODO: implement rating metatag
 
             # We check for types
             for type in TagType:
@@ -109,19 +100,25 @@ def parse_tags(post: Post, tags: Iterable[str]) -> List[Tag]:
                     tag_str = tag_no_prefix
                     break
 
-        # /!\ We should only reach here if the tag is not a metatag
-        # that shouldn't be added to the post
-
         # Check if the tag exists and make it if not
         if tag_str:  # Musn't be empty (can happen with 'char:' for exemple)
             tag = Tag.query.filter_by(name=tag_str).first()
+
+            if tag and new_tag_type and tag.type != new_tag_type:
+                # The modified tag name to deal with name conflicts
+                new_tag_name = f"{tag_str}_({new_tag_type.name.lower()})"
+
+                # Find if it already exists
+                tag = Tag.query.filter_by(name=new_tag_name).first()
+
+                # create it if it doesnt exist
+                if not tag:
+                    tag = Tag(name=new_tag_name, post_count=0, type=new_tag_type)
+
             if not tag:
                 # make it and add it to the session
                 tag = Tag(name=tag_str, post_count=0)
                 db.session.add(tag)
-
-            if new_tag_type is not None:
-                tag.type = new_tag_type
 
             taglist.append(tag)
 
@@ -145,7 +142,7 @@ def upload_post(form: UploadForm):
 
     # Split and Delete duplicate tags
     tags: set[str] = set(form.tags.data.split(" "))
-        
+
     # Get metadata from the file
     try:
         (
@@ -159,20 +156,18 @@ def upload_post(form: UploadForm):
             file_type,
         ) = get_file_data(file_data)
     except UnidentifiedImageError as e:
-        form.file.errors.append("Image file could not be opened.")
+        form.file.errors.append(
+            f"The file {form.file.name} could not be read, Please ensure it is supported and not corrupted/broken."
+        )
     except ValueError as e:
         form.file.errors.append(str(e))
     else:
-        # Add tagme tag for posts with less than 10 tags
-        if len(tags) <= 10:
-            tags.add("meta:tagme")
-            
         # Get meta tags based off of this shit idfk
-        tags.update(determine_meta_tags(width, height, filesize, file_type))
+        tags.update(determine_meta_tags(width, height, filesize, file_type, len(tags)))
 
         # Then turn all those strings into actual tags
-        parsed_tags = parse_tags(post, tags)
-            
+        parsed_tags = parse_tags(tags)
+
         for t in parsed_tags:
             # add the tag to the post
             post.tags.append(t)
@@ -188,8 +183,7 @@ def upload_post(form: UploadForm):
             func.count()
         ).scalar()
 
-
-
+        # Add all post info to the post object
         post.filename = filename
         post.md5_hash = hash_md5
         post.sha256_hash = hash_sha256
@@ -201,7 +195,7 @@ def upload_post(form: UploadForm):
         with open(f"/images/{filename}", "wb") as f:
             image_file.seek(0)
             f.write(image_file.read())
-    
+
         # Add post to session
         db.session.add(post)
 

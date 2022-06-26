@@ -2,14 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2022-05-24 07:29:27
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-19 13:56:28
+# @Last Modified time: 2022-06-26 09:47:23
 import contextlib
 
 from flask import current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.controllers import create_comment, permissions_required
-from Onani.controllers.database import parse_tags
+from Onani.controllers.database import determine_meta_tags, parse_tags
 from Onani.models import Post as _Post
 from Onani.models import PostRating, PostSchema
 
@@ -186,6 +186,7 @@ class Post(Resource):
         # We put tag handling at the end so meta tags will take priority
         if args["tags"] is not None:
             tags = set(args["tags"].split(" "))
+
             if args["old_tags"] is not None:
                 # If old_tags is set, we can use a differential approach to avoid race conditions
                 # in case someone else edited the posts while another one was editing it
@@ -194,25 +195,42 @@ class Post(Resource):
                 added_tags = tags.difference(
                     old_tags
                 )  # Tags in "tags" but not in "old_tags"
+
                 removed_tags = old_tags.difference(
                     tags
                 )  # Tags in "old_tags" but not in "tags"
                 # tags that are in both are ignored as they were not edited
 
                 # meta tags in removed_tags shouldn't be applied, but we need to parse so it can't really be avoided
-                removed_tags = parse_tags(post, removed_tags)
+                removed_tags = parse_tags(removed_tags)
+
                 # added_tags might contain meta tags, so we parse for those
-                added_tags = parse_tags(post, added_tags)
+                added_tags = parse_tags(added_tags)
 
                 post.tags.extend(added_tags)
+
                 # it'd be easier to remove if post.tags was a set but whatever
                 for t in removed_tags:
                     with contextlib.suppress(ValueError):
                         post.tags.remove(t)
 
+                # Redetermine the meta tags
+                post.tags.extend(
+                    parse_tags(
+                        determine_meta_tags(
+                            post.width,
+                            post.height,
+                            post.filesize,
+                            post.filename.split(".")[1],
+                            len(post.tags),
+                        )
+                    )
+                )
+
             else:
                 # we don't have old_tags, we just replace tags blindly
-                post.tags = parse_tags(post, tags)
+                # We shouldn't...
+                post.tags = parse_tags(tags)
 
         db.session.commit()
         return PostSchema().dump(post)
@@ -221,13 +239,6 @@ class Post(Resource):
         return self.put()
 
 
-# class PostTemplated(Resource):
-#     def get(self, id):
-#         post = _Post.query.filter_by(id=id).first_or_404()
-#         return PostSchema().dump(post)
-
-
 api.add_resource(Posts, "/posts")
 api.add_resource(PostVote, "/posts/vote")
-# api.add_resource(PostTemplated, "/posts/<id>")
 api.add_resource(Post, "/post")

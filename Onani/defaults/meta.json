@@ -44,7 +44,7 @@
     "description": "Posts with GIFs"
 },
 {
-    "name": "tagme",
+    "name": "tag_request",
     "type": 5,
     "description": "Posts with a small amount of tags. Requesting tags."
 }

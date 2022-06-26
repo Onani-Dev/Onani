@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-19 17:50:16
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-06-26 15:01:40
 
 from typing import List, Optional, Tuple
 
@@ -12,18 +12,18 @@ from flask import flash, request
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:
     """
     checks if 'start' is 's' or any shortening of 's'
-    that is (the shortening) at least of lenght min_len
+    that is (the shortening) at least of length min_len
     """
     if len(start) < min_len:
         return False
     return s.startswith(start)
 
 
-def natural_join(l: List[str], *, max_lenght: Optional[int] = None) -> str:
+def natural_join(l: List[str], *, max_length: Optional[int] = None) -> str:
     """
     Joins list [a,b,c] as "a, b, and c"
-    If the lenght of the list is bigger than max_lenght, then
-    max_lenght items will be joined, then "and X more"
+    If the length of the list is bigger than max_length, then
+    max_length items will be joined, then "and X more"
     """
     if not l:  # Handles empty lists first
         return ""
@@ -33,9 +33,9 @@ def natural_join(l: List[str], *, max_lenght: Optional[int] = None) -> str:
     if len(l) == 1:
         return l[0]
 
-    if len(l) > max_lenght:  # In case there's too many
-        extra = f"{len(l) - max_lenght} more"
-        l = l[:max_lenght]  # We remove the excess
+    if len(l) > max_length:  # In case there's too many
+        extra = f"{len(l) - max_length} more"
+        l = l[:max_length]  # We remove the excess
         l.append(extra)  # and replace it with "X more"
 
     return f"{', '.join(l[:-1])} and {l[-1]}"

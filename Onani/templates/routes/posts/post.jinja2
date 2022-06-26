@@ -107,12 +107,7 @@
 
     {# Edit Mode Box #}
     <div class="post-edit-box" id="edit-box">
-        <div class="post-edit-tesc" style="
-            display: grid;
-            grid-template-columns: repeat(2, auto);
-            padding: 1em;
-            gap: 0.5em;
-        ">
+        <div class="post-edit-textarea-container">
             {{ edit_form.description() }}
             {{ edit_form.tags() }}
         </div>

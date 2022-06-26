@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-15 17:29:42
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-06-26 09:39:34
 
 import hashlib
 import io
@@ -12,6 +12,7 @@ from base64 import b64decode
 from typing import List, Tuple
 from urllib.request import urlopen
 
+from flask import current_app
 from flask_login import current_user
 from Onani.models import User
 from PIL import Image
@@ -20,7 +21,10 @@ from . import db
 
 """All those functions are used by Post, but in a different file for posts.py not to be too long"""
 
-def determine_meta_tags(width, height, filesize, file_type) -> list[str]:
+
+def determine_meta_tags(
+    width, height, filesize, file_type, tag_count=None
+) -> list[str]:
     meta_tags = []
 
     # Determine width
@@ -50,6 +54,10 @@ def determine_meta_tags(width, height, filesize, file_type) -> list[str]:
     if file_type == "gif":
         meta_tags.append("meta:animated")
 
+    # Add tag_request tag for posts with less than 10 tags
+    if tag_count & tag_count < current_app.config["POST_MIN_TAGS"]:
+        meta_tags.append("meta:tag_request")
+
     return meta_tags
 
 
@@ -74,7 +82,16 @@ def get_file_data(file_data: bytes):
     # The filename to write to
     filename = f"{hash_sha256}.{file_type}"
 
-    return image_file, filesize, hash_sha256, hash_md5, width, height, filename, file_type
+    return (
+        image_file,
+        filesize,
+        hash_sha256,
+        hash_md5,
+        width,
+        height,
+        filename,
+        file_type,
+    )
 
 
 def create_avatar(user: User, base64_file: str) -> str:

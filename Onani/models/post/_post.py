@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-16 12:29:27
+# @Last Modified time: 2022-06-26 15:08:59
 
 from __future__ import annotations
 
@@ -188,20 +188,20 @@ class Post(db.Model):
         # TODO: pick char based on popularity and not alphabetically
         if characters is not None:
             char_str = natural_join(
-                [c.humanized.capitalize() for c in characters], max_lenght=5
+                [c.humanized.capitalize() for c in characters], max_length=5
             )
         else:
             char_str = ""
 
         if artists is not None:
-            artist_str = f"drawn by {natural_join([a.humanized.capitalize() for a in artists], max_lenght=3)}"
+            artist_str = f"drawn by {natural_join([a.humanized.capitalize() for a in artists], max_length=3)}"
 
         else:
             artist_str = ""
 
         if copyrights is not None:
             copyright_str = natural_join(
-                [a.humanized.capitalize() for a in copyrights], max_lenght=1
+                [a.humanized.capitalize() for a in copyrights], max_length=1
             )
         else:
             copyright_str = ""
