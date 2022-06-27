@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:02:11
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-15 14:32:12
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-06-27 02:24:43
 
 from flask_wtf import FlaskForm, RecaptchaField
 from flask_wtf.file import FileAllowed
@@ -55,7 +55,7 @@ class UploadForm(FlaskForm):
         },
         validators=[
             Optional(),
-            URL(message="Must be a valid URL."),
+            # URL(message="Must be a valid URL."),
         ],
     )
 

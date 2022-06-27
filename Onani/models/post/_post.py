@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-26 15:08:59
+# @Last Modified time: 2022-06-27 03:02:53
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from collections import defaultdict
 import os
 from typing import TYPE_CHECKING, Dict, List, Union
 
-from Onani.controllers.utils import natural_join
+from Onani.controllers.utils import natural_join, is_url
 from Onani.models.user._user import User
 from sqlalchemy import func
 from sqlalchemy.orm import validates
@@ -139,13 +139,17 @@ class Post(db.Model):
         return html.escape(source)
 
     @property
-    def source_hostname(self) -> Union[str, None]:
+    def source_hostname(self) -> str:
         """Return the hostname for the post's source
 
         Returns:
             Union[str, None]: The sources Hostname, or None if there is no source
         """
-        return self.source.split("/")[2] if self.source else None
+        return (
+            self.source.split("/")[2]
+            if self.source and is_url(self.source)
+            else self.source or None
+        )
 
     @property
     def score(self) -> int:

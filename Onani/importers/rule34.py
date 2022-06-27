@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:16:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-18 08:38:37
+# @Last Modified time: 2022-06-27 03:15:19
 
 
 from typing import TYPE_CHECKING, Optional
@@ -53,6 +53,7 @@ class Ruler34Importer(BaseImporter, URLs=["rule34.xxx", "hypnohub.net"]):
 
         r = r.json()[0]
         return ImportedPost(
+            imported_url=self.normalize_url(url),
             tags=r["tags"].split(" "),
             sources=[self.normalize_url(url)],  # Rule34's API doesn't return source...
             file_urls=[r["file_url"]],

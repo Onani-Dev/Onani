@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:33:26
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-18 08:36:05
+# @Last Modified time: 2022-06-27 02:24:21
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List
@@ -17,6 +17,9 @@ class ImportedPost:
     This class is only used to store that data in a standardised way, and does
     not represent a post on Onani in any way.
     """
+
+    imported_url: str
+    """The URL that the post has been imported from."""
 
     tags: List[str]
     """The tags of the post"""

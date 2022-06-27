@@ -2,8 +2,9 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-26 15:01:40
+# @Last Modified time: 2022-06-27 02:58:39
 
+import re
 from typing import List, Optional, Tuple
 
 from flask import flash, request
@@ -114,3 +115,9 @@ def flash_form_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, "error")  # f"Error in the {field.capitalize()} field: {error}"
+
+
+def is_url(string: str) -> bool:
+    URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
+
+    return bool(re.match(URL_REGEX, string))
