@@ -2,17 +2,17 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-27 03:02:53
+# @Last Modified time: 2022-06-28 11:57:51
 
 from __future__ import annotations
 
 import datetime
 import html
-from collections import defaultdict
 import os
+from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, List, Union
 
-from Onani.controllers.utils import natural_join, is_url
+from Onani.controllers.utils import is_url, natural_join
 from Onani.models.user._user import User
 from sqlalchemy import func
 from sqlalchemy.orm import validates
@@ -20,8 +20,7 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType, JSONType
 
 from ..tag import Tag, TagType
-from . import PostRating, PostStatus, db
-from . import FileType, db
+from . import FileType, PostRating, PostStatus, db
 
 if TYPE_CHECKING:
     from Onani.models.post.note import Note
@@ -139,7 +138,7 @@ class Post(db.Model):
         return html.escape(source)
 
     @property
-    def source_hostname(self) -> str:
+    def source_hostname(self) -> Union[str, None]:
         """Return the hostname for the post's source
 
         Returns:
@@ -165,6 +164,11 @@ class Post(db.Model):
 
     @property
     def is_imported(self) -> bool:
+        """Check if this post is imported or not.
+
+        Returns:
+            bool: Imported post yes or no :)
+        """
         return bool(self.imported_from)
 
     @property
