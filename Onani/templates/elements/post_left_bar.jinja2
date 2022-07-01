@@ -71,7 +71,15 @@
             <div class="tag-section">
                 <h4>Filesize</h4>
                 <li class="non-clickable">
-                    {{ humanize.naturalsize(post.filesize) }}
+                    {{ humanize.naturalsize(post.filesize or 0) }}
+                </li>
+            </div>
+
+            {# Filename #}
+            <div class="tag-section">
+                <h4>Original Filename</h4>
+                <li class="non-clickable">
+                    {{ post.original_filename }}
                 </li>
             </div>
 

@@ -2,14 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2022-05-24 07:29:27
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-26 09:47:23
+# @Last Modified time: 2022-07-01 14:12:39
 import contextlib
 
 from flask import current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.controllers import create_comment, permissions_required
-from Onani.controllers.database import determine_meta_tags, parse_tags
+from Onani.controllers.database import set_tags, determine_meta_tags, parse_tags
 from Onani.models import Post as _Post
 from Onani.models import PostRating, PostSchema
 
@@ -192,45 +192,13 @@ class Post(Resource):
                 # in case someone else edited the posts while another one was editing it
                 old_tags = set(args["old_tags"].split(" "))
 
-                added_tags = tags.difference(
-                    old_tags
-                )  # Tags in "tags" but not in "old_tags"
-
-                removed_tags = old_tags.difference(
-                    tags
-                )  # Tags in "old_tags" but not in "tags"
-                # tags that are in both are ignored as they were not edited
-
-                # meta tags in removed_tags shouldn't be applied, but we need to parse so it can't really be avoided
-                removed_tags = parse_tags(removed_tags)
-
-                # added_tags might contain meta tags, so we parse for those
-                added_tags = parse_tags(added_tags)
-
-                post.tags.extend(added_tags)
-
-                # it'd be easier to remove if post.tags was a set but whatever
-                for t in removed_tags:
-                    with contextlib.suppress(ValueError):
-                        post.tags.remove(t)
-
-                # Redetermine the meta tags
-                post.tags.extend(
-                    parse_tags(
-                        determine_meta_tags(
-                            post.width,
-                            post.height,
-                            post.filesize,
-                            post.filename.split(".")[1],
-                            len(post.tags),
-                        )
-                    )
-                )
+                # add the tags
+                set_tags(post, tags, old_tags)
 
             else:
                 # we don't have old_tags, we just replace tags blindly
                 # We shouldn't...
-                post.tags = parse_tags(tags)
+                set_tags(post, tags)
 
         db.session.commit()
         return PostSchema().dump(post)

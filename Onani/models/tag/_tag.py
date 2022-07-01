@@ -2,12 +2,13 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-19 09:56:26
+# @Last Modified time: 2022-07-01 14:51:18
 
 from __future__ import annotations
 
 from typing import List
 
+from sqlalchemy import func
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import ChoiceType
 
@@ -98,6 +99,9 @@ class Tag(db.Model):
             if self.type != TagType.GENERAL
             else self.name
         )
+
+    def recount_posts(self):
+        self.post_count = self.posts.with_entities(func.count()).scalar()
 
     def save_to_db(self):
         db.session.add(self)

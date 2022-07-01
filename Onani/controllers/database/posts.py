@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-26 10:57:50
+# @Last Modified time: 2022-07-01 15:06:32
 
+import contextlib
 from typing import Iterable, List, Set
 
 from emoji import emojize
@@ -63,16 +64,16 @@ def format_tag(tag: str) -> str:
     return tag
 
 
-def parse_tags(tags: Iterable[str]) -> List[Tag]:
-    """Parses a list of tags for meta tags, and returns the list of tags to actually add to the post
+def parse_tags(tags: Iterable[str]) -> Set[Tag]:
+    """Parses a list of tags for meta tags, and returns the let of tags to actually add to the post
 
     Args:
         tags (Iterable[str]): a list of the tags to parse
 
     Returns:
-        List[Tag]: The tags to add to the post
+        Set[Tag]: The tags to add to the post
     """
-    taglist = []
+    taglist = set()
 
     for tag_str in tags:
         # first we format the tag
@@ -120,7 +121,7 @@ def parse_tags(tags: Iterable[str]) -> List[Tag]:
                 tag = Tag(name=tag_str, post_count=0)
                 db.session.add(tag)
 
-            taglist.append(tag)
+            taglist.add(tag)
 
     return taglist
 
@@ -162,27 +163,6 @@ def upload_post(form: UploadForm):
     except ValueError as e:
         form.file.errors.append(str(e))
     else:
-        # Get meta tags based off of this shit idfk
-        tags.update(determine_meta_tags(width, height, filesize, file_type, len(tags)))
-
-        # Then turn all those strings into actual tags
-        parsed_tags = parse_tags(tags)
-
-        for t in parsed_tags:
-            # add the tag to the post
-            post.tags.append(t)
-
-            if t.explicit:
-                post.rating = PostRating.EXPLICIT
-
-            # Increase the tag's post count
-            t.post_count += 1
-
-        # increase the user's post count
-        current_user.post_count = current_user.posts.with_entities(
-            func.count()
-        ).scalar()
-
         # Add all post info to the post object
         post.filename = filename
         post.md5_hash = hash_md5
@@ -190,6 +170,16 @@ def upload_post(form: UploadForm):
         post.width = width
         post.height = height
         post.filesize = filesize
+        post.file_type = file_type
+        post.original_filename = file.filename
+
+        # Set the post's tags
+        set_tags(post, tags)
+
+        # increase the user's post count
+        current_user.post_count = current_user.posts.with_entities(
+            func.count()
+        ).scalar()
 
         # write to file
         with open(f"/images/{filename}", "wb") as f:
@@ -203,3 +193,62 @@ def upload_post(form: UploadForm):
         db.session.commit()
 
         return post
+
+
+def set_tags(post: Post, tags: Set[str], old_tags: Set[str] = None):
+    """Set a posts tags
+
+    Args:
+        post (Post): _description_
+        tags (List[str]): _description_
+        old_tags (List[str], optional): _description_. Defaults to None.
+    """
+    added_tags = tags.difference(old_tags or set())
+
+    removed_tags = (
+        old_tags.difference(tags) if old_tags else set()
+    )  # Tags in "old_tags" but not in "tags"
+    # tags that are in both are ignored as they were not edited
+
+    # meta tags in removed_tags shouldn't be applied, but we need to parse so it can't really be avoided
+    removed_tags = parse_tags(removed_tags)
+
+    # added_tags might contain meta tags, so we parse for those
+    added_tags = parse_tags(added_tags)
+
+    post.tags.extend(added_tags)
+
+    for t in added_tags:
+        # Add the explicit rating if the tag is explicit
+        if t.explicit and post.rating != PostRating.EXPLICIT:
+            post.rating = PostRating.EXPLICIT
+        # Make the tags post_count go up.
+        t.post_count += 1
+
+    # it'd be easier to remove if post.tags was a set but whatever
+    for t in removed_tags:
+        with contextlib.suppress(ValueError):
+            post.tags.remove(t)
+        # It has less posts now ;)
+        t.post_count -= 1
+
+    # Redetermine the meta tags
+    post.tags.extend(
+        parse_tags(
+            determine_meta_tags(
+                post.width,
+                post.height,
+                post.filesize,
+                (post.filename or "").split(".")[1],
+                post.tags.with_entities(func.count()).scalar() or len(tags),
+            )
+        )
+    )
+
+    # Remove the tag request if the amount of tags is over the minimum
+    if (
+        post.tags.with_entities(func.count()).scalar()
+        > current_app.config["POST_MIN_TAGS"]
+    ):
+        if tag_request := post.tags.filter_by(name="tag_request").first():
+            post.tags.remove(tag_request)

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-28 11:57:51
+# @Last Modified time: 2022-07-01 15:02:28
 
 from __future__ import annotations
 
@@ -88,7 +88,7 @@ class Post(db.Model):
 
     # The post's tags. will be a list of tags that can be appended to.
     tags: List[Tag] = db.relationship(
-        "Tag", secondary=post_tags, backref="posts", lazy="joined"
+        "Tag", secondary=post_tags, backref="posts", lazy="dynamic"
     )
 
     # Post's upvoters. users. contributes to the post's rating/score
@@ -114,6 +114,8 @@ class Post(db.Model):
 
     # ===== File =====
     filename: str = db.Column(db.String, unique=True)
+    original_filename: str = db.Column(db.String)
+    file_type: str = db.Column(db.String)
 
     sha256_hash: str = db.Column(db.String, unique=True, index=True)
     md5_hash: str = db.Column(db.String, index=True)
@@ -248,6 +250,10 @@ class Post(db.Model):
                 raise ValueError("Post already exists.")
             return hash_
         return None
+
+    @validates("original_filename")
+    def validate_origfilename(self, key, filename):
+        return html.escape(filename)
 
     def thumbnail(self, size: str = "small") -> str:
         return f"/images/thumbnail/{self.filename}?size={size}"
