@@ -2,7 +2,9 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 01:34:41
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-18 08:44:30
+# @Last Modified time: 2022-07-02 08:11:23
+
+from .. import db
 
 from ._importedpost import ImportedPost
 from ._baseimporter import BaseImporter, IMPORTERS

@@ -2,10 +2,13 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:05:06
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-02 02:05:44
+# @Last Modified time: 2022-07-02 08:29:41
 
+import io
 from typing import Optional, Tuple, Type
 
+import requests
+from Onani.controllers import create_post, get_file_data
 from url_normalize import url_normalize
 from werkzeug.urls import url_fix
 
@@ -44,3 +47,10 @@ def get_post(url: str) -> ImportedPost:
         return None
 
     return i.get_post(url)
+
+
+def download_file(url: str) -> bytes:
+    with requests.Session() as s:
+        r = s.get(url)
+        file_data = r.content
+    return file_data

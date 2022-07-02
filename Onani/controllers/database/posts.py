@@ -2,9 +2,10 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-01 15:06:32
+# @Last Modified time: 2022-07-02 08:03:55
 
 import contextlib
+import io
 from typing import Iterable, List, Set
 
 from emoji import emojize
@@ -126,15 +127,72 @@ def parse_tags(tags: Iterable[str]) -> Set[Tag]:
     return taglist
 
 
-def upload_post(form: UploadForm):
+def create_post(
+    source: str,
+    description: str,
+    uploader: User,
+    rating: str,
+    image_file: io.BytesIO,
+    filesize: int,
+    hash_sha256: str,
+    hash_md5: str,
+    width: int,
+    height: int,
+    filename: str,
+    file_type: str,
+    orginal_filename: str,
+    tags: Set[str],
+) -> Post:
+    """Standardized way to create a post on Onani. You must handle commiting to database outside of this, as it does not automatically commit.
+
+    Args:
+        source (str): Post's source
+        description (str): The description for the post
+        uploader (User): The user to upload this post under
+        rating (str): The string rating for this post
+        image_file (io.BytesIO): The file data in BytesIO object
+        filesize (int): The filesize integer
+        hash_sha256 (str): The sha256 hash for the file on disk
+        hash_md5 (str): The md5 hash for the file on disk
+        width (int): The width of the image
+        height (int): The height of the image
+        filename (str): The filename for the file on disk  (<sha256>.<file_type>)
+        file_type (str): The file extension type of the file
+        orginal_filename (str): The original name of the uploaded file
+        tags (Set[str]): The tags in string form
+
+    Returns:
+        Post: The created post, ready to be commited.
+    """
     # Create the post
     post = Post()
 
-    post.source = form.source.data
-    post.description = form.description.data
-    post.uploader = current_user
-    post.rating = form.rating.data
+    # Add all post info to the post object
+    post.source = source
+    post.description = description
+    post.uploader = uploader
+    post.rating = rating
+    post.filename = filename
+    post.md5_hash = hash_md5
+    post.sha256_hash = hash_sha256
+    post.width = width
+    post.height = height
+    post.filesize = filesize
+    post.file_type = file_type
+    post.original_filename = orginal_filename
 
+    # Set the post's tags
+    set_tags(post, tags)
+
+    # write to file
+    with open(f"/images/{filename}", "wb") as f:
+        image_file.seek(0)
+        f.write(image_file.read())
+
+    return post
+
+
+def upload_post(form: UploadForm):
     # Get the file
     file = request.files.getlist(form.file.name)[0]
 
@@ -142,7 +200,7 @@ def upload_post(form: UploadForm):
     file_data = file.stream.read()
 
     # Split and Delete duplicate tags
-    tags: set[str] = set(form.tags.data.split(" "))
+    tags: Set[str] = set(form.tags.data.split(" "))
 
     # Get metadata from the file
     try:
@@ -163,28 +221,28 @@ def upload_post(form: UploadForm):
     except ValueError as e:
         form.file.errors.append(str(e))
     else:
-        # Add all post info to the post object
-        post.filename = filename
-        post.md5_hash = hash_md5
-        post.sha256_hash = hash_sha256
-        post.width = width
-        post.height = height
-        post.filesize = filesize
-        post.file_type = file_type
-        post.original_filename = file.filename
 
-        # Set the post's tags
-        set_tags(post, tags)
+        post = create_post(
+            form.source.data,
+            form.description.data,
+            current_user,
+            form.rating.data,
+            image_file,
+            filesize,
+            hash_sha256,
+            hash_md5,
+            width,
+            height,
+            filename,
+            file_type,
+            file.filename,
+            tags,
+        )
 
         # increase the user's post count
         current_user.post_count = current_user.posts.with_entities(
             func.count()
         ).scalar()
-
-        # write to file
-        with open(f"/images/{filename}", "wb") as f:
-            image_file.seek(0)
-            f.write(image_file.read())
 
         # Add post to session
         db.session.add(post)

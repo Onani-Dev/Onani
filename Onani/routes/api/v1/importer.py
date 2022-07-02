@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-05-18 02:06:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-18 02:24:01
+# @Last Modified time: 2022-07-02 08:20:15
 from celery.result import AsyncResult
 from flask_restful import Resource, reqparse
 from Onani.tasks import import_post
@@ -19,7 +19,7 @@ class Importer(Resource):
     def get(self):
         args = self._extracted_from_get_2("id")
         task: AsyncResult = import_post.AsyncResult(args["id"])
-        return {"status": task.state, "result": task.result}
+        return {"status": task.state, "result": str(task.result)}
 
     # TODO Rename this here and in `post` and `get`
     def _extracted_from_get_2(self, arg0):
