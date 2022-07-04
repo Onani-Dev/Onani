@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-01 15:02:28
+# @Last Modified time: 2022-07-04 16:33:13
 
 from __future__ import annotations
 
@@ -254,6 +254,10 @@ class Post(db.Model):
     @validates("original_filename")
     def validate_origfilename(self, key, filename):
         return html.escape(filename)
+
+    @validates("imported_from")
+    def validate_imported_from(self, key, url):
+        return html.escape(url)
 
     def thumbnail(self, size: str = "small") -> str:
         return f"/images/thumbnail/{self.filename}?size={size}"

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-04 03:39:26
+# @Last Modified time: 2022-07-04 16:21:32
 
 import contextlib
 import io
@@ -119,7 +119,7 @@ def parse_tags(tags: Iterable[str]) -> Set[Tag]:
 
             if not tag:
                 # make it and add it to the session
-                tag = Tag(name=tag_str, post_count=0)
+                tag = Tag(name=tag_str, post_count=0, type=new_tag_type)
                 db.session.add(tag)
 
             taglist.add(tag)
@@ -142,6 +142,7 @@ def create_post(
     file_type: str,
     orginal_filename: str,
     tags: Set[str],
+    imported_from: str = None,
 ) -> Post:
     """Standardized way to create a post on Onani. You must handle commiting to database outside of this, as it does not automatically commit.
 
@@ -160,6 +161,7 @@ def create_post(
         file_type (str): The file extension type of the file
         orginal_filename (str): The original name of the uploaded file
         tags (Set[str]): The tags in string form
+        imported_from (str): The post's imported origin. Optional
 
     Returns:
         Post: The created post, ready to be commited.
@@ -180,6 +182,7 @@ def create_post(
     post.filesize = filesize
     post.file_type = file_type
     post.original_filename = orginal_filename
+    post.imported_from = imported_from
 
     # Set the post's tags
     set_tags(post, tags)
@@ -265,8 +268,8 @@ def set_tags(post: Post, tags: Set[str], old_tags: Set[str] = None):
     if not isinstance(tags, set):
         tags = set(tags)
 
-    if not isinstance(old_tags, (set, None)):
-        old_tags = set(old_tags)
+    if not isinstance(old_tags, set):
+        old_tags = set(old_tags or [])
 
     added_tags = tags.difference(old_tags or set())
 
@@ -304,7 +307,7 @@ def set_tags(post: Post, tags: Set[str], old_tags: Set[str] = None):
                 post.width,
                 post.height,
                 post.filesize,
-                (post.filename or "").split(".")[1],
+                (post.filename or ".").split(".")[1],
                 post.tags.with_entities(func.count()).scalar() or len(tags),
             )
         )

@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:05:06
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-04 03:28:11
+# @Last Modified time: 2022-07-04 16:23:49
 
 from typing import Optional, Tuple, Type
 
@@ -88,6 +88,7 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
         file_type,
         "Unknown",
         post.tags,
+        post.imported_url,
     )
 
     db.session.add(post)

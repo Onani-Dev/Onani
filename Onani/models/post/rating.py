@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-21 23:07:34
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-05-28 13:00:46
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2022-07-04 16:04:22
 from enum import Enum, auto
 from functools import cache
 
@@ -12,8 +12,9 @@ class PostRating(str, Enum):
     Ratings for Post objects
     """
 
-    SAFE = "s"
+    GENERAL = "g"
     QUESTIONABLE = "q"
+    SENSITIVE = "s"
     EXPLICIT = "e"
 
     @classmethod
@@ -24,7 +25,7 @@ class PostRating(str, Enum):
     @classmethod
     @cache
     def choices(cls):
-        return [(choice, choice.name) for choice in cls]
+        return [(choice, choice.name.capitalize()) for choice in cls]
 
     @classmethod
     def coerce(cls, item):
