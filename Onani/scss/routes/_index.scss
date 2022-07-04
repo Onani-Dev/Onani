@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-05-31 14:37:38
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-18 10:52:54
+ * @Last Modified time: 2022-07-04 03:46:00
  */
 
 .index-post-group {
@@ -72,6 +72,7 @@
     border-radius: 15px;
     display: grid;
     position: relative;
+    cursor: pointer;
 
     .index-hero-image-overlay {
         position: relative;
