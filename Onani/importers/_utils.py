@@ -2,17 +2,17 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:05:06
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-02 08:29:41
+# @Last Modified time: 2022-07-04 03:28:11
 
-import io
 from typing import Optional, Tuple, Type
 
 import requests
 from Onani.controllers import create_post, get_file_data
+from Onani.models import Post, User
 from url_normalize import url_normalize
 from werkzeug.urls import url_fix
 
-from . import IMPORTERS, BaseImporter, ImportedPost
+from . import IMPORTERS, BaseImporter, ImportedPost, db
 
 
 def find_importer(url: str) -> Optional[Type[BaseImporter]]:
@@ -54,3 +54,44 @@ def download_file(url: str) -> bytes:
         r = s.get(url)
         file_data = r.content
     return file_data
+
+
+def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
+
+    file_data = download_file(post.file_url)
+
+    (
+        image_file,
+        filesize,
+        hash_sha256,
+        hash_md5,
+        width,
+        height,
+        filename,
+        file_type,
+    ) = get_file_data(file_data)
+
+    user = User.query.filter_by(id=importer_id).first()
+
+    post = create_post(
+        post.sources[0],
+        post.description,
+        user,
+        post.rating.value,
+        image_file,
+        filesize,
+        hash_sha256,
+        hash_md5,
+        width,
+        height,
+        filename,
+        file_type,
+        "Unknown",
+        post.tags,
+    )
+
+    db.session.add(post)
+
+    db.session.commit()
+
+    return post

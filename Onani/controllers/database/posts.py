@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-02 08:03:55
+# @Last Modified time: 2022-07-04 03:39:26
 
 import contextlib
 import io
@@ -258,9 +258,16 @@ def set_tags(post: Post, tags: Set[str], old_tags: Set[str] = None):
 
     Args:
         post (Post): _description_
-        tags (List[str]): _description_
-        old_tags (List[str], optional): _description_. Defaults to None.
+        tags (Set[str]): _description_
+        old_tags (Set[str], optional): _description_. Defaults to None.
     """
+    # We do a little slopping
+    if not isinstance(tags, set):
+        tags = set(tags)
+
+    if not isinstance(old_tags, (set, None)):
+        old_tags = set(old_tags)
+
     added_tags = tags.difference(old_tags or set())
 
     removed_tags = (

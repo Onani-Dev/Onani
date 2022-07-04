@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-05-18 02:06:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-02 08:20:15
+# @Last Modified time: 2022-07-04 03:31:42
 from celery.result import AsyncResult
+from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.tasks import import_post
 
@@ -11,9 +12,11 @@ from . import api
 
 
 class Importer(Resource):
+    decorators = [login_required]
+
     def post(self):
         args = self._extracted_from_get_2("url")
-        task = import_post.delay(args["url"])
+        task = import_post.delay(args["url"], current_user.id)
         return {"id": task.id}
 
     def get(self):
