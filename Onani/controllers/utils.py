@@ -2,10 +2,10 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-27 02:58:39
+# @Last Modified time: 2022-07-06 08:17:23
 
 import re
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from flask import flash, request
 
@@ -121,3 +121,15 @@ def is_url(string: str) -> bool:
     URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 
     return bool(re.match(URL_REGEX, string))
+
+
+def url_hostname(url: str) -> Union[str, None]:
+    """Returns the hostname of a url, or none
+
+    Args:
+        url (str): the url to return the hostname of
+
+    Returns:
+        Union[str, None]: The hostname or none
+    """
+    return url.split("/")[2] if is_url(url) else url or None

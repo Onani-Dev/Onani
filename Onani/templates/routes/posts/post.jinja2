@@ -43,11 +43,18 @@
     {# Post info box #}
     <div class="post-info-box" id="info-box">
         <div id="post-info-header">
+            {% if post.is_imported %}
+            <div id="poster-container" class="imported">
+                <a href="{{post.imported_from}}">Imported from <b>{{ url_hostname(post.imported_from) }}</b></a>
+                <a href="/users/{{ post.uploader.id }}">by {{ post.uploader.username }}</a>
+            </div>
+            {% else %}
             <div id="poster-container" style="background-color:{{ post.uploader.profile_colour }}">
                 <img src="{{ post.uploader.get_avatar(size='xsmall') }}" alt="{{ post.uploader.username }}"
                     title="{{ post.uploader.username }}">
                 <a href="/users/{{ post.uploader.id }}">{{ post.uploader.username }}</a>
             </div>
+            {% endif %}
 
             <div id="voting-container">
                 {% if not current_user.is_anonymous %}
@@ -91,6 +98,10 @@
         <div class="post-comment-input-container">
             <textarea id="post-comment-input" placeholder="Type your comment here..."></textarea>
             <button id="post-comment-submit">Post</button>
+        </div>
+        {% else %}
+        <div class="post-comment-input-container">
+            <h3>Please <a href="/login">Login</a> to comment.</h3>
         </div>
         {% endif %}
         <div id="comment-container">

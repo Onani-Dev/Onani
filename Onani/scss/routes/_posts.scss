@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-30 02:38:38
+ * @Last Modified time: 2022-07-06 08:28:40
  */
 
 #posts-container {
@@ -179,6 +179,7 @@ img.post-thumbnail {
             flex-wrap: nowrap;
             justify-content: flex-start;
             align-items: center;
+            background-color: var(--ui-foreground-1);
 
             img {
                 border-radius: 10px;
@@ -191,6 +192,16 @@ img.post-thumbnail {
 
             a {
                 margin-right: 20px;
+            }
+
+            &.imported {
+                img {
+                    margin-right: 0;
+                }
+                a {
+                    margin-right: 0.3em;
+                    margin-left: 0.3em;
+                }
             }
         }
 

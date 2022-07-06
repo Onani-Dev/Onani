@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-31 09:12:38
+# @Last Modified time: 2022-07-06 08:18:33
 
 import datetime
 import html
@@ -35,7 +35,7 @@ ma = Marshmallow()
 migrate = Migrate()
 celery = ext.celery
 
-from Onani.controllers.utils import complete_file_url
+from Onani.controllers.utils import complete_file_url, is_url, url_hostname
 
 
 def init_app():
@@ -55,6 +55,8 @@ def init_app():
         humanize=humanize,
         html=html,
         complete_file_url=complete_file_url,
+        is_url=is_url,
+        url_hostname=url_hostname,
     )
 
     from .routes import admin, atom, main, main_api, rss
