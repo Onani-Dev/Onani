@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-07-06 09:06:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-06 09:25:07
+# @Last Modified time: 2022-07-06 09:40:45
 
 from typing import TYPE_CHECKING, Optional
 
@@ -42,7 +42,9 @@ class Shimmie2Importer(BaseImporter, URLs=["rule34.paheal.net"]):
         return ImportedPost(
             imported_url=self.normalize_url(url),
             tags=r["@tags"].split(" "),
-            sources=[r["@source"]],
+            sources=[
+                r.get("@source") or self.normalize_url(url)
+            ],  # Sometimes has source, sometimes doesn't.
             file_url=r["@file_url"],
             description="",
             rating=PostRating.EXPLICIT,
