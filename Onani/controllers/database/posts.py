@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-04 16:21:32
+# @Last Modified time: 2022-07-14 14:49:19
 
 import contextlib
 import io
+from html import escape
 from typing import Iterable, List, Set
 
 from emoji import emojize
@@ -47,7 +48,7 @@ def format_tag(tag: str) -> str:
     """Takes in a string and formats it to be a tag's name"""
     CHAR_BLACKLIST = [chr(i) for i in range(32)]  # ASCII char 0-31
 
-    tag = tag.lower().strip()
+    tag = escape(tag.lower().strip())
 
     tag = "".join(c for c in tag if c not in CHAR_BLACKLIST)
 
@@ -144,7 +145,7 @@ def create_post(
     tags: Set[str],
     imported_from: str = None,
 ) -> Post:
-    """Standardized way to create a post on Onani. You must handle commiting to database outside of this, as it does not automatically commit.
+    """Standardized way to create a post on Onani.
 
     Args:
         source (str): Post's source
@@ -164,7 +165,7 @@ def create_post(
         imported_from (str): The post's imported origin. Optional
 
     Returns:
-        Post: The created post, ready to be commited.
+        Post: The created post.
     """
     # Create the post
     post = Post()
@@ -191,6 +192,12 @@ def create_post(
     with open(f"/images/{filename}", "wb") as f:
         image_file.seek(0)
         f.write(image_file.read())
+
+    # Add post to session
+    db.session.add(post)
+
+    # commit the data to the database
+    db.session.commit()
 
     return post
 
@@ -246,12 +253,6 @@ def upload_post(form: UploadForm):
         current_user.post_count = current_user.posts.with_entities(
             func.count()
         ).scalar()
-
-        # Add post to session
-        db.session.add(post)
-
-        # commit the data to the database
-        db.session.commit()
 
         return post
 

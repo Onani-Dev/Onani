@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-07-06 09:06:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-06 09:40:45
+# @Last Modified time: 2022-07-14 08:20:20
 
 from typing import TYPE_CHECKING, Optional
 
@@ -39,6 +39,7 @@ class Shimmie2Importer(BaseImporter, URLs=["rule34.paheal.net"]):
         )
 
         r = xmltodict.parse(r.text)["posts"]["tag"]
+
         return ImportedPost(
             imported_url=self.normalize_url(url),
             tags=r["@tags"].split(" "),

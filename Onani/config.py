@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-26 09:36:16
+# @Last Modified time: 2022-07-17 13:31:18
 import os
 
 # Flask Config
@@ -55,6 +55,7 @@ CELERY_BROKER_URL = "redis://redis:6379/1"
 # Flask Limiter
 RATELIMIT_ENABLED = True
 RATELIMIT_STORAGE_URI = "redis://redis:6379/0"
+RATELIMIT_HEADERS_ENABLED = True
 
 # Flask Restful
 BUNDLE_ERRORS = True
