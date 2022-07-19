@@ -84,7 +84,7 @@
                 {% set description_class = "system-text" %}
                 {% endif %}
                 <p class="{{ description_class }} twemoji-format">
-                    {{- emoji.emojize(description, language="alias", use_aliases=True) -}}
+                    {{- emoji.emojize(description, language="alias") -}}
                 </p>
             </div>
 

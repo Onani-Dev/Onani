@@ -16,7 +16,7 @@
 {% set pfp_class = "" %}
 {% set bio_class = "system-text" %}
 {% if user.settings.biography is not none %}
-{% set user_bio = emoji.emojize(user.settings.biography, use_aliases=true) %}
+{% set user_bio = emoji.emojize(user.settings.biography, language="alias") %}
 {% set bio_class = "" %}
 {% else %}
 {% set user_bio = "User has no Bio." %}

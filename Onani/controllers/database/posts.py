@@ -36,7 +36,7 @@ def create_comment(author: User, post: Post, content: str) -> PostComment:
     comment = PostComment()
     comment.author = author
     comment.post = post
-    comment.content = emojize(content, language="alias", use_aliases=True)
+    comment.content = emojize(content, language="alias")
 
     db.session.add(comment)
     db.session.commit()
