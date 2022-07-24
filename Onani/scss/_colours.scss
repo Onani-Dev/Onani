@@ -2,15 +2,15 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:16
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-02 13:01:15
+ * @Last Modified time: 2022-07-24 10:12:34
  */
 :root {
     // UI Colours
-    --ui-foreground-header: #4a4a4a;
-    --ui-foreground-1: #2b2b2b;
-    --ui-foreground-2: #101010;
+    --ui-foreground-header: #383c3f;
+    --ui-foreground-1: #202324;
+    --ui-foreground-2: #0c0d0e;
     --ui-background-colour: #000000;
-    --ui-border-colour: #5a5a5a;
+    --ui-border-colour: #6e665b;
 
     // Text
     --text-logo-colour-1: #000000;
@@ -20,6 +20,7 @@
     --text-colour-3: #adadad;
     --text-colour-4: #bababa;
     --text-code-background: #2f31367a;
+    --text-hyperlink-colour: #3391ff;
 
     // Hover/active item
     --ui-item-hover: #ffffff1f;

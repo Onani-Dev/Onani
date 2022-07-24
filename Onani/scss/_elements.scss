@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:04:06
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-19 09:03:23
+ * @Last Modified time: 2022-07-24 10:11:27
  */
 
 html {
@@ -12,6 +12,10 @@ html {
 
 a {
     text-decoration: none;
+}
+
+a.highlighted {
+    color: var(--text-hyperlink-colour);
 }
 
 b {
