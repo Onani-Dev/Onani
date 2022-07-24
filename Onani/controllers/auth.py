@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-16 21:12:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-17 15:04:25
+# @Last Modified time: 2022-07-24 14:14:06
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
@@ -30,7 +30,11 @@ def user_login(user: "User", password: str):
             if user.ban:
                 # The user is banned. They cannot login.
                 flash(
-                    f"This account has been banned.\nReason: {user.ban.reason}\nExpires: {humanize.naturaltime(datetime.now(timezone.utc) - user.ban.expires)} ({user.ban.expires.strftime('%d/%m/%Y %H:%M:%S')} UTC)",
+                    f"""
+This account has been banned.
+Reason: {user.ban.reason}
+Expires: {(humanize.naturaltime(datetime.now(timezone.utc) - user.ban.expires) + ' (' + user.ban.expires.strftime('%d/%m/%Y %H:%M:%S') + ' UTC)') if user.ban.expires else 'Never'  }
+""",
                     "error",
                 )
 

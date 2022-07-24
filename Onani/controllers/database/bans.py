@@ -2,45 +2,64 @@
 # @Author: kapsikkum
 # @Date:   2022-07-19 12:46:08
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-19 13:32:09
+# @Last Modified time: 2022-07-24 14:08:43
 from datetime import datetime
 
+from flask import abort
 from flask_login import current_user
 from Onani.models import Ban, User
 
 from . import db
 
 
-def create_ban(user_id: int, expires: datetime, reason: str) -> Ban:
+def create_ban(
+    user_id: int, expires: datetime, reason: str, delete_posts: bool, hide_posts: bool
+) -> Ban:
     """Create a ban against a user.
 
     Args:
         user_id (int): The user's ID to ban
         expires (datetime): The expiry of the ban
         reason (str): The reason for the ban
-
-    Raises:
-        ValueError: There is no user with the specified ID
-        ValueError: There is already a ban on this user
+        delete_posts (bool): Delete the posts from that user
+        hide_posts (bool): Hide the posts from that user (reversable)
 
     Returns:
         Ban: The new ban object
     """
+    # Get the user
     user = User.query.filter_by(id=user_id).first()
 
+    # Check if the user can even be banned
     if not user:
-        raise ValueError("No user with that ID exists.")
+        abort(404, description="No user with that ID exists.")
 
     elif user.ban:
-        raise ValueError("User is already banned.")
+        abort(400, description="User is already banned.")
 
     elif user.id == current_user.id:
-        raise ValueError("It's a horrible idea to ban yourself.")
+        abort(403, description="It's a horrible idea to ban yourself.")
+
+    # Check the heirachy
+    if current_user.role.value <= user.role.value:
+        abort(
+            403, description="Cannot ban this user, their role is the same or higher."
+        )
+
+    if delete_posts:
+        # TODO #127 Add celery task for deleting posts.
+        pass
+
+    elif hide_posts:
+        for post in user.posts:
+            post.hidden = True
 
     ban = Ban(
         user=User,
         expires=expires,
         reason=reason,
+        posts_hidden=hide_posts,
+        posts_deleted=delete_posts,
     )
 
     db.session.add(ban)
@@ -56,10 +75,14 @@ def delete_ban(user_id: int):
     user = User.query.filter_by(id=user_id).first()
 
     if not user:
-        raise ValueError("No user with that ID exists.")
+        abort(404, description="No user with that ID exists.")
 
     elif not user.ban:
-        raise ValueError("User is not banned.")
+        abort(400, description="User is not banned.")
+
+    if user.ban.posts_hidden:
+        for post in user.posts:
+            post.hidden = False
 
     db.session.delete(user.ban)
     db.session.commit()

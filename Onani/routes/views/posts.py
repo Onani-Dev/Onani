@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-19 13:44:09
+# @Last Modified time: 2022-07-24 14:02:17
 
 from flask import abort, current_app, render_template, request
 from flask_login import current_user
@@ -25,7 +25,8 @@ def post_index():
     # if there is tags get the posts by them
     if tags:
         posts = (
-            Post.query.join(Post.tags)
+            Post.query.filter(Post.hidden.is_(False))
+            .join(Post.tags)
             .filter(Tag.name.in_(tags))
             .group_by(Post)
             .having(func.count(distinct(Tag.id)) == len(tags))
@@ -37,8 +38,14 @@ def post_index():
             )
         )
     else:
-        posts = Post.query.order_by(Post.id.desc()).paginate(
-            per_page=current_app.config["PER_PAGE_POSTS"], page=page, error_out=False
+        posts = (
+            Post.query.filter(Post.hidden.is_(False))
+            .order_by(Post.id.desc())
+            .paginate(
+                per_page=current_app.config["PER_PAGE_POSTS"],
+                page=page,
+                error_out=False,
+            )
         )
 
     # render the index template

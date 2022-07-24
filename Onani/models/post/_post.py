@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-14 08:23:44
+# @Last Modified time: 2022-07-24 13:39:09
 
 from __future__ import annotations
 
@@ -130,6 +130,8 @@ class Post(db.Model):
         default=FileType.IMAGE,
         nullable=False,
     )
+
+    hidden: bool = db.Column(db.Boolean, default=False)
 
     @validates("description")
     def validate_description(self, key, description):
