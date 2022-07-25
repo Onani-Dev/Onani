@@ -20,6 +20,7 @@ Flask>=2.0.3
 gunicorn>=20.1.0
 humanize>=2.6.0 
 lxml>=4.8.0
+markdown2>=2.4.3
 marshmallow-sqlalchemy>=0.27.0 
 marshmallow>=3.14.1
 mdx_bleach>=0.1.4
@@ -37,5 +38,5 @@ traceback-with-variables>=2.0.4
 ujson>=3.2.0
 url-normalize>=1.4.3
 watchdog>=2.1.7
-Werkzeug>=2.0.3
+Werkzeug==2.1.2
 xmltodict>=0.13.0
