@@ -2,16 +2,17 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:59:30
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-24 14:19:25
-from flask import render_template, request, redirect, url_for, abort, current_app
-from Onani.models import Ban, Post, Tag
+# @Last Modified time: 2022-07-25 15:43:59
+from flask import render_template
+from Onani.controllers.database import query_posts
+from Onani.models import Post
 
-from . import main, db
+from . import db, main
 
 
 @main.route("/")
 def index():
-    latest = Post.query.filter(Post.hidden.is_(False)).order_by(Post.id.desc()).limit(7)
+    latest = query_posts().limit(7)
 
     first_post = latest.first()
 

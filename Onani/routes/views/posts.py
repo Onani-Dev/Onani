@@ -2,10 +2,11 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-24 14:02:17
+# @Last Modified time: 2022-07-25 15:42:11
 
 from flask import abort, current_app, render_template, request
 from flask_login import current_user
+from Onani.controllers.database import query_posts
 from Onani.controllers.utils import get_page
 from Onani.forms import EditForm
 from Onani.models import Post, Tag
@@ -22,31 +23,11 @@ def post_index():
     # Get the page
     page = get_page()
 
-    # if there is tags get the posts by them
-    if tags:
-        posts = (
-            Post.query.filter(Post.hidden.is_(False))
-            .join(Post.tags)
-            .filter(Tag.name.in_(tags))
-            .group_by(Post)
-            .having(func.count(distinct(Tag.id)) == len(tags))
-            .order_by(Post.id.desc())
-            .paginate(
-                per_page=current_app.config["PER_PAGE_POSTS"],
-                page=page,
-                error_out=False,
-            )
-        )
-    else:
-        posts = (
-            Post.query.filter(Post.hidden.is_(False))
-            .order_by(Post.id.desc())
-            .paginate(
-                per_page=current_app.config["PER_PAGE_POSTS"],
-                page=page,
-                error_out=False,
-            )
-        )
+    posts = query_posts(tags).paginate(
+        per_page=current_app.config["PER_PAGE_POSTS"],
+        page=page,
+        error_out=False,
+    )
 
     # render the index template
     return render_template(
