@@ -2,17 +2,19 @@
 # @Author: kapsikkum
 # @Date:   2022-05-18 02:06:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-04 03:31:42
+# @Last Modified time: 2022-07-25 16:46:41
 from celery.result import AsyncResult
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
+from Onani.controllers import permissions_required
+from Onani.models.user.permissions import UserPermissions
 from Onani.tasks import import_post
 
 from . import api
 
 
 class Importer(Resource):
-    decorators = [login_required]
+    decorators = [login_required, permissions_required(UserPermissions.IMPORT_POSTS)]
 
     def post(self):
         args = self._extracted_from_get_2("url")

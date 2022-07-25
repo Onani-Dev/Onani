@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-14 14:49:19
+# @Last Modified time: 2022-07-25 16:39:04
 
 import contextlib
 import io
@@ -14,7 +14,15 @@ from flask import current_app, flash, request
 from flask_login import current_user
 from Onani.controllers.utils import startswith_min
 from Onani.forms import UploadForm
-from Onani.models import Post, PostComment, PostRating, Tag, TagType, User
+from Onani.models import (
+    Post,
+    PostComment,
+    PostRating,
+    Tag,
+    TagType,
+    User,
+    UserPermissions,
+)
 from PIL import UnidentifiedImageError
 from sqlalchemy import func
 
@@ -114,16 +122,29 @@ def parse_tags(tags: Iterable[str]) -> Set[Tag]:
                 # Find if it already exists
                 tag = Tag.query.filter_by(name=new_tag_name).first()
 
-                # create it if it doesnt exist
+                # create it if it doesnt exist (and the user is able to)
                 if not tag:
+                    if current_user and not current_user.has_permissions(
+                        UserPermissions.CREATE_TAGS
+                    ):
+                        continue
                     tag = Tag(name=new_tag_name, post_count=0, type=new_tag_type)
+                    db.session.add(tag)
 
             if not tag:
+                if current_user and not current_user.has_permissions(
+                    UserPermissions.CREATE_TAGS
+                ):  # Celery has current_user set to None
+                    continue
                 # make it and add it to the session
                 tag = Tag(name=tag_str, post_count=0, type=new_tag_type)
                 db.session.add(tag)
 
             taglist.add(tag)
+            #     flash(
+            #         f"The tag \"{tag_str}\" didn't exist and could not be created. (Maybe you don't have the permissions?)",
+            #         "warning",
+            #     )
 
     return taglist
 
