@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-05-18 02:06:36
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-25 16:46:41
+# @Last Modified time: 2022-07-27 14:48:20
 from celery.result import AsyncResult
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
@@ -24,7 +24,12 @@ class Importer(Resource):
     def get(self):
         args = self._extracted_from_get_2("id")
         task: AsyncResult = import_post.AsyncResult(args["id"])
-        return {"status": task.state, "result": str(task.result)}
+        return {
+            "status": task.state,
+            "result": task.result
+            if isinstance(task.result, dict)
+            else str(task.result),
+        }
 
     # TODO Rename this here and in `post` and `get`
     def _extracted_from_get_2(self, arg0):

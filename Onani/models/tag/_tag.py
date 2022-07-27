@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2021-01-12 21:05:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-01 14:51:18
+# @Last Modified time: 2022-07-27 15:06:59
 
 from __future__ import annotations
 
@@ -101,7 +101,8 @@ class Tag(db.Model):
         )
 
     def recount_posts(self):
-        self.post_count = self.posts.with_entities(func.count()).scalar()
+        self.post_count = len(self.posts)
+        # self.post_count = self.posts.with_entities(func.count()).scalar()
 
     def save_to_db(self):
         db.session.add(self)

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-31 23:58:51
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-25 16:39:04
+# @Last Modified time: 2022-07-27 15:05:03
 
 import contextlib
 import io
@@ -217,6 +217,9 @@ def create_post(
     # Add post to session
     db.session.add(post)
 
+    # increase the user's post count
+    uploader.post_count = uploader.posts.with_entities(func.count()).scalar()
+
     # commit the data to the database
     db.session.commit()
 
@@ -249,11 +252,11 @@ def upload_post(form: UploadForm):
         form.file.errors.append(
             f"The file {form.file.name} could not be read, Please ensure it is supported and not corrupted/broken."
         )
+
     except ValueError as e:
         form.file.errors.append(str(e))
     else:
-
-        post = create_post(
+        return create_post(
             form.source.data,
             form.description.data,
             current_user,
@@ -269,13 +272,6 @@ def upload_post(form: UploadForm):
             file.filename,
             tags,
         )
-
-        # increase the user's post count
-        current_user.post_count = current_user.posts.with_entities(
-            func.count()
-        ).scalar()
-
-        return post
 
 
 def set_tags(post: Post, tags: Set[str], old_tags: Set[str] = None):
@@ -313,14 +309,14 @@ def set_tags(post: Post, tags: Set[str], old_tags: Set[str] = None):
         if t.explicit and post.rating != PostRating.EXPLICIT:
             post.rating = PostRating.EXPLICIT
         # Make the tags post_count go up.
-        t.post_count += 1
+        t.recount_posts()
 
     # it'd be easier to remove if post.tags was a set but whatever
     for t in removed_tags:
         with contextlib.suppress(ValueError):
             post.tags.remove(t)
         # It has less posts now ;)
-        t.post_count -= 1
+        t.recount_posts()
 
     # Redetermine the meta tags
     post.tags.extend(

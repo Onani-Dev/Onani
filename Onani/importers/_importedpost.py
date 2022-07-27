@@ -2,11 +2,12 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 02:33:26
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-04 03:09:29
+# @Last Modified time: 2022-07-27 14:19:17
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List
 
+import marshmallow_dataclass
 from Onani.models import PostRating
 
 
@@ -38,3 +39,6 @@ class ImportedPost:
 
     rating: PostRating
     """The rating for the post."""
+
+
+ImportedPostSchema = marshmallow_dataclass.class_schema(ImportedPost)

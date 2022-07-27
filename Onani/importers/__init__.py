@@ -2,11 +2,11 @@
 # @Author: Mattlau04
 # @Date:   2022-05-01 01:34:41
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-06 09:21:35
+# @Last Modified time: 2022-07-27 14:38:22
 
 from .. import db
 
-from ._importedpost import ImportedPost
+from ._importedpost import ImportedPost, ImportedPostSchema
 from ._baseimporter import BaseImporter, IMPORTERS
 from ._utils import find_importer, get_post, save_imported_post
 

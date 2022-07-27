@@ -21,6 +21,7 @@ gunicorn>=20.1.0
 humanize>=2.6.0 
 lxml>=4.8.0
 markdown2>=2.4.3
+marshmallow-dataclass[enum,union]>=8.5.8
 marshmallow-sqlalchemy>=0.27.0 
 marshmallow>=3.14.1
 mdx_bleach>=0.1.4

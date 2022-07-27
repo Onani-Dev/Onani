@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-21 23:07:44
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-03-31 02:35:17
+# @Last Modified time: 2022-07-27 14:26:35
 import enum
 
 
@@ -14,6 +14,7 @@ class PostStatus(enum.Enum):
     REMOVED = 0
     PENDING = 1
     APPROVED = 2
+    OBLITERATED = 3
 
     @classmethod
     def get_all(cls):
