@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 22:50:21
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-18 14:35:41
+ * @Last Modified time: 2022-07-31 13:56:32
  */
 // Floating Animation
 @keyframes float {
@@ -64,3 +64,24 @@
         transform: scale(1);
     }
 }
+
+
+@keyframes loadingsprite {
+    100% {
+        background-position: -10000px;
+    }
+}
+
+.onani-loading {
+    width: 152px;
+    height: 152px;
+    animation: loadingsprite 1s steps(66) infinite;
+    animation-direction: alternate-reverse;
+    background-image: url(/static/image/loader_spritesheet.png);
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+    margin: auto;
+    transform: scale(0.8);
+    opacity: 0.6;
+}
+

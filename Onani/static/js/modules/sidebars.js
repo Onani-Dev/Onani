@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-19 15:17:46
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-05-15 15:58:51
+ * @Last Modified time: 2022-07-31 13:03:51
  */
 // import { parse as twemojiParse } from "./external/twemoji.min.js";
 // import { DateTime } from "./external/luxon.min.js";
@@ -159,6 +159,7 @@ class TagsBoxUpdater {
   displayTags() {
     let tagContainer = document.getElementById("tag-container");
     this.getTags().then((tags) => {
+      tagContainer.replaceChildren();
       for (let tag of tags) {
         tagContainer.appendChild(this.constructTag(tag));
       }
