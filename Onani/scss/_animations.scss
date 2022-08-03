@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 22:50:21
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-07-31 13:56:32
+ * @Last Modified time: 2022-08-03 15:04:34
  */
 // Floating Animation
 @keyframes float {
@@ -69,6 +69,32 @@
 @keyframes loadingsprite {
     100% {
         background-position: -10000px;
+    }
+}
+
+@keyframes skeleton-loading {
+    0% {
+		transform: scale(0.90);
+        background-color: #aaaaaa;
+	}
+
+	70% {
+		transform: scale(1);
+        background-color: #5a5a5a;
+	}
+
+	100% {
+		transform: scale(0.90);
+        background-color: #919191;
+	}
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(0);
     }
 }
 

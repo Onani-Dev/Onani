@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-03-22 23:20:15
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-07-06 08:28:40
+ * @Last Modified time: 2022-08-03 15:06:52
  */
 
 #posts-container {
@@ -95,6 +95,7 @@ img.post-thumbnail {
     min-width: 5em;
     object-fit: scale-down;
     user-select: none;
+    animation: fadein 200ms ease-in-out;
 
     @include for-mobile-only {
         max-height: 5em;

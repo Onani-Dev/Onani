@@ -2,7 +2,12 @@
     <div class="side-container">
         <h2 class="title">Tags</h2>
         <ul id="tag-container">
-            <div class="onani-loading"> </div>
+            {% for x in range(config["API_PER_PAGE_TAGS"]) %}
+            <li>
+                <p class="skeleton pulse" data-skeleton-length="{{ range(3, 10) | random }}"></p>
+            </li>
+            {% endfor %}
+            {# <div class="onani-loading"> </div> #}
         </ul>
     </div>
     <script type="module" src="/static/js/tags.min.js"></script>
