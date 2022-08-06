@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-06 08:18:33
+# @Last Modified time: 2022-08-06 09:38:21
 
 import datetime
 import html
@@ -10,10 +10,9 @@ import time
 
 import emoji
 import humanize
-from flask import Flask
+from flask import Flask, request
 from flask_celeryext import FlaskCeleryExt
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
@@ -21,11 +20,25 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+
+def get_limiter_key() -> str:
+    """Return the key to the limiter to limit the requests on (IP or if the user is logged in, their internal ID)
+
+    Returns:
+        str: The key for the limiter
+    """
+    return (
+        current_user.login_id
+        if current_user.is_authenticated
+        else (request.remote_addr or "127.0.0.1")
+    )
+
+
 csrf = CSRFProtect()
 db = SQLAlchemy()
 ext = FlaskCeleryExt()
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=get_limiter_key,
     default_limits=[
         "100 per minute",
     ],

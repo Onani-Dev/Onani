@@ -2,12 +2,13 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-06 08:17:23
+# @Last Modified time: 2022-08-06 09:38:14
 
 import re
 from typing import List, Optional, Tuple, Union
 
 from flask import flash, request
+from flask_login import current_user
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:

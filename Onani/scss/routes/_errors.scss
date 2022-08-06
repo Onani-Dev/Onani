@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-06-15 13:42:41
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-06-15 14:19:13
+ * @Last Modified time: 2022-08-06 11:53:02
  */
 
 #error-container {
@@ -10,28 +10,39 @@
 
     max-width: 25em;
     width: 25em;
-    max-height: 70vh;
     flex-direction: column;
     flex-wrap: nowrap;
     align-content: center;
     justify-content: space-between;
 
     @include for-mobile-only {
-        width: 85vw;
+        width: 80vw;
     }
 
     img {
-        width: 100%;
-        border-radius: 5px;
+        width: 25em;
+        max-height: 25em;
+        margin: auto;
+        border-radius: 1em;
+    
+        @include for-mobile-only {
+            width: 70vw;
+        }
     }
 
     h1 {
-        margin-bottom: 1em;
-        font-family: 'Tomorrow', sans-serif;
+        font-weight: 200;
+        margin: 1em;
     }
 
     p {
-        margin-top: 1em;
+        margin: 1em 5em;
+        font-size: 1.3rem;
+
+        @include for-mobile-only {
+            margin: 1em 1em;
+            font-size: 1rem;
+        }
     }
 
 }
