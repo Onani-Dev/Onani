@@ -7,18 +7,29 @@
 
 <!-- Register box -->
 <div class="login-box">
-    <h1 class="login-header">Register</h1>
-    <!-- Form -->
-    <form action="/register/" method="POST" enctype="multipart/form-data">
-        {{ form.csrf_token }}
-        {{ form.username() }}
-        {{ form.email() }}
-        {{ form.password() }}
-        {{ form.confirm() }}
-        {{ form.recaptcha() }}
-        {{ form.submit() }}
-    </form>
+    <div class="left-image-container">
+    </div>
+    <div class="form-container">
 
+        <!-- Form -->
+        <form action="/register/" method="POST" enctype="multipart/form-data">
+            <h1 class="login-header">Register</h1>
+            {{ form.csrf_token }}
+            {{ form.username() }}
+            {{ form.email() }}
+            {{ form.password() }}
+            {{ form.confirm() }}
+            {{ form.recaptcha() }}
+            {{ form.submit() }}
+        </form>
+
+        <div class="login-box-footer">
+            <p>Already have an account? <b><a class="highlighted" href="/login/">Login</a></b></p>
+            <p class="login-box-terms">By registering, you agree to our <b><a class="highlighted" href="/terms/">Terms
+                        of
+                        Service</a></b> and <b><a class="highlighted" href="/privacy/">Privacy Policy</a></b>.</p>
+        </div>
+    </div>
     <script>
         const password = document.getElementById("password"),
             confirmPassword = document.getElementById("confirm-password");
@@ -33,11 +44,5 @@
         password.onchange = validatePassword;
         confirmPassword.onkeyup = validatePassword;
     </script>
-    <div class="login-box-footer">
-        <p>Already have an account? <b><a class="highlighted" href="/login/">Login</a></b></p>
-        <p class="login-box-terms">By registering, you agree to our <b><a class="highlighted" href="/terms/">Terms of
-                    Service</a></b> and <b><a class="highlighted" href="/privacy/">Privacy Policy</a></b>.</p>
-    </div>
 </div>
-
 {% endblock %}

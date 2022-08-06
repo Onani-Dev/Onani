@@ -1,19 +1,28 @@
 {% set title = "Login - " %}
 {% set ogtitle = "Login" %}
-{% set ogdesc = "Login to your account to enjoy every feature of Onani." %}
+{% set ogdesc = "Login to enjoy every feature of Onani." %}
 {% extends "base.jinja2" %}
 
 {% block content %}
 <!-- Login box -->
 <div class="login-box">
-    <h1 class="login-header">Login</h1>
-    <!-- Form -->
-    <form action="/login/" method="POST">
-        {{ form.csrf_token }}
-        {{ form.username() }}
-        {{ form.password() }}
-        {{ form.submit() }}
-    </form>
+    <div class="left-image-container">
+    </div>
+    <div class="form-container">
+
+        <!-- Form -->
+        <form action="/login/" method="POST">
+            <h1 class="login-header">Login</h1>
+            {{ form.csrf_token }}
+            {{ form.username() }}
+            {{ form.password() }}
+            {{ form.submit() }}
+        </form>
+
+        <div class="login-box-footer">
+            <p>Don't have an account? <b><a class="highlighted" href="/register/">Register</a></b></p>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
