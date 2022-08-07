@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-06 09:38:21
+# @Last Modified time: 2022-08-07 15:06:59
 
 import datetime
 import html
@@ -12,6 +12,7 @@ import emoji
 import humanize
 from flask import Flask, request
 from flask_celeryext import FlaskCeleryExt
+from flask_crontab import Crontab
 from flask_limiter import Limiter
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
@@ -21,24 +22,16 @@ from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 
-def get_limiter_key() -> str:
-    """Return the key to the limiter to limit the requests on (IP or if the user is logged in, their internal ID)
-
-    Returns:
-        str: The key for the limiter
-    """
-    return (
-        current_user.login_id
-        if current_user.is_authenticated
-        else (request.remote_addr or "127.0.0.1")
-    )
-
-
+crontab = Crontab()
 csrf = CSRFProtect()
 db = SQLAlchemy()
 ext = FlaskCeleryExt()
 limiter = Limiter(
-    key_func=get_limiter_key,
+    key_func=lambda: (
+        current_user.login_id
+        if current_user.is_authenticated
+        else (request.remote_addr or "127.0.0.1")
+    ),
     default_limits=[
         "100 per minute",
     ],
@@ -74,6 +67,8 @@ def init_app():
 
     from .routes import admin, atom, main, main_api, rss
 
+    from .cron import tasks
+
     # Main Routes
     app.register_blueprint(main)
 
@@ -90,6 +85,7 @@ def init_app():
     app.register_blueprint(atom, url_prefix="/atom")
     app.register_blueprint(rss, url_prefix="/rss")
 
+    crontab.init_app(app)  # flask crontab init
     csrf.init_app(app)  # CSRF Protection init
     db.init_app(app)  # SQLAlchemy init
     ext.init_app(app)  # Celery init

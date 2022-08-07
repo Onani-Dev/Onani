@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-06 09:38:14
+# @Last Modified time: 2022-08-07 14:12:20
 
 import re
 from typing import List, Optional, Tuple, Union
@@ -134,3 +134,16 @@ def url_hostname(url: str) -> Union[str, None]:
         Union[str, None]: The hostname or none
     """
     return url.split("/")[2] if is_url(url) else url or None
+
+
+# def get_limiter_key() -> str:
+#     """Return the key to the limiter to limit the requests on (IP or if the user is logged in, their internal ID)
+
+#     Returns:
+#         str: The key for the limiter
+#     """
+#     return (
+#         current_user.login_id
+#         if current_user.is_authenticated
+#         else (request.remote_addr or "127.0.0.1")
+#     )
