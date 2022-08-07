@@ -30,7 +30,7 @@ def find_importer(url: str) -> Optional[Type[BaseImporter]]:
         return None
 
     # Then we find the importer that corresponds to this url, if any
-    for base_url in IMPORTERS.keys():
+    for base_url in IMPORTERS:
         if base_url in normalized_url:
             # This importer supports this site, we return it
             return IMPORTERS[base_url]
