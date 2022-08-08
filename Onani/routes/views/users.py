@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:55:05
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-19 13:45:05
+# @Last Modified by:   dirt3009
+# @Last Modified time: 2022-08-08 18:42:36
 
 import html
 
 from flask import abort, current_app, render_template, request
 from flask_login import current_user, login_required
 from Onani.controllers.utils import get_page
-from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
+from Onani.forms import (
+    AccountPlatformForm,
+    AccountProfileForm,
+    AccountSettingsForm,
+    AccountBanForm,
+)
 from Onani.models import Post, User
 
 from . import main
@@ -56,6 +61,7 @@ def get_user(user_id=None):
     account_form = AccountSettingsForm()
     profile_form = AccountProfileForm()
     platform_form = AccountPlatformForm()
+    account_ban_form = AccountBanForm()
 
     if not current_user.is_anonymous and user_id == current_user.id:
         if user.settings.biography:
@@ -85,6 +91,7 @@ def get_user(user_id=None):
         user=user,
         posts=posts,
         account_form=account_form,
+        account_ban_form=account_ban_form,
         platform_form=platform_form,
         profile_form=profile_form,
     )

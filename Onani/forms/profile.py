@@ -1,12 +1,27 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-04-23 15:02:12
+# @Last Modified by:   dirt3009
+# @Last Modified time: 2022-08-08 18:46:28
 from flask_wtf import FlaskForm
 from Onani.models import UserSettings
-from wtforms import HiddenField, PasswordField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, Regexp
+from wtforms import (
+    HiddenField,
+    PasswordField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+    IntegerField,
+    DateField,
+)
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Length,
+    Optional,
+    Regexp,
+)
 from wtforms.widgets import ColorInput
 
 
@@ -59,6 +74,43 @@ class AccountSettingsForm(FlaskForm):
         },
         validators=[Optional()],
     )
+    submit = SubmitField(
+        "Submit",
+        render_kw={
+            "value": "Save Changes",
+            "class": "profile-settings-submit",
+        },
+    )
+
+
+class AccountBanForm(FlaskForm):
+    user_id = IntegerField(
+        "User ID",
+        render_kw={
+            "id": "profile-settings-name",
+            "autocapitalize": "off",
+        },
+        validators=[],
+    )
+
+    banned_until = DateField(
+        "Banned Until",
+        render_kw={
+            "id": "profile-settings-name",
+            "autocapitalize": "off",
+        },
+        validators=[],
+    )
+
+    ban_reason = TextAreaField(
+        "Reason For Ban",
+        render_kw={
+            "id": "profile-settings-name",
+            "autocapitalize": "off",
+        },
+        validators=[],
+    )
+
     submit = SubmitField(
         "Submit",
         render_kw={

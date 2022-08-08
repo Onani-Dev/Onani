@@ -10,7 +10,9 @@
 {% set username_class = "banned" %}
 {% set pfp_class = "banned" %}
 {% set bio_class = "system-text" %}
-{% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires) if user.ban.expires else 'Never')   %}
+{% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason,
+expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires) if user.ban.expires else
+'Never') %}
 {% else %}
 {% set username_class = "" %}
 {% set pfp_class = "" %}
@@ -114,23 +116,22 @@
                 {{- user_bio -}}</p>
         </div>
         <div id="posts-tab" class="profile-tab-content">
-            {% if posts.items|length <= 0 %}
-            <p class="system-text">User has no posts.</p>
-            {% else %}
-            <div class="grid">
-                {% for post in posts.items %}
-                <div class="post-thumbnail-container">
-                    <a href="/posts/{{ post.id }}">
-                        <img src="{{ post.thumbnail() }}" class="post-thumbnail">
-                    </a>
+            {% if posts.items|length <= 0 %} <p class="system-text">User has no posts.</p>
+                {% else %}
+                <div class="grid">
+                    {% for post in posts.items %}
+                    <div class="post-thumbnail-container">
+                        <a href="/posts/{{ post.id }}">
+                            <img src="{{ post.thumbnail() }}" class="post-thumbnail">
+                        </a>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% set pagination = posts %}
-            {% set extra_params = "#posts" %}
-            {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
-            {% include "elements/pagination.jinja2" %}
-            {% endif %}
+                {% set pagination = posts %}
+                {% set extra_params = "#posts" %}
+                {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
+                {% include "elements/pagination.jinja2" %}
+                {% endif %}
         </div>
         {% if not current_user.is_anonymous %}
         {% if current_user.id == user.id %}
@@ -276,7 +277,32 @@
         {% endif %}
         {% endif %}
         {% if not current_user.is_anonymous %}
-        {% if current_user.is_admin %}<div id="admin-tab" class="profile-tab-content">Sorry nothing (Yet)</div>
+        {% if current_user.is_admin %}<div id="admin-tab" class="profile-tab-content">
+            <div id="admin-actions-tab" class="settings-tab-content-unhidden">
+                <form id="settings-account" action="/settings/ban/" method="POST">
+                    {{ account_form.csrf_token }}
+                    <h2 data-i18n="settings.ACCOUNT_SETTINGS_HEADER">Ban User</h2>
+                    <!-- User Info Settings -->
+                    <div class="settings-input-group">
+                        <div class="row">
+                            <div class="input-section">
+                                {{ account_ban_form.user_id.label }}
+                                {{ account_ban_form.user_id }}
+                            </div>
+                            <div class="input-section">
+                                {{ account_ban_form.banned_until.label }}
+                                {{ account_ban_form.banned_until }}
+                            </div>
+                            <div class="input-section">
+                                {{ account_ban_form.ban_reason.label }}
+                                {{ account_ban_form.ban_reason }}
+                            </div>
+                            <div class="settings-input-group">{{ account_ban_form.submit() }}</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
         {% endif %}
         {% endif %}
         <script type="module" src="/static/js/profile.min.js"></script>

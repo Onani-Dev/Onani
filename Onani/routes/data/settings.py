@@ -1,14 +1,25 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-20 01:04:40
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-16 07:52:02
+# @Last Modified by:   dirt3009
+# @Last Modified time: 2022-08-08 19:16:30
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user
-from Onani.controllers import create_avatar
+from Onani.controllers import (
+    create_avatar,
+    create_ban,
+    delete_ban,
+    permissions_required,
+)
 from Onani.controllers.utils import flash_form_errors
-from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
+from Onani.forms import (
+    AccountPlatformForm,
+    AccountProfileForm,
+    AccountSettingsForm,
+    AccountBanForm,
+)
 from Onani.models import Ban, Post, Tag
+from Onani.models.schemas.ban import BanSchema
 
 from . import db, main
 
@@ -72,6 +83,30 @@ def settings_platforms():
         }
 
         db.session.commit()
+
+    # Flash all the errors that may be present in the form
+    flash_form_errors(form)
+
+    return redirect(url_for("main.get_user", user_id=current_user.id))
+
+
+@main.route("/settings/ban/", methods=["POST"])
+
+# Make it permissionable
+
+
+def ban_user():
+    form = AccountBanForm()
+    if form.validate():
+        ban = create_ban(
+            user_id=form.user_id.data,
+            expires=form.banned_until.data,
+            reason=form.ban_reason.data,
+            delete_posts=None,
+            hide_posts=None,
+        )
+
+        return BanSchema().dump(ban)
 
     # Flash all the errors that may be present in the form
     flash_form_errors(form)
