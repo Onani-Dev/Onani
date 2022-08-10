@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-10 13:21:54
+# @Last Modified time: 2022-08-10 15:41:20
 
 from __future__ import annotations
 
@@ -150,6 +150,9 @@ class User(UserMixin, db.Model):
 
     @validates("nickname")
     def validate_nickname(self, key, nickname):
+        if not nickname:
+            return None
+
         if len(nickname) < 3 or len(nickname) > 32:
             raise ValueError("Nickname must be between 3 and 32 characters")
 

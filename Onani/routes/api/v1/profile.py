@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-08-10 12:45:23
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-10 13:45:05
+# @Last Modified time: 2022-08-10 15:38:33
 
 from flask import current_app
 from flask_login import current_user, login_required
@@ -52,8 +52,8 @@ class Profile(Resource):
         args = parser.parse_args()
 
         # ACCOUNT SETTINGS
-        if args["nickname"]:
-            current_user.nickname = args["nickname"]
+        if args["nickname"] is not None:
+            current_user.nickname = args["nickname"] or None
 
         if args["email"]:
             current_user.email = args["email"]
