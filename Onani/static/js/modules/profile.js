@@ -2,7 +2,7 @@
  * @Author: kapsikkum
  * @Date:   2022-04-20 23:44:57
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-04-25 15:51:48
+ * @Last Modified time: 2022-08-10 14:22:13
  */
 // import { Croppie } from "./external/croppie.min.js";
 
@@ -79,6 +79,16 @@ class Profile {
         element.click();
         firstElement = false;
       }
+    }
+
+    // Add events for form submit buttons
+    let submitButtons = document.getElementsByClassName(
+      "profile-settings-submit"
+    );
+    for (let e of submitButtons) {
+      e.onclick = () => {
+        this.submitForm(e.dataset.submitFor);
+      };
     }
 
     // OnChange event for colour selector
@@ -159,6 +169,33 @@ class Profile {
 
     document.getElementById(tabName).style.display = "flex";
     evt.currentTarget.classList.push("active");
+  }
+
+  // Submit settings forms to the api
+  submitForm(formID) {
+    let formElement = document.getElementById(formID);
+    let formData = new FormData(formElement);
+
+    let formJSON = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") {
+        formJSON[key] = value;
+      }
+    });
+
+    let settings = {
+      url: "/api/v1/profile",
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: JSON.stringify(formJSON),
+    };
+
+    $.ajax(settings).done(function (response) {
+      console.log(response);
+      console.log(formJSON);
+      // location.reload();
+      // TODO: FIX THIS
+    });
   }
 }
 

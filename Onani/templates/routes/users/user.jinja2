@@ -41,13 +41,14 @@
                 <!-- Username -->
                 <h1 id="profile-username-header" class="{{ username_class }}"
                     style="color:{{ user.profile_text_colour }};">
-                    {{ user.username }}
+                    {{ user.username if not user.nickname else "{} <h4 style=\"color:{};\">({})
+                    </h4>".format(user.nickname, user.profile_text_colour, user.username) }}
                 </h1>
                 <!-- Permission value -->
                 <h3 id="profile-user-role" style="color:{{ user.profile_text_colour }};">
                     {{ user.role.name.capitalize() }}</h3>
             </div>
-            <div id="profile-platforms-group">
+            {# <div id="profile-platforms-group">
                 <!-- User Platforms -->
                 {% if user.settings.connections.get('twitter') %}
                 <a href="{{ user.settings.connections.get('twitter') }}" target="_blank"><i
@@ -78,7 +79,7 @@
                 <a href="{{ user.settings.connections.get('github') }}" target="_blank"><i
                         class="fab fa-github fa-2x"></i></a>
                 {% endif %}
-            </div>
+            </div> #}
         </div>
     </div>
     <!-- Profile content container -->
@@ -136,25 +137,21 @@
         {% if current_user.id == user.id %}
         <div id="settings-tab" class="profile-tab-content">
             <div class="profile-tab-bar sub">
-                <button data-i18n="settings.TAB_ACCOUNT" class="settings-tab-link"
-                    data-tab-content-id="settings-account-tab">Account</button>
-                <button data-i18n="settings.TAB_PROFILE" class="settings-tab-link"
-                    data-tab-content-id="settings-profile-tab">Profile</button>
-                <button data-i18n="settings.TAB_PLATFORMS" class="settings-tab-link"
-                    data-tab-content-id="settings-platforms-tab">Platforms</button>
+                <button class="settings-tab-link" data-tab-content-id="settings-account-tab">Account</button>
+                <button class="settings-tab-link" data-tab-content-id="settings-profile-tab">Profile</button>
+                {# <button class="settings-tab-link" data-tab-content-id="settings-platforms-tab">Platforms</button> #}
                 <!-- <button class="settings-tab-link" data-tab-content-id="settings-site-tab">Site</button>-->
             </div>
             <!-- Account settings -->
             <div id="settings-account-tab" class="settings-tab-content" style="display:block;">
-                <form id="settings-account" action="/settings/account/" method="POST">
-                    {{ account_form.csrf_token }}
-                    <h2 data-i18n="settings.ACCOUNT_SETTINGS_HEADER">Account settings</h2>
+                <form id="settings-account" autocomplete="off">
+                    <h2>Account settings</h2>
                     <!-- User Info Settings -->
                     <div class="settings-input-group">
                         <div class="row">
                             <div class="input-section">
-                                {{ account_form.username.label }}
-                                {{ account_form.username(placeholder=user.username) }}
+                                {{ account_form.nickname.label }}
+                                {{ account_form.nickname(placeholder=user.nickname) }}
                             </div>
                             <div class="input-section">
                                 {{ account_form.email.label }}
@@ -185,8 +182,7 @@
             </div>
             <!-- Profile settings -->
             <div id="settings-profile-tab" class="settings-tab-content">
-                <form id="settings-profile" action="/settings/profile/" method="POST">
-                    {{ profile_form.csrf_token }}
+                <form id="settings-profile" autocomplete="off">
                     <h2>Profile settings</h2>
                     <!-- Profile Picture Settings -->
                     <div class="settings-input-group">
@@ -235,48 +231,12 @@
                     <div class="settings-input-group">{{ profile_form.submit() }}</div>
                 </form>
             </div>
-            <div id="settings-platforms-tab" class="settings-tab-content">
-                <!-- Platform settings -->
-                <form id="settings-platforms" action="/settings/platforms/" method="POST">
-                    {{ platform_form.csrf_token }}
-                    <h2>Platform settings</h2>
-                    <div class="settings-input-group">
-                        <div class="row">
-                            <div class="input-section">
-                                {{ platform_form.twitter.label }}
-                                {{ platform_form.twitter() }}
-                            </div>
-                            <div class="input-section">
-                                {{ platform_form.pixiv.label }}
-                                {{ platform_form.pixiv() }}
-                            </div>
-                            <div class="input-section">
-                                {{ platform_form.patreon.label }}
-                                {{ platform_form.patreon() }}
-                            </div>
-                            <div class="input-section">
-                                {{ platform_form.deviantart.label }}
-                                {{ platform_form.deviantart() }}
-                            </div>
-                            <div class="input-section">
-                                {{ platform_form.discord.label }}
-                                {{ platform_form.discord() }}
-                            </div>
-                            <div class="input-section">
-                                {{ platform_form.github.label }}
-                                {{ platform_form.github() }}
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Save Button For Platforms -->
-                    <div class="settings-input-group">{{ platform_form.submit() }}</div>
-                </form>
-            </div>
         </div>
         {% endif %}
         {% endif %}
         {% if not current_user.is_anonymous %}
-        {% if current_user.is_admin %}<div id="admin-tab" class="profile-tab-content">Sorry nothing (Yet)</div>
+        {% if current_user.is_admin %}
+        <div id="admin-tab" class="profile-tab-content">Sorry nothing (Yet)</div>
         {% endif %}
         {% endif %}
         <script type="module" src="/static/js/profile.min.js"></script>

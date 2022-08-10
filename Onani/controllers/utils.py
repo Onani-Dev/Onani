@@ -2,7 +2,7 @@
 # @Author: Mattlau04
 # @Date:   2022-04-03 14:46:19
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-07 14:12:20
+# @Last Modified time: 2022-08-10 11:20:30
 
 import re
 from typing import List, Optional, Tuple, Union
@@ -113,12 +113,25 @@ def complete_file_url(file_url: str) -> str:
 
 
 def flash_form_errors(form):
+    """Flash all errors in a form
+
+    Args:
+        form (Form): The form to get errors from.
+    """
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, "error")  # f"Error in the {field.capitalize()} field: {error}"
 
 
 def is_url(string: str) -> bool:
+    """Check if a string is a url
+
+    Args:
+        string (str): The string to check
+
+    Returns:
+        bool: True if a url false if not
+    """
     URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 
     return bool(re.match(URL_REGEX, string))

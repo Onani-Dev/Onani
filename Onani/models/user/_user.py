@@ -2,13 +2,14 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-11 06:01:44
+# @Last Modified time: 2022-08-10 13:21:54
 
 from __future__ import annotations
 
 import datetime
 import html
 import secrets
+import string
 import uuid
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -38,7 +39,7 @@ tag_blacklist = db.Table(
 
 class User(UserMixin, db.Model):
     """
-    User Models
+    User Models, these represent users on onani, and can be logged in to.
     """
 
     __tablename__ = "users"
@@ -48,92 +49,111 @@ class User(UserMixin, db.Model):
         if not self.settings:
             self.settings = UserSettings()
 
-    # Users ID, obviously unique as it is the primary key
+    #
     id: int = db.Column(db.Integer, primary_key=True)
+    """Users ID, obviously unique as it is the primary key"""
 
-    # Users username, must be unique
+    #
     username: str = db.Column(db.String, index=True, unique=True, nullable=False)
+    """Users username, must be unique and may not be changed unless absolutely neccesary"""
 
-    # Users email, optional and must be unique
+    nickname: str = db.Column(db.String, unique=True)
+    """Like a username, except that it can't be used to login and can be changed freely."""
+
     email: str = db.Column(db.String, index=True, unique=True)
+    """Users email, optional and must be unique"""
 
-    # The argon2 hash of the users password.
     password_hash: str = db.Column(db.String, nullable=False)
+    """The argon2 hash of the users password."""
 
-    # The time this user was created. it doesn't need to be touched.
     created_at: datetime.datetime = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
+    """The time this user was created. it doesn't need to be touched."""
 
-    # The User's role. this affects what permissions the user can utilize
     role: UserRoles = db.Column(
         ChoiceType(UserRoles, impl=db.Integer()),
         default=UserRoles.MEMBER,
         nullable=False,
     )
+    """The User's role. this affects what permissions the user can utilize"""
 
-    # The user's permissions. this contains flags on what a user can do.
     permissions: UserPermissions = db.Column(
         ChoiceType(UserPermissions, impl=db.Integer()),
         default=UserPermissions.DEFAULT,
         nullable=False,
     )
+    """The user's permissions. this contains flags on what a user can do."""
 
-    # The api key the user will use for the /api endpoint. Grants full control over the user account
     api_key: str = db.Column(
         db.String,
         index=True,
         unique=True,
         default=lambda: secrets.token_urlsafe(32),
     )
+    """The api key the user will use for the /api endpoint. Grants full control over the user account"""
 
-    # The ban that this user has. will be None if not banned.
     ban: Optional[Ban] = db.relationship(Ban, uselist=False, backref="user_ban")
+    """The ban that this user has. will be None if not banned."""
 
-    # The tag blacklist. posts with tags on this list will not appear on this user's results.
     tag_blacklist: Query = db.relationship(
         "Tag",
         secondary=tag_blacklist,
         backref="user_blacklist",
         lazy="dynamic",
     )
+    """The tag blacklist. posts with tags on this list will not appear on this user's results."""
 
-    # The user's settings. eg. custom css or profile connections
     settings: UserSettings = db.relationship(
         "UserSettings", uselist=False, backref="user_settings"
     )
+    """The user's settings. eg. custom css or profile connections"""
 
-    # The users comments on posts.
     comments: Query = db.relationship(
         "PostComment", backref="user_comments", lazy="dynamic", viewonly=True
     )
+    """The users comments on posts."""
 
-    # The users uploaded posts.
     posts: Query = db.relationship(
         "Post", backref="user_posts", lazy="dynamic", viewonly=True
     )
+    """The users uploaded posts."""
 
-    # Amount of posts this user has uploaded.
     post_count: int = db.Column(db.Integer, default=0, nullable=False)
+    """Amount of posts this user has uploaded."""
 
-    # ULTRA SECRET LOGIN UUID FOR INTERNAL LOGGING IN!!!!1!!!1 (hidden value for securely logging in users with flask-login)
     login_id: str = db.Column(
         db.String, index=True, unique=True, default=lambda: str(uuid.uuid4())
     )
+    """ULTRA SECRET LOGIN UUID FOR INTERNAL LOGGING IN!!!!1!!!1 (hidden value for securely logging in users with flask-login)"""
 
-    # If the user deletes their account, this will become true.
     is_deleted: bool = db.Column(db.Boolean, default=False)
+    """If the user deletes their account, this will become true."""
 
     @validates("username")
     def validate_username(self, key, username):
         if not username:
             raise ValueError("No username provided")
+
         if len(username) < 3 or len(username) > 32:
             raise ValueError("Username must be between 3 and 32 characters")
+
+        for c in username:
+            if c not in string.ascii_letters + string.digits + string.punctuation:
+                raise ValueError(f'Invalid Character in username. ("{c}")')
+
         if User.query.filter(User.username == username).first():
             raise ValueError("Username is already in use")
+
         return html.escape(username)
+
+    @validates("nickname")
+    def validate_nickname(self, key, nickname):
+        if len(nickname) < 3 or len(nickname) > 32:
+            raise ValueError("Nickname must be between 3 and 32 characters")
+
+        return html.escape(nickname)
 
     @validates("email")
     def validate_email(self, key, email):
