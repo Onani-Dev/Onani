@@ -151,11 +151,11 @@
                         <div class="row">
                             <div class="input-section">
                                 {{ account_form.nickname.label }}
-                                {{ account_form.nickname(placeholder=user.nickname) }}
+                                {{ account_form.nickname(placeholder=user.nickname or "Enter a nickname...", value=user.nickname or "") }}
                             </div>
                             <div class="input-section">
                                 {{ account_form.email.label }}
-                                {{ account_form.email(placeholder=user.email) }}
+                                {{ account_form.email(placeholder=user.email or "Enter an email...", value=user.email or "") }}
                             </div>
                         </div>
                     </div>
@@ -212,21 +212,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Load SimpleMDE -->
-                    <script>
-                        let interval = setInterval(function () {
-                            if (document.querySelector('[data-tab-content-id="settings-profile-tab"].active')) {
-                                clearInterval(interval)
-                                simplemde.codemirror.refresh()
-                            }
-                        }, 100)
-                        const simplemde = new SimpleMDE({
-                            element: document.getElementById("profile-settings-bio"),
-                            spellChecker: false,
-                            status: false,
-                            lineWrapping: true
-                        });
-                    </script>
                     <!-- Save Button For profile -->
                     <div class="settings-input-group">{{ profile_form.submit() }}</div>
                 </form>

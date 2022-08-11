@@ -2,16 +2,33 @@
  * @Author: kapsikkum
  * @Date:   2022-04-20 23:44:57
  * @Last Modified by:   kapsikkum
- * @Last Modified time: 2022-08-10 14:22:13
+ * @Last Modified time: 2022-08-11 13:51:44
  */
-// import { Croppie } from "./external/croppie.min.js";
+import { Alerter } from "./index.min.js";
 
 class Profile {
   constructor() {
+    // Read to submit bool
+    this.readyToSubmit = true;
+    // Alerter
+    this.alerter = new Alerter();
+
     // Add a hash to the url if one doesn't exist
     if (location.hash === "") {
       location.hash = "bio";
     }
+
+    // Init SimpleMDE
+    let interval = setInterval(() => {
+      if (
+        document.querySelector(
+          '[data-tab-content-id="settings-profile-tab"].active'
+        )
+      ) {
+        clearInterval(interval);
+        this.simplemde.codemirror.refresh();
+      }
+    }, 100);
 
     // Get the elements
     let profileTabs = document.getElementsByClassName("profile-tab-link");
@@ -20,6 +37,27 @@ class Profile {
     let settingsTabContent = document.getElementsByClassName(
       "settings-tab-content"
     );
+
+    if (settingsTabContent.length > 0) {
+      this.simplemde = new SimpleMDE({
+        element: document.getElementById("profile-settings-bio"),
+        spellChecker: false,
+        status: false,
+        lineWrapping: true,
+      });
+
+      // Init croppie
+      this.croppieUpload = new Croppie(
+        document.getElementById("upload-image"),
+        {
+          viewport: {
+            width: 220,
+            height: 220,
+            type: "square",
+          },
+        }
+      );
+    }
 
     // Add onclick events to all profile tab buttons
     for (let element of profileTabs) {
@@ -87,6 +125,10 @@ class Profile {
     );
     for (let e of submitButtons) {
       e.onclick = () => {
+        if (e.dataset.submitFor === "settings-profile") {
+          this.readyToSubmit = false;
+          this.cropImage();
+        }
         this.submitForm(e.dataset.submitFor);
       };
     }
@@ -102,14 +144,6 @@ class Profile {
       };
     }
 
-    this.croppieUpload = new Croppie(document.getElementById("upload-image"), {
-      viewport: {
-        width: 220,
-        height: 220,
-        type: "square",
-      },
-    });
-
     // Onchange event for profile picture
     let profilePictureSettings = document.getElementById(
       "profile-settings-profile-picture"
@@ -119,25 +153,6 @@ class Profile {
         this.readFile(profilePictureSettings);
       };
     }
-
-    document.getElementById("settings-profile").onclick = () => {
-      let hiddenPfpField = document.getElementById(
-        "hidden-base64-profile-picture"
-      );
-      let base64Img;
-      this.croppieUpload
-        .result({
-          type: "canvas",
-          size: "viewport",
-        })
-        .then(function (resp) {
-          base64Img = resp;
-          if (base64Img.length === 6) {
-            base64Img = null;
-          }
-          hiddenPfpField.value = base64Img;
-        });
-    };
   }
 
   readFile(input) {
@@ -151,6 +166,29 @@ class Profile {
       };
       reader.readAsDataURL(input.files[0]);
     }
+  }
+
+  /**
+   * Function to crop the image inside of croppie right now.
+   */
+  cropImage() {
+    let hiddenPfpField = document.getElementById(
+      "hidden-base64-profile-picture"
+    );
+    let base64Img;
+    this.croppieUpload
+      .result({
+        type: "canvas",
+        size: "viewport",
+      })
+      .then((resp) => {
+        base64Img = resp;
+        if (base64Img.length === 6) {
+          base64Img = null;
+        }
+        hiddenPfpField.value = base64Img;
+        this.readyToSubmit = true;
+      });
   }
 
   changeSettingsTab(evt, tabName) {
@@ -171,31 +209,54 @@ class Profile {
     evt.currentTarget.classList.push("active");
   }
 
+  // updateProfileInfo(data) {
+  //   document.getElementById("profile-bio-textarea").innerText =
+  //     data.settings.biography;
+  //   document.getElementById("profile-picture-image").src =
+  //     data.settings.biography;
+  // }
+
   // Submit settings forms to the api
   submitForm(formID) {
-    let formElement = document.getElementById(formID);
-    let formData = new FormData(formElement);
+    if (!this.readyToSubmit) {
+      setTimeout(() => {
+        this.submitForm(formID);
+      }, 100);
+    } else {
+      let formElement = document.getElementById(formID);
 
-    let formJSON = {};
-    formData.forEach((value, key) => {
-      if (typeof value === "string") {
-        formJSON[key] = value;
-      }
-    });
+      formElement.dispatchEvent(new Event("change"));
 
-    let settings = {
-      url: "/api/v1/profile",
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      data: JSON.stringify(formJSON),
-    };
+      let formData = new FormData(formElement);
 
-    $.ajax(settings).done(function (response) {
-      console.log(response);
-      console.log(formJSON);
-      // location.reload();
-      // TODO: FIX THIS
-    });
+      let formJSON = {};
+      formData.forEach((value, key) => {
+        if (typeof value === "string") {
+          if (key === "biography") {
+            value = this.simplemde.value();
+          }
+          formJSON[key] = value;
+        }
+      });
+
+      let settings = {
+        url: "/api/v1/profile",
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        data: JSON.stringify(formJSON),
+      };
+
+      $.ajax(settings).always((response) => {
+        if (response.status === 429) {
+          this.alerter.error("You're doing this too much, Slow down.", true);
+        } else if (response.status === 500) {
+          this.alerter.error("Internal server error.", true);
+        } else {
+          this.alerter.success("Settings saved.", true);
+          location.reload();
+        }
+      });
+    }
   }
 }
 
