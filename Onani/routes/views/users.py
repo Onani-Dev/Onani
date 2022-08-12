@@ -9,7 +9,7 @@ import html
 from flask import abort, current_app, render_template, request
 from flask_login import current_user, login_required
 from Onani.controllers.utils import get_page
-from Onani.forms import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
+from Onani.forms import  AccountProfileForm, AccountSettingsForm
 from Onani.models import Post, User
 
 from . import main
@@ -55,29 +55,9 @@ def get_user(user_id=None):
 
     account_form = AccountSettingsForm()
     profile_form = AccountProfileForm()
-    platform_form = AccountPlatformForm()
 
-    if not current_user.is_anonymous and user_id == current_user.id:
-        if user.settings.biography:
-            profile_form.biography.data = html.unescape(user.settings.biography)
-
-        if user.settings.connections.get("twitter"):
-            platform_form.twitter.data = user.settings.connections.get("twitter")
-
-        if user.settings.connections.get("pixiv"):
-            platform_form.pixiv.data = user.settings.connections.get("pixiv")
-
-        if user.settings.connections.get("patreon"):
-            platform_form.patreon.data = user.settings.connections.get("patreon")
-
-        if user.settings.connections.get("deviantart"):
-            platform_form.deviantart.data = user.settings.connections.get("deviantart")
-
-        if user.settings.connections.get("discord"):
-            platform_form.discord.data = user.settings.connections.get("discord")
-
-        if user.settings.connections.get("github"):
-            platform_form.github.data = user.settings.connections.get("github")
+    if not current_user.is_anonymous and user_id == current_user.id and user.settings.biography:
+        profile_form.biography.data = html.unescape(user.settings.biography)
 
     # Render the user page
     return render_template(
@@ -85,6 +65,5 @@ def get_user(user_id=None):
         user=user,
         posts=posts,
         account_form=account_form,
-        platform_form=platform_form,
         profile_form=profile_form,
     )

@@ -2,8 +2,9 @@
 # @Author: kapsikkum
 # @Date:   2022-03-12 02:26:15
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-01 14:05:29
+# @Last Modified time: 2022-08-11 12:32:34
 
+import contextlib
 import hashlib
 import io
 import os
@@ -123,7 +124,8 @@ def create_avatar(user: User, base64_file: str) -> str:
 
     # delete current avatar
     if user.settings.avatar:
-        os.remove(user.settings.avatar)
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(user.settings.avatar)
 
     # set new avatar
     user.settings.avatar = url

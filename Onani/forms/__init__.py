@@ -6,6 +6,6 @@
 
 from .edit import EditForm
 from .login import LoginForm
-from .profile import AccountPlatformForm, AccountProfileForm, AccountSettingsForm
+from .profile import AccountProfileForm, AccountSettingsForm
 from .register import RegistrationForm
 from .upload import UploadForm

@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-05-14 07:44:16
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-19 13:09:25
+# @Last Modified time: 2022-08-10 12:51:09
 from flask import Blueprint
 from flask_restful import Api
 
@@ -19,3 +19,4 @@ from .news import *
 from .posts import *
 from .tags import *
 from ._admin import *
+from .profile import *

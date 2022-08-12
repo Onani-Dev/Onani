@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-16 21:12:40
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-24 14:14:06
+# @Last Modified time: 2022-08-10 11:21:51
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
@@ -33,7 +33,7 @@ def user_login(user: "User", password: str):
                     f"""
 This account has been banned.
 Reason: {user.ban.reason}
-Expires: {(humanize.naturaltime(datetime.now(timezone.utc) - user.ban.expires) + ' (' + user.ban.expires.strftime('%d/%m/%Y %H:%M:%S') + ' UTC)') if user.ban.expires else 'Never'  }
+Expires: {f'{humanize.naturaltime(datetime.now(timezone.utc) - user.ban.expires)} (' + user.ban.expires.strftime('%d/%m/%Y %H:%M:%S') + ' UTC)' if user.ban.expires else 'Never'}
 """,
                     "error",
                 )

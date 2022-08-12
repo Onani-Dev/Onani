@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-17 15:01:19
+# @Last Modified time: 2022-08-10 11:19:07
 import html
 from datetime import datetime, timedelta, timezone
 
@@ -47,7 +47,7 @@ def login():
 
 
 @main.route("/register/", methods=["GET", "POST"])
-# @limiter.limit("1/hour", methods=["POST"])
+@limiter.limit("10/hour", methods=["POST"])
 def register():
     # The registration form object
     form = RegistrationForm()
