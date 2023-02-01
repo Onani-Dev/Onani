@@ -14,19 +14,19 @@
 {% include "elements/tag_bar.jinja2" %}
 <!-- Post thumbnails -->
 <div id="posts-container">
-    {% if posts.items|length <= 0 %}
-    <h1>Sorry nothing</h1>
-    {% else %}
-    <div class="grid">
-        {% for post in posts.items %}
-        <div class="post-thumbnail-container" title="{{ post.title }}">
-            <a href="/posts/{{ post.id }}"><img src="{{ post.thumbnail() }}" class="post-thumbnail"></a>
+    {% if posts.items|length <= 0 %} <h1>Sorry nothing</h1>
+        {% else %}
+        <div class="grid">
+            {% for post in posts.items %}
+            <div class="post-thumbnail-container" title="{{ post.title }}">
+                <a href="/posts/{{ post.id }}"><img src="{{ post.thumbnail() }}"
+                        class="post-thumbnail{{' unsafe' if not post.is_safe else ''}}"></a>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    {% set pagination = posts %}
-    {% set page_url = "/posts/" %}
-    {% include "elements/pagination.jinja2" %}
-    {% endif %}
+        {% set pagination = posts %}
+        {% set page_url = "/posts/" %}
+        {% include "elements/pagination.jinja2" %}
+        {% endif %}
 </div>
 {% endblock %}

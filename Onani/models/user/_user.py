@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-10 15:41:20
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2023-02-01 14:54:49
 
 from __future__ import annotations
 
@@ -130,6 +130,9 @@ class User(UserMixin, db.Model):
 
     is_deleted: bool = db.Column(db.Boolean, default=False)
     """If the user deletes their account, this will become true."""
+    
+    safe_mode: bool = db.Column(db.Boolean, default=False)
+    """If True, explicit posts will be blurred."""
 
     @validates("username")
     def validate_username(self, key, username):

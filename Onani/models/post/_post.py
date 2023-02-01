@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2021-01-16 02:07:20
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-24 13:39:09
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2023-02-01 15:26:52
 
 from __future__ import annotations
 
@@ -271,6 +271,11 @@ class Post(db.Model):
     @property
     def file_url(self) -> str:
         return f"/images/{self.filename}"
+
+    @property
+    def is_safe(self) -> bool:
+        """If False, the post will be blurred if safe mode is enabled"""
+        return self.rating in {PostRating.GENERAL, PostRating.QUESTIONABLE}
 
     def delete(self):
         """Delete this file from the database and the disk.
