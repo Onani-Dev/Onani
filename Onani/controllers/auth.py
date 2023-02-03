@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-04-16 21:12:40
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2023-02-03 18:33:29
+# @Last Modified time: 2023-02-03 20:06:36
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Optional
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from Onani.models import User
 
 
-def user_login(user: "User", password: str, otp: Optional[str] = None):
+def user_login(user: "User", password: str, otp: Optional[int] = None):
     # Check if password is correct
     if not user.check_password(password):
         # Password was wrong, show message
