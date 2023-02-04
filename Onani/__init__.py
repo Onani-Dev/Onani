@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-10 10:59:37
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2023-02-03 17:03:25
 
 import datetime
 import html
@@ -17,10 +17,10 @@ from flask_limiter import Limiter
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
+from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
-
 
 crontab = Crontab()
 csrf = CSRFProtect()
@@ -40,6 +40,7 @@ login_manager = LoginManager()
 ma = Marshmallow()
 migrate = Migrate()
 celery = ext.celery
+qr = QRcode()
 
 from Onani.controllers.utils import complete_file_url, is_url, url_hostname
 
@@ -65,9 +66,8 @@ def init_app():
         url_hostname=url_hostname,
     )
 
-    from .routes import admin, atom, main, main_api, rss
-
     from .cron import tasks
+    from .routes import admin, atom, main, main_api, rss
 
     # Main Routes
     app.register_blueprint(main)
@@ -93,6 +93,7 @@ def init_app():
     login_manager.init_app(app)  # login manager init
     ma.init_app(app)  # Marshmallow init
     migrate.init_app(app, db)  # flask migrate init
+    qr.init_app(app)
 
     # Line belows prints all the registered routes, useful to debug
     # if app.testing:

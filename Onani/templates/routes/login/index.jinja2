@@ -16,6 +16,8 @@
             {{ form.csrf_token }}
             {{ form.username() }}
             {{ form.password() }}
+            {{ form.otp_code.label }}
+            {{ form.otp_code() }}
             {{ form.submit() }}
         </form>
 

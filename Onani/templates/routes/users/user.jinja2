@@ -10,7 +10,9 @@
 {% set username_class = "banned" %}
 {% set pfp_class = "banned" %}
 {% set bio_class = "system-text" %}
-{% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason, expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires) if user.ban.expires else 'Never')   %}
+{% set user_bio = "# User is banned. \n**Reason: {ban}** \n**Expires: {expires}**".format(ban=user.ban.reason,
+expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user.ban.expires) if user.ban.expires else
+'Never') %}
 {% else %}
 {% set username_class = "" %}
 {% set pfp_class = "" %}
@@ -115,23 +117,22 @@
                 {{- user_bio -}}</p>
         </div>
         <div id="posts-tab" class="profile-tab-content">
-            {% if posts.items|length <= 0 %}
-            <p class="system-text">User has no posts.</p>
-            {% else %}
-            <div class="grid">
-                {% for post in posts.items %}
-                <div class="post-thumbnail-container">
-                    <a href="/posts/{{ post.id }}">
-                        <img src="{{ post.thumbnail() }}" class="post-thumbnail">
-                    </a>
+            {% if posts.items|length <= 0 %} <p class="system-text">User has no posts.</p>
+                {% else %}
+                <div class="grid">
+                    {% for post in posts.items %}
+                    <div class="post-thumbnail-container">
+                        <a href="/posts/{{ post.id }}">
+                            <img src="{{ post.thumbnail() }}" class="post-thumbnail">
+                        </a>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% set pagination = posts %}
-            {% set extra_params = "#posts" %}
-            {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
-            {% include "elements/pagination.jinja2" %}
-            {% endif %}
+                {% set pagination = posts %}
+                {% set extra_params = "#posts" %}
+                {% set page_url = "/users/{user_id}".format(user_id=user.id) %}
+                {% include "elements/pagination.jinja2" %}
+                {% endif %}
         </div>
         {% if not current_user.is_anonymous %}
         {% if current_user.id == user.id %}
@@ -151,11 +152,13 @@
                         <div class="row">
                             <div class="input-section">
                                 {{ account_form.nickname.label }}
-                                {{ account_form.nickname(placeholder=user.nickname or "Enter a nickname...", value=user.nickname or "") }}
+                                {{ account_form.nickname(placeholder=user.nickname or "Enter a nickname...",
+                                value=user.nickname or "") }}
                             </div>
                             <div class="input-section">
                                 {{ account_form.email.label }}
-                                {{ account_form.email(placeholder=user.email or "Enter an email...", value=user.email or "") }}
+                                {{ account_form.email(placeholder=user.email or "Enter an email...", value=user.email or
+                                "") }}
                             </div>
                         </div>
                     </div>
@@ -173,6 +176,22 @@
                             <div class="input-section">
                                 {{ account_form.confirm_new_password.label }}
                                 {{ account_form.confirm_new_password() }}
+                            </div>
+                        </div>
+                    </div>
+                    <!-- OTP settings -->
+                    <div class="settings-input-group">
+                        <div class="row">
+                            <div class="input-section">
+                                {{ account_form.otp_enaled.label }}
+                                {{ account_form.otp_enaled(checked=current_user.otp_enabled) }}
+                            </div>
+                            <div class="input-section">
+                                <p>
+                                    OTP QR code
+                                    <img src="{{ qrcode(current_user.otp_uri, box_size=8, border=1) }}" ,
+                                        style="display:block">
+                                </p>
                             </div>
                         </div>
                     </div>

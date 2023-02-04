@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-08-10 12:45:23
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-10 15:38:33
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2023-02-04 16:03:50
 
 from flask import current_app
 from flask_login import current_user, login_required
@@ -14,7 +14,6 @@ from . import api, db, limiter
 
 
 class Profile(Resource):
-
     decorators = [login_required]
 
     def get(self):
@@ -35,6 +34,10 @@ class Profile(Resource):
         )
         parser.add_argument(
             "current_password", location="json", type=str, default=None, required=False
+        )
+        # TODO: figure out a good way to not have to resort to default=False
+        parser.add_argument(
+            "otp_enaled", location="json", type=bool, default=False, required=False
         )
 
         # PROFILE SETTINGS
@@ -62,6 +65,8 @@ class Profile(Resource):
             args["current_password"]
         ):
             current_user.set_password(args["new_password"])
+
+        current_user.otp_enabled = args["otp_enaled"]
 
         # PROFILE SETTINGS
         if args["biography"]:

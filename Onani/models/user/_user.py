@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2023-02-01 14:54:49
+# @Last Modified time: 2023-02-04 15:04:29
 
 from __future__ import annotations
 
@@ -13,13 +13,17 @@ import string
 import uuid
 from typing import TYPE_CHECKING, List, Optional, Union
 
+import pyotp
+import pyotp.totp
 import regex as re
+from flask import url_for
 from flask_login import UserMixin
-from Onani.controllers.utils import colour_contrast
 from passlib.hash import argon2
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType
+
+from Onani.controllers.utils import colour_contrast
 
 from . import Ban, db
 from .permissions import UserPermissions
@@ -94,6 +98,19 @@ class User(UserMixin, db.Model):
     )
     """The api key the user will use for the /api endpoint. Grants full control over the user account"""
 
+    otp_enabled: bool = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    otp_token: str = db.Column(
+        db.String,
+        default=lambda: pyotp.random_base32(),
+        nullable=False,
+    )
+    """The base32 token used to generate OTP codes for the user."""
+
     ban: Optional[Ban] = db.relationship(Ban, uselist=False, backref="user_ban")
     """The ban that this user has. will be None if not banned."""
 
@@ -130,7 +147,7 @@ class User(UserMixin, db.Model):
 
     is_deleted: bool = db.Column(db.Boolean, default=False)
     """If the user deletes their account, this will become true."""
-    
+
     safe_mode: bool = db.Column(db.Boolean, default=False)
     """If True, explicit posts will be blurred."""
 
@@ -188,7 +205,7 @@ class User(UserMixin, db.Model):
 
         self.password_hash = argon2.using(rounds=8).hash(password)
 
-    def check_password(self, password):
+    def check_password(self, password: str) -> bool:
         """Check the user's password against the stored argon2 hash.
 
         Args:
@@ -198,6 +215,30 @@ class User(UserMixin, db.Model):
             bool: True if the password was correct, False if incorrect.
         """
         return argon2.verify(password, self.password_hash)
+
+    def check_otp(self, otp: int) -> bool:
+        """Check if the user's OTP code is valid and hasn't already been used"""
+        totp = pyotp.totp.TOTP(self.otp_token)
+
+        # TODO: check if OTP was used before, to avoid replay attacks
+        return totp.verify(otp, valid_window=1)
+
+    @property
+    def otp_uri(self) -> str:
+        """The URI a user can use to register the TOPT to an OTP app"""
+        totp = pyotp.totp.TOTP(self.otp_token)
+        return totp.provisioning_uri(
+            name=self.username,
+            issuer_name="Onani",
+            # _external=True makes it a full URL instead of relative
+            # _scheme needs to be HTTPS, HTTP makes provisioning_uri() raise an error
+            image=url_for(
+                "static",
+                filename="android-chrome-512x512.png",
+                _external=True,
+                _scheme="https",
+            ),
+        )
 
     def regen_api_key(self):
         """
