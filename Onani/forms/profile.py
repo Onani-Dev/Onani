@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2023-02-04 16:00:09
+# @Last Modified time: 2023-02-04 16:41:36
 from flask_wtf import FlaskForm
 from Onani.models import UserSettings
 from wtforms import (
@@ -56,7 +56,7 @@ class AccountSettingsForm(FlaskForm):
         },
     )
 
-    otp_enaled = BooleanField("Enable OTP auth")
+    otp_enaled = BooleanField("Enable OTP 2FA")
 
     submit = SubmitField(
         "Submit",

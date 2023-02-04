@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2022-03-07 01:15:34
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2023-02-04 14:35:07
+# @Last Modified time: 2023-02-04 16:39:57
 
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, SubmitField, IntegerField
@@ -29,7 +29,7 @@ class LoginForm(FlaskForm):
     )
 
     otp_code = IntegerField(
-        "OTP Code (leave empty if you didn't enable it)",
+        "2FA OTP Code (leave empty if you didn't enable it)",
         validators=[Optional()],
         render_kw={
             "placeholder": "code",

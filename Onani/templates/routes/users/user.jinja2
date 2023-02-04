@@ -186,12 +186,28 @@ expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user
                                 {{ account_form.otp_enaled.label }}
                                 {{ account_form.otp_enaled(checked=current_user.otp_enabled) }}
                             </div>
-                            <div class="input-section">
-                                <p>
-                                    OTP QR code
-                                    <img src="{{ qrcode(current_user.otp_uri, box_size=8, border=1) }}" ,
-                                        style="display:block">
-                                </p>
+                            <div class="input-section" style="align-items: center;">
+                                {# TODO: move the script somewhere else #}
+                                <script>
+                                    function toggleOTPQR() {
+                                        var x = document.getElementById("otp-qr-code-div");
+                                        if (x.style.display === "none") {
+                                            x.style.display = "block";
+                                        } else {
+                                            x.style.display = "none";
+                                        }
+                                    } 
+                                </script>
+                                <input onclick="toggleOTPQR();return false;" type="button" value="Toggle 2FA QR Code">
+                                <div style="display:none;" id="otp-qr-code-div">
+                                    <p style="text-align: center;">
+                                        2FA OTP QR code
+                                    <div style="overflow:hidden;">
+                                        <img src="{{ qrcode(current_user.otp_uri, box_size=8, border=1) }}"
+                                            style="display:block; image-rendering: pixelated;" id="otp-qr-code">
+                                    </div>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
