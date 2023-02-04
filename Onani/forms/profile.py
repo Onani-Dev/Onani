@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-18 21:17:38
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-10 13:58:56
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2023-02-04 16:00:09
 from flask_wtf import FlaskForm
 from Onani.models import UserSettings
-from wtforms import HiddenField, PasswordField, StringField, SubmitField, TextAreaField
+from wtforms import (
+    HiddenField,
+    PasswordField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+    BooleanField,
+)
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, Regexp
 from wtforms.widgets import ColorInput
 
@@ -48,6 +55,9 @@ class AccountSettingsForm(FlaskForm):
             "autocapitalize": "off",
         },
     )
+
+    otp_enaled = BooleanField("Enable OTP auth")
+
     submit = SubmitField(
         "Submit",
         render_kw={

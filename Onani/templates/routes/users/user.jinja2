@@ -179,16 +179,25 @@ expires=humanize.naturaltime(datetime.datetime.now(datetime.timezone.utc) - user
                             </div>
                         </div>
                     </div>
+                    <!-- OTP settings -->
+                    <div class="settings-input-group">
+                        <div class="row">
+                            <div class="input-section">
+                                {{ account_form.otp_enaled.label }}
+                                {{ account_form.otp_enaled(checked=current_user.otp_enabled) }}
+                            </div>
+                            <div class="input-section">
+                                <p>
+                                    OTP QR code
+                                    <img src="{{ qrcode(current_user.otp_uri, box_size=8, border=1) }}" ,
+                                        style="display:block">
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Save Button For account -->
                     <div class="settings-input-group">{{ account_form.submit() }}</div>
                 </form>
-                {# TODO: Add a way here to actually toggle OTP mode #}
-                <div class="settings-input-group">
-                    <p style="text-align: center">
-                        OTP QR code
-                        <img src="{{ qrcode(current_user.otp_uri, box_size=8, border=1) }}" , style="display:block">
-                    </p>
-                </div>
             </div>
             <!-- Profile settings -->
             <div id="settings-profile-tab" class="settings-tab-content">
