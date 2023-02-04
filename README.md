@@ -6,7 +6,8 @@ Docker is required.
 
 Generate a .env file with generate_env.py by using `python generate_env.py` to create a password and secret key.
 
-To run: `./build.sh dev` (Development) or `./build.sh` (Production)
+To run: `./build.sh dev` (Development) or `./build.sh` (Production). 
+Onani will then run on http://127.0.0.1:8080/
 
 For default tags, Run `flask tags --filename <meta.json|explicit.json>` inside the onani_flask container. This allows meta and explicit tag checking to work.
 
