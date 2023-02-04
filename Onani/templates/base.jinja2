@@ -36,7 +36,7 @@
 
     {# That way they can be overwritten by child template if need be #}
     {% if ogimage is not defined %}
-        {% set ogimage = "/static/android-chrome-512x512.png" %}
+    {% set ogimage = "/static/android-chrome-512x512.png" %}
     {% endif %}
 
     <!-- META -->
@@ -104,9 +104,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.0.3/showdown.min.js"
         integrity="sha512-vx8rJNrYIZPDr290AV2tL04x0CKjLHSnTXrHMeb1kqbhfGwBnclPDOWIWxRiVS6Oe1oGzk5MzNz/eLzVku30kg=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {# <!-- Outdated, MaxCDN shut down -->
     <script defer src="https://twemoji.maxcdn.com/v/14.0.0/twemoji.min.js"
         integrity="sha384-L1ViA0v9uyiBlZsOGT/z9RVgs+Gku2SDCuzaAoLco0hEgfYZYiztb+pRgWYHkDwb" crossorigin="anonymous">
-    </script>
+        </script> #}
+    <script src="https://unpkg.com/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
     <script src="https://kit.fontawesome.com/81f90a61fe.js" crossorigin="anonymous"></script>
     {% block top_scripts %}
     {% endblock %}
@@ -136,7 +138,8 @@
                     autocapitalize="off" autocomplete="off" value="{{ search_box_value }}">
             </div>
             <i class="fas fa-search clickable pop-out" id="search-icon"></i>
-            {# <script src="/static/js/search.min.js"></script> #}
+            {#
+            <script src="/static/js/search.min.js"></script> #}
         </div>
         <!-- User Profile Picture -->
         {% if current_user.is_authenticated %}
