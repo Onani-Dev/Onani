@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2023-02-04 13:35:44
+# @Last Modified time: 2023-02-04 15:04:29
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import pyotp
 import pyotp.totp
 import regex as re
+from flask import url_for
 from flask_login import UserMixin
 from passlib.hash import argon2
 from sqlalchemy.orm import validates
@@ -223,10 +224,21 @@ class User(UserMixin, db.Model):
         return totp.verify(otp, valid_window=1)
 
     @property
-    def otp_url(self) -> str:
+    def otp_uri(self) -> str:
         """The URI a user can use to register the TOPT to an OTP app"""
         totp = pyotp.totp.TOTP(self.otp_token)
-        return totp.provisioning_uri(name=self.email, issuer_name="Onani")
+        return totp.provisioning_uri(
+            name=self.username,
+            issuer_name="Onani",
+            # _external=True makes it a full URL instead of relative
+            # _scheme needs to be HTTPS, HTTP makes provisioning_uri() raise an error
+            image=url_for(
+                "static",
+                filename="android-chrome-512x512.png",
+                _external=True,
+                _scheme="https",
+            ),
+        )
 
     def regen_api_key(self):
         """

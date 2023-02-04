@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-09 02:48:22
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-10 11:19:07
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2023-02-04 14:30:55
 import html
 from datetime import datetime, timedelta, timezone
 
@@ -28,7 +28,6 @@ def login():
 
     # The credentials have been posted
     if form.validate_on_submit():
-
         # Try to get the user
         user = User.query.filter_by(username=html.escape(form.username.data)).first()
 
@@ -37,7 +36,7 @@ def login():
             flash("Invalid Login.", "error")
             return redirect(url_for("main.login"))
 
-        return user_login(user, form.password.data)
+        return user_login(user, form.password.data, form.otp_code.data)
 
     # Flash all the errors that may be present in the form
     flash_form_errors(form)
