@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-11-08 23:57:34
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2023-02-03 19:23:01
+# @Last Modified time: 2023-02-04 13:35:44
 
 from __future__ import annotations
 
@@ -100,11 +100,13 @@ class User(UserMixin, db.Model):
     otp_enabled: bool = db.Column(
         db.Boolean,
         default=False,
+        nullable=False,
     )
 
     otp_token: str = db.Column(
         db.String,
         default=lambda: pyotp.random_base32(),
+        nullable=False,
     )
     """The base32 token used to generate OTP codes for the user."""
 
