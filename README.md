@@ -12,5 +12,3 @@ Onani will then run on http://127.0.0.1:8080/
 For default tags, Run `flask tags --filename <meta.json|explicit.json>` inside the onani_flask container. This allows meta and explicit tag checking to work.
 
 To make a user an owner, Run `flask add-owner --id <User ID>` inside the onani_flask container.
-
-we do a lil testy test
