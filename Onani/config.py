@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: kapsikkum
 # @Date:   2022-03-01 16:12:35
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-17 13:31:18
+# @Last Modified by:   Mattlau04
+# @Last Modified time: 2023-02-22 21:15:34
 import os
 
 # Flask Config
@@ -59,3 +59,6 @@ RATELIMIT_HEADERS_ENABLED = True
 
 # Flask Restful
 BUNDLE_ERRORS = True
+
+# Flask debugtoolbar
+DEBUG_TB_INTERCEPT_REDIRECTS = False
