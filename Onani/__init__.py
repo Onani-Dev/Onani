@@ -2,7 +2,7 @@
 # @Author: kapsikkum
 # @Date:   2020-09-12 14:29:14
 # @Last Modified by:   Mattlau04
-# @Last Modified time: 2023-02-03 17:03:25
+# @Last Modified time: 2023-02-22 19:29:55
 
 import datetime
 import html
@@ -21,6 +21,7 @@ from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_debugtoolbar import DebugToolbarExtension
 
 crontab = Crontab()
 csrf = CSRFProtect()
@@ -41,6 +42,7 @@ ma = Marshmallow()
 migrate = Migrate()
 celery = ext.celery
 qr = QRcode()
+toolbar = DebugToolbarExtension()
 
 from Onani.controllers.utils import complete_file_url, is_url, url_hostname
 
@@ -93,7 +95,8 @@ def init_app():
     login_manager.init_app(app)  # login manager init
     ma.init_app(app)  # Marshmallow init
     migrate.init_app(app, db)  # flask migrate init
-    qr.init_app(app)
+    qr.init_app(app)  # Qr init
+    toolbar.init_app(app)  # debugtoolbar init
 
     # Line belows prints all the registered routes, useful to debug
     # if app.testing:

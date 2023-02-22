@@ -45,3 +45,4 @@ xmltodict>=0.13.0
 Zenora>=0.0.3
 flask-qrcode==3.1.0
 pyotp==2.8.0
+flask-debugtoolbar==0.13
