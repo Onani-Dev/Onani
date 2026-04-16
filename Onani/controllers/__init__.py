@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-# @Author: kapsikkum
-# @Date:   2022-03-04 15:56:02
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-08-08 08:56:21
-
 from .. import db
 from .exceptions import OnaniApiException
-from .auth import user_login
-from .database import (
+from .role import role_required
+from .permissions import permissions_required
+
+# Service-layer re-exports (kept here for backward compatibility)
+from Onani.services import (
     create_avatar,
     create_comment,
     create_default_tags,
@@ -19,6 +17,9 @@ from .database import (
     create_ban,
     delete_ban,
     create_news,
+    query_posts,
+    parse_tags,
+    set_tags,
 )
-from .role import role_required
-from .permissions import permissions_required
+# auth helpers remain in controllers.auth (they are web-layer utilities)
+from .auth import user_login

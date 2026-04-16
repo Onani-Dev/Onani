@@ -7,7 +7,8 @@
 
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
-from Onani.controllers import create_news, permissions_required
+from Onani.controllers import permissions_required
+from Onani.services.news import create_news
 from Onani.models import NewsPost, NewsPostSchema, NewsType, UserPermissions
 
 from . import api

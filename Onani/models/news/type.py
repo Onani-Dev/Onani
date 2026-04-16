@@ -9,7 +9,7 @@ from functools import cache
 
 class NewsType(enum.Enum):
     ANNOUNCEMENT = 0
-    MAINTENENCE = 1
+    MAINTENANCE = 1
     WARNING = 2
     COMMUNITY = 3
     UPDATE = 4

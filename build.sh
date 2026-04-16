@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @Author: kapsikkum
 # @Date:   2022-03-06 20:54:49
 # @Last Modified by:   Mattlau04
@@ -40,11 +40,11 @@
 function start_docker {
     if [ "$1" = "dev" ]
     then
-        docker compose -f docker-compose.dev.yml down
-        docker compose -f docker-compose.dev.yml up -d --build
+        docker compose --profile dev down
+        docker compose --profile dev up -d --build
     else
-        docker compose -f docker-compose.yml down
-        docker compose -f docker-compose.yml up -d --build
+        docker compose --profile prod down
+        docker compose --profile prod up -d --build
     fi
 }
 

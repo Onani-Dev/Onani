@@ -32,13 +32,13 @@ class PostComment(db.Model):
 
     # Author user object
     author: User = db.relationship(
-        "User", backref="user_comments", lazy="joined", uselist=False
+        "User", backref="posted_comments", lazy="joined", uselist=False
     )
 
     # The post relationship
     post_id: int = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
 
-    post = db.relationship("Post", backref="posts", lazy="joined", uselist=False)
+    post = db.relationship("Post", lazy="joined", uselist=False, overlaps="comments")
 
     # The time that the comment was created
     created_at: datetime.datetime = db.Column(

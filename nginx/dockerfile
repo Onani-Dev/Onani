@@ -4,17 +4,11 @@ COPY ./Onani/static /static
 RUN chown nginx:nginx /static/*
 
 RUN rm /etc/nginx/conf.d/default.conf
-COPY ./nginx/nginx.conf /etc/nginx/conf.d
-
-
-RUN rm /etc/nginx/nginx.conf
+COPY ./nginx/nginx.conf /etc/nginx/conf.d/
 COPY ./nginx/nginx_main.conf /etc/nginx/nginx.conf
+COPY ./nginx/proxy_params /etc/nginx/proxy_params
 
-# COPY ./nginx/proxy_params /etc/nginx/proxy_params
-
-
-# Cloudflare specific
+# Fetch Cloudflare IP ranges for real_ip resolution
 COPY ./nginx/cloudflare-sync-ips.sh /cloudflare-sync-ips.sh
-RUN chmod 755 /cloudflare-sync-ips.sh
-RUN /cloudflare-sync-ips.sh
+RUN chmod 755 /cloudflare-sync-ips.sh && /cloudflare-sync-ips.sh
 

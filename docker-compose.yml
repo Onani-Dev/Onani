@@ -1,114 +1,183 @@
-# @Author: kapsikkum
-# @Date:   2022-03-01 15:19:02
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-11 16:29:02
-version: '3.8'
+# Usage:
+#   docker compose --profile prod up -d --build   (production)
+#   docker compose --profile dev  up -d --build   (development)
+
+x-env: &env
+  FLASK_APP: run
+
+x-dev-env: &dev-env
+  <<: *env
+  FLASK_ENV: development
+  FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev}
+  FLASK_SQLALCHEMY_ECHO: "True"
+  TESTING: "True"
+  DB_PASSWORD: ${DB_PASSWORD:-onani_db}
+  DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin}
+
+x-prod-env: &prod-env
+  <<: *env
+  FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
+  DB_PASSWORD: ${DB_PASSWORD}
+
+x-db-deps: &db-deps
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
 
 services:
+  # ── Flask ───────────────────────────────────────────────
   flask:
-    build:
-      context: .
-    deploy:
-      restart_policy:
-        condition: unless-stopped
+    profiles: ["prod"]
+    build: .
+    restart: unless-stopped
     expose:
       - 5000
-    environment:
-      FLASK_APP: run
-      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
-      RECAPTCHA_PUBLIC_KEY: ${RECAPTCHA_PUBLIC_KEY}
-      RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
-      DB_PASSWORD: ${DB_PASSWORD}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
+    environment: *prod-env
+    depends_on: *db-deps
     volumes:
       - images:/images
       - avatars:/avatars
       - ./migrations:/onani/migrations
       - logs:/logs
 
+  flask-dev:
+    profiles: ["dev"]
+    hostname: flask
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    environment: *dev-env
+    depends_on: *db-deps
+    volumes:
+      - images:/images
+      - avatars:/avatars
+      - ./logs:/logs
+      - ./:/onani
+
+  # ── Nginx ───────────────────────────────────────────────
   nginx:
+    profiles: ["prod"]
     build:
       context: .
       dockerfile: ./nginx/dockerfile
-    deploy:
-      restart_policy:
-        condition: unless-stopped
+    restart: unless-stopped
     ports:
-      - target: 80
-        published: 8080
-        mode: host
+      - 8080:80
     depends_on:
       - flask
+      - frontend
     volumes:
       - images:/images
       - avatars:/avatars
       - logs:/logs
+      - frontend_dist:/frontend/dist
 
-  postgres:
-    image: postgres:14-alpine
-    deploy:
-      restart_policy:
-        condition: unless-stopped
-    expose:
-      - 5432
+  nginx-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: ./nginx/dockerfile
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    depends_on:
+      - flask-dev
     volumes:
-      - database:/var/lib/postgresql/data/
-    environment:
-      - PGUSER=onani_db
-      - POSTGRES_USER=onani_db
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=onani_db
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - images:/images
+      - avatars:/avatars
+      - ./logs:/logs
+      - ./Onani/static:/static
+      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/nginx.conf:ro
 
-  redis:
-    image: redis:7.0.0-alpine
-    deploy:
-      restart_policy:
-        condition: unless-stopped
-    expose:
-      - 6379
-    healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
-      interval: 1s
-      timeout: 3s
-      retries: 5
+  # ── Frontend ────────────────────────────────────────────
+  frontend:
+    profiles: ["prod"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - frontend_dist:/app/dist
 
+  frontend-dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - 5173:5173
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+
+  # ── Celery ──────────────────────────────────────────────
   celery:
+    profiles: ["prod"]
     build:
       context: .
       dockerfile: ./celery/dockerfile
-    deploy:
-      restart_policy:
-        condition: unless-stopped
-    environment:
-      FLASK_APP: run
-      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
-      RECAPTCHA_PUBLIC_KEY: ${RECAPTCHA_PUBLIC_KEY}
-      RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
-      DB_PASSWORD: ${DB_PASSWORD}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
+    restart: unless-stopped
+    environment: *prod-env
+    depends_on: *db-deps
     volumes:
       - images:/images
       - avatars:/avatars
       - ./migrations:/onani/migrations
       - logs:/logs
+
+  celery-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: ./celery/dockerfile.dev
+    restart: unless-stopped
+    environment:
+      <<: *dev-env
+      C_FORCE_ROOT: "yes"
+    depends_on: *db-deps
+    volumes:
+      - images:/images
+      - avatars:/avatars
+      - ./logs:/logs
+      - ./:/onani
+
+  # ── Shared infrastructure ──────────────────────────────
+  postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    volumes:
+      - database:/var/lib/postgresql/data/
+    environment:
+      PGUSER: onani_db
+      POSTGRES_USER: onani_db
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-onani_db}
+      POSTGRES_DB: onani_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.0.0-alpine
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
 volumes:
   database:
   images:
   avatars:
   logs:
+  frontend_dist:
+  frontend_node_modules:

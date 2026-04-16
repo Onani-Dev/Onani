@@ -5,6 +5,6 @@
 # @Last Modified time: 2022-05-01 18:44:17
 
 from .. import db
-from .database import database_test
+from .database import database_test, delete_user_posts
 from .importer import import_post
 from .video import test

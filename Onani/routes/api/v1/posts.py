@@ -5,13 +5,15 @@
 # @Last Modified time: 2022-07-01 14:12:39
 import contextlib
 
-from flask import current_app
+from flask import current_app, abort, request
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
-from Onani.controllers import create_comment, permissions_required
-from Onani.controllers.database import set_tags, determine_meta_tags, parse_tags
+from Onani.controllers import permissions_required
+from Onani.services.posts import create_comment, set_tags, upload_post
+from Onani.services.queries import query_posts
 from Onani.models import Post as _Post
-from Onani.models import PostRating, PostSchema
+from Onani.models import PostRating, PostSchema, UserPermissions
+from PIL import UnidentifiedImageError
 
 from . import api, csrf, db, limiter
 
@@ -40,11 +42,18 @@ class Posts(Resource):
 
         # Parse request args
         args = parser.parse_args()
+        args["per_page"] = min(args["per_page"], current_app.config["API_MAX_PER_PAGE"])
 
-        # Multiple posts
-        posts = _Post.query.order_by(_Post.id.desc()).paginate(
-            per_page=args["per_page"], page=args["page"], error_out=False
-        )
+        # Build the base query - filter by tags when provided
+        if args["tags"]:
+            tag_list = [t for t in args["tags"].split() if t]
+            posts = query_posts(tags=tag_list).paginate(
+                per_page=args["per_page"], page=args["page"], error_out=False
+            )
+        else:
+            posts = _Post.query.order_by(_Post.id.desc()).paginate(
+                per_page=args["per_page"], page=args["page"], error_out=False
+            )
         return {
             "data": PostSchema(many=True).dump(posts.items),
             "next_page": posts.next_num,
@@ -129,6 +138,9 @@ class Post(Resource):
         return PostSchema().dump(post)
 
     def put(self):
+        if not current_user.is_authenticated:
+            abort(401)
+
         parser = reqparse.RequestParser()
 
         parser.add_argument(
@@ -172,6 +184,9 @@ class Post(Resource):
 
         post: _Post = _Post.query.filter_by(id=args["id"]).first_or_404()
 
+        if not current_user.can_edit_post(post):
+            abort(403)
+
         if args["rating"] is not None:
             post.rating = PostRating(
                 args["rating"]
@@ -186,19 +201,16 @@ class Post(Resource):
         # We put tag handling at the end so meta tags will take priority
         if args["tags"] is not None:
             tags = set(args["tags"].split(" "))
-
-            if args["old_tags"] is not None:
-                # If old_tags is set, we can use a differential approach to avoid race conditions
-                # in case someone else edited the posts while another one was editing it
-                old_tags = set(args["old_tags"].split(" "))
-
-                # add the tags
-                set_tags(post, tags, old_tags)
-
-            else:
-                # we don't have old_tags, we just replace tags blindly
-                # We shouldn't...
-                set_tags(post, tags)
+            old_tags = set(args["old_tags"].split(" ")) if args["old_tags"] is not None else set()
+            can_create = current_user.has_permissions(UserPermissions.CREATE_TAGS)
+            set_tags(
+                post,
+                tags,
+                old_tags,
+                can_create_tags=can_create,
+                tag_char_limit=current_app.config["TAG_CHAR_LIMIT"],
+                post_min_tags=current_app.config["POST_MIN_TAGS"],
+            )
 
         db.session.commit()
         return PostSchema().dump(post)
@@ -207,6 +219,51 @@ class Post(Resource):
         return self.put()
 
 
+class PostUpload(Resource):
+    """Multipart file upload endpoint for the Vue SPA."""
+
+    decorators = [login_required, limiter.limit("10/minute")]
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("tags", location="form", type=str, required=True)
+        parser.add_argument("source", location="form", type=str, default="", required=False)
+        parser.add_argument("description", location="form", type=str, default="", required=False)
+        parser.add_argument("rating", location="form", type=str, required=True,
+            choices=("s", "q", "e"), case_sensitive=False)
+        args = parser.parse_args()
+
+        if "file" not in request.files or not request.files["file"].filename:
+            abort(400, description="No file provided.")
+
+        file = request.files["file"]
+        file_data = file.stream.read()
+
+        can_create = current_user.has_permissions(UserPermissions.CREATE_TAGS)
+
+        try:
+            post = upload_post(
+                file_data=file_data,
+                original_filename=file.filename,
+                tags_raw=args["tags"],
+                source=args["source"],
+                description=args["description"],
+                uploader=current_user,
+                rating=args["rating"],
+                images_dir=current_app.config["IMAGES_DIR"],
+                can_create_tags=can_create,
+                tag_char_limit=current_app.config["TAG_CHAR_LIMIT"],
+                post_min_tags=current_app.config["POST_MIN_TAGS"],
+            )
+        except UnidentifiedImageError:
+            abort(400, description="The file could not be read as an image.")
+        except ValueError as e:
+            abort(400, description=str(e))
+
+        return PostSchema().dump(post), 201
+
+
 api.add_resource(Posts, "/posts")
 api.add_resource(PostVote, "/posts/vote")
+api.add_resource(PostUpload, "/posts/upload")
 api.add_resource(Post, "/post")

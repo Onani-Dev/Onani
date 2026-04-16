@@ -30,7 +30,6 @@ class UploadForm(FlaskForm):
                     "webp",
                     "jfif",
                     "pjpeg",
-                    "webp",
                 ],
                 "Image Files only.",
             ),

@@ -7,7 +7,7 @@ from datetime import datetime
 
 from flask import abort
 from flask_login import current_user
-from Onani.models import Ban, User
+from Onani.models import Ban, Post, User
 
 from . import db
 
@@ -47,15 +47,14 @@ def create_ban(
         )
 
     if delete_posts:
-        # TODO #127 Add celery task for deleting posts.
-        pass
+        from Onani.tasks.database import delete_user_posts
+        delete_user_posts.delay(user.id)
 
     elif hide_posts:
-        for post in user.posts:
-            post.hidden = True
+        Post.query.filter_by(uploader_id=user.id).update({"hidden": True})
 
     ban = Ban(
-        user=User,
+        user=user.id,
         expires=expires,
         reason=reason,
         posts_hidden=hide_posts,
@@ -81,8 +80,7 @@ def delete_ban(user_id: int):
         abort(400, description="User is not banned.")
 
     if user.ban.posts_hidden:
-        for post in user.posts:
-            post.hidden = False
+        Post.query.filter_by(uploader_id=user.id).update({"hidden": False})
 
     db.session.delete(user.ban)
     db.session.commit()

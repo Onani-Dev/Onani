@@ -6,6 +6,7 @@
 
 import contextlib
 import io
+import os
 from html import escape
 from typing import Iterable, List, Set
 
@@ -28,6 +29,8 @@ from sqlalchemy import func
 
 from . import db
 from .files import determine_meta_tags, get_file_data
+
+_CHAR_BLACKLIST = [chr(i) for i in range(32)]  # ASCII control characters 0-31
 
 
 def create_comment(author: User, post: Post, content: str) -> PostComment:
@@ -54,11 +57,9 @@ def create_comment(author: User, post: Post, content: str) -> PostComment:
 
 def format_tag(tag: str) -> str:
     """Takes in a string and formats it to be a tag's name"""
-    CHAR_BLACKLIST = [chr(i) for i in range(32)]  # ASCII char 0-31
-
     tag = escape(tag.lower().strip())
 
-    tag = "".join(c for c in tag if c not in CHAR_BLACKLIST)
+    tag = "".join(c for c in tag if c not in _CHAR_BLACKLIST)
 
     if not tag:
         return ""
@@ -100,14 +101,14 @@ def parse_tags(tags: Iterable[str]) -> Set[Tag]:
             tag_no_prefix = tag_no_prefix.strip()
 
             # We check for types
-            for type in TagType:
-                if type == TagType.BANNED:  # You can't make a tag "BANNED"
+            for tag_type in TagType:
+                if tag_type == TagType.BANNED:  # You can't make a tag "BANNED"
                     continue
                 if startswith_min(
-                    type.name.lower(), prefix, min_len=3
+                    tag_type.name.lower(), prefix, min_len=3
                 ):  # We don't want 1-2 char bc ambiguous
-                    # make the tag 'tag' of type 'type'
-                    new_tag_type = type
+                    # make the tag 'tag_str' of type 'tag_type'
+                    new_tag_type = tag_type
                     tag_str = tag_no_prefix
                     break
 
@@ -162,7 +163,7 @@ def create_post(
     height: int,
     filename: str,
     file_type: str,
-    orginal_filename: str,
+    original_filename: str,
     tags: Set[str],
     imported_from: str = None,
 ) -> Post:
@@ -181,7 +182,7 @@ def create_post(
         height (int): The height of the image
         filename (str): The filename for the file on disk  (<sha256>.<file_type>)
         file_type (str): The file extension type of the file
-        orginal_filename (str): The original name of the uploaded file
+        original_filename (str): The original name of the uploaded file
         tags (Set[str]): The tags in string form
         imported_from (str): The post's imported origin. Optional
 
@@ -203,14 +204,16 @@ def create_post(
     post.height = height
     post.filesize = filesize
     post.file_type = file_type
-    post.original_filename = orginal_filename
+    post.original_filename = original_filename
     post.imported_from = imported_from
 
     # Set the post's tags
     set_tags(post, tags)
 
     # write to file
-    with open(f"/images/{filename}", "wb") as f:
+    images_dir = current_app.config.get("IMAGES_DIR", "/images")
+    filepath = os.path.join(images_dir, filename)
+    with open(filepath, "wb") as f:
         image_file.seek(0)
         f.write(image_file.read())
 

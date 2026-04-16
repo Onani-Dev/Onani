@@ -6,6 +6,7 @@
 
 import datetime
 import html
+import os
 import time
 
 import emoji
@@ -21,7 +22,6 @@ from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
-from flask_debugtoolbar import DebugToolbarExtension
 
 crontab = Crontab()
 csrf = CSRFProtect()
@@ -42,13 +42,12 @@ ma = Marshmallow()
 migrate = Migrate()
 celery = ext.celery
 qr = QRcode()
-toolbar = DebugToolbarExtension()
 
 from Onani.controllers.utils import complete_file_url, is_url, url_hostname
 
 
 def init_app():
-    app = Flask(__name__, static_url_path="/static/", static_folder="/static")
+    app = Flask(__name__, static_url_path="/static/", static_folder="static")
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2)
 
@@ -70,15 +69,16 @@ def init_app():
 
     from .cron import tasks
     from .routes import admin, atom, main, main_api, rss
+    from .routes.spa import spa_bp
 
-    # Main Routes
-    app.register_blueprint(main)
+    # Vue SPA — served at /
+    app.register_blueprint(spa_bp)
 
     # Main API routes
     app.register_blueprint(main_api, url_prefix="/api")
 
-    # Admin api Routes
-    # admin.register_blueprint(admin_api, url_prefix="/api")
+    # Legacy server-rendered routes (kept during SPA transition)
+    app.register_blueprint(main)
 
     # Admin routes
     app.register_blueprint(admin, url_prefix="/admin")
@@ -92,11 +92,47 @@ def init_app():
     db.init_app(app)  # SQLAlchemy init
     ext.init_app(app)  # Celery init
     limiter.init_app(app)  # Flask limiter init
+    login_manager.login_view = "main.login"
     login_manager.init_app(app)  # login manager init
     ma.init_app(app)  # Marshmallow init
     migrate.init_app(app, db)  # flask migrate init
     qr.init_app(app)  # Qr init
-    toolbar.init_app(app)  # debugtoolbar init
+    if app.debug:
+        try:
+            from flask_debugtoolbar import DebugToolbarExtension
+            DebugToolbarExtension(app)
+        except ImportError:
+            pass
+
+    # Create a default admin account on first startup if none exist
+    with app.app_context():
+        from .models import User, UserPermissions
+        from .models.user.roles import UserRoles
+        try:
+            if User.query.count() == 0:
+                from .services.users import create_user
+                default_pw = os.environ.get("DEFAULT_ADMIN_PASSWORD", "admin")
+                admin = create_user(
+                    username="admin",
+                    password=default_pw,
+                    role=UserRoles.OWNER,
+                )
+                admin.permissions = UserPermissions.ADMINISTRATION
+                db.session.commit()
+                app.logger.warning(
+                    "Created default admin account (username: admin). "
+                    "Change the password immediately!"
+                )
+            else:
+                # Ensure OWNER accounts have full permissions
+                owners = User.query.filter_by(role=UserRoles.OWNER).all()
+                for owner in owners:
+                    if owner.permissions != UserPermissions.ADMINISTRATION:
+                        owner.permissions = UserPermissions.ADMINISTRATION
+                        db.session.commit()
+        except Exception:
+            # Table may not exist yet (first migration)
+            pass
 
     # Line belows prints all the registered routes, useful to debug
     # if app.testing:

@@ -6,10 +6,11 @@
 from flask import current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
-from Onani.controllers import create_comment, permissions_required
+from Onani.controllers import permissions_required
+from Onani.services.posts import create_comment
 from Onani.models import Post, PostComment, PostCommentSchema, UserPermissions
 
-from . import api, limiter
+from . import api, db, limiter
 
 
 def min_max_length(min_length, max_length):
@@ -75,6 +76,7 @@ class Comments(Resource):
 
         # Parse request args
         args = parser.parse_args()
+        args["per_page"] = min(args["per_page"], current_app.config["API_MAX_PER_PAGE"])
 
         # Get the comments from the post id
         post: Post = Post.query.filter_by(id=args["post_id"]).first_or_404()
@@ -93,9 +95,18 @@ class Comments(Resource):
             "total": comments.total,
         }
 
+    @login_required
+    @permissions_required(UserPermissions.DELETE_COMMENTS)
     def delete(self):
-        """Not implemented, will be for deleting comments"""
-        pass
+        """Delete a comment. Requires UserPermissions.DELETE_COMMENTS"""
+        parser = reqparse.RequestParser()
+        parser.add_argument("comment_id", type=int, location="json", required=True)
+        args = parser.parse_args()
+
+        comment: PostComment = PostComment.query.filter_by(id=args["comment_id"]).first_or_404()
+        db.session.delete(comment)
+        db.session.commit()
+        return {"message": "Comment deleted."}
 
     def put(self):
         """Not implemented, will be for editing comments"""

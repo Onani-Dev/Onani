@@ -101,8 +101,7 @@ class Tag(db.Model):
         )
 
     def recount_posts(self):
-        self.post_count = len(self.posts)
-        # self.post_count = self.posts.with_entities(func.count()).scalar()
+        self.post_count = self.posts.with_entities(func.count()).scalar()
 
     def save_to_db(self):
         db.session.add(self)

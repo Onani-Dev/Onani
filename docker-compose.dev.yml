@@ -1,7 +1,10 @@
-# @Author: kapsikkum
-# @Date:   2022-03-01 15:19:02
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-06-11 15:33:46
+# Development compose — does NOT include the frontend service.
+# Run the Vue SPA separately with `cd frontend && npm run dev` (port 5173).
+# Vite proxies /api and /static to Flask on port 5000.
+#
+# Flask:    http://localhost:5000   (direct, with debugger)
+# Nginx:    http://localhost:8080   (legacy views only)
+# Vite SPA: http://localhost:5173/app/  (via npm run dev)
 version: '3.8'
 
 services:

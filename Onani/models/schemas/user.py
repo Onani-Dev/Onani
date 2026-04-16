@@ -12,7 +12,7 @@ from . import ma
 class SettingsSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = UserSettings
-        exclude = ("id", "connections", "custom_css")
+        exclude = ("id", "connections", "custom_css", "encrypted_cookies", "cookies_salt")
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):

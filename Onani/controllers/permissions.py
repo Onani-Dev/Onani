@@ -31,14 +31,7 @@ def permissions_required(permissions: Union[UserPermissions, List[UserPermission
             if not current_user.is_authenticated:
                 abort(403)
 
-            # Check if permissions are a list an iterate through them
-            if isinstance(permissions, list):
-                for p in permissions:
-                    if p not in current_user.permissions:
-                        # User doesn't have these permissions
-                        abort(403)
-            # Check for a single permission
-            elif permissions not in current_user.permissions:
+            if not current_user.has_permissions(permissions):
                 abort(403)
 
             # Return the function.

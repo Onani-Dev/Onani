@@ -6,12 +6,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 import html
 import os
 from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, List, Union
 
+from flask import current_app
 from Onani.controllers.utils import is_url, natural_join
 from Onani.models.user._user import User
 from sqlalchemy import func
@@ -88,7 +90,7 @@ class Post(db.Model):
 
     # The post's tags. will be a list of tags that can be appended to.
     tags: List[Tag] = db.relationship(
-        "Tag", secondary=post_tags, backref="posts", lazy="dynamic"
+        "Tag", secondary=post_tags, backref=db.backref("posts", lazy="dynamic"), lazy="dynamic"
     )
 
     # Post's upvoters. users. contributes to the post's rating/score
@@ -103,7 +105,7 @@ class Post(db.Model):
 
     # The post's comments. will be filtered for naughty words or other bad things.
     comments: Query = db.relationship(
-        "PostComment", backref="comments", lazy="dynamic", viewonly=True
+        "PostComment", lazy="dynamic", viewonly=True, overlaps="post"
     )
 
     # Will be the link to the original post that it is imported from. will be none if the post is not imported
@@ -135,10 +137,14 @@ class Post(db.Model):
 
     @validates("description")
     def validate_description(self, key, description):
+        if description is None:
+            return None
         return html.escape(description)
 
     @validates("source")
     def validate_source(self, key, source):
+        if source is None:
+            return None
         return html.escape(source)
 
     @property
@@ -283,7 +289,10 @@ class Post(db.Model):
         Raises:
             Exception: The file couldn't be deleted.
         """
-        os.remove(self.file_url)
+        images_dir = current_app.config.get("IMAGES_DIR", "/images")
+        filepath = os.path.join(images_dir, self.filename)
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(filepath)
         db.session.delete(self)
         db.session.commit()
 

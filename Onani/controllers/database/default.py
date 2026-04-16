@@ -21,7 +21,8 @@ def create_default_tags(filename: str = "meta.json") -> list:
     """
     tags = []
 
-    data = json.load(open(f"./Onani/defaults/{filename}"))
+    with open(f"./Onani/defaults/{filename}") as fh:
+        data = json.load(fh)
 
     for d in data:
         tag = Tag.query.filter_by(name=d["name"]).first()

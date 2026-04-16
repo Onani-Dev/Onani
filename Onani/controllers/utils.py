@@ -8,7 +8,6 @@ import re
 from typing import List, Optional, Tuple, Union
 
 from flask import flash, request
-from flask_login import current_user
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:
@@ -35,7 +34,7 @@ def natural_join(l: List[str], *, max_length: Optional[int] = None) -> str:
     if len(l) == 1:
         return l[0]
 
-    if len(l) > max_length:  # In case there's too many
+    if max_length is not None and len(l) > max_length:  # In case there's too many
         extra = f"{len(l) - max_length} more"
         l = l[:max_length]  # We remove the excess
         l.append(extra)  # and replace it with "X more"
@@ -123,6 +122,14 @@ def flash_form_errors(form):
             flash(error, "error")  # f"Error in the {field.capitalize()} field: {error}"
 
 
+_URL_RE = re.compile(
+    r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}"
+    r"|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}"
+    r"|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}"
+    r"|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
+)
+
+
 def is_url(string: str) -> bool:
     """Check if a string is a url
 
@@ -132,9 +139,7 @@ def is_url(string: str) -> bool:
     Returns:
         bool: True if a url false if not
     """
-    URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
-
-    return bool(re.match(URL_REGEX, string))
+    return bool(_URL_RE.match(string))
 
 
 def url_hostname(url: str) -> Union[str, None]:
@@ -148,15 +153,3 @@ def url_hostname(url: str) -> Union[str, None]:
     """
     return url.split("/")[2] if is_url(url) else url or None
 
-
-# def get_limiter_key() -> str:
-#     """Return the key to the limiter to limit the requests on (IP or if the user is logged in, their internal ID)
-
-#     Returns:
-#         str: The key for the limiter
-#     """
-#     return (
-#         current_user.login_id
-#         if current_user.is_authenticated
-#         else (request.remote_addr or "127.0.0.1")
-#     )

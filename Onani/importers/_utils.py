@@ -1,52 +1,41 @@
 # -*- coding: utf-8 -*-
-# @Author: Mattlau04
-# @Date:   2022-05-01 02:05:06
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-07-14 15:06:51
 
-from typing import Optional, Tuple, Type
+from typing import Optional
 
 import requests
-from Onani.controllers import create_post, get_file_data
+from flask import current_app
+from Onani.services.posts import create_post
+from Onani.services.files import get_file_data
 from Onani.models import Post, User
-from url_normalize import url_normalize
-from werkzeug.urls import url_fix
 
-from . import IMPORTERS, BaseImporter, ImportedPost, db
+from ._importedpost import ImportedPost
+from . import db
 
 
-def find_importer(url: str) -> Optional[Type[BaseImporter]]:
+def get_post(url: str) -> Optional[ImportedPost]:
+    """Fetch post metadata from a URL via gallery-dl.
+
+    Returns an ImportedPost on success, or None if the URL is not supported.
     """
-    Finds the appropriate importer from a URL
-    This functions also handles normalising the URL
-    """
-    # First we fix and normalise the URL
-    try:
-        normalized_url = url_fix(url)
-        # line bellow can raise exception with some weird URLs so we try/except
-        normalized_url = url_normalize(normalized_url)
-    except Exception as e:
-        # URL was malformed, so we return None
+    from .gallery_dl_importer import get_post as gdl_get_post, is_supported
+
+    if not is_supported(url):
         return None
 
-    # Then we find the importer that corresponds to this url, if any
-    for base_url in IMPORTERS:
-        if base_url in normalized_url:
-            # This importer supports this site, we return it
-            return IMPORTERS[base_url]
-
-    # None of the importers support that site, we return None
-    return None
+    return gdl_get_post(url)
 
 
-def get_post(url: str) -> ImportedPost:
-    """Gets a post using the available importers"""
-    # First we try to find an importer
-    i = find_importer(url)
-    if not i:
-        return None
+def get_all_posts(url: str, cookies_path: str = None) -> list:
+    """Fetch all posts from a URL (gallery support).
 
-    return i.get_post(url)
+    Returns a list of ImportedPost objects — multiple for galleries, one for single posts.
+    """
+    from .gallery_dl_importer import get_all_posts as gdl_get_all_posts, is_supported
+
+    if not is_supported(url):
+        return []
+
+    return gdl_get_all_posts(url, cookies_path=cookies_path)
 
 
 def download_file(url: str) -> bytes:
@@ -72,8 +61,9 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
     ) = get_file_data(file_data)
 
     user = User.query.filter_by(id=importer_id).first()
+    can_create_tags = True
 
-    post = create_post(
+    return create_post(
         post.sources[0],
         post.description,
         user,
@@ -88,7 +78,9 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
         file_type,
         "Unknown",
         post.tags,
-        post.imported_url,
+        images_dir=current_app.config["IMAGES_DIR"],
+        can_create_tags=can_create_tags,
+        tag_char_limit=current_app.config["TAG_CHAR_LIMIT"],
+        post_min_tags=current_app.config["POST_MIN_TAGS"],
+        imported_from=post.imported_url,
     )
-
-    return post

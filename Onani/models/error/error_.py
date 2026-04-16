@@ -7,7 +7,7 @@
 import datetime
 from uuid import uuid4
 
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy_utils import UUIDType
 
 from . import db
 
@@ -19,7 +19,7 @@ class Error(db.Model):
 
     __tablename__ = "errors"
 
-    id: UUID = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: UUIDType = db.Column(UUIDType(binary=False), primary_key=True, default=uuid4)
 
     created_at: datetime.datetime = db.Column(
         db.DateTime(timezone=True),

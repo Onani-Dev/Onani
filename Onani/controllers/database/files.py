@@ -11,7 +11,6 @@ import os
 import sys
 from base64 import b64decode
 from typing import List, Tuple
-from urllib.request import urlopen
 
 from flask import current_app
 from flask_login import current_user
@@ -24,7 +23,7 @@ from . import db
 
 
 def determine_meta_tags(
-    width, height, filesize, file_type, tag_count=None
+    width: int, height: int, filesize: int, file_type: str, tag_count: int | None = None
 ) -> list[str]:
     meta_tags = []
 
@@ -56,7 +55,7 @@ def determine_meta_tags(
         meta_tags.append("meta:animated")
 
     # Add tag_request tag for posts with less than 10 tags
-    if tag_count & tag_count < current_app.config["POST_MIN_TAGS"]:
+    if tag_count is not None and tag_count < current_app.config["POST_MIN_TAGS"]:
         meta_tags.append("meta:tag_request")
 
     return meta_tags
@@ -117,15 +116,19 @@ def create_avatar(user: User, base64_file: str) -> str:
     if width != height:
         raise ValueError("Width and height does not match")
 
+    avatar_dir = current_app.config.get("AVATARS_DIR", "/avatars")
+    filepath = os.path.join(avatar_dir, filename)
+
     # write to file
-    with open(url, "wb") as f:
+    with open(filepath, "wb") as f:
         image_file.seek(0)
         f.write(image_file.read())
 
     # delete current avatar
     if user.settings.avatar:
+        old_path = os.path.join(avatar_dir, os.path.basename(user.settings.avatar))
         with contextlib.suppress(FileNotFoundError):
-            os.remove(user.settings.avatar)
+            os.remove(old_path)
 
     # set new avatar
     user.settings.avatar = url

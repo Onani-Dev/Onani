@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-# @Author: kapsikkum
-# @Date:   2022-03-09 18:45:40
-# @Last Modified by:   Mattlau04
-# @Last Modified time: 2022-06-15 15:52:22
 from marshmallow import fields
-from marshmallow_sqlalchemy import auto_field
 from Onani.models import Post
 
 from . import ma
+
+
+class PostTagSchema(ma.Schema):
+    name = fields.Str()
+    type = fields.Str()
 
 
 class PostSchema(ma.SQLAlchemyAutoSchema):
@@ -15,5 +15,10 @@ class PostSchema(ma.SQLAlchemyAutoSchema):
         model = Post
         include_fk = True
 
-    tag_string = fields.Str(dump_only=True, data_key="tags")
+    tags = fields.Method("get_tags", dump_only=True)
     title = fields.Str(dump_only=True)
+    score = fields.Int(dump_only=True)
+    file_url = fields.Str(dump_only=True)
+
+    def get_tags(self, obj):
+        return [{"name": t.name, "type": t.type.name.lower()} for t in obj.tags]

@@ -18,7 +18,7 @@ app = init_app()
 def init_db():
     """Creates the database."""
     try:
-        db.create_all(app=app)
+        db.create_all()
     except Exception as e:
         print("Unable to create DB,", e)
     else:
@@ -30,13 +30,13 @@ def drop_db():
     """Drops all table from the database."""
     if app.testing:
         try:
-            db.drop_all(app=app)
+            db.drop_all()
         except Exception as e:
             print("Unable to drop DB,", e)
         else:
             print("Dropped DB")
             try:
-                db.create_all(app=app)
+                db.create_all()
             except Exception as e:
                 print("Unable to create DB,", e)
             else:
@@ -86,7 +86,7 @@ def reset_password(id):
 
 @app.cli.command("disable-otp")
 @click.option("--id")
-def reset_password(id):
+def disable_otp(id):
     """Disable OTP auth for a user."""
     user = User.query.filter(User.id == id).first()
     if user is None:

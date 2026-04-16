@@ -4,7 +4,8 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-08-07 09:54:11
 
-from .. import api
+from .. import api, db
 
 from .ban import *
 from .news import *
+from .stats import *

@@ -36,11 +36,14 @@ class Ban(db.Model):
 
     @property
     def has_expired(self):
-        return (
-            datetime.datetime.now(datetime.timezone.utc) >= self.expires
-            if self.expires
-            else False
-        )
+        if not self.expires:
+            return False
+        now = datetime.datetime.now(datetime.timezone.utc)
+        expires = self.expires
+        # SQLite returns naive datetimes; treat them as UTC
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=datetime.timezone.utc)
+        return now >= expires
 
     def save_to_db(self):
         db.session.add(self)

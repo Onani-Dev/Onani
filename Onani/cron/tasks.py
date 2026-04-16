@@ -14,8 +14,9 @@ def remove_expired_bans():
     from Onani.models import Ban
     from Onani.controllers import delete_ban
 
-    bans: List[Ban] = Ban.query.all()
+    # Only query bans that have an expiry date set; permanent bans are never expired
+    expiring_bans: List[Ban] = Ban.query.filter(Ban.expires.isnot(None)).all()
 
-    for ban in bans:
+    for ban in expiring_bans:
         if ban.has_expired:
             delete_ban(ban.user)

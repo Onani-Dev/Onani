@@ -49,6 +49,11 @@ class User(UserMixin, db.Model):
     __tablename__ = "users"
 
     def __init__(self, **kwargs):
+        kwargs.setdefault("permissions", UserPermissions.DEFAULT)
+        kwargs.setdefault("role", UserRoles.MEMBER)
+        kwargs.setdefault("api_key", secrets.token_urlsafe(32))
+        kwargs.setdefault("otp_token", pyotp.random_base32())
+        kwargs.setdefault("login_id", str(uuid.uuid4()))
         super(User, self).__init__(**kwargs)
         if not self.settings:
             self.settings = UserSettings()
@@ -321,14 +326,15 @@ class User(UserMixin, db.Model):
         Returns:
             bool: True if the user has all of the permissions specified.
         """
+        effective = self.permissions if self.permissions is not None else UserPermissions(0)
         # Check if permissions are a list an iterate through them
         if isinstance(permissions, list):
             for p in permissions:
-                if p not in self.permissions:
+                if p not in effective:
                     # User doesn't have these permissions
                     return False
         # Check for a single permission
-        elif permissions not in self.permissions:
+        elif permissions not in effective:
             return False
         return True
 

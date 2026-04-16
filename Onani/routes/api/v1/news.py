@@ -32,6 +32,7 @@ class News(Resource):
 
         # Parse request args
         args = parser.parse_args()
+        args["per_page"] = min(args["per_page"], current_app.config["API_MAX_PER_PAGE"])
 
         # Single news article
         if args["id"]:

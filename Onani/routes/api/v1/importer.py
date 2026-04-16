@@ -4,38 +4,51 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-07-27 14:48:20
 from celery.result import AsyncResult
-from flask_login import current_user, login_required
+from flask import session
+from flask_login import current_user
 from flask_restful import Resource, reqparse
-from Onani.controllers import permissions_required
-from Onani.models.user.permissions import UserPermissions
+from Onani.controllers.crypto import decrypt_cookies
 from Onani.tasks import import_post
 
 from . import api
 
 
 class Importer(Resource):
-    decorators = [login_required, permissions_required(UserPermissions.IMPORT_POSTS)]
 
     def post(self):
-        args = self._extracted_from_get_2("url")
-        task = import_post.delay(args["url"], current_user.id)
+        parser = reqparse.RequestParser()
+        parser.add_argument("url", location="json", type=str, required=True)
+        args = parser.parse_args()
+
+        # Attempt to decrypt cookies if the user has them stored
+        cookies_content = None
+        settings = current_user.settings
+        if settings and settings.encrypted_cookies and settings.cookies_salt:
+            pw = session.get("_cookie_pw")
+            if pw:
+                try:
+                    cookies_content = decrypt_cookies(
+                        settings.encrypted_cookies,
+                        settings.cookies_salt,
+                        pw,
+                    ).decode("utf-8", errors="replace")
+                except Exception:
+                    pass  # wrong key / corrupt — import without cookies
+
+        task = import_post.delay(args["url"], current_user.id, cookies_content)
         return {"id": task.id}
 
     def get(self):
-        args = self._extracted_from_get_2("id")
+        parser = reqparse.RequestParser()
+        parser.add_argument("id", location="args", type=str, required=True)
+        args = parser.parse_args()
         task: AsyncResult = import_post.AsyncResult(args["id"])
+        result = task.result if isinstance(task.result, dict) else str(task.result) if task.result else None
         return {
             "status": task.state,
-            "result": task.result
-            if isinstance(task.result, dict)
-            else str(task.result),
+            "result": result,
+            "meta": task.info if task.state == "PROGRESS" and isinstance(task.info, dict) else None,
         }
-
-    # TODO Rename this here and in `post` and `get`
-    def _extracted_from_get_2(self, arg0):
-        parser = reqparse.RequestParser()
-        parser.add_argument(arg0, location="json", type=str, required=True)
-        return parser.parse_args()
 
 
 api.add_resource(Importer, "/import")

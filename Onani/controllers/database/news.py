@@ -18,6 +18,7 @@ def create_news(title: str, content: str, type: NewsType, author: User):
     article.author = author
     article.title = title
     article.content = content
+    article.type = type
 
     # add to database and commit
     db.session.add(article)
