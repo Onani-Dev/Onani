@@ -10,7 +10,7 @@
 
     <p v-if="error" class="text-error">{{ error }}</p>
 
-    <fieldset class="cookies-section" v-if="auth.user">
+    <fieldset class="cookies-section">
       <legend>Import Cookies</legend>
       <p class="text-muted">Upload a Netscape-format cookies.txt file for gallery-dl. It will be stored encrypted with your password.</p>
       <p v-if="hasCookies" class="cookies-status">Cookies file stored.</p>
@@ -34,7 +34,7 @@
         <span class="status-dot" :class="dotClass(job)"></span>
         <span class="job-url">{{ job.url }}</span>
         <span class="job-elapsed text-muted">{{ elapsed(job) }}</span>
-        <span class="status-badge" :class="badgeClass(job)">{{ job.status }}</span>
+        <span class="status-badge" :class="badgeClass(job)">{{ displayStatus(job) }}</span>
         <button class="btn-dismiss" @click.stop="dismissJob(job.id)" title="Dismiss">✕</button>
       </div>
 
@@ -61,7 +61,8 @@
               :to="`/posts/${post.post_id}`"
               class="post-thumb"
             >
-              <img :src="`/images/thumbnail/${post.filename}?size=large`" :alt="`Post #${post.post_id}`" loading="lazy" />
+              <img :src="post.thumbnail_url" :alt="`Post #${post.post_id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post, post.post_id) }" />
+              <div v-if="shouldBlur(post, post.post_id)" class="sfw-overlay" @click.stop="reveal(post.post_id)">Show</div>
             </router-link>
           </div>
           <ul v-if="job.result.posts.some(p => p.error)" class="error-list">
@@ -82,8 +83,10 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useSfwMode } from '@/composables/useSfwMode'
 
 const auth = useAuthStore()
+const { shouldBlur, reveal } = useSfwMode()
 
 const url = ref('')
 const importing = ref(false)
@@ -100,25 +103,42 @@ const timers = {}
 let elapsedInterval = null
 
 const STORAGE_KEY = 'importJobs'
+const MAX_HISTORY = 50
 const now = ref(Date.now())
 
+function jobFailed(job) {
+  return job.status === 'FAILURE' || job.status === 'ERROR' || (job.status === 'SUCCESS' && !!job.result?.error)
+}
+function jobSucceeded(job) {
+  return job.status === 'SUCCESS' && !job.result?.error
+}
+
 function saveJobs() {
-  const active = jobs.filter(j => !['SUCCESS', 'FAILURE', 'ERROR'].includes(j.status))
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(active.map(j => ({ id: j.id, url: j.url, startedAt: j.startedAt }))))
+  const toSave = jobs.slice(0, MAX_HISTORY).map(j => ({
+    id: j.id, url: j.url, status: j.status, result: j.result,
+    meta: j.meta, logs: j.logs, startedAt: j.startedAt, finishedAt: j.finishedAt,
+  }))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
 }
 
 function dotClass(job) {
-  if (job.status === 'SUCCESS') return 'dot-success'
-  if (job.status === 'FAILURE' || job.status === 'ERROR') return 'dot-failure'
+  if (jobSucceeded(job)) return 'dot-success'
+  if (jobFailed(job)) return 'dot-failure'
   return 'dot-pending'
 }
 
 function badgeClass(job) {
   return {
-    'status-success': job.status === 'SUCCESS',
-    'status-failure': job.status === 'FAILURE' || job.status === 'ERROR',
-    'status-pending': ['PENDING', 'STARTED', 'PROGRESS'].includes(job.status),
+    'status-success': jobSucceeded(job),
+    'status-failure': jobFailed(job),
+    'status-pending': !jobSucceeded(job) && !jobFailed(job),
   }
+}
+
+function displayStatus(job) {
+  if (jobFailed(job)) return 'FAILED'
+  if (job.status === 'PROGRESS' && job.meta) return `${job.meta.current}/${job.meta.total}`
+  return job.status
 }
 
 function elapsed(job) {
@@ -136,9 +156,19 @@ onMounted(() => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
     for (const s of saved) {
-      const job = { id: s.id, url: s.url, status: 'PENDING', result: null, meta: null, logs: [], expanded: true, startedAt: s.startedAt || Date.now(), finishedAt: null }
+      const finished = ['SUCCESS', 'FAILURE', 'ERROR'].includes(s.status)
+      const job = {
+        id: s.id, url: s.url,
+        status: s.status || 'PENDING',
+        result: s.result || null,
+        meta: s.meta || null,
+        logs: s.logs || [],
+        expanded: !finished,
+        startedAt: s.startedAt || Date.now(),
+        finishedAt: s.finishedAt || null,
+      }
       jobs.push(job)
-      pollJob(job)
+      if (!finished) pollJob(job)
     }
   } catch { /* ignore corrupt data */ }
 })
@@ -180,8 +210,8 @@ async function pollJob(job) {
       job.result = data.result
       job.finishedAt = Date.now()
       if (data.result?.logs) job.logs = data.result.logs
-      saveJobs()
       delete timers[job.id]
+      saveJobs()
     } else {
       timers[job.id] = setTimeout(() => pollJob(job), 2000)
     }

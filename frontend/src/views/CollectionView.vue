@@ -32,15 +32,16 @@
     <div v-if="posts.length" class="post-grid">
       <div v-for="post in posts" :key="post.id" class="post-thumb-wrap">
         <router-link :to="`/posts/${post.id}`" class="post-thumb">
-          <img :src="`/images/thumbnail/${post.filename}?size=large`" :alt="`Post #${post.id}`" loading="lazy" />
+          <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
+          <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
         </router-link>
-        <button v-if="canManage" class="remove-btn" @click="removePost(post.id)" title="Remove from collection">✕</button>
+        <button v-if="canManage && editMode" class="remove-btn" @click="removePost(post.id)" title="Remove from collection">✕</button>
       </div>
     </div>
     <p v-else class="text-muted">No posts in this collection.</p>
 
-    <!-- Add posts (managers only) -->
-    <div v-if="canManage" class="add-posts-section">
+    <!-- Add posts (managers only, edit mode only) -->
+    <div v-if="canManage && editMode" class="add-posts-section">
       <h3>Add Posts</h3>
       <div class="search-bar">
         <input v-model="searchQuery" placeholder="Search by tags..." @keyup.enter="searchPosts" />
@@ -49,7 +50,8 @@
       <div v-if="searchResults.length" class="search-grid">
         <div v-for="post in searchResults" :key="post.id" class="post-thumb-wrap">
           <router-link :to="`/posts/${post.id}`" target="_blank" class="post-thumb">
-            <img :src="`/images/thumbnail/${post.filename}?size=large`" :alt="`Post #${post.id}`" loading="lazy" />
+            <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
+            <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
           </router-link>
           <button
             class="add-btn"
@@ -69,9 +71,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useSfwMode } from '@/composables/useSfwMode'
 
 const props = defineProps({ id: [String, Number] })
 const auth = useAuthStore()
+const { shouldBlur, reveal } = useSfwMode()
 const router = useRouter()
 
 const collection = ref(null)

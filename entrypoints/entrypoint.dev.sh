@@ -8,8 +8,8 @@
 flask db init
 flask init-db
 
-# Detect database changes.
-flask db migrate
+# Apply any pending migrations (safe to run on both fresh and existing DBs).
+flask db upgrade
 
 # Start cron and add the jobs
 crond

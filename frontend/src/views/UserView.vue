@@ -11,7 +11,8 @@
     <h2>Posts</h2>
     <div v-if="posts.length" class="post-grid">
       <router-link v-for="post in posts" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
-        <img :src="`/images/thumbnail/${post.filename}?size=large`" :alt="`Post #${post.id}`" loading="lazy" />
+        <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
+        <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
       </router-link>
     </div>
     <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" @navigate="goToPage" />
@@ -23,8 +24,10 @@
 import { ref, onMounted } from 'vue'
 import api from '@/api/client'
 import Pagination from '@/components/Pagination.vue'
+import { useSfwMode } from '@/composables/useSfwMode'
 
 const props = defineProps({ id: [String, Number] })
+const { shouldBlur, reveal } = useSfwMode()
 const user = ref(null)
 const posts = ref([])
 const page = ref(1)

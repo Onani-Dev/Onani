@@ -10,6 +10,7 @@ from Onani import db
 
 def query_posts(
     tags: Optional[List[str]] = None,
+    exclude_tags: Optional[List[str]] = None,
     show_hidden: bool = False,
     show_removed: bool = False,
 ):
@@ -17,6 +18,7 @@ def query_posts(
 
     Args:
         tags: Filter to posts that have ALL of these tag names.
+        exclude_tags: Exclude posts that have ANY of these tag names.
         show_hidden: Include posts flagged as hidden.
         show_removed: Include posts with status other than APPROVED/PENDING.
     """
@@ -38,5 +40,13 @@ def query_posts(
         )
     else:
         posts = posts.order_by(Post.id.desc())
+
+    if exclude_tags:
+        excluded_ids = (
+            db.session.query(Post.id)
+            .join(Post.tags)
+            .filter(Tag.name.in_(exclude_tags))
+        )
+        posts = posts.filter(Post.id.notin_(excluded_ids))
 
     return posts

@@ -51,6 +51,9 @@ class Profile(Resource):
         parser.add_argument(
             "profile_colour", location="json", type=str, default=None, required=False
         )
+        parser.add_argument(
+            "sfw_mode", location="json", type=bool, default=None, required=False
+        )
 
         # Parse the args
         args = parser.parse_args()
@@ -80,9 +83,15 @@ class Profile(Resource):
         if args["profile_colour"]:
             current_user.settings.profile_colour = args["profile_colour"]
 
+        if args["sfw_mode"] is not None:
+            current_user.settings.sfw_mode = args["sfw_mode"]
+
         if args["profile_picture"]:
-            create_avatar(current_user, args["profile_picture"],
-                          avatars_dir=current_app.config.get("AVATARS_DIR", "/avatars"))
+            try:
+                create_avatar(current_user, args["profile_picture"],
+                              avatars_dir=current_app.config.get("AVATARS_DIR", "/avatars"))
+            except Exception as e:
+                return {"message": f"Avatar upload failed: {e}"}, 400
 
         db.session.commit()
 
@@ -131,5 +140,45 @@ class ProfileCookies(Resource):
         return {"message": "Cookies removed."}
 
 
+class ProfileOTP(Resource):
+    """TOTP 2FA setup, verification, and disable."""
+    decorators = [login_required]
+
+    def get(self):
+        """Return current OTP status and QR code for setup."""
+        import io, base64
+        import qrcode
+
+        uri = current_user.otp_uri
+        buf = io.BytesIO()
+        qrcode.make(uri).save(buf, format="PNG")
+        qr_b64 = base64.b64encode(buf.getvalue()).decode()
+        return {
+            "enabled": current_user.otp_enabled,
+            "uri": uri,
+            "qr_code": f"data:image/png;base64,{qr_b64}",
+        }
+
+    def post(self):
+        """Verify a TOTP code and enable 2FA."""
+        parser = reqparse.RequestParser()
+        parser.add_argument("code", location="json", type=int, required=True)
+        args = parser.parse_args()
+
+        if not current_user.check_otp(args["code"]):
+            return {"message": "Invalid OTP code."}, 400
+
+        current_user.otp_enabled = True
+        db.session.commit()
+        return {"enabled": True}
+
+    def delete(self):
+        """Disable 2FA."""
+        current_user.otp_enabled = False
+        db.session.commit()
+        return {"enabled": False}
+
+
 api.add_resource(Profile, "/profile")
 api.add_resource(ProfileCookies, "/profile/cookies")
+api.add_resource(ProfileOTP, "/profile/otp")

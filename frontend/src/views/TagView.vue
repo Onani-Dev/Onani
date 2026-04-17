@@ -33,23 +33,39 @@
       </div>
     </form>
 
-    <div v-if="tag.posts?.length" class="post-grid">
-      <router-link v-for="post in tag.posts" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
-        <img :src="`/images/thumbnail/${post.filename}?size=large`" :alt="`Post #${post.id}`" loading="lazy" />
+    <div v-if="posts.length" class="post-grid">
+      <router-link v-for="post in posts" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
+        <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
+        <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
       </router-link>
     </div>
+    <p v-else-if="!loading">No posts found.</p>
+    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" @navigate="goToPage" @update:perPage="onPerPage" />
   </div>
   <p v-else>Loading...</p>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import Pagination from '@/components/Pagination.vue'
+import { useSfwMode } from '@/composables/useSfwMode'
 
 const props = defineProps({ id: [String, Number] })
 const auth = useAuthStore()
+const { shouldBlur, reveal } = useSfwMode()
+const route = useRoute()
+const router = useRouter()
+
 const tag = ref(null)
+const posts = ref([])
+const loading = ref(true)
+const page = ref(Number(route.query.page) || 1)
+const perPage = ref(Number(route.query.per_page) || 30)
+const nextPage = ref(null)
+const prevPage = ref(null)
 const editMode = ref(false)
 const editName = ref('')
 const editType = ref('')
@@ -63,6 +79,38 @@ onMounted(async () => {
   tag.value = data
   editName.value = data.name
   editType.value = data.type
+  await fetchPosts()
+})
+
+async function fetchPosts() {
+  loading.value = true
+  try {
+    const { data } = await api.get('/posts', { params: { page: page.value, per_page: perPage.value, tags: tag.value.name } })
+    posts.value = data.data
+    nextPage.value = data.next_page
+    prevPage.value = data.prev_page
+  } finally {
+    loading.value = false
+  }
+}
+
+function goToPage(p) {
+  page.value = p
+  router.push({ query: { ...route.query, page: p > 1 ? p : undefined } })
+  fetchPosts()
+}
+
+function onPerPage(n) {
+  perPage.value = n
+  page.value = 1
+  router.push({ query: { ...route.query, page: undefined, per_page: n !== 30 ? n : undefined } })
+  fetchPosts()
+}
+
+watch(() => [route.query.page, route.query.per_page], ([newPage, newPerPage]) => {
+  page.value = Number(newPage) || 1
+  perPage.value = Number(newPerPage) || 30
+  if (tag.value) fetchPosts()
 })
 
 async function saveTag() {

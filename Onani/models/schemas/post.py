@@ -19,6 +19,11 @@ class PostSchema(ma.SQLAlchemyAutoSchema):
     title = fields.Str(dump_only=True)
     score = fields.Int(dump_only=True)
     file_url = fields.Str(dump_only=True)
+    water_count = fields.Int(dump_only=True)
+    thumbnail_url = fields.Method("get_thumbnail_url", dump_only=True)
 
     def get_tags(self, obj):
-        return [{"name": t.name, "type": t.type.name.lower()} for t in obj.tags]
+        return [{"id": t.id, "name": t.name, "type": t.type.name.lower()} for t in obj.tags]
+
+    def get_thumbnail_url(self, obj):
+        return obj.thumbnail(size="large")

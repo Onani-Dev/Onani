@@ -45,6 +45,9 @@ class UserSettings(db.Model):
     # Custom colour for user profile
     profile_colour: str = db.Column(db.String)
 
+    # SFW mode: blurs explicit/questionable post thumbnails
+    sfw_mode: bool = db.Column(db.Boolean, default=False, nullable=False, server_default="false")
+
     # Encrypted gallery-dl cookies file (Fernet token, encrypted with user password)
     encrypted_cookies: bytes = db.Column(db.LargeBinary)
 

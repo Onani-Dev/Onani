@@ -23,10 +23,10 @@ SQLALCHEMY_ECHO = bool(os.environ.get("FLASK_SQLALCHEMY_ECHO"))
 
 
 # Cookie settings
-SESSION_COOKIE_SECURE = not TESTING and os.environ.get("FLASK_ENV") != "development"
+SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = "Lax"
-PREFERRED_URL_SCHEME = "https" if SESSION_COOKIE_SECURE else "http"
+SESSION_COOKIE_SAMESITE = "strict"
+PREFERRED_URL_SCHEME = "https"
 
 # File storage paths (inside container)
 IMAGES_DIR = os.environ.get("IMAGES_DIR", "/images")

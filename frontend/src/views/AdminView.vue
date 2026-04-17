@@ -64,6 +64,22 @@
       <!-- User Management -->
       <section class="admin-section">
         <h2>User Management</h2>
+
+        <!-- Create user -->
+        <details class="create-user-details" v-if="auth.user?.role >= 300">
+          <summary class="btn-sm" style="display:inline-block;margin-bottom:0.75em;cursor:pointer">+ Create User</summary>
+          <form class="create-user-form" @submit.prevent="createUser">
+            <input v-model="newUser.username" placeholder="Username" required />
+            <input v-model="newUser.email" placeholder="Email (optional)" type="email" />
+            <input v-model="newUser.password" placeholder="Password" type="password" required />
+            <select v-model="newUser.role">
+              <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+            </select>
+            <button type="submit" :disabled="creatingUser">{{ creatingUser ? 'Creating…' : 'Create' }}</button>
+          </form>
+          <p v-if="createUserMsg" :class="createUserError ? 'text-error' : 'text-success'">{{ createUserMsg }}</p>
+        </details>
+
         <div class="user-search-bar">
           <input v-model="userSearch" placeholder="Search by username..." @keyup.enter="fetchUsers" />
           <button class="btn-sm" @click="fetchUsers">Search</button>
@@ -103,8 +119,26 @@
               <strong>Remove Expired Bans</strong>
               <p class="text-muted">Clear all bans that have passed their expiry date.</p>
             </div>
-            <button @click="runTask('remove_expired_bans')" :disabled="runningTask">
+            <button @click="runTask('remove_expired_bans')" :disabled="!!runningTask">
               {{ runningTask === 'remove_expired_bans' ? 'Running...' : 'Run' }}
+            </button>
+          </div>
+          <div class="task-item">
+            <div>
+              <strong>Backfill Video Thumbnails</strong>
+              <p class="text-muted">Generate missing JPEG thumbnails for all video posts.</p>
+            </div>
+            <button @click="runTask('backfill_video_thumbnails')" :disabled="!!runningTask">
+              {{ runningTask === 'backfill_video_thumbnails' ? 'Running...' : 'Run' }}
+            </button>
+          </div>
+          <div class="task-item">
+            <div>
+              <strong>Recount Tag Post Counts</strong>
+              <p class="text-muted">Recalculate post_count for every tag from scratch.</p>
+            </div>
+            <button @click="runTask('recount_tags')" :disabled="!!runningTask">
+              {{ runningTask === 'recount_tags' ? 'Running...' : 'Run' }}
             </button>
           </div>
         </div>
@@ -148,26 +182,39 @@ const pollTimers = {}
 let refreshTimer = null
 let clockTimer = null
 
+const newUser = reactive({ username: '', email: '', password: '', role: 'MEMBER' })
+const creatingUser = ref(false)
+const createUserMsg = ref('')
+const createUserError = ref(false)
+
 const ROLE_VALUES = { 0: 'MEMBER', 1: 'ARTIST', 2: 'PREMIUM', 100: 'HELPER', 200: 'MODERATOR', 300: 'ADMIN', 666: 'OWNER' }
 const roles = ['MEMBER', 'ARTIST', 'PREMIUM', 'HELPER', 'MODERATOR', 'ADMIN']
 
 function roleName(val) { return ROLE_VALUES[val] || val }
 
+function jobFailed(job) {
+  return job.status === 'FAILURE' || job.status === 'ERROR' || (job.status === 'SUCCESS' && !!job.result?.error)
+}
+function jobSucceeded(job) {
+  return job.status === 'SUCCESS' && !job.result?.error
+}
+
 function dotClass(job) {
-  if (job.status === 'SUCCESS') return 'dot-success'
-  if (job.status === 'FAILURE' || job.status === 'ERROR') return 'dot-failure'
+  if (jobSucceeded(job)) return 'dot-success'
+  if (jobFailed(job)) return 'dot-failure'
   return 'dot-pending'
 }
 
 function badgeClass(job) {
   return {
-    'status-success': job.status === 'SUCCESS',
-    'status-failure': job.status === 'FAILURE' || job.status === 'ERROR',
-    'status-pending': ['PENDING', 'STARTED', 'PROGRESS'].includes(job.status),
+    'status-success': jobSucceeded(job),
+    'status-failure': jobFailed(job),
+    'status-pending': !jobSucceeded(job) && !jobFailed(job),
   }
 }
 
 function displayStatus(job) {
+  if (jobFailed(job)) return 'FAILED'
   if (job.status === 'PROGRESS' && job.meta) return `${job.meta.current}/${job.meta.total}`
   return job.status
 }
@@ -183,6 +230,24 @@ function elapsed(job) {
 
 onMounted(async () => {
   clockTimer = setInterval(() => { now.value = Date.now() }, 1000)
+
+  // Load import history from localStorage (shared with ImportView)
+  try {
+    const saved = JSON.parse(localStorage.getItem('importJobs') || '[]')
+    for (const s of saved) {
+      importJobs.push({
+        id: s.id, url: s.url,
+        status: s.status || 'PENDING',
+        result: s.result || null,
+        meta: s.meta || null,
+        logs: s.logs || [],
+        expanded: false,
+        startedAt: s.startedAt || Date.now(),
+        finishedAt: s.finishedAt || null,
+      })
+    }
+  } catch { /* ignore */ }
+
   try {
     const [statsRes, errorsRes] = await Promise.all([
       api.get('/admin/stats'),
@@ -207,7 +272,7 @@ async function refreshImports() {
     const { data } = await api.get('/admin/imports')
     const activeIds = new Set(data.tasks.map(t => t.id))
 
-    // Add new tasks
+    // Add new active tasks not yet in the list
     for (const t of data.tasks) {
       let existing = importJobs.find(j => j.id === t.id)
       if (!existing) {
@@ -217,13 +282,34 @@ async function refreshImports() {
       }
     }
 
-    // Mark removed tasks as completed (if they disappeared from active)
+    // Poll any incomplete jobs that disappeared from the active list
     for (const job of importJobs) {
       if (!activeIds.has(job.id) && !['SUCCESS', 'FAILURE', 'ERROR'].includes(job.status)) {
-        // Poll one more time to get final status
         pollJob(job)
       }
     }
+
+    // Re-sync from localStorage in case ImportView added new entries
+    try {
+      const saved = JSON.parse(localStorage.getItem('importJobs') || '[]')
+      const knownIds = new Set(importJobs.map(j => j.id))
+      for (const s of saved) {
+        if (!knownIds.has(s.id)) {
+          importJobs.push({
+            id: s.id, url: s.url,
+            status: s.status || 'PENDING',
+            result: s.result || null,
+            meta: s.meta || null,
+            logs: s.logs || [],
+            expanded: false,
+            startedAt: s.startedAt || Date.now(),
+            finishedAt: s.finishedAt || null,
+          })
+        }
+      }
+      // Sort by startedAt descending
+      importJobs.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0))
+    } catch { /* ignore */ }
   } catch { /* ignore */ }
 }
 
@@ -256,6 +342,26 @@ async function fetchUsers() {
     const { data } = await api.get('/admin/users', { params: { q: userSearch.value || undefined, per_page: 20 } })
     users.value = data.data.map(u => ({ ...u, _pendingRole: roleName(u.role) }))
   } catch { /* ignore */ }
+}
+
+async function createUser() {
+  creatingUser.value = true
+  createUserMsg.value = ''
+  createUserError.value = false
+  try {
+    await api.post('/admin/users', { ...newUser })
+    createUserMsg.value = `User '${newUser.username}' created.`
+    newUser.username = ''
+    newUser.email = ''
+    newUser.password = ''
+    newUser.role = 'MEMBER'
+    fetchUsers()
+  } catch (err) {
+    createUserMsg.value = err.response?.data?.message || 'Create failed.'
+    createUserError.value = true
+  } finally {
+    creatingUser.value = false
+  }
 }
 
 async function changeRole(u) {
@@ -414,6 +520,23 @@ function formatDate(iso) {
 /* Users */
 .user-search-bar { display: flex; gap: 0.5em; margin-bottom: 0.75em; }
 .user-search-bar input { flex: 1; }
+
+.create-user-details { margin-bottom: 0.75em; }
+.create-user-details summary { list-style: none; }
+.create-user-details summary::-webkit-details-marker { display: none; }
+.create-user-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
+}
+.create-user-form input,
+.create-user-form select {
+  flex: 1;
+  min-width: 10em;
+}
+.create-user-form button { flex-shrink: 0; }
 .role-select {
   background: var(--bg-overlay);
   color: var(--text);

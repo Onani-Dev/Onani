@@ -19,9 +19,12 @@ from Onani.models import (
     User,
     UserPermissions,
 )
+from Onani.models.post import FileType
 from PIL import UnidentifiedImageError
 
-from .files import determine_meta_tags, get_file_data
+from .files import determine_meta_tags, get_file_data, get_video_data, detect_video_format, create_video_thumbnail
+
+_VIDEO_FORMATS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
 
 _CHAR_BLACKLIST = [chr(i) for i in range(32)]  # ASCII control characters 0–31
 
@@ -197,6 +200,14 @@ def create_post(
         post_min_tags: Minimum required tag count from config.
     """
     post = Post()
+
+    # Guard against duplicates before the object is associated with the
+    # session (prevents autoflush from firing a poisoned INSERT later).
+    if Post.query.filter(
+        (Post.sha256_hash == hash_sha256) | (Post.filename == filename)
+    ).first():
+        raise ValueError("Post already exists.")
+
     post.source = source
     post.description = description
     post.uploader = uploader
@@ -208,6 +219,7 @@ def create_post(
     post.height = height
     post.filesize = filesize
     post.file_type = file_type
+    post.type = FileType.VIDEO if file_type in _VIDEO_FORMATS else FileType.IMAGE
     post.original_filename = original_filename
     post.imported_from = imported_from
 
@@ -217,6 +229,12 @@ def create_post(
     with open(filepath, "wb") as f:
         image_file.seek(0)
         f.write(image_file.read())
+
+    # For videos, generate a JPEG thumbnail so nginx image_filter can serve it
+    if file_type in _VIDEO_FORMATS:
+        stem = filename.rsplit(".", 1)[0]
+        thumb_path = os.path.join(images_dir, f"{stem}.jpg")
+        create_video_thumbnail(filepath, thumb_path)
 
     db.session.add(post)
     uploader.post_count = uploader.posts.with_entities(func.count()).scalar()
@@ -246,16 +264,35 @@ def upload_post(
     """
     tags: Set[str] = set(tags_raw.split(" "))
 
-    (
-        image_file,
-        filesize,
-        hash_sha256,
-        hash_md5,
-        width,
-        height,
-        filename,
-        file_type,
-    ) = get_file_data(file_data)
+    video_fmt = detect_video_format(file_data)
+    if not video_fmt:
+        # Check file extension as fallback
+        ext = original_filename.rsplit(".", 1)[-1].lower() if "." in original_filename else ""
+        if ext in _VIDEO_FORMATS:
+            video_fmt = ext
+
+    if video_fmt:
+        (
+            image_file,
+            filesize,
+            hash_sha256,
+            hash_md5,
+            width,
+            height,
+            filename,
+            file_type,
+        ) = get_video_data(file_data, input_format=video_fmt)
+    else:
+        (
+            image_file,
+            filesize,
+            hash_sha256,
+            hash_md5,
+            width,
+            height,
+            filename,
+            file_type,
+        ) = get_file_data(file_data)
 
     return create_post(
         source,

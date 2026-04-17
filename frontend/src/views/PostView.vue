@@ -1,178 +1,571 @@
 <template>
-  <div v-if="post">
-    <div class="file-container">
-      <img :src="post.file_url" :alt="`Post #${post.id}`" class="main-image" />
+  <!-- Fullscreen overlay — teleported outside the layout so nothing clips it -->
+  <Teleport to="body">
+    <div
+      v-if="fullscreen"
+      class="fullscreen-overlay"
+      @wheel.prevent="fsOnWheel"
+      @pointerdown="fsOnPointerDown"
+      @pointermove="fsOnPointerMove"
+      @pointerup="fsOnPointerUp"
+      @pointercancel="fsOnPointerUp"
+    >
+      <video
+        v-if="isVideo"
+        :src="post?.file_url"
+        class="fullscreen-img"
+        :style="fsImgStyle"
+        controls
+        loop
+        @click.stop
+      />
+      <img
+        v-else
+        :src="post?.file_url"
+        class="fullscreen-img"
+        :class="{ 'sfw-blurred': shouldBlur(post) }"
+        :style="fsImgStyle"
+        draggable="false"
+      />
+      <button class="fullscreen-close" @pointerdown.stop @pointerup.stop @click.stop="closeFullscreen" title="Close (Esc)">✕</button>
+      <span v-if="fsScale > 1" class="fs-hint">Scroll to zoom · drag to pan · double-click to reset</span>
     </div>
+  </Teleport>
 
-    <div class="post-info-box">
-      <div class="post-info-header">
-        <div class="post-meta">
-          <span class="rating-badge" :class="`rating-${post.rating}`">{{ post.rating?.toUpperCase() }}</span>
-          <span v-if="post.source" class="post-source"><a :href="post.source" target="_blank" rel="noopener">source</a></span>
-        </div>
-        <div class="post-actions">
-          <div v-if="auth.isAuthenticated" class="voting-container">
-            <span class="vote-btn" @click="vote('upvote')" :class="{ voted: hasUpvoted }">▲</span>
-            <span class="post-score-count" :class="{ positive: post.score > 0, negative: post.score < 0 }">{{ post.score }}</span>
-            <span class="vote-btn" @click="vote('downvote')" :class="{ voted: hasDownvoted }">▼</span>
+  <div class="post-page">
+    <div v-if="loading" class="text-muted load-msg">Loading…</div>
+
+    <template v-else-if="post">
+      <div class="post-layout">
+
+        <!-- ── Left: image/video ── -->
+        <div class="post-image-panel">
+          <div class="post-image-wrapper">
+            <video
+              v-if="isVideo"
+              :src="shouldBlur(post) ? '' : post.file_url"
+              class="post-image post-video"
+              :class="{ 'sfw-blurred': shouldBlur(post) }"
+              controls
+              loop
+              preload="metadata"
+            />
+            <img
+              v-else
+              :src="post.file_url"
+              :alt="post.title"
+              class="post-image"
+              :class="{ 'sfw-blurred': shouldBlur(post) }"
+              @click="shouldBlur(post) ? reveal(post.id) : (fullscreen = true, fsResetZoom())"
+              :title="shouldBlur(post) ? 'Click to reveal' : 'Click to view fullscreen'"
+            />
+            <div v-if="shouldBlur(post)" class="sfw-overlay post-sfw-overlay" @click="reveal(post.id)">Click to reveal</div>
           </div>
-          <button v-if="canEdit" class="btn-icon" @click="editMode = !editMode" :title="editMode ? 'Cancel' : 'Edit post'">
-            {{ editMode ? '✕' : '✏' }}
-          </button>
+          <div class="image-meta">
+            <span>{{ post.width }}×{{ post.height }}</span>
+            <span>{{ formatFilesize(post.filesize) }}</span>
+            <span>{{ post.file_type?.toUpperCase() }}</span>
+          </div>
+        </div>
+
+        <!-- ── Right: info + tags ── -->
+        <div class="post-info-panel">
+
+          <!-- Info card -->
+          <section class="info-card">
+            <div class="info-grid">
+              <span class="info-label">Rating</span>
+              <span class="rating-badge" :class="`rating-${post.rating}`">{{ ratingLabel(post.rating) }}</span>
+
+              <span class="info-label">ID</span>
+              <span>#{{ post.id }}</span>
+
+              <span class="info-label">Uploaded</span>
+              <span>{{ formatDate(post.uploaded_at) }}</span>
+
+              <template v-if="post.source">
+                <span class="info-label">Source</span>
+                <a :href="post.source" target="_blank" rel="noopener noreferrer" class="source-link" :title="post.source">
+                  {{ sourceHostname }}
+                </a>
+              </template>
+
+              <template v-if="post.imported_from && post.imported_from !== post.source">
+                <span class="info-label">Origin</span>
+                <a :href="post.imported_from" target="_blank" rel="noopener noreferrer" class="source-link">
+                  {{ importedHostname }}
+                </a>
+              </template>
+
+              <template v-if="artistTags.length">
+                <span class="info-label">Artist</span>
+                <span class="info-tag-row">
+                  <router-link
+                    v-for="t in artistTags" :key="t.name"
+                    :to="{ name: 'posts', query: { tags: t.name } }"
+                    class="tag tag-artist"
+                  >{{ t.name }}</router-link>
+                </span>
+              </template>
+
+              <template v-if="characterTags.length">
+                <span class="info-label">Character</span>
+                <span class="info-tag-row">
+                  <router-link
+                    v-for="t in characterTags" :key="t.name"
+                    :to="{ name: 'posts', query: { tags: t.name } }"
+                    class="tag tag-character"
+                  >{{ t.name }}</router-link>
+                </span>
+              </template>
+
+              <template v-if="copyrightTags.length">
+                <span class="info-label">Copyright</span>
+                <span class="info-tag-row">
+                  <router-link
+                    v-for="t in copyrightTags" :key="t.name"
+                    :to="{ name: 'posts', query: { tags: t.name } }"
+                    class="tag tag-copyright"
+                  >{{ t.name }}</router-link>
+                </span>
+              </template>
+            </div>
+
+            <!-- Actions row: water + vote + edit -->
+            <div class="actions-row">
+              <button
+                class="water-btn"
+                :class="{ splash: waterSplash }"
+                @click="doWater"
+                title="Water this post"
+              >
+                💧 {{ waterCount }}
+              </button>
+
+              <div class="vote-container">
+                <button class="vote-btn" :class="{ voted: hasUpvoted }" @click="vote('upvote')">▲</button>
+                <span class="score" :class="{ positive: post.score > 0, negative: post.score < 0 }">{{ post.score }}</span>
+                <button class="vote-btn downvote" :class="{ voted: hasDownvoted }" @click="vote('downvote')">▼</button>
+              </div>
+
+              <button v-if="canEdit" class="btn-sm" @click="metaEditMode = !metaEditMode">
+                {{ metaEditMode ? '✕ Cancel' : '✏ Edit' }}
+              </button>
+
+              <div v-if="auth.isAuthenticated" class="collection-picker-wrap" @focusout="handleCollectionBlur">
+                <button class="btn-sm" @click="showCollectionPicker = !showCollectionPicker" title="Add to collection">
+                  + Collection
+                </button>
+                <div v-if="showCollectionPicker" class="collection-dropdown">
+                  <p v-if="!userCollections.length" class="coll-empty">No collections yet.</p>
+                  <button
+                    v-for="c in userCollections"
+                    :key="c.id"
+                    class="coll-option"
+                    :disabled="addingToCollection"
+                    @mousedown.prevent="addToCollection(c.id)"
+                  >{{ c.title }}</button>
+                  <router-link to="/collections" class="coll-new-link" @mousedown.prevent>New collection…</router-link>
+                </div>
+              </div>
+            </div>
+
+            <!-- Meta edit form (rating / source / description) -->
+            <form v-if="metaEditMode" @submit.prevent="saveMetaEdit" class="meta-edit-form">
+              <div class="field">
+                <label>Rating</label>
+                <select v-model="editRating">
+                  <option value="g">General</option>
+                  <option value="q">Questionable</option>
+                  <option value="s">Sensitive</option>
+                  <option value="e">Explicit</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Source</label>
+                <input v-model="editSource" placeholder="https://…" />
+              </div>
+              <div class="field">
+                <label>Description</label>
+                <textarea v-model="editDescription" rows="3"></textarea>
+              </div>
+            </form>
+
+            <!-- Description (view mode) -->
+            <div v-if="!metaEditMode && post.description" class="description-block">
+              <span class="info-label">Description</span>
+              <p>{{ post.description }}</p>
+            </div>
+          </section>
+
+          <!-- Tags panel -->
+          <section class="tags-panel">
+            <div class="tags-panel-header">
+              <span>Tags</span>
+              <span class="tag-count-badge">{{ post.tags.length }}</span>
+            </div>
+
+            <!-- Tag search (editors only) -->
+            <div v-if="canEdit && metaEditMode" class="tag-search-wrapper" @focusout="handleTagSearchBlur">
+              <input
+                v-model="tagQuery"
+                @input="onTagSearch"
+                @keydown.escape="tagSuggestions = []"
+                placeholder="Add a tag…"
+                class="tag-search-input"
+                autocomplete="off"
+              />
+              <div v-if="tagSuggestions.length" class="tag-suggestions">
+                <button
+                  v-for="s in tagSuggestions"
+                  :key="s.name"
+                  class="tag-suggestion"
+                  :class="`tag-${s.type}`"
+                  tabindex="0"
+                  @mousedown.prevent="addTag(s)"
+                >
+                  <span class="sug-type">{{ s.type }}</span>{{ s.name }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Tags grouped by type -->
+            <div v-for="(tags, type) in sortedTags" :key="type" class="tag-group">
+              <div class="tag-group-label">{{ capitalize(type) }}</div>
+              <div class="tag-chips">
+                <span
+                  v-for="tag in tags"
+                  :key="tag.name"
+                  class="tag-chip"
+                  :class="`tag-${tag.type}`"
+                >
+                  <router-link :to="{ name: 'tag', params: { id: tag.id } }">{{ tag.name }}</router-link>
+                  <button
+                    v-if="canEdit && metaEditMode"
+                    class="tag-remove-btn"
+                    @click="removeTag(tag)"
+                    title="Remove tag"
+                  >×</button>
+                </span>
+              </div>
+            </div>
+
+            <!-- Save / cancel below tags (only in edit mode) -->
+            <div v-if="canEdit && metaEditMode" class="tags-edit-actions">
+              <button class="btn-primary" :disabled="saving" @click="saveMetaEdit">{{ saving ? 'Saving…' : 'Save' }}</button>
+              <button class="btn-secondary" @click="metaEditMode = false">Cancel</button>
+              <p v-if="metaEditError" class="text-error">{{ metaEditError }}</p>
+            </div>
+          </section>
+
         </div>
       </div>
 
-      <!-- Edit panel -->
-      <form v-if="editMode" @submit.prevent="saveEdit" class="edit-panel">
-        <div class="edit-field">
-          <label>Tags</label>
-          <textarea v-model="editTags" rows="3" placeholder="tag1 artist:name character:name"></textarea>
+      <!-- Comments -->
+      <section class="comments-section">
+        <h2>Comments</h2>
+        <div v-if="auth.isAuthenticated" class="comment-compose">
+          <textarea v-model="newComment" placeholder="Add a comment…" rows="2"></textarea>
+          <button @click="addComment">Post</button>
         </div>
-        <div class="edit-row">
-          <div class="edit-field">
-            <label>Rating</label>
-            <select v-model="editRating">
-              <option value="g">General</option>
-              <option value="q">Questionable</option>
-              <option value="s">Sensitive</option>
-              <option value="e">Explicit</option>
-            </select>
+        <div class="comment-list">
+          <div v-for="c in comments" :key="c.id" class="comment-item">
+            <strong>{{ c.author?.username }}</strong>: {{ c.content }}
           </div>
-          <div class="edit-field">
-            <label>Source</label>
-            <input v-model="editSource" placeholder="https://..." />
-          </div>
+          <p v-if="!comments.length" class="text-muted">No comments yet.</p>
         </div>
-        <div class="edit-field">
-          <label>Description</label>
-          <textarea v-model="editDescription" rows="3"></textarea>
-        </div>
-        <p v-if="editError" class="text-error">{{ editError }}</p>
-        <div class="edit-buttons">
-          <button type="submit" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
-          <button type="button" class="btn-secondary" @click="editMode = false">Cancel</button>
-        </div>
-      </form>
+      </section>
+    </template>
 
-      <div v-else class="post-info-body">
-        <div v-if="post.description" class="description-container">
-          <h3>Description</h3>
-          <p>{{ post.description }}</p>
-        </div>
-        <div class="tags-section">
-          <h3>Tags</h3>
-          <div class="tags-list">
-            <router-link
-              v-for="tag in post.tags"
-              :key="tag.name"
-              :to="`/tags?q=${tag.name}`"
-              class="tag"
-              :class="`tag-${tag.type}`"
-            >{{ tag.name }}</router-link>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="post-comments-box">
-      <h2>Comments</h2>
-      <div v-if="auth.isAuthenticated" class="comment-input-container">
-        <textarea v-model="newComment" placeholder="Add a comment..." rows="2" class="comment-input"></textarea>
-        <button @click="addComment" class="comment-submit">Post</button>
-      </div>
-      <div class="comment-container">
-        <div v-for="c in comments" :key="c.id" class="comment">
-          <strong>{{ c.author?.username }}</strong>: {{ c.content }}
-        </div>
-        <p v-if="!comments.length" class="text-muted">No comments yet.</p>
-      </div>
-    </div>
+    <p v-else class="text-muted load-msg">Post not found.</p>
   </div>
-  <p v-else-if="loading">Loading...</p>
-  <p v-else>Post not found.</p>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
-
+import { useSfwMode } from '@/composables/useSfwMode'
 const props = defineProps({ id: [String, Number] })
 const auth = useAuthStore()
+const { shouldBlur, reveal } = useSfwMode()
 
+// ── Post data ──
 const post = ref(null)
 const comments = ref([])
 const loading = ref(true)
-const newComment = ref('')
+
+// ── Votes / water ──
 const hasUpvoted = ref(false)
 const hasDownvoted = ref(false)
+const waterCount = ref(0)
+const waterSplash = ref(false)
 
-const editMode = ref(false)
+// ── Fullscreen ──
+const fullscreen = ref(false)
+const fsScale = ref(1)
+const fsPan = ref({ x: 0, y: 0 })
+
+const _VIDEO_TYPES = new Set(['mp4', 'webm', 'mov', 'avi', 'mkv', 'm4v'])
+const isVideo = computed(() => _VIDEO_TYPES.has(post.value?.file_type?.toLowerCase()))
+
+const fsImgStyle = computed(() => ({
+  transform: `translate(${fsPan.value.x}px, ${fsPan.value.y}px) scale(${fsScale.value})`,
+  cursor: fsScale.value > 1 ? 'grab' : 'default',
+  userSelect: 'none',
+}))
+
+function closeFullscreen() {
+  fullscreen.value = false
+  fsScale.value = 1
+  fsPan.value = { x: 0, y: 0 }
+  fsPointers.clear()
+}
+
+function fsResetZoom() {
+  fsScale.value = 1
+  fsPan.value = { x: 0, y: 0 }
+}
+
+function fsOnWheel(e) {
+  const delta = e.deltaY < 0 ? 1.15 : 1 / 1.15
+  fsScale.value = Math.min(10, Math.max(1, fsScale.value * delta))
+  if (fsScale.value === 1) fsPan.value = { x: 0, y: 0 }
+}
+
+// ── Pointer tracking (mouse drag + pinch zoom) ──
+const fsPointers = new Map()
+let fsDragStart = null
+let fsPinchDist = null
+
+function fsPointerDist() {
+  const pts = [...fsPointers.values()]
+  const dx = pts[1].x - pts[0].x
+  const dy = pts[1].y - pts[0].y
+  return Math.hypot(dx, dy)
+}
+
+function fsOnPointerDown(e) {
+  fsPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  e.currentTarget.setPointerCapture(e.pointerId)
+  if (fsPointers.size === 1) {
+    fsDragStart = { x: e.clientX - fsPan.value.x, y: e.clientY - fsPan.value.y }
+  }
+  if (fsPointers.size === 2) {
+    fsPinchDist = fsPointerDist()
+    fsDragStart = null
+  }
+}
+
+function fsOnPointerMove(e) {
+  fsPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  if (fsPointers.size === 2 && fsPinchDist !== null) {
+    const newDist = fsPointerDist()
+    const ratio = newDist / fsPinchDist
+    fsScale.value = Math.min(10, Math.max(1, fsScale.value * ratio))
+    fsPinchDist = newDist
+    if (fsScale.value === 1) fsPan.value = { x: 0, y: 0 }
+    return
+  }
+  if (fsPointers.size === 1 && fsDragStart && fsScale.value > 1) {
+    fsPan.value = { x: e.clientX - fsDragStart.x, y: e.clientY - fsDragStart.y }
+  }
+}
+
+function fsOnPointerUp(e) {
+  fsPointers.delete(e.pointerId)
+  if (fsPointers.size < 2) fsPinchDist = null
+  if (fsPointers.size === 0) {
+    // double-click to reset (two pointerup within 300ms with no move)
+    if (e.detail === 2) fsResetZoom()
+    // close only when not zoomed and it's a plain tap/click with no drag
+    if (fsScale.value === 1 && fsDragStart) {
+      const moved = Math.abs(e.clientX - (fsDragStart.x + fsPan.value.x)) < 4 &&
+                    Math.abs(e.clientY - (fsDragStart.y + fsPan.value.y)) < 4
+      if (moved) closeFullscreen()
+    }
+    fsDragStart = null
+  }
+}
+
+// ── Meta editing (rating / source / description) ──
+const metaEditMode = ref(false)
 const saving = ref(false)
-const editError = ref('')
-const editTags = ref('')
+const metaEditError = ref('')
 const editRating = ref('')
 const editSource = ref('')
 const editDescription = ref('')
 
+// ── Tag editing ──
+const tagQuery = ref('')
+const tagSuggestions = ref([])
+let tagSearchTimer = null
+
+// ── Collection picker ──
+const userCollections = ref([])
+const showCollectionPicker = ref(false)
+const addingToCollection = ref(false)
+
+// ── Comments ──
+const newComment = ref('')
+
+// ── Computed ──
 const canEdit = computed(() =>
   auth.isAuthenticated &&
   post.value &&
   (auth.user?.role >= 100 || auth.user?.id === post.value.uploader_id)
 )
 
+const TAG_ORDER = ['artist', 'circle', 'character', 'copyright', 'species', 'general', 'meta']
+
+const sortedTags = computed(() => {
+  if (!post.value?.tags) return {}
+  const groups = {}
+  for (const t of post.value.tags) {
+    ;(groups[t.type] ??= []).push(t)
+  }
+  for (const type in groups) groups[type].sort((a, b) => a.name.localeCompare(b.name))
+  const result = {}
+  for (const type of TAG_ORDER) if (groups[type]) result[type] = groups[type]
+  for (const type in groups) if (!result[type]) result[type] = groups[type]
+  return result
+})
+
+const artistTags    = computed(() => post.value?.tags.filter(t => t.type === 'artist')    ?? [])
+const characterTags = computed(() => post.value?.tags.filter(t => t.type === 'character') ?? [])
+const copyrightTags = computed(() => post.value?.tags.filter(t => t.type === 'copyright') ?? [])
+
+const sourceHostname = computed(() => {
+  try { return new URL(post.value?.source || '').hostname } catch { return post.value?.source || '' }
+})
+const importedHostname = computed(() => {
+  try { return new URL(post.value?.imported_from || '').hostname } catch { return post.value?.imported_from || '' }
+})
+
+// ── Lifecycle ──
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
   try {
-    const { data } = await api.get('/post', { params: { id: props.id } })
-    post.value = data
-    const commentRes = await api.get('/comments', { params: { post_id: props.id } })
-    comments.value = commentRes.data.data
+    const [postRes, commentRes] = await Promise.all([
+      api.get('/post', { params: { id: props.id } }),
+      api.get('/comments', { params: { post_id: props.id } }),
+    ])
+    post.value = postRes.data
+    hasUpvoted.value  = postRes.data.has_upvoted  ?? false
+    hasDownvoted.value = postRes.data.has_downvoted ?? false
+    waterCount.value  = postRes.data.water_count  ?? 0
+    comments.value    = commentRes.data.data ?? []
   } finally {
     loading.value = false
   }
+  // Pre-load collections for authenticated users
+  if (auth.isAuthenticated) {
+    try {
+      const { data } = await api.get('/collections', { params: { per_page: 200 } })
+      userCollections.value = (data.data ?? []).filter(c => c.creator === auth.user?.id)
+    } catch { /* non-fatal */ }
+  }
 })
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
-function openEdit() {
-  if (!post.value) return
-  editTags.value = post.value.tags
-    .map(t => t.type !== 'general' ? `${t.type}:${t.name}` : t.name)
-    .join(' ')
-  editRating.value = post.value.rating
-  editSource.value = post.value.source || ''
-  editDescription.value = post.value.description || ''
-  editMode.value = true
+function onKeydown(e) {
+  if (e.key === 'Escape') closeFullscreen()
 }
 
-watch(() => editMode.value, (val) => { if (val) openEdit() })
+watch(metaEditMode, val => {
+  if (val && post.value) {
+    editRating.value = post.value.rating
+    editSource.value = post.value.source || ''
+    editDescription.value = post.value.description || ''
+    metaEditError.value = ''
+  }
+})
 
-async function saveEdit() {
+// ── Meta save ──
+async function saveMetaEdit() {
   saving.value = true
-  editError.value = ''
-  const oldTags = post.value.tags
-    .map(t => t.type !== 'general' ? `${t.type}:${t.name}` : t.name)
-    .join(' ')
+  metaEditError.value = ''
   try {
     const { data } = await api.put('/post', {
       id: Number(props.id),
-      tags: editTags.value,
-      old_tags: oldTags,
       rating: editRating.value,
       source: editSource.value,
       description: editDescription.value,
     })
     post.value = data
-    editMode.value = false
+    metaEditMode.value = false
   } catch (err) {
-    editError.value = err.response?.data?.message || 'Save failed.'
+    metaEditError.value = err.response?.data?.message || 'Save failed.'
   } finally {
     saving.value = false
+  }
+}
+
+// ── Tag helpers ──
+function tagToStr(t) { return t.type !== 'general' ? `${t.type}:${t.name}` : t.name }
+function tagsToStr(tags) { return tags.map(tagToStr).join(' ') }
+
+async function addTag(suggestion) {
+  if (post.value.tags.find(t => t.name === suggestion.name)) {
+    tagQuery.value = ''
+    tagSuggestions.value = []
+    return
+  }
+  const oldStr = tagsToStr(post.value.tags)
+  const newStr = tagsToStr([...post.value.tags, suggestion])
+  tagQuery.value = ''
+  tagSuggestions.value = []
+  try {
+    const { data } = await api.put('/post', { id: Number(props.id), tags: newStr, old_tags: oldStr })
+    post.value = data
+  } catch (err) { console.error('Add tag failed:', err) }
+}
+
+async function removeTag(tag) {
+  const oldStr = tagsToStr(post.value.tags)
+  const newStr = tagsToStr(post.value.tags.filter(t => t.name !== tag.name))
+  try {
+    const { data } = await api.put('/post', { id: Number(props.id), tags: newStr, old_tags: oldStr })
+    post.value = data
+  } catch (err) { console.error('Remove tag failed:', err) }
+}
+
+function onTagSearch() {
+  clearTimeout(tagSearchTimer)
+  if (!tagQuery.value.trim()) { tagSuggestions.value = []; return }
+  tagSearchTimer = setTimeout(async () => {
+    try {
+      const { data } = await api.get('/tags/autocomplete', { params: { query: tagQuery.value.trim() } })
+      tagSuggestions.value = data.data ?? []
+    } catch { tagSuggestions.value = [] }
+  }, 200)
+}
+
+function handleTagSearchBlur(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) tagSuggestions.value = []
+}
+
+function handleCollectionBlur(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) showCollectionPicker.value = false
+}
+
+// ── Water / vote / comment ──
+async function doWater() {
+  waterCount.value++
+  waterSplash.value = true
+  setTimeout(() => { waterSplash.value = false }, 400)
+  try {
+    const { data } = await api.post('/posts/water', { post_id: Number(props.id) })
+    waterCount.value = data.water_count
+  } catch {
+    waterCount.value--
   }
 }
 
 async function vote(type) {
   const { data } = await api.post('/posts/vote', { post_id: Number(props.id), type })
   post.value.score = data.score
-  hasUpvoted.value = data.has_upvoted
+  hasUpvoted.value  = data.has_upvoted
   hasDownvoted.value = data.has_downvoted
 }
 
@@ -182,150 +575,473 @@ async function addComment() {
   comments.value.unshift(data)
   newComment.value = ''
 }
+
+// ── Collection ──
+async function addToCollection(collectionId) {
+  addingToCollection.value = true
+  try {
+    await api.post('/collections/posts', {
+      collection_id: collectionId,
+      post_id: Number(props.id),
+    })
+    showCollectionPicker.value = false
+  } catch (err) {
+    console.error('Add to collection failed:', err)
+  } finally {
+    addingToCollection.value = false
+  }
+}
+
+// ── Formatters ──
+function ratingLabel(r) {
+  return { g: 'General', q: 'Questionable', s: 'Sensitive', e: 'Explicit' }[r] ?? r?.toUpperCase() ?? ''
+}
+
+function formatDate(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function formatFilesize(bytes) {
+  if (!bytes) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / 1048576).toFixed(2)} MB`
+}
+
+function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
 </script>
 
 
 <style scoped>
-.file-container {
-  display: flex;
-  justify-content: center;
-  padding: 1em;
+/* ── Page ── */
+.post-page {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1em 1.5em;
 }
-.main-image {
+.load-msg { padding: 3em; text-align: center; }
+
+/* ── Two-column layout ── */
+.post-layout {
+  display: flex;
+  gap: 1.5em;
+  align-items: flex-start;
+}
+
+/* ── Image panel ── */
+.post-image-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+}
+.post-image-wrapper {
+  position: relative;
+  line-height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.post-sfw-overlay {
+  font-size: 1rem;
+}
+.post-image {
   max-width: 100%;
-  object-fit: scale-down;
+  max-height: 85vh;
+  object-fit: contain;
+  cursor: zoom-in;
+  display: block;
+}
+.post-video {
+  cursor: default;
+  width: 100%;
+  background: #000;
+}
+.image-meta {
+  display: flex;
+  gap: 1em;
+  font-size: 0.78rem;
+  color: var(--text-dim);
 }
 
-.post-info-box {
-  background-color: var(--bg-overlay);
-  margin: 0 auto 1em;
+/* ── Info panel ── */
+.post-info-panel {
+  width: 380px;
+  min-width: 300px;
+  max-width: 420px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+/* ── Info card ── */
+.info-card {
+  background: var(--bg-overlay);
   padding: 1em;
-  width: 60vw;
-  overflow-wrap: anywhere;
-}
-.post-info-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75em;
+  flex-direction: column;
+  gap: 0.9em;
 }
-.post-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-  font-size: 0.85rem;
+.info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45em 0.9em;
+  align-items: start;
 }
-.post-source a { color: var(--link); }
-.post-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-.voting-container {
-  display: flex;
-  align-items: center;
-  gap: 0.3em;
-  background-color: var(--bg-raised);
-  padding: 4px 8px;
-}
-.vote-btn {
-  cursor: pointer;
-  user-select: none;
-  padding: 0 0.4em;
-  font-size: 0.9rem;
-}
-.vote-btn.voted { color: lightgreen; }
-.vote-btn.voted:last-child { color: crimson; }
-.post-score-count {
-  font-size: 0.95rem;
-  min-width: 1.5em;
-  text-align: center;
-  user-select: none;
-}
-.post-score-count.positive { color: lightgreen; }
-.post-score-count.negative { color: crimson; }
-
-.btn-icon {
-  background: var(--bg-raised);
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  font-size: 0.95rem;
-  border-radius: 4px;
-}
-.btn-icon:hover { background: var(--item-hover); }
-
-.rating-badge {
-  padding: 0.15em 0.5em;
-  border-radius: 3px;
+.info-label {
   font-size: 0.75rem;
   font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-top: 0.15em;
+  white-space: nowrap;
+}
+.info-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em;
+}
+.source-link {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+/* ── Rating badges ── */
+.rating-badge {
+  display: inline-block;
+  padding: 0.12em 0.5em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.3em;
 }
 .rating-g { background: #2d5a2d; color: #8fdf8f; }
 .rating-q { background: #5a4d2d; color: #dfcf8f; }
 .rating-s { background: #3b4a5a; color: #8fcddf; }
 .rating-e { background: #5a2d2d; color: #df8f8f; }
 
-.post-info-body { display: flex; flex-direction: column; gap: 1em; }
-.description-container {
-  background-color: var(--bg-raised);
-  padding: 1em;
-}
-.description-container p { white-space: pre-wrap; margin: 0; }
-.tags-section { }
-.tags-list {
+/* ── Actions row ── */
+.actions-row {
   display: flex;
+  align-items: center;
+  gap: 0.6em;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
 }
-.tags-list a { text-decoration: none; }
+.water-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  background: var(--bg-raised);
+  border: none;
+  cursor: pointer;
+  padding: 0.35em 0.8em;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+}
+.water-btn:hover { background: var(--item-hover); }
+.water-btn.splash { animation: water-splash 0.4s ease; }
+@keyframes water-splash {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.25); filter: brightness(1.4); }
+  100% { transform: scale(1); }
+}
+.vote-container {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  background: var(--bg-raised);
+  padding: 0.25em 0.5em;
+}
+.vote-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.15em 0.4em;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+.vote-btn:hover { color: var(--text); }
+.vote-btn.voted { color: #4ade80; }
+.vote-btn.downvote.voted { color: #f87171; }
+.score { min-width: 1.8em; text-align: center; font-size: 0.9rem; user-select: none; }
+.score.positive { color: #4ade80; }
+.score.negative { color: #f87171; }
+.btn-sm {
+  background: var(--bg-raised);
+  border: none;
+  cursor: pointer;
+  padding: 0.35em 0.8em;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+.btn-sm:hover { background: var(--item-hover); color: var(--text); }
 
-/* Edit panel */
-.edit-panel {
+/* ── Meta edit form ── */
+.meta-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 0.75em;
-  background: var(--bg-raised);
-  padding: 1em;
+  gap: 0.55em;
+  padding-top: 0.6em;
+  border-top: 1px solid var(--border);
 }
-.edit-field { display: flex; flex-direction: column; gap: 0.25em; }
-.edit-field label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
-.edit-field textarea, .edit-field input, .edit-field select { width: 100%; }
-.edit-row { display: flex; gap: 1em; }
-.edit-row .edit-field { flex: 1; }
-.edit-buttons { display: flex; gap: 0.5em; }
+.meta-edit-form .field { display: flex; flex-direction: column; gap: 0.2em; }
+.meta-edit-form label { font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+.meta-edit-form input,
+.meta-edit-form select,
+.meta-edit-form textarea { width: 100%; }
 
-.post-comments-box {
-  margin: 0 auto 2em;
-  padding: 1.5em;
-  width: 50vw;
-  background-color: var(--bg-overlay);
+/* ── Description view ── */
+.description-block {
+  padding-top: 0.6em;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
 }
-.post-comments-box h2 { margin-bottom: 1em; }
-.comment-input-container {
+.description-block p {
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── Tags panel ── */
+.tags-panel {
+  background: var(--bg-overlay);
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+}
+.tags-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.tags-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  margin-top: 0.25em;
+}
+.tag-count-badge {
+  background: var(--bg-raised);
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1em 0.5em;
+  border-radius: 1em;
+}
+
+/* ── Tag search ── */
+.tag-search-wrapper {
+  position: relative;
+}
+.tag-search-input { width: 100%; font-size: 0.88rem; }
+.tag-suggestions {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  z-index: 200;
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 0 0.4em 0.4em;
+}
+.tag-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.4em 0.75em;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.85rem;
+  width: 100%;
+}
+.tag-suggestion:hover,
+.tag-suggestion:focus { background: var(--item-hover); outline: none; }
+.sug-type {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  min-width: 4.5em;
+  flex-shrink: 0;
+}
+
+/* ── Tag groups ── */
+.tag-group { display: flex; flex-direction: column; gap: 0.3em; }
+.tag-group-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+.tag-chips { display: flex; flex-wrap: wrap; gap: 0.3em; }
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  padding: 0.15em 0.45em;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: 0.35em;
+}
+.tag-chip a { color: inherit; text-decoration: none; }
+.tag-chip a:hover { text-decoration: underline; }
+.tag-remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.45;
+  padding: 0 0.05em;
+  font-size: 1em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.tag-remove-btn:hover { opacity: 1; }
+
+/* ── Comments ── */
+.comments-section {
+  margin-top: 1.5em;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--bg-overlay);
+  padding: 1.5em;
+  max-width: 820px;
+}
+.comments-section h2 { margin-bottom: 1em; }
+.comment-compose {
   display: flex;
   gap: 0.5em;
   margin-bottom: 1em;
   align-items: flex-start;
 }
-.comment-input {
-  flex: 1;
-  min-height: 2.5em;
-  max-height: 8em;
-  resize: vertical;
-}
-.comment-container { display: flex; flex-direction: column; gap: 0.5em; }
-.comment { padding: 0.25em 0; border-bottom: 1px solid var(--border); }
+.comment-compose textarea { flex: 1; resize: vertical; min-height: 2.5em; }
+.comment-list { display: flex; flex-direction: column; gap: 0.5em; }
+.comment-item { padding: 0.3em 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 
-@media (max-width: 689px) {
-  .post-info-box { width: 92vw; }
-  .post-comments-box { width: 92vw; padding: 0.8em; }
-  .edit-row { flex-direction: column; }
+/* ── Fullscreen overlay ── */
+.fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
 }
-@media (min-width: 690px) and (max-width: 1110px) {
-  .post-info-box { width: 80vw; }
-  .post-comments-box { width: 70vw; }
+.fullscreen-img {
+  max-width: 96vw;
+  max-height: 96vh;
+  object-fit: contain;
+  transform-origin: center center;
+  transition: transform 0.05s ease;
+  pointer-events: none;
 }
+.fs-hint {
+  position: fixed;
+  bottom: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.45);
+  font-size: 0.78rem;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.fullscreen-close {
+  position: fixed;
+  top: 0.8em;
+  right: 0.8em;
+  background: rgba(0, 0, 0, 0.65);
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  width: 2.2em;
+  height: 2.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 1001;
+}
+.fullscreen-close:hover { background: rgba(255, 255, 255, 0.15); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .post-layout { flex-direction: column; }
+  .post-info-panel { width: 100%; min-width: 0; max-width: 100%; }
+  .post-image { max-height: 65vh; }
+  .comments-section { max-width: 100%; }
+}
+
+/* ── Collection picker ── */
+.collection-picker-wrap {
+  position: relative;
+}
+.collection-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  padding: 4px 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.coll-option {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 7px 14px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  width: 100%;
+}
+.coll-option:hover { background: var(--item-hover); }
+.coll-option:disabled { opacity: 0.5; cursor: not-allowed; }
+.coll-empty {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.coll-new-link {
+  display: block;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  color: var(--accent-color, #6ea0f0);
+  border-top: 1px solid var(--border-color, #444);
+  text-decoration: none;
+}
+.coll-new-link:hover { text-decoration: underline; }
 </style>
-

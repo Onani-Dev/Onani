@@ -390,6 +390,8 @@ footer a {
     justify-content: center;
     margin: 0 auto;
     padding: 10px;
+    position: relative;
+    overflow: hidden;
     transition: transform 0.2s cubic-bezier(.11, 1.48, .14, 1.35);
     width: 10em;
     text-decoration: none;
@@ -460,4 +462,27 @@ footer a {
         min-width: 4em;
         min-height: 4em;
     }
+}
+
+/* ── SFW mode blur ────────────────────────────────────── */
+.sfw-blurred {
+    filter: blur(18px);
+    transition: filter 0.2s;
+}
+
+.sfw-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: inherit;
+    user-select: none;
 }

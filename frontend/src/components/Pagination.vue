@@ -1,8 +1,16 @@
 <template>
-  <div v-if="nextPage || prevPage" class="pagination">
+  <div v-if="nextPage || prevPage || perPage != null" class="pagination">
     <button :disabled="!prevPage" @click="$emit('navigate', prevPage)">← Prev</button>
     <span class="page-info">Page {{ page }}</span>
     <button :disabled="!nextPage" @click="$emit('navigate', nextPage)">Next →</button>
+    <select
+      v-if="perPage != null"
+      class="per-page-select"
+      :value="perPage"
+      @change="$emit('update:perPage', Number($event.target.value))"
+    >
+      <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }} / page</option>
+    </select>
   </div>
 </template>
 
@@ -11,9 +19,11 @@ defineProps({
   page: { type: Number, default: 1 },
   nextPage: { type: Number, default: null },
   prevPage: { type: Number, default: null },
+  perPage: { type: Number, default: null },
+  perPageOptions: { type: Array, default: () => [30, 60, 100] },
 })
 
-defineEmits(['navigate'])
+defineEmits(['navigate', 'update:perPage'])
 </script>
 
 <style scoped>
@@ -29,4 +39,8 @@ defineEmits(['navigate'])
   cursor: pointer;
 }
 .pagination button:disabled { opacity: 0.4; cursor: default; }
+.per-page-select {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+}
 </style>

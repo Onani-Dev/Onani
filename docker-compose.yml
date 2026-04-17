@@ -1,6 +1,11 @@
 # Usage:
-#   docker compose --profile prod up -d --build   (production)
-#   docker compose --profile dev  up -d --build   (development)
+#   podman-compose -f docker-compose.yml --profile prod up -d --build   (production)
+#   podman-compose -f docker-compose.yml --profile dev  up -d --build   (development)
+#   ./build.sh dev   or   ./build.sh prod
+#
+# Flask:    http://localhost:5000
+# Nginx:    http://localhost:8080
+# Vite SPA: http://localhost:5173/
 
 x-env: &env
   FLASK_APP: run

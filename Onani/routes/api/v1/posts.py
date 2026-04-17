@@ -13,6 +13,9 @@ from Onani.services.posts import create_comment, set_tags, upload_post
 from Onani.services.queries import query_posts
 from Onani.models import Post as _Post
 from Onani.models import PostRating, PostSchema, UserPermissions
+from Onani.models import Tag, TagSchema
+from Onani.models.post._post import post_upvotes, post_downvotes
+from sqlalchemy import func
 from PIL import UnidentifiedImageError
 
 from . import api, csrf, db, limiter
@@ -46,8 +49,10 @@ class Posts(Resource):
 
         # Build the base query - filter by tags when provided
         if args["tags"]:
-            tag_list = [t for t in args["tags"].split() if t]
-            posts = query_posts(tags=tag_list).paginate(
+            raw_tags = [t for t in args["tags"].split() if t]
+            include_tags = [t for t in raw_tags if not t.startswith("-")]
+            exclude_tags = [t.lstrip("-") for t in raw_tags if t.startswith("-") and len(t) > 1]
+            posts = query_posts(tags=include_tags or None, exclude_tags=exclude_tags or None).paginate(
                 per_page=args["per_page"], page=args["page"], error_out=False
             )
         else:
@@ -135,7 +140,10 @@ class Post(Resource):
         args = parser.parse_args()
 
         post = _Post.query.filter_by(id=args["id"]).first_or_404()
-        return PostSchema().dump(post)
+        dump = PostSchema().dump(post)
+        dump["has_upvoted"] = current_user.is_authenticated and current_user.has_upvoted(post)
+        dump["has_downvoted"] = current_user.is_authenticated and current_user.has_downvoted(post)
+        return dump
 
     def put(self):
         if not current_user.is_authenticated:
@@ -263,7 +271,72 @@ class PostUpload(Resource):
         return PostSchema().dump(post), 201
 
 
+class PostWater(Resource):
+    decorators = [login_required]
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("post_id", location="json", type=int, required=True)
+        args = parser.parse_args()
+
+        post = _Post.query.filter_by(id=args["post_id"]).first_or_404()
+        post.water_count = (post.water_count or 0) + 1
+        db.session.commit()
+
+        return {"water_count": post.water_count}
+
+
+class PostsHome(Resource):
+    def get(self):
+        # Recent
+        recent = _Post.query.order_by(_Post.id.desc()).limit(8).all()
+
+        # Popular by (upvotes - downvotes)
+        ups = (
+            db.session.query(post_upvotes.c.post_id, func.count().label("ups"))
+            .group_by(post_upvotes.c.post_id)
+            .subquery()
+        )
+        downs = (
+            db.session.query(post_downvotes.c.post_id, func.count().label("downs"))
+            .group_by(post_downvotes.c.post_id)
+            .subquery()
+        )
+        popular = (
+            _Post.query
+            .outerjoin(ups, _Post.id == ups.c.post_id)
+            .outerjoin(downs, _Post.id == downs.c.post_id)
+            .order_by(
+                (func.coalesce(ups.c.ups, 0) - func.coalesce(downs.c.downs, 0)).desc()
+            )
+            .limit(8)
+            .all()
+        )
+
+        # Random single post
+        random_post = _Post.query.order_by(func.random()).first()
+
+        # Random tags with at least one post
+        random_tags = (
+            Tag.query
+            .filter(Tag.post_count > 0)
+            .order_by(func.random())
+            .limit(20)
+            .all()
+        )
+
+        schema = PostSchema(many=True)
+        return {
+            "recent": schema.dump(recent),
+            "popular": schema.dump(popular),
+            "random": PostSchema().dump(random_post) if random_post else None,
+            "tags": TagSchema(many=True, exclude=("posts",)).dump(random_tags),
+        }
+
+
+api.add_resource(PostsHome, "/posts/home")
 api.add_resource(Posts, "/posts")
 api.add_resource(PostVote, "/posts/vote")
+api.add_resource(PostWater, "/posts/water")
 api.add_resource(PostUpload, "/posts/upload")
 api.add_resource(Post, "/post")

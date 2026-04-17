@@ -71,16 +71,47 @@ class AdminRunTask(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             "task", location="json", type=str, required=True,
-            choices=["remove_expired_bans"],
+            choices=["remove_expired_bans", "backfill_video_thumbnails", "recount_tags"],
         )
         args = parser.parse_args()
-
         task_name = args["task"]
 
         if task_name == "remove_expired_bans":
             from Onani.cron.tasks import remove_expired_bans
             remove_expired_bans()
             return {"message": "Task 'remove_expired_bans' completed."}
+
+        if task_name == "backfill_video_thumbnails":
+            from Onani.services.files import create_video_thumbnail
+            from flask import current_app
+            import os
+            images_dir = current_app.config["IMAGES_DIR"]
+            VIDEO_FORMATS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
+            videos = Post.query.filter(Post.file_type.in_(list(VIDEO_FORMATS))).all()
+            ok = skipped = failed = 0
+            for post in videos:
+                stem = post.filename.rsplit(".", 1)[0]
+                thumb = os.path.join(images_dir, f"{stem}.jpg")
+                if os.path.exists(thumb):
+                    skipped += 1
+                    continue
+                src = os.path.join(images_dir, post.filename)
+                if not os.path.exists(src):
+                    failed += 1
+                    continue
+                if create_video_thumbnail(src, thumb):
+                    ok += 1
+                else:
+                    failed += 1
+            return {"message": f"Backfill complete — generated:{ok} skipped:{skipped} failed:{failed}"}
+
+        if task_name == "recount_tags":
+            from Onani.models import Tag
+            tags = Tag.query.all()
+            for tag in tags:
+                tag.recount_posts()
+            db.session.commit()
+            return {"message": f"Recounted {len(tags)} tags."}
 
         return {"message": "Unknown task."}, 400
 
@@ -107,6 +138,31 @@ class AdminUsers(Resource):
             "next_page": page.next_num,
             "prev_page": page.prev_num,
         }
+
+    def post(self):
+        """Create a new user (admin only)."""
+        if not current_user.has_role(UserRoles.ADMIN):
+            abort(403)
+
+        parser = reqparse.RequestParser()
+        parser.add_argument("username", location="json", type=str, required=True)
+        parser.add_argument("email",    location="json", type=str, required=False)
+        parser.add_argument("password", location="json", type=str, required=True)
+        parser.add_argument(
+            "role", location="json", type=str, default="MEMBER",
+            choices=["MEMBER", "ARTIST", "PREMIUM", "HELPER", "MODERATOR", "ADMIN"],
+        )
+        args = parser.parse_args()
+
+        if User.query.filter_by(username=args["username"]).first():
+            return {"message": "Username already taken."}, 409
+
+        user = User(username=args["username"], email=args["email"] or None)
+        user.set_password(args["password"])
+        user.role = UserRoles[args["role"]]
+        db.session.add(user)
+        db.session.commit()
+        return UserSchema().dump(user), 201
 
     def put(self):
         if not current_user.has_role(UserRoles.ADMIN):

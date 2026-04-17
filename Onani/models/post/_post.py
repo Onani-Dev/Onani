@@ -39,6 +39,12 @@ post_downvotes = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
 )
 
+post_waters = db.Table(
+    "post_waters",
+    db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
+    db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
+)
+
 post_tags = db.Table(
     "post_tags",
     db.Column("post_id", db.Integer, db.ForeignKey("posts.id")),
@@ -101,6 +107,11 @@ class Post(db.Model):
     # Post's downvoters. users. contributes to the post's rating/score (reddit moment)
     downvoters: Query = db.relationship(
         "User", secondary=post_downvotes, backref="post_downvoters", lazy="dynamic"
+    )
+
+    # Users who have watered this post.
+    waterers: Query = db.relationship(
+        "User", secondary=post_waters, backref="post_waterers", lazy="dynamic"
     )
 
     # The post's comments. will be filtered for naughty words or other bad things.
@@ -171,6 +182,9 @@ class Post(db.Model):
             self.upvoters.with_entities(func.count()).scalar()
             - self.downvoters.with_entities(func.count()).scalar()
         )
+
+    # Cumulative water counter — increments on every water, never decremented
+    water_count: int = db.Column(db.Integer, default=0, nullable=False, server_default="0")
 
     @property
     def is_imported(self) -> bool:
@@ -253,11 +267,9 @@ class Post(db.Model):
 
     @validates("sha256_hash")
     def validate_hash(self, key, hash_):
-        if hash_:
-            if Post.query.filter(Post.sha256_hash == hash_).first():
-                raise ValueError("Post already exists.")
-            return hash_
-        return None
+        # Duplicate detection is handled in create_post() before the Post is
+        # added to the session, avoiding an autoflush-triggered race condition.
+        return hash_ or None
 
     @validates("original_filename")
     def validate_origfilename(self, key, filename):
@@ -268,6 +280,11 @@ class Post(db.Model):
         return html.escape(url) if url else None
 
     def thumbnail(self, size: str = "small") -> str:
+        _VIDEO_EXTS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
+        ext = (self.file_type or "").lower()
+        if ext in _VIDEO_EXTS:
+            stem = self.filename.rsplit(".", 1)[0]
+            return f"/images/thumbnail/{stem}.jpg?size={size}"
         return f"/images/thumbnail/{self.filename}?size={size}"
 
     @property

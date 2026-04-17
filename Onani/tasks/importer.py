@@ -15,6 +15,7 @@ from . import db
 @shared_task(bind=True)
 def import_post(self, post_url: str, importer_id: int, cookies_content: str = None):
     from Onani.importers import get_all_posts, save_imported_post, ImportedPostSchema
+    from Onani.models import Collection, CollectionStatus
 
     logs = []
     logs.append(f"Fetching metadata from {post_url}...")
@@ -45,6 +46,7 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
 
         total = len(imported_posts)
         results = []
+        saved_posts = []  # successfully imported Post objects
         logs.append(f"Found {total} post(s). Starting import...")
 
         for i, imported_post in enumerate(imported_posts):
@@ -52,9 +54,12 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                 post = save_imported_post(imported_post, importer_id)
                 result = ImportedPostSchema().dump(imported_post)
                 result["post_id"] = post.id
+                result["thumbnail_url"] = post.thumbnail(size="large")
                 results.append(result)
+                saved_posts.append(post)
                 logs.append(f"[{i+1}/{total}] Imported: post #{post.id}")
             except Exception as e:
+                db.session.rollback()
                 results.append({"error": str(e), "file_url": imported_post.file_url})
                 logs.append(f"[{i+1}/{total}] Skipped: {e}")
 
@@ -65,7 +70,45 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                 "url": post_url,
             })
 
-        return {"posts": results, "count": len(results), "url": post_url, "logs": logs}
+        # If any post carries a collection_name, create/find an Onani collection
+        # and add all successfully saved posts to it.
+        collection_info = None
+        collection_name = next(
+            (p.collection_name for p in imported_posts if p.collection_name), None
+        )
+        if collection_name and saved_posts:
+            try:
+                collection = Collection.query.filter_by(
+                    title=collection_name, creator=importer_id
+                ).first()
+                if collection is None:
+                    collection = Collection(
+                        title=collection_name,
+                        description=f"Imported from {post_url}",
+                        creator=importer_id,
+                        status=CollectionStatus.ACCEPTED,
+                    )
+                    db.session.add(collection)
+                    db.session.flush()
+
+                for post in saved_posts:
+                    if not collection.posts.filter_by(id=post.id).first():
+                        collection.posts.append(post)
+
+                db.session.commit()
+                collection_info = {"id": collection.id, "title": collection.title}
+                logs.append(f"Added {len(saved_posts)} post(s) to collection '{collection_name}' (#{collection.id}).")
+            except Exception as e:
+                db.session.rollback()
+                logs.append(f"Warning: could not create collection: {e}")
+
+        return {
+            "posts": results,
+            "count": len(results),
+            "url": post_url,
+            "logs": logs,
+            "collection": collection_info,
+        }
     finally:
         if cookies_path:
             try:

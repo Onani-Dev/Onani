@@ -2,6 +2,10 @@
   <div class="app-layout">
     <header class="navbar">
       <router-link to="/" class="brand"><img id="logo" :src="'/static/svg/onani.svg'" alt="Onani" /></router-link>
+      <!-- Hamburger button (mobile only) -->
+      <button class="burger" @click="menuOpen = !menuOpen" :class="{ open: menuOpen }" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="site-links">
         <router-link to="/posts">Posts</router-link>
         <router-link to="/tags">Tags</router-link>
@@ -27,6 +31,25 @@
         </template>
       </div>
     </header>
+
+    <!-- Mobile dropdown menu -->
+    <div class="mobile-menu" :class="{ open: menuOpen }" @click="menuOpen = false">
+      <router-link to="/posts">Posts</router-link>
+      <router-link to="/tags">Tags</router-link>
+      <router-link to="/collections">Collections</router-link>
+      <router-link to="/import">Import</router-link>
+      <router-link to="/upload">Upload</router-link>
+      <hr class="mobile-divider" />
+      <template v-if="auth.isAuthenticated">
+        <router-link to="/profile">Profile</router-link>
+        <router-link v-if="auth.user?.role >= 200" to="/admin">Administration</router-link>
+        <a href="#" @click.prevent="handleLogout">Logout</a>
+      </template>
+      <template v-else>
+        <router-link to="/login">Login</router-link>
+      </template>
+    </div>
+
     <main class="main-content">
       <router-view />
     </main>
@@ -37,12 +60,13 @@
 </template>
 
 <script setup>
-import { watchEffect } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const router = useRouter()
+const menuOpen = ref(false)
 
 function applyColour(hex) {
   const s = document.documentElement.style
@@ -59,6 +83,7 @@ watchEffect(() => {
 
 async function handleLogout() {
   await auth.logout()
+  menuOpen.value = false
   router.push({ name: 'login' })
 }
 </script>
@@ -72,6 +97,7 @@ async function handleLogout() {
 
 .navbar {
   display: flex;
+  align-items: center;
   height: var(--header-height);
   max-height: var(--header-height);
   justify-content: left;
@@ -215,16 +241,85 @@ footer a {
   text-decoration: none;
 }
 
+/* ── Burger button ───────────────────────────────── */
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  margin-right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+}
+.burger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  transition: transform 0.2s, opacity 0.2s;
+  transform-origin: center;
+}
+.burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.burger.open span:nth-child(2) { opacity: 0; }
+.burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Mobile menu ─────────────────────────────────── */
+.mobile-menu {
+  display: none;
+  flex-direction: column;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.25s ease;
+}
+.mobile-menu.open {
+  display: flex;
+  max-height: 600px;
+}
+
 @media (max-width: 689px) {
   .site-links { display: none; }
   .login-register-buttons { display: none; }
   .user-profile-card { display: none; }
+  .user-menu { display: none; }
+  .nav-right { display: none; }
+  .burger { display: flex; }
   .brand { margin-left: 20px; margin-right: 20px; }
 }
 @media (min-width: 690px) and (max-width: 1110px) {
   .site-links { display: none; }
   .login-register-buttons { display: none; }
   .user-profile-card { display: none; }
+  .user-menu { display: none; }
+  .nav-right { display: none; }
+  .burger { display: flex; }
   .brand { margin-left: 20px; margin-right: 20px; }
+}
+.mobile-menu a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.85em 1.4em;
+  font-size: 1rem;
+  border-radius: 0;
+  transition: background-color 0.15s;
+}
+.mobile-menu a:hover,
+.mobile-menu a.router-link-active {
+  background-color: var(--item-hover);
+  color: var(--text);
+}
+.mobile-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
 }
 </style>

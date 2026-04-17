@@ -5,7 +5,7 @@ from typing import Optional
 import requests
 from flask import current_app
 from Onani.services.posts import create_post
-from Onani.services.files import get_file_data
+from Onani.services.files import get_file_data, get_video_data, is_video_url, detect_video_format
 from Onani.models import Post, User
 
 from ._importedpost import ImportedPost
@@ -38,27 +38,83 @@ def get_all_posts(url: str, cookies_path: str = None) -> list:
     return gdl_get_all_posts(url, cookies_path=cookies_path)
 
 
+_DOWNLOAD_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+}
+
+# Byte prefixes that indicate an HTML/JSON error page rather than binary media
+_TEXT_PREFIXES = (b"<!doctype", b"<html", b"{", b"[")
+
+
 def download_file(url: str) -> bytes:
     with requests.Session() as s:
-        r = s.get(url)
-        file_data = r.content
-    return file_data
+        r = s.get(url, headers=_DOWNLOAD_HEADERS, timeout=60)
+        r.raise_for_status()
+        data = r.content
+    for prefix in _TEXT_PREFIXES:
+        if data[: len(prefix)].lower() == prefix:
+            raise ValueError(
+                f"Server returned non-binary content for {url!r} "
+                f"(starts with {data[:64]!r})"
+            )
+    return data
 
 
 def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
+    from PIL import UnidentifiedImageError
 
     file_data = download_file(post.file_url)
 
-    (
-        image_file,
-        filesize,
-        hash_sha256,
-        hash_md5,
-        width,
-        height,
-        filename,
-        file_type,
-    ) = get_file_data(file_data)
+    # Detect video format — first by URL extension, then by magic bytes
+    video_fmt = None
+    if is_video_url(post.file_url):
+        video_fmt = post.file_url.split("?")[0].rsplit(".", 1)[-1].lower()
+    else:
+        video_fmt = detect_video_format(file_data)
+
+    if video_fmt:
+        (
+            image_file,
+            filesize,
+            hash_sha256,
+            hash_md5,
+            width,
+            height,
+            filename,
+            file_type,
+        ) = get_video_data(file_data, input_format=video_fmt)
+    else:
+        # Try PIL; if it can't identify the file, try as an mp4 last resort
+        try:
+            import io as _io
+            from PIL import Image as _Image
+            _Image.open(_io.BytesIO(file_data)).verify()
+        except UnidentifiedImageError:
+            (
+                image_file,
+                filesize,
+                hash_sha256,
+                hash_md5,
+                width,
+                height,
+                filename,
+                file_type,
+            ) = get_video_data(file_data, input_format="mp4")
+        else:
+            (
+                image_file,
+                filesize,
+                hash_sha256,
+                hash_md5,
+                width,
+                height,
+                filename,
+                file_type,
+            ) = get_file_data(file_data)
 
     user = User.query.filter_by(id=importer_id).first()
     can_create_tags = True

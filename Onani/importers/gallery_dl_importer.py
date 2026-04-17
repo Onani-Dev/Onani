@@ -191,11 +191,28 @@ def get_all_posts(url: str, cookies_path: str = None) -> List[ImportedPost]:
     # Shared gallery-level metadata (artist, rating, etc.)
     gallery_meta: dict = djob.data_post[0] if djob.data_post else {}
 
+    # Derive a collection name when the URL represents a multi-file gallery
+    collection_name: Optional[str] = None
+    if len(djob.data_urls) > 1:
+        for key in ("title", "gallery", "album", "pool", "set", "collection", "board"):
+            val = gallery_meta.get(key) or (djob.data_meta[0].get(key) if djob.data_meta else None)
+            if val and isinstance(val, str) and val.strip():
+                collection_name = val.strip()
+                break
+        if not collection_name:
+            # Fall back to a URL-derived name
+            from urllib.parse import urlparse
+            path = urlparse(url).path.rstrip("/")
+            collection_name = path.split("/")[-1] if path else url
+
     posts: List[ImportedPost] = []
     for i, file_url in enumerate(djob.data_urls):
         kwdict: dict = djob.data_meta[i] if i < len(djob.data_meta) else {}
         # Per-file metadata takes priority; fall back to gallery-level
         post_meta = {**gallery_meta, **kwdict}
-        posts.append(_build_post(url, file_url, kwdict, post_meta))
+        p = _build_post(url, file_url, kwdict, post_meta)
+        if collection_name:
+            p.collection_name = collection_name
+        posts.append(p)
 
     return posts

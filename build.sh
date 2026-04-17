@@ -40,11 +40,11 @@
 function start_docker {
     if [ "$1" = "dev" ]
     then
-        docker compose --profile dev down
-        docker compose --profile dev up -d --build
+        podman-compose -f docker-compose.yml --profile dev down
+        podman-compose -f docker-compose.yml --profile dev up -d --build
     else
-        docker compose --profile prod down
-        docker compose --profile prod up -d --build
+        podman-compose -f docker-compose.yml --profile prod down
+        podman-compose -f docker-compose.yml --profile prod up -d --build
     fi
 }
 

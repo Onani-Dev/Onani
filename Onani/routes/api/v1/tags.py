@@ -48,6 +48,7 @@ class Tags(Resource):
         )
 
         parser.add_argument("id", location="args", type=int, default=None)
+        parser.add_argument("min_posts", location="args", type=int, default=None)
 
         # Parse request args
         args = parser.parse_args()
@@ -56,9 +57,11 @@ class Tags(Resource):
         # Single tag
         if args["id"]:
             tag = Tag.query.filter_by(id=args["id"]).first_or_404()
-            return TagSchema().dump(tag)
+            return TagSchema(exclude=("posts",)).dump(tag)
 
         query = Tag.query
+        if args["min_posts"] is not None:
+            query = query.filter(Tag.post_count >= args["min_posts"])
         if args["sort"]:
             col = _SORT_COLUMNS[args["sort"]]
             order_fn = asc if args["order"] == "asc" else desc
@@ -67,9 +70,7 @@ class Tags(Resource):
         tags = query.paginate(per_page=args["per_page"], page=args["page"], error_out=False)
 
         return {
-            "data": TagSchema(many=True, exclude=("posts",)).dump(
-                sorted(tags.items, key=lambda t: (t.type.name, t.name))
-            ),
+            "data": TagSchema(many=True, exclude=("posts",)).dump(tags.items),
             "next_page": tags.next_num,
             "prev_page": tags.prev_num,
             "total": tags.total,

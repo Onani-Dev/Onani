@@ -4,8 +4,8 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-07-27 14:19:17
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, List, Optional
 
 import marshmallow_dataclass
 from Onani.models import PostRating
@@ -39,6 +39,12 @@ class ImportedPost:
 
     rating: PostRating
     """The rating for the post."""
+
+    collection_name: Optional[str] = field(default=None)
+    """When non-None, the importer believes this post belongs to a named
+    gallery/collection (e.g. a Pixiv gallery or a Danbooru pool).  The import
+    task will create an Onani Collection with this name and add the post to it.
+    """
 
 
 ImportedPostSchema = marshmallow_dataclass.class_schema(ImportedPost)
