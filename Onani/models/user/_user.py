@@ -225,7 +225,7 @@ class User(UserMixin, db.Model):
         """
         return argon2.verify(password, self.password_hash)
 
-    def check_otp(self, otp) -> bool:
+    def check_otp(self, otp: Union[int, str]) -> bool:
         """Check if the user's OTP code is valid and hasn't already been used"""
         totp = pyotp.totp.TOTP(self.otp_token)
 

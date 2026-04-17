@@ -9,7 +9,7 @@
           <input v-model="password" type="password" placeholder="Password" required autocomplete="current-password" />
           <div v-if="showOtp" class="otp-field">
             <label>OTP Code / Backup Code</label>
-            <input v-model="otp" type="text" placeholder="000000 or xxxx-xxxx" ref="otpInput" autocomplete="one-time-code" />
+            <input v-model="otp" type="text" placeholder="000000 or xxxxxxxx-xxxxxxxx" ref="otpInput" autocomplete="one-time-code" />
             <p class="otp-hint text-muted">Enter your 6-digit authenticator code, or a backup code (e.g. a1b2c3d4-e5f6a7b8).</p>
           </div>
           <p v-if="error && !otpPrompted" class="text-error">{{ error }}</p>

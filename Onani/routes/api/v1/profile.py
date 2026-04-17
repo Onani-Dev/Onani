@@ -163,7 +163,7 @@ class ProfileOTP(Resource):
     def post(self):
         """Verify a TOTP code, enable 2FA, and return one-time backup codes."""
         parser = reqparse.RequestParser()
-        parser.add_argument("code", location="json", type=int, required=True)
+        parser.add_argument("code", location="json", type=str, required=True)
         args = parser.parse_args()
 
         if not current_user.check_otp(args["code"]):
