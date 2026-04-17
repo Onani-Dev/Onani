@@ -3,8 +3,6 @@
 # @Date:   2022-05-24 07:29:27
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-07-01 14:12:39
-import contextlib
-
 from flask import current_app, abort, request
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
@@ -142,9 +140,14 @@ class Post(Resource):
 
         post = _Post.query.filter_by(id=args["id"]).first_or_404()
 
-        # Record a view event for the hot-posts algorithm
-        with contextlib.suppress(Exception):
+        # Record a view event for the hot-posts algorithm; log but don't
+        # fail the request if this step encounters an error.
+        try:
             record_view(post.id)
+        except Exception:
+            current_app.logger.debug(
+                "Failed to record view for post %s", post.id, exc_info=True
+            )
 
         dump = PostSchema().dump(post)
         dump["has_upvoted"] = current_user.is_authenticated and current_user.has_upvoted(post)

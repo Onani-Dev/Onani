@@ -66,20 +66,19 @@ class TestHotScore:
         assert high > low
 
     def test_more_tags_means_slightly_hotter(self):
+        from unittest.mock import patch
         from Onani.services.hot import compute_hot_score
 
-        low = compute_hot_score(
-            score=1, age_hours=1.0, recent_views=0, unique_commenters=0, tag_count=1
-        )
-        high = compute_hot_score(
-            score=1, age_hours=1.0, recent_views=0, unique_commenters=0, tag_count=50
-        )
-        # Tag factor is small but positive
-        # Because of random noise, just check the mean over multiple runs
-        # by using fixed random seed via monkeypatching
-        # Here we check the deterministic part (noise is [0,0.3] so if difference > 0.3,
-        # it's always true)
-        assert high >= low
+        # Patch out randomness so the comparison is deterministic
+        with patch("Onani.services.hot.random") as mock_rng:
+            mock_rng.uniform.return_value = 0.0
+            low = compute_hot_score(
+                score=1, age_hours=1.0, recent_views=0, unique_commenters=0, tag_count=1
+            )
+            high = compute_hot_score(
+                score=1, age_hours=1.0, recent_views=0, unique_commenters=0, tag_count=50
+            )
+        assert high > low
 
 
 class TestHotPostsAPI:
