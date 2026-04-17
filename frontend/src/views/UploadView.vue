@@ -79,7 +79,7 @@ async function analyzeImage(imgFile) {
   ratingSuggestion.value = null
   let objectUrl = null
   try {
-    const { load } = await import('nsfwjs')
+    const { load } = await import('https://esm.sh/nsfwjs@4.3.0')
     objectUrl = URL.createObjectURL(imgFile)
     const img = new Image()
     await new Promise((resolve, reject) => {
