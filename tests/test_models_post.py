@@ -266,13 +266,13 @@ class TestBanModel:
 class TestGetFileDataPhash:
     """Tests for perceptual hash (phash) computation in services.files.get_file_data."""
 
-    def _make_png_bytes(self, width=8, height=8, color=(128, 128, 128)):
+    def make_png_bytes(self, width=8, height=8, color=(128, 128, 128)):
         """Return raw PNG bytes for a small solid-colour image."""
-        import io as _io
-        from PIL import Image as _Image
+        import io
+        from PIL import Image
 
-        img = _Image.new("RGB", (width, height), color=color)
-        buf = _io.BytesIO()
+        img = Image.new("RGB", (width, height), color=color)
+        buf = io.BytesIO()
         img.save(buf, format="PNG")
         return buf.getvalue()
 
@@ -280,7 +280,7 @@ class TestGetFileDataPhash:
         """get_file_data() should return a non-empty phash string."""
         from Onani.services.files import get_file_data
 
-        data = self._make_png_bytes()
+        data = self.make_png_bytes()
         result = get_file_data(data)
         assert len(result) == 9
         hash_phash = result[8]
@@ -291,7 +291,7 @@ class TestGetFileDataPhash:
         """Two identical images must produce the same phash."""
         from Onani.services.files import get_file_data
 
-        data = self._make_png_bytes(color=(100, 150, 200))
+        data = self.make_png_bytes(color=(100, 150, 200))
         phash1 = get_file_data(data)[8]
         phash2 = get_file_data(data)[8]
         assert phash1 == phash2
@@ -300,15 +300,15 @@ class TestGetFileDataPhash:
         """Clearly distinct images should (with high probability) have different phashes."""
         from Onani.services.files import get_file_data
 
-        data_black = self._make_png_bytes(color=(0, 0, 0))
-        data_white = self._make_png_bytes(color=(255, 255, 255))
+        data_black = self.make_png_bytes(color=(0, 0, 0))
+        data_white = self.make_png_bytes(color=(255, 255, 255))
         phash_black = get_file_data(data_black)[8]
         phash_white = get_file_data(data_white)[8]
         assert phash_black != phash_white
 
     def test_create_post_phash_duplicate_rejected(self, app, db, make_user, tmp_path):
         """create_post() must reject a second upload whose phash matches an existing post."""
-        import io as _io
+        import io
         from Onani.models import Post
         from Onani.models.post.rating import PostRating
         from Onani.models.post.status import PostStatus
@@ -336,14 +336,13 @@ class TestGetFileDataPhash:
 
         # Trying to create a second post with the same phash but different SHA256
         # should raise ValueError
-        import pytest as _pytest
-        with _pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(ValueError, match="already exists"):
             create_post(
                 source="",
                 description="",
                 uploader=user,
                 rating=PostRating.GENERAL.value,
-                image_file=_io.BytesIO(b"fake"),
+                image_file=io.BytesIO(b"fake"),
                 filesize=100,
                 hash_sha256="phashdupsha2",  # different SHA256
                 hash_md5="phashdupmd52",

@@ -209,7 +209,7 @@ def create_post(
     # session (prevents autoflush from firing a poisoned INSERT later).
     dup_filter = (Post.sha256_hash == hash_sha256) | (Post.filename == filename)
     if hash_phash is not None:
-        dup_filter = dup_filter | (Post.phash == hash_phash)
+        dup_filter = dup_filter | ((Post.phash != None) & (Post.phash == hash_phash))  # noqa: E711
     if Post.query.filter(dup_filter).first():
         raise ValueError("Post already exists.")
 
