@@ -206,6 +206,70 @@ class TestUserOTP:
             assert "otpauth://totp/" in uri
             assert "Onani" in uri
 
+    def test_generate_backup_codes(self, app, db):
+        from Onani.models import User
+
+        with app.app_context():
+            user = User(username="otpbackup")
+            user.set_password("pass")
+            codes = user.generate_backup_codes()
+            assert len(codes) == 10
+            # Each code should be in "xxxxxxxx-xxxxxxxx" format
+            for code in codes:
+                assert "-" in code
+                parts = code.split("-")
+                assert len(parts) == 2
+                assert len(parts[0]) == 8
+                assert len(parts[1]) == 8
+            # Hashed codes stored on user
+            assert user.otp_backup_codes is not None
+            assert len(user.otp_backup_codes) == 10
+
+    def test_check_backup_code_valid(self, app, db):
+        from Onani.models import User
+
+        with app.app_context():
+            user = User(username="otpbkvalid")
+            user.set_password("pass")
+            codes = user.generate_backup_codes()
+            # A valid code should be accepted
+            assert user.check_backup_code(codes[0]) is True
+            # After use, the code should be consumed (9 remaining)
+            assert len(user.otp_backup_codes) == 9
+
+    def test_check_backup_code_invalid(self, app, db):
+        from Onani.models import User
+
+        with app.app_context():
+            user = User(username="otpbkinvalid")
+            user.set_password("pass")
+            user.generate_backup_codes()
+            assert user.check_backup_code("00000000-00000000") is False
+
+    def test_check_backup_code_case_insensitive(self, app, db):
+        from Onani.models import User
+
+        with app.app_context():
+            user = User(username="otpbkcase")
+            user.set_password("pass")
+            codes = user.generate_backup_codes()
+            # Upper-cased code should still work
+            assert user.check_backup_code(codes[0].upper()) is True
+
+    def test_regen_otp_token(self, app, db):
+        from Onani.models import User
+
+        with app.app_context():
+            user = User(username="otpregen")
+            user.set_password("pass")
+            user.otp_enabled = True
+            original_token = user.otp_token
+            user.generate_backup_codes()
+            user.regen_otp_token()
+            assert user.otp_token != original_token
+            assert user.otp_enabled is False
+            assert user.otp_backup_codes is None
+
 
 class TestUserIsActive:
     def test_active_user(self, app, db, make_user):

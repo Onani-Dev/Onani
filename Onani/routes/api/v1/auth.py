@@ -30,7 +30,7 @@ class AuthLogin(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("username", location="json", type=str, required=True, trim=True)
         parser.add_argument("password", location="json", type=str, required=True)
-        parser.add_argument("otp", location="json", type=int, required=False, default=None)
+        parser.add_argument("otp", location="json", type=str, required=False, default=None)
         args = parser.parse_args()
 
         user = User.query.filter_by(username=html.escape(args["username"])).first()
@@ -45,6 +45,10 @@ class AuthLogin(Resource):
             return {"message": str(e)}, 403
         except DeletedAccountError as e:
             return {"message": str(e)}, 403
+
+        # Commit any session changes made during credential verification
+        # (e.g., consuming a one-time backup code)
+        db.session.commit()
 
         login_user(user, duration=timedelta(days=7))
 

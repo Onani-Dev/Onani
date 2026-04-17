@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import datetime
+import hashlib
 import html
 import secrets
 import string
@@ -116,6 +117,9 @@ class User(UserMixin, db.Model):
     )
     """The base32 token used to generate OTP codes for the user."""
 
+    otp_backup_codes: list = db.Column(db.JSON, nullable=True)
+    """JSON array of SHA-256 hashed one-time backup codes for OTP recovery."""
+
     ban: Optional[Ban] = db.relationship(Ban, uselist=False, backref="user_ban")
     """The ban that this user has. will be None if not banned."""
 
@@ -221,12 +225,53 @@ class User(UserMixin, db.Model):
         """
         return argon2.verify(password, self.password_hash)
 
-    def check_otp(self, otp: int) -> bool:
+    def check_otp(self, otp) -> bool:
         """Check if the user's OTP code is valid and hasn't already been used"""
         totp = pyotp.totp.TOTP(self.otp_token)
 
         # TODO: check if OTP was used before, to avoid replay attacks
-        return totp.verify(otp, valid_window=1)
+        return totp.verify(str(otp), valid_window=1)
+
+    def generate_backup_codes(self) -> list:
+        """Generate 10 one-time backup codes for OTP recovery.
+
+        Stores SHA-256 hashes of the codes and returns the plaintext codes
+        to be shown once to the user.
+
+        Returns:
+            list: A list of 10 plaintext backup codes.
+        """
+        codes = []
+        hashed = []
+        for _ in range(10):
+            code = secrets.token_hex(4) + "-" + secrets.token_hex(4)
+            codes.append(code)
+            hashed.append(hashlib.sha256(code.lower().encode()).hexdigest())
+        self.otp_backup_codes = hashed
+        return codes
+
+    def check_backup_code(self, code: str) -> bool:
+        """Verify a backup code and consume it if valid.
+
+        Args:
+            code (str): The backup code to verify.
+
+        Returns:
+            bool: True if the code was valid (and it has been consumed), False otherwise.
+        """
+        if not self.otp_backup_codes:
+            return False
+        code_hash = hashlib.sha256(code.strip().lower().encode()).hexdigest()
+        if code_hash in self.otp_backup_codes:
+            self.otp_backup_codes = [h for h in self.otp_backup_codes if h != code_hash]
+            return True
+        return False
+
+    def regen_otp_token(self) -> None:
+        """Regenerate the OTP token, disabling 2FA until the user re-enables it."""
+        self.otp_token = pyotp.random_base32()
+        self.otp_enabled = False
+        self.otp_backup_codes = None
 
     @property
     def otp_uri(self) -> str:

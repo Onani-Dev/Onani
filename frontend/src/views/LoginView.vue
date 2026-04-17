@@ -8,8 +8,9 @@
           <input v-model="username" placeholder="Username" required autocomplete="username" />
           <input v-model="password" type="password" placeholder="Password" required autocomplete="current-password" />
           <div v-if="showOtp" class="otp-field">
-            <label>OTP Code</label>
-            <input v-model="otp" type="number" placeholder="Enter your OTP code" ref="otpInput" />
+            <label>OTP Code / Backup Code</label>
+            <input v-model="otp" type="text" placeholder="000000 or xxxx-xxxx" ref="otpInput" autocomplete="one-time-code" />
+            <p class="otp-hint text-muted">Enter your 6-digit authenticator code, or a backup code (e.g. a1b2c3d4-e5f6a7b8).</p>
           </div>
           <p v-if="error && !otpPrompted" class="text-error">{{ error }}</p>
           <button type="submit" :disabled="loading">{{ loading ? 'Logging in...' : 'Login' }}</button>
@@ -45,7 +46,7 @@ async function handleLogin() {
   error.value = ''
   otpPrompted.value = false
   try {
-    await auth.login(username.value, password.value, otp.value ? Number(otp.value) : null)
+    await auth.login(username.value, password.value, otp.value || null)
     router.push(route.query.redirect || '/')
   } catch (err) {
     const msg = err.response?.data?.message || 'Login failed.'
@@ -122,6 +123,12 @@ async function handleLogin() {
 .otp-field label {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+.otp-hint {
+  font-size: 0.75rem;
+  margin: 0;
+  text-align: left;
+  max-width: 17em;
 }
 .login-box-footer {
   margin-top: 2em;

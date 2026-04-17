@@ -1,5 +1,20 @@
 <template>
   <div class="profile-page">
+    <!-- Recovery codes modal -->
+    <div v-if="showRecoveryModal" class="modal-overlay" @click.self="showRecoveryModal = false">
+      <div class="modal-box">
+        <h3>🔑 Save Your Recovery Codes</h3>
+        <p class="text-muted">Store these codes in a safe place. Each code can only be used <strong>once</strong> to log in if you lose access to your authenticator app.</p>
+        <div class="recovery-codes-grid">
+          <code v-for="code in recoveryCodes" :key="code" class="recovery-code">{{ code }}</code>
+        </div>
+        <div class="btn-row" style="justify-content: flex-end; margin-top: 1rem;">
+          <button type="button" @click="copyRecoveryCodes">📋 Copy All</button>
+          <button type="button" @click="showRecoveryModal = false">I've saved my codes</button>
+        </div>
+      </div>
+    </div>
+
     <!-- User header -->
     <div class="profile-header">
       <label class="avatar-wrapper" title="Change avatar">
@@ -88,6 +103,13 @@
             <template v-else>
               <p class="text-muted">Scan this code with your authenticator app, then enter the 6-digit code to confirm.</p>
               <img v-if="otpQrCode" :src="otpQrCode" class="qr-code" alt="OTP QR code" />
+              <details class="otp-secret-details">
+                <summary class="text-muted">Can't scan the QR code?</summary>
+                <div class="field" style="margin-top: 0.5rem;">
+                  <label>Secret Key (enter manually)</label>
+                  <code class="otp-secret">{{ otpSecret }}</code>
+                </div>
+              </details>
               <div class="field otp-verify-field">
                 <label for="otpcode">Verification Code</label>
                 <div class="otp-verify-row">
@@ -102,11 +124,16 @@
             </template>
           </template>
 
-          <!-- Disable flow -->
+          <!-- Disable / regenerate flow (shown when enabled) -->
           <template v-else>
-            <button type="button" class="btn-danger btn-sm" @click="disableOtp" :disabled="otpLoading">
-              {{ otpLoading ? 'Disabling...' : 'Disable 2FA' }}
-            </button>
+            <div class="btn-row">
+              <button type="button" class="btn-danger btn-sm" @click="disableOtp" :disabled="otpLoading">
+                {{ otpLoading ? 'Disabling...' : 'Disable 2FA' }}
+              </button>
+              <button type="button" class="btn-secondary btn-sm" @click="regenOtpToken" :disabled="otpLoading">
+                {{ otpLoading ? 'Regenerating...' : 'Regenerate Token' }}
+              </button>
+            </div>
           </template>
         </div>
       </section>
@@ -176,9 +203,12 @@ const avatarBase64 = ref(null)
 const otpEnabled = ref(false)
 const otpSetupVisible = ref(false)
 const otpQrCode = ref(null)
+const otpSecret = ref('')
 const otpCode = ref('')
 const otpLoading = ref(false)
 const otpError = ref('')
+const showRecoveryModal = ref(false)
+const recoveryCodes = ref([])
 
 // Cookies
 const hasCookies = ref(false)
@@ -279,6 +309,7 @@ async function startOtpSetup() {
   try {
     const { data } = await api.get('/profile/otp')
     otpQrCode.value = data.qr_code
+    otpSecret.value = data.secret
     otpSetupVisible.value = true
   } catch { otpError.value = 'Failed to load OTP setup.' }
   finally { otpLoading.value = false }
@@ -289,11 +320,16 @@ async function verifyOtp() {
   otpLoading.value = true
   otpError.value = ''
   try {
-    await api.post('/profile/otp', { code: Number(otpCode.value) })
+    const { data } = await api.post('/profile/otp', { code: Number(otpCode.value) })
     otpEnabled.value = true
     otpSetupVisible.value = false
     otpQrCode.value = null
+    otpSecret.value = ''
     otpCode.value = ''
+    if (data.backup_codes?.length) {
+      recoveryCodes.value = data.backup_codes
+      showRecoveryModal.value = true
+    }
   } catch (err) {
     otpError.value = err.response?.data?.message || 'Invalid code.'
   } finally { otpLoading.value = false }
@@ -306,6 +342,23 @@ async function disableOtp() {
     otpEnabled.value = false
   } catch { /* ignore */ }
   finally { otpLoading.value = false }
+}
+
+async function regenOtpToken() {
+  otpLoading.value = true
+  otpError.value = ''
+  try {
+    const { data } = await api.put('/profile/otp')
+    otpEnabled.value = false
+    otpQrCode.value = data.qr_code
+    otpSecret.value = data.secret
+    otpSetupVisible.value = true
+  } catch { otpError.value = 'Failed to regenerate OTP token.' }
+  finally { otpLoading.value = false }
+}
+
+function copyRecoveryCodes() {
+  navigator.clipboard?.writeText(recoveryCodes.value.join('\n'))
 }
 
 async function uploadCookies() {
@@ -527,6 +580,74 @@ async function deleteCookies() {
   font-size: 1.1rem;
   letter-spacing: 0.15em;
   text-align: center;
+}
+
+.otp-secret-details {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.otp-secret-details summary {
+  cursor: pointer;
+  user-select: none;
+}
+.otp-secret {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.3rem 0.6rem;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: 'Consolas', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* ── Recovery codes modal ────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 480px;
+  width: 90%;
+}
+
+.modal-box h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.recovery-codes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+
+.recovery-code {
+  display: block;
+  padding: 0.3rem 0.5rem;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: 'Consolas', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  letter-spacing: 0.05em;
+  user-select: all;
 }
 
 /* ── Cookie status ───────────────────────────────────── */

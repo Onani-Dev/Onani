@@ -141,11 +141,11 @@ class ProfileCookies(Resource):
 
 
 class ProfileOTP(Resource):
-    """TOTP 2FA setup, verification, and disable."""
+    """TOTP 2FA setup, verification, disable, and token regeneration."""
     decorators = [login_required]
 
     def get(self):
-        """Return current OTP status and QR code for setup."""
+        """Return current OTP status, QR code, and secret key for setup."""
         import io, base64
         import qrcode
 
@@ -157,10 +157,11 @@ class ProfileOTP(Resource):
             "enabled": current_user.otp_enabled,
             "uri": uri,
             "qr_code": f"data:image/png;base64,{qr_b64}",
+            "secret": current_user.otp_token,
         }
 
     def post(self):
-        """Verify a TOTP code and enable 2FA."""
+        """Verify a TOTP code, enable 2FA, and return one-time backup codes."""
         parser = reqparse.RequestParser()
         parser.add_argument("code", location="json", type=int, required=True)
         args = parser.parse_args()
@@ -169,8 +170,28 @@ class ProfileOTP(Resource):
             return {"message": "Invalid OTP code."}, 400
 
         current_user.otp_enabled = True
+        backup_codes = current_user.generate_backup_codes()
         db.session.commit()
-        return {"enabled": True}
+        return {"enabled": True, "backup_codes": backup_codes}
+
+    def put(self):
+        """Regenerate the OTP token, disabling 2FA until re-setup."""
+        import io, base64
+        import qrcode
+
+        current_user.regen_otp_token()
+        db.session.commit()
+
+        uri = current_user.otp_uri
+        buf = io.BytesIO()
+        qrcode.make(uri).save(buf, format="PNG")
+        qr_b64 = base64.b64encode(buf.getvalue()).decode()
+        return {
+            "enabled": False,
+            "uri": uri,
+            "qr_code": f"data:image/png;base64,{qr_b64}",
+            "secret": current_user.otp_token,
+        }
 
     def delete(self):
         """Disable 2FA."""
