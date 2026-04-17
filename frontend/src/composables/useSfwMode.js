@@ -4,23 +4,23 @@ import { useAuthStore } from '@/stores/auth'
 const NSFW_RATINGS = new Set(['q', 'e'])
 
 export function useSfwMode() {
-  const auth = useAuthStore()
-  const revealed = reactive(new Set())
+    const auth = useAuthStore()
+    const revealed = reactive(new Set())
 
-  const sfwMode = computed(() => auth.user?.settings?.sfw_mode === true)
+    const sfwMode = computed(() => auth.user?.settings?.sfw_mode === true)
 
-  function isNsfw(post) {
-    return NSFW_RATINGS.has((post.rating || '').toLowerCase())
-  }
+    function isNsfw(post) {
+        return NSFW_RATINGS.has((post.rating || '').toLowerCase())
+    }
 
-  function shouldBlur(post, id) {
-    const key = id ?? post.id
-    return sfwMode.value && isNsfw(post) && !revealed.has(key)
-  }
+    function shouldBlur(post, id) {
+        const key = id ?? post.id
+        return sfwMode.value && isNsfw(post) && !revealed.has(key)
+    }
 
-  function reveal(id) {
-    revealed.add(id)
-  }
+    function reveal(id) {
+        revealed.add(id)
+    }
 
-  return { sfwMode, shouldBlur, reveal }
+    return { sfwMode, shouldBlur, reveal }
 }
