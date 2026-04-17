@@ -198,3 +198,75 @@ class TestBanController:
         with patch("Onani.controllers.database.bans.current_user", banner):
             with pytest.raises(NotFound):
                 create_ban(99999, None, "reason", False, False)
+
+    def test_create_ban_delete_posts_dispatches_celery_task(self, app, db, make_user, make_post):
+        import datetime
+        from unittest.mock import patch, MagicMock
+
+        from Onani.controllers.database.bans import create_ban
+        from Onani.models import UserRoles, UserPermissions
+
+        banner = make_user(
+            username="banner_delposts",
+            role=UserRoles.ADMIN,
+            permissions=UserPermissions.ADMINISTRATION,
+        )
+        target = make_user(username="target_delposts")
+        make_post(uploader=target, sha256_hash="delpostshash1")
+
+        mock_task = MagicMock()
+        with patch("Onani.controllers.database.bans.current_user", banner), \
+             patch("Onani.tasks.database.delete_user_posts.delay", mock_task):
+            future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
+            ban = create_ban(target.id, future, "Delete posts reason", True, False)
+            assert ban.id is not None
+            assert ban.posts_deleted is True
+            mock_task.assert_called_once_with(target.id)
+
+    def test_create_ban_hide_posts(self, app, db, make_user, make_post):
+        import datetime
+        from unittest.mock import patch
+
+        from Onani.controllers.database.bans import create_ban
+        from Onani.models import Post, UserRoles, UserPermissions
+
+        banner = make_user(
+            username="banner_hideposts",
+            role=UserRoles.ADMIN,
+            permissions=UserPermissions.ADMINISTRATION,
+        )
+        target = make_user(username="target_hideposts")
+        post = make_post(uploader=target, sha256_hash="hidepostshash1")
+        assert post.hidden is False
+
+        with patch("Onani.controllers.database.bans.current_user", banner):
+            future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
+            ban = create_ban(target.id, future, "Hide posts reason", False, True)
+            assert ban.id is not None
+            assert ban.posts_hidden is True
+
+        db.session.refresh(post)
+        assert post.hidden is True
+
+    def test_delete_ban_restores_hidden_posts(self, app, db, make_user, make_post):
+        import datetime
+
+        from Onani.controllers.database.bans import delete_ban
+        from Onani.models import Ban, Post
+
+        user = make_user(username="unban_restore")
+        post = make_post(uploader=user, sha256_hash="restorehash1")
+        post.hidden = True
+        db.session.commit()
+
+        future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
+        ban = Ban(user=user.id, expires=future, reason="hiding posts", posts_hidden=True)
+        db.session.add(ban)
+        user.ban = ban
+        db.session.commit()
+
+        result = delete_ban(user.id)
+        assert result.ban is None
+
+        db.session.refresh(post)
+        assert post.hidden is False
