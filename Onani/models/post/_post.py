@@ -132,6 +132,7 @@ class Post(db.Model):
 
     sha256_hash: str = db.Column(db.String, unique=True, index=True)
     md5_hash: str = db.Column(db.String, index=True)
+    phash: str = db.Column(db.String, index=True, nullable=True)
 
     width: int = db.Column(db.Integer)
     height: int = db.Column(db.Integer)

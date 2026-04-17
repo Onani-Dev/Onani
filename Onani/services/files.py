@@ -9,6 +9,7 @@ from base64 import b64decode
 from typing import Tuple
 
 import ffmpeg
+import imagehash
 from Onani.models import User
 from PIL import Image
 
@@ -145,11 +146,12 @@ def determine_meta_tags(
 def get_video_data(
     video_data: bytes,
     input_format: str,
-) -> Tuple[io.BytesIO, int, str, str, int, int, str, str]:
+) -> Tuple[io.BytesIO, int, str, str, int, int, str, str, None]:
     """Like get_file_data but for raw video bytes.
 
-    Uses ffprobe to extract width/height. Returns the same 8-tuple as
-    get_file_data so callers need no special handling.
+    Uses ffprobe to extract width/height. Returns the same 9-tuple as
+    get_file_data so callers need no special handling.  The perceptual hash
+    (phash) position is always ``None`` for video files.
     """
     import json as _json
 
@@ -185,7 +187,7 @@ def get_video_data(
     filename = f"{hash_sha256}.{file_type}"
 
     video_file.seek(0)
-    return (video_file, filesize, hash_sha256, hash_md5, width, height, filename, file_type)
+    return (video_file, filesize, hash_sha256, hash_md5, width, height, filename, file_type, None)
 
 
 def create_video_thumbnail(video_path: str, thumbnail_path: str, seek_seconds: int = 1) -> bool:
@@ -228,11 +230,15 @@ def create_video_thumbnail(video_path: str, thumbnail_path: str, seek_seconds: i
 
 def get_file_data(
     file_data: bytes,
-) -> Tuple[io.BytesIO, int, str, str, int, int, str, str]:
+) -> Tuple[io.BytesIO, int, str, str, int, int, str, str, str]:
     """Parse raw file bytes, compute hashes and image dimensions.
 
     Returns:
-        (image_file, filesize, sha256, md5, width, height, filename, file_type)
+        (image_file, filesize, sha256, md5, width, height, filename, file_type, phash)
+
+        The *phash* element is the hex string of a perceptual hash (pHash)
+        computed by ImageHash.  It can be used to detect near-duplicate images
+        that are visually identical but differ in metadata or compression.
     """
     image_file = io.BytesIO(file_data)
     filesize = sys.getsizeof(file_data)
@@ -242,6 +248,8 @@ def get_file_data(
     im = Image.open(image_file)
     width, height = im.size
     file_type = im.format.lower()
+
+    hash_phash = str(imagehash.phash(im))
 
     filename = f"{hash_sha256}.{file_type}"
 
@@ -254,6 +262,7 @@ def get_file_data(
         height,
         filename,
         file_type,
+        hash_phash,
     )
 
 

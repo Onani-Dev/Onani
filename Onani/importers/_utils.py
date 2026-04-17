@@ -86,6 +86,7 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
             height,
             filename,
             file_type,
+            hash_phash,
         ) = get_video_data(file_data, input_format=video_fmt)
     else:
         # Try PIL; if it can't identify the file, try as an mp4 last resort
@@ -103,6 +104,7 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
                 height,
                 filename,
                 file_type,
+                hash_phash,
             ) = get_video_data(file_data, input_format="mp4")
         else:
             (
@@ -114,6 +116,7 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
                 height,
                 filename,
                 file_type,
+                hash_phash,
             ) = get_file_data(file_data)
 
     user = User.query.filter_by(id=importer_id).first()
@@ -139,4 +142,5 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
         tag_char_limit=current_app.config["TAG_CHAR_LIMIT"],
         post_min_tags=current_app.config["POST_MIN_TAGS"],
         imported_from=post.imported_url,
+        hash_phash=hash_phash,
     )

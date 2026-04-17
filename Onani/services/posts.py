@@ -190,6 +190,7 @@ def create_post(
     tag_char_limit: int,
     post_min_tags: int,
     imported_from: str = None,
+    hash_phash: Optional[str] = None,
 ) -> Post:
     """Persist a new post (image + metadata) to the database and filesystem.
 
@@ -198,14 +199,18 @@ def create_post(
         can_create_tags: Whether the uploader may create new tags.
         tag_char_limit: Maximum tag name length from config.
         post_min_tags: Minimum required tag count from config.
+        hash_phash: Perceptual hash (pHash) of the image computed by ImageHash.
+            Used for near-duplicate detection alongside the exact SHA-256 check.
+            Pass ``None`` for video files (perceptual hashing is not supported).
     """
     post = Post()
 
     # Guard against duplicates before the object is associated with the
     # session (prevents autoflush from firing a poisoned INSERT later).
-    if Post.query.filter(
-        (Post.sha256_hash == hash_sha256) | (Post.filename == filename)
-    ).first():
+    dup_filter = (Post.sha256_hash == hash_sha256) | (Post.filename == filename)
+    if hash_phash is not None:
+        dup_filter = dup_filter | (Post.phash == hash_phash)
+    if Post.query.filter(dup_filter).first():
         raise ValueError("Post already exists.")
 
     post.source = source
@@ -215,6 +220,7 @@ def create_post(
     post.filename = filename
     post.md5_hash = hash_md5
     post.sha256_hash = hash_sha256
+    post.phash = hash_phash
     post.width = width
     post.height = height
     post.filesize = filesize
@@ -281,6 +287,7 @@ def upload_post(
             height,
             filename,
             file_type,
+            hash_phash,
         ) = get_video_data(file_data, input_format=video_fmt)
     else:
         (
@@ -292,6 +299,7 @@ def upload_post(
             height,
             filename,
             file_type,
+            hash_phash,
         ) = get_file_data(file_data)
 
     return create_post(
@@ -313,6 +321,7 @@ def upload_post(
         can_create_tags,
         tag_char_limit,
         post_min_tags,
+        hash_phash=hash_phash,
     )
 
 
