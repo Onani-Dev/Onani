@@ -12,6 +12,7 @@ import time
 import emoji
 import humanize
 from flask import Flask, request
+from flask_caching import Cache
 from flask_celeryext import FlaskCeleryExt
 from flask_crontab import Crontab
 from flask_limiter import Limiter
@@ -23,6 +24,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+cache = Cache()
 crontab = Crontab()
 csrf = CSRFProtect()
 db = SQLAlchemy()
@@ -88,6 +90,7 @@ def init_app():
     app.register_blueprint(rss, url_prefix="/rss")
 
     crontab.init_app(app)  # flask crontab init
+    cache.init_app(app)   # Flask-Caching init
     csrf.init_app(app)  # CSRF Protection init
     db.init_app(app)  # SQLAlchemy init
     ext.init_app(app)  # Celery init

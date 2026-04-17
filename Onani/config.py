@@ -68,6 +68,11 @@ RATELIMIT_HEADERS_ENABLED = True
 # Flask Restful
 BUNDLE_ERRORS = True
 
+# Flask-Caching
+CACHE_TYPE = os.getenv("CACHE_TYPE", "SimpleCache")
+CACHE_DEFAULT_TIMEOUT = 1800  # 30 minutes
+CACHE_REDIS_URL = os.getenv("CACHE_REDIS_URL", "redis://redis:6379/2")
+
 # Flask debugtoolbar
 DEBUG_TB_INTERCEPT_REDIRECTS = False
 

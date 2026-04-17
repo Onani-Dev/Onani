@@ -13,3 +13,4 @@ from .status import PostStatus
 from .filetype import FileType
 
 from ._post import Post
+from .view import PostView

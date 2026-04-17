@@ -37,6 +37,21 @@
 
     </div>
 
+    <!-- Hot posts -->
+    <div class="index-post-group">
+      <div class="post-group-header">
+        <h2>🔥 Hot Posts</h2>
+        <router-link to="/posts">View All →</router-link>
+      </div>
+      <div class="post-group-grid">
+        <router-link v-for="post in data.hot" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
+          <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
+          <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
+        </router-link>
+        <p v-if="!loading && !data.hot?.length" class="empty-msg">No hot posts yet.</p>
+      </div>
+    </div>
+
     <!-- Recent posts -->
     <div class="index-post-group">
       <div class="post-group-header">
@@ -77,7 +92,7 @@ import { useSfwMode } from '@/composables/useSfwMode'
 
 const { shouldBlur, reveal } = useSfwMode()
 
-const data = ref({ recent: [], popular: [], random: null, tags: [] })
+const data = ref({ recent: [], hot: [], popular: [], random: null, tags: [] })
 const loading = ref(true)
 
 onMounted(async () => {

@@ -7,7 +7,7 @@
 from .. import db, ma
 from .collection import Collection, CollectionStatus
 from .news import NewsPost, NewsType
-from .post import Note, Post, PostComment, PostRating, PostStatus
+from .post import Note, Post, PostComment, PostRating, PostStatus, PostView
 from .tag import Tag, TagType
 from .user import Ban, User, UserRoles, UserSettings, UserPermissions
 from .error import Error

@@ -11,6 +11,7 @@ from flask_restful import Resource, reqparse
 from Onani.controllers import permissions_required
 from Onani.services.posts import create_comment, set_tags, upload_post
 from Onani.services.queries import query_posts
+from Onani.services.hot import get_hot_posts, record_view
 from Onani.models import Post as _Post
 from Onani.models import PostRating, PostSchema, UserPermissions
 from Onani.models import Tag, TagSchema
@@ -140,6 +141,11 @@ class Post(Resource):
         args = parser.parse_args()
 
         post = _Post.query.filter_by(id=args["id"]).first_or_404()
+
+        # Record a view event for the hot-posts algorithm
+        with contextlib.suppress(Exception):
+            record_view(post.id)
+
         dump = PostSchema().dump(post)
         dump["has_upvoted"] = current_user.is_authenticated and current_user.has_upvoted(post)
         dump["has_downvoted"] = current_user.is_authenticated and current_user.has_downvoted(post)
@@ -286,10 +292,35 @@ class PostWater(Resource):
         return {"water_count": post.water_count}
 
 
+class PostsHot(Resource):
+    """Return posts ranked by the hot-score algorithm (cached 30 min)."""
+
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "limit",
+            location="args",
+            type=int,
+            required=False,
+            default=20,
+        )
+        args = parser.parse_args()
+        limit = min(max(args["limit"], 1), 100)
+
+        hot = get_hot_posts(limit=limit)
+        return {
+            "data": PostSchema(many=True).dump(hot),
+            "total": len(hot),
+        }
+
+
 class PostsHome(Resource):
     def get(self):
         # Recent
         recent = _Post.query.order_by(_Post.id.desc()).limit(8).all()
+
+        # Hot posts (scored by the hot algorithm, cached 30 min)
+        hot = get_hot_posts(limit=8)
 
         # Popular by (upvotes - downvotes)
         ups = (
@@ -328,6 +359,7 @@ class PostsHome(Resource):
         schema = PostSchema(many=True)
         return {
             "recent": schema.dump(recent),
+            "hot": schema.dump(hot),
             "popular": schema.dump(popular),
             "random": PostSchema().dump(random_post) if random_post else None,
             "tags": TagSchema(many=True, exclude=("posts",)).dump(random_tags),
@@ -335,6 +367,7 @@ class PostsHome(Resource):
 
 
 api.add_resource(PostsHome, "/posts/home")
+api.add_resource(PostsHot, "/posts/hot")
 api.add_resource(Posts, "/posts")
 api.add_resource(PostVote, "/posts/vote")
 api.add_resource(PostWater, "/posts/water")
