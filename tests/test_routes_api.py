@@ -361,3 +361,39 @@ class TestProfileAPI:
             content_type="application/json",
         )
         assert resp.status_code == 200
+
+    def test_sfw_mode_returned_in_profile(self, logged_in_client):
+        client, user = logged_in_client
+        resp = client.get("/api/v1/profile")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert "settings" in data
+        assert "sfw_mode" in data["settings"]
+
+    def test_update_sfw_mode_true(self, logged_in_client):
+        client, user = logged_in_client
+        resp = client.put(
+            "/api/v1/profile",
+            data=json.dumps({"sfw_mode": True}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["settings"]["sfw_mode"] is True
+
+    def test_update_sfw_mode_false(self, logged_in_client, app):
+        client, user = logged_in_client
+        with app.app_context():
+            from Onani import db
+            u = db.session.get(type(user), user.id)
+            u.settings.sfw_mode = True
+            db.session.commit()
+
+        resp = client.put(
+            "/api/v1/profile",
+            data=json.dumps({"sfw_mode": False}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["settings"]["sfw_mode"] is False

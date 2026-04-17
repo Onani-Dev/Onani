@@ -96,3 +96,25 @@ class TestUserSettingsModel:
             user.settings.custom_css = "body { color: <red>; }"
             db.session.commit()
             assert "<red>" not in user.settings.custom_css
+
+    def test_sfw_mode_defaults_to_false(self, app, db, make_user):
+        with app.app_context():
+            user = make_user(username="sfwdefault")
+            assert user.settings.sfw_mode is False
+
+    def test_sfw_mode_can_be_set_true(self, app, db, make_user):
+        with app.app_context():
+            user = make_user(username="sfwtrue")
+            user.settings.sfw_mode = True
+            db.session.commit()
+            assert user.settings.sfw_mode is True
+
+    def test_sfw_mode_can_be_toggled(self, app, db, make_user):
+        with app.app_context():
+            user = make_user(username="sfwtoggle")
+            user.settings.sfw_mode = True
+            db.session.commit()
+            assert user.settings.sfw_mode is True
+            user.settings.sfw_mode = False
+            db.session.commit()
+            assert user.settings.sfw_mode is False
