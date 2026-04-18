@@ -159,12 +159,33 @@
         </table>
         <p v-else class="text-muted">No errors logged.</p>
       </section>
+
+      <!-- Celery Logs -->
+      <section class="admin-section">
+        <h2>
+          Celery Logs
+          <span class="log-controls">
+            <select v-model="celeryLogsLines" @change="fetchCeleryLogs" class="lines-select">
+              <option :value="50">Last 50</option>
+              <option :value="100">Last 100</option>
+              <option :value="200">Last 200</option>
+              <option :value="500">Last 500</option>
+            </select>
+            <button class="btn-sm" @click="fetchCeleryLogs" :disabled="celeryLogsLoading">↻</button>
+          </span>
+        </h2>
+        <template v-if="celeryLogsAvailable">
+          <pre ref="celeryLogEl" class="log-output celery-log-output">{{ celeryLogs.join('\n') }}</pre>
+        </template>
+        <p v-else-if="celeryLogsLoading" class="text-muted">Loading…</p>
+        <p v-else class="text-muted">Log file not yet available — restart the Celery worker to start logging to <code>/logs/celery.log</code>.</p>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 
@@ -181,6 +202,12 @@ const now = ref(Date.now())
 const pollTimers = {}
 let refreshTimer = null
 let clockTimer = null
+
+const celeryLogs = ref([])
+const celeryLogsAvailable = ref(false)
+const celeryLogsLoading = ref(false)
+const celeryLogsLines = ref(100)
+const celeryLogEl = ref(null)
 
 const newUser = reactive({ username: '', email: '', password: '', role: 'MEMBER' })
 const creatingUser = ref(false)
@@ -256,6 +283,7 @@ onMounted(async () => {
     stats.value = statsRes.data
     errors.value = errorsRes.data.data
   } catch { /* permission guard */ }
+  fetchCeleryLogs()
   fetchUsers()
   refreshImports()
   refreshTimer = setInterval(refreshImports, 10000)
@@ -402,6 +430,19 @@ async function runTask(name) {
 function formatDate(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleString()
+}
+
+async function fetchCeleryLogs() {
+  celeryLogsLoading.value = true
+  try {
+    const { data } = await api.get('/admin/celery-logs', { params: { lines: celeryLogsLines.value } })
+    celeryLogsAvailable.value = data.available
+    celeryLogs.value = data.lines || []
+    await nextTick()
+    if (celeryLogEl.value) celeryLogEl.value.scrollTop = celeryLogEl.value.scrollHeight
+  } catch { /* ignore */ } finally {
+    celeryLogsLoading.value = false
+  }
 }
 </script>
 
@@ -586,5 +627,29 @@ function formatDate(iso) {
 
 @media (max-width: 689px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Celery logs */
+.celery-log-output {
+  max-height: 28rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.log-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-left: 0.75em;
+  font-size: 0.85rem;
+  font-weight: 400;
+  vertical-align: middle;
+}
+.lines-select {
+  background: var(--bg-overlay);
+  color: var(--text);
+  border: none;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  border-radius: 4px;
 }
 </style>

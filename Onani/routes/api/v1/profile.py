@@ -157,6 +157,7 @@ class ProfileOTP(Resource):
             "enabled": current_user.otp_enabled,
             "uri": uri,
             "qr_code": f"data:image/png;base64,{qr_b64}",
+            "secret": current_user.otp_token,
         }
 
     def post(self):

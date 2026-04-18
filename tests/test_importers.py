@@ -187,6 +187,136 @@ class TestGalleryDlImporter:
             assert "bar" in result.tags
             assert "baz" in result.tags
 
+    @patch("gallery_dl.job.DataJob")
+    def test_get_post_userName_becomes_artist_tag(self, mock_datajob_cls, app):
+        """userName field (RedGifs / community sites) is tagged as artist:."""
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import get_post
+
+            mock_job = MagicMock()
+            mock_job.data_urls = ["https://cdn.example.com/video.mp4"]
+            mock_job.data_meta = [{"userName": "teamsavage792", "category": "redgifs"}]
+            mock_job.data_post = [{"tags": ["Amateur"], "userName": "teamsavage792", "category": "redgifs"}]
+            mock_datajob_cls.return_value = mock_job
+
+            result = get_post("https://redgifs.com/watch/abc123")
+            assert result is not None
+            assert "artist:teamsavage792" in result.tags
+
+    @patch("gallery_dl.job.DataJob")
+    def test_get_post_category_not_used_as_collection(self, mock_datajob_cls, app):
+        """'category' (site name) must NOT become the collection name."""
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import get_post
+
+            mock_job = MagicMock()
+            mock_job.data_urls = ["https://cdn.example.com/video.mp4"]
+            mock_job.data_meta = [{"userName": "teamsavage792", "category": "redgifs"}]
+            mock_job.data_post = [{"tags": [], "userName": "teamsavage792", "category": "redgifs"}]
+            mock_datajob_cls.return_value = mock_job
+
+            result = get_post("https://redgifs.com/watch/abc123")
+            assert result is not None
+            assert result.collection_name != "redgifs"
+            # No niches → no collection
+            assert result.collection_name is None
+
+    @patch("gallery_dl.job.DataJob")
+    def test_get_post_redgifs_niche_becomes_collection(self, mock_datajob_cls, app):
+        """RedGifs post with a niche uses the niche as the collection name."""
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import get_post
+
+            mock_job = MagicMock()
+            mock_job.data_urls = ["https://cdn.redgifs.com/video.mp4"]
+            mock_job.data_meta = [{"userName": "someone", "category": "redgifs", "niches": ["Amateur"]}]
+            mock_job.data_post = [{"tags": [], "userName": "someone", "category": "redgifs", "niches": ["Amateur"]}]
+            mock_datajob_cls.return_value = mock_job
+
+            result = get_post("https://redgifs.com/watch/xyz")
+            assert result is not None
+            assert result.collection_name == "Amateur"
+
+    @patch("gallery_dl.job.DataJob")
+    def test_get_post_subreddit_becomes_collection(self, mock_datajob_cls, app):
+        """subreddit key maps to the collection name."""
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import get_post
+
+            mock_job = MagicMock()
+            mock_job.data_urls = ["https://i.redd.it/abc.jpg"]
+            mock_job.data_meta = [{"subreddit": "gonewild", "author": "redditor123"}]
+            mock_job.data_post = [{"tags": [], "subreddit": "gonewild", "author": "redditor123"}]
+            mock_datajob_cls.return_value = mock_job
+
+            result = get_post("https://reddit.com/r/gonewild/comments/abc/")
+            assert result is not None
+            assert result.collection_name == "gonewild"
+
+    @patch("gallery_dl.job.DataJob")
+    def test_get_all_posts_returns_multiple(self, mock_datajob_cls, app):
+        """get_all_posts returns one ImportedPost per file URL."""
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import get_all_posts
+
+            mock_job = MagicMock()
+            mock_job.data_urls = [
+                "https://cdn.example.com/img1.jpg",
+                "https://cdn.example.com/img2.jpg",
+                "https://cdn.example.com/img3.jpg",
+            ]
+            mock_job.data_meta = [{}, {}, {}]
+            mock_job.data_post = [{"tags": ["test"], "title": "My Gallery", "rating": "q"}]
+            mock_datajob_cls.return_value = mock_job
+
+            results = get_all_posts("https://www.pixiv.net/en/artworks/99999")
+            assert len(results) == 3
+            assert all(r.collection_name == "My Gallery" for r in results)
+
+
+class TestExtractCollectionName:
+    """Unit tests for _extract_collection_name helper."""
+
+    def test_community_key_subreddit(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            meta = {"subreddit": "cats", "category": "reddit"}
+            assert _extract_collection_name(meta, "https://reddit.com/...", False) == "cats"
+
+    def test_community_key_userName(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            # RedGifs with no niches → None (userName is ignored for redgifs)
+            meta = {"userName": "artist_xyz", "category": "redgifs"}
+            assert _extract_collection_name(meta, "https://redgifs.com/...", False) is None
+
+    def test_redgifs_niche_used_as_collection(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            meta = {"userName": "artist_xyz", "category": "redgifs", "niches": ["Amateur", "MILF"]}
+            assert _extract_collection_name(meta, "https://redgifs.com/...", False) == "Amateur"
+
+    def test_category_not_matched(self, app):
+        """'category' is intentionally excluded from _COMMUNITY_KEYS."""
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            meta = {"category": "redgifs"}
+            assert _extract_collection_name(meta, "https://redgifs.com/...", False) is None
+
+    def test_gallery_key_only_for_multi(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            meta = {"album": "My Album"}
+            # single=False → gallery keys ignored
+            assert _extract_collection_name(meta, "https://example.com/...", False) is None
+            # multi=True → gallery key used
+            assert _extract_collection_name(meta, "https://example.com/...", True) == "My Album"
+
+    def test_empty_meta_returns_none_for_single(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            assert _extract_collection_name({}, "https://example.com/", False) is None
+
 
 class TestGetPostGalleryDlFallback:
     """Tests that _utils.get_post falls back to gallery-dl for unsupported sites."""

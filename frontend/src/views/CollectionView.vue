@@ -40,6 +40,15 @@
     </div>
     <p v-else class="text-muted">No posts in this collection.</p>
 
+    <Pagination
+      :page="postPage"
+      :nextPage="postsNextPage"
+      :prevPage="postsPrevPage"
+      v-model:perPage="postPerPage"
+      :perPageOptions="[20, 40, 80]"
+      @navigate="goToPostPage"
+    />
+
     <!-- Add posts (managers only, edit mode only) -->
     <div v-if="canManage && editMode" class="add-posts-section">
       <h3>Add Posts</h3>
@@ -67,11 +76,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useSfwMode } from '@/composables/useSfwMode'
+import Pagination from '@/components/Pagination.vue'
 
 const props = defineProps({ id: [String, Number] })
 const auth = useAuthStore()
@@ -80,6 +90,10 @@ const router = useRouter()
 
 const collection = ref(null)
 const posts = ref([])
+const postPage = ref(1)
+const postsNextPage = ref(null)
+const postsPrevPage = ref(null)
+const postPerPage = ref(40)
 const loading = ref(true)
 
 const editMode = ref(false)
@@ -96,13 +110,28 @@ const canManage = computed(() =>
   auth.user?.role >= 200 || auth.user?.id === collection.value?.creator
 )
 
+async function fetchCollection() {
+  const { data } = await api.get('/collections', {
+    params: { id: props.id, post_page: postPage.value, post_per_page: postPerPage.value },
+  })
+  collection.value = data
+  posts.value = data.posts || []
+  postsNextPage.value = data.posts_next_page
+  postsPrevPage.value = data.posts_prev_page
+  editTitle.value = data.title
+  editDesc.value = data.description
+}
+
+function goToPostPage(p) {
+  postPage.value = p
+  fetchCollection()
+}
+
+watch(postPerPage, () => { postPage.value = 1; fetchCollection() })
+
 onMounted(async () => {
   try {
-    const { data } = await api.get('/collections', { params: { id: props.id } })
-    collection.value = data
-    posts.value = data.posts || []
-    editTitle.value = data.title
-    editDesc.value = data.description
+    await fetchCollection()
   } finally {
     loading.value = false
   }
@@ -133,10 +162,10 @@ async function deleteCollection() {
 }
 
 async function removePost(postId) {
-  const { data } = await api.delete('/collections/posts', {
+  await api.delete('/collections/posts', {
     data: { collection_id: Number(props.id), post_id: postId },
   })
-  posts.value = data.posts || []
+  await fetchCollection()
 }
 
 async function searchPosts() {
@@ -151,11 +180,11 @@ async function searchPosts() {
 }
 
 async function addPost(postId) {
-  const { data } = await api.post('/collections/posts', {
+  await api.post('/collections/posts', {
     collection_id: Number(props.id),
     post_id: postId,
   })
-  posts.value = data.posts || []
+  await fetchCollection()
 }
 </script>
 

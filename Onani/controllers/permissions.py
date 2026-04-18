@@ -14,10 +14,9 @@ from typing import List, Union
 
 from flask import abort
 from flask_login import current_user
-from Onani.models import UserPermissions
 
 
-def permissions_required(permissions: Union[UserPermissions, List[UserPermissions]]):
+def permissions_required(permissions):
     """A decorator for requiring certain permissions to access an endpoint on flask.
 
     Args:

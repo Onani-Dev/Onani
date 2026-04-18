@@ -1,20 +1,23 @@
 # -*- coding: utf-8 -*-
-# @Author: kapsikkum
-# @Date:   2020-11-08 21:54:05
-# @Last Modified by:   kapsikkum
-# @Last Modified time: 2022-05-15 08:34:32
-
-from flask import Blueprint
-
-from .. import csrf, db, login_manager, limiter
+from .. import csrf, db, limiter, login_manager
 from .api import main_api
+from Onani.models import User
 
-main = Blueprint("main", __name__)
 
-admin = Blueprint("admin", __name__)
-admin_api = Blueprint("api", __name__)
+@login_manager.user_loader
+def user_loader(user_id):
+    user = User.query.filter_by(login_id=user_id).first()
+    if not user:
+        return None
+    return None if user.ban else user
 
-atom = Blueprint("atom", __name__)
-rss = Blueprint("rss", __name__)
 
-from . import auth, data, errors, feed, views
+@login_manager.request_loader
+def request_loader(request):
+    if api_key := request.headers.get("Authorization"):
+        user = User.query.filter_by(api_key=api_key).first()
+        if not user:
+            return None
+        return None if user.ban else user
+    return None
+

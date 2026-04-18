@@ -8,10 +8,9 @@ from functools import wraps
 
 from flask import abort
 from flask_login import current_user
-from Onani.models import UserRoles
 
 
-def role_required(role: UserRoles):
+def role_required(role):
     """Require a role to use a function.
 
     Args:

@@ -17,6 +17,11 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
     from Onani.importers import get_all_posts, save_imported_post, ImportedPostSchema
     from Onani.models import Collection, CollectionStatus
 
+    # Discard any stale session/connection from a previous task or failed request.
+    # db.session.remove() returns the connection to the pool and ensures the next
+    # operation gets a clean connection (important in long-running Celery workers).
+    db.session.remove()
+
     logs = []
     logs.append(f"Fetching metadata from {post_url}...")
     self.update_state(state="PROGRESS", meta={
@@ -59,7 +64,13 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                 saved_posts.append(post)
                 logs.append(f"[{i+1}/{total}] Imported: post #{post.id}")
             except Exception as e:
-                db.session.rollback()
+                # Use remove() instead of rollback() — after a DB error (e.g. FK
+                # violation, connection error) the PostgreSQL transaction is in an
+                # aborted state. rollback() resets the ORM but can leave the
+                # underlying connection poisoned. remove() discards the session and
+                # returns the connection to the pool, guaranteeing the next post
+                # starts with a clean connection.
+                db.session.remove()
                 results.append({"error": str(e), "file_url": imported_post.file_url})
                 logs.append(f"[{i+1}/{total}] Skipped: {e}")
 
@@ -78,6 +89,7 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
         )
         if collection_name and saved_posts:
             try:
+                from sqlalchemy.exc import IntegrityError
                 collection = Collection.query.filter_by(
                     title=collection_name, creator=importer_id
                 ).first()
@@ -89,7 +101,14 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                         status=CollectionStatus.ACCEPTED,
                     )
                     db.session.add(collection)
-                    db.session.flush()
+                    try:
+                        db.session.flush()
+                    except IntegrityError:
+                        # Another worker created the same collection concurrently.
+                        db.session.rollback()
+                        collection = Collection.query.filter_by(
+                            title=collection_name, creator=importer_id
+                        ).first()
 
                 for post in saved_posts:
                     if not collection.posts.filter_by(id=post.id).first():

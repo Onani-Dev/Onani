@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Collections API for the Vue SPA."""
 from flask import abort, current_app
-from flask_login import current_user
+from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.models import Collection, CollectionStatus, Post, UserRoles
 from Onani.models.schemas.collection import CollectionSchema
@@ -24,13 +24,24 @@ class Collections(Resource):
         parser.add_argument("per_page", location="args", type=int, required=False,
             default=current_app.config.get("PER_PAGE_COLLECTIONS", 80))
         parser.add_argument("id", location="args", type=int, default=None)
+        parser.add_argument("post_page", location="args", type=int, required=False, default=1)
+        parser.add_argument("post_per_page", location="args", type=int, required=False, default=40)
 
         args = parser.parse_args()
         args["per_page"] = min(args["per_page"], current_app.config["API_MAX_PER_PAGE"])
+        args["post_per_page"] = min(args["post_per_page"], current_app.config["API_MAX_PER_PAGE"])
 
         if args["id"]:
             collection = Collection.query.filter_by(id=args["id"]).first_or_404()
-            return CollectionSchema().dump(collection)
+            paginated = collection.posts.paginate(
+                page=args["post_page"], per_page=args["post_per_page"], error_out=False
+            )
+            result = CollectionSchema(exclude=("posts",)).dump(collection)
+            result["posts"] = PostSchema(many=True).dump(paginated.items)
+            result["posts_next_page"] = paginated.next_num
+            result["posts_prev_page"] = paginated.prev_num
+            result["posts_total"] = paginated.total
+            return result
 
         collections = Collection.query.paginate(
             per_page=args["per_page"], page=args["page"], error_out=False
@@ -42,6 +53,7 @@ class Collections(Resource):
             "total": collections.total,
         }
 
+    @login_required
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument("title", location="json", type=str, required=True)
@@ -58,6 +70,7 @@ class Collections(Resource):
         db.session.commit()
         return CollectionSchema(exclude=("posts",)).dump(collection), 201
 
+    @login_required
     def put(self):
         parser = reqparse.RequestParser()
         parser.add_argument("id", location="json", type=int, required=True)
@@ -77,6 +90,7 @@ class Collections(Resource):
         db.session.commit()
         return CollectionSchema(exclude=("posts",)).dump(collection)
 
+    @login_required
     def delete(self):
         parser = reqparse.RequestParser()
         parser.add_argument("id", location="json", type=int, required=True)

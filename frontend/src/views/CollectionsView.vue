@@ -33,6 +33,15 @@
     </div>
     <p v-else class="text-muted">No collections yet.</p>
 
+    <Pagination
+      :page="page"
+      :nextPage="nextPage"
+      :prevPage="prevPage"
+      v-model:perPage="perPage"
+      :perPageOptions="[20, 40, 80]"
+      @navigate="goToPage"
+    />
+
     <!-- Edit modal -->
     <div v-if="editingCollection" class="modal-overlay" @click.self="editingCollection = null">
       <div class="modal">
@@ -52,12 +61,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import Pagination from '@/components/Pagination.vue'
 
 const auth = useAuthStore()
 const collections = ref([])
+const page = ref(1)
+const nextPage = ref(null)
+const prevPage = ref(null)
+const perPage = ref(40)
 const showCreate = ref(false)
 const createTitle = ref('')
 const createDescription = ref('')
@@ -71,10 +85,18 @@ const editError = ref('')
 const saving = ref(false)
 
 onMounted(fetchCollections)
+watch(perPage, () => { page.value = 1; fetchCollections() })
 
 async function fetchCollections() {
-  const { data } = await api.get('/collections')
+  const { data } = await api.get('/collections', { params: { page: page.value, per_page: perPage.value } })
   collections.value = data.data
+  nextPage.value = data.next_page
+  prevPage.value = data.prev_page
+}
+
+function goToPage(p) {
+  page.value = p
+  fetchCollections()
 }
 
 function canManage(c) {
@@ -89,14 +111,15 @@ async function createCollection() {
   creating.value = true
   createError.value = ''
   try {
-    const { data } = await api.post('/collections', {
+    await api.post('/collections', {
       title: createTitle.value,
       description: createDescription.value,
     })
-    collections.value.unshift(data)
     createTitle.value = ''
     createDescription.value = ''
     showCreate.value = false
+    page.value = 1
+    await fetchCollections()
   } catch (err) {
     createError.value = err.response?.data?.message || 'Creation failed.'
   } finally {
@@ -134,8 +157,8 @@ async function deleteCollection(id) {
   if (!confirm('Delete this collection?')) return
   try {
     await api.delete('/collections', { data: { id } })
-    collections.value = collections.value.filter(c => c.id !== id)
     openMenu.value = null
+    await fetchCollections()
   } catch {
     // ignore
   }

@@ -89,9 +89,20 @@ def _extract_tags(kwdict: dict) -> List[str]:
     elif isinstance(raw, str) and raw:
         tags.extend(raw.split())
 
-    # Artist / author
-    for artist in _as_list(kwdict.get("artist") or kwdict.get("author")):
+    # Artist / author — booru-style sites use "artist"; community sites use "author"
+    for artist in _as_list(kwdict.get("artist")):
         tags.append(f"artist:{artist}")
+
+    # Community post author (Reddit, Twitter, RedGifs, etc.) — tagged as "artist"
+    # when there is no explicit artist field.
+    if not kwdict.get("artist"):
+        for author in _as_list(
+            kwdict.get("userName")      # RedGifs
+            or kwdict.get("author")     # Reddit, generic
+            or kwdict.get("uploader")   # various
+            or kwdict.get("user")       # Twitter/X, others
+        ):
+            tags.append(f"artist:{author}")
 
     # Character
     for char in _as_list(kwdict.get("characters") or kwdict.get("character")):
@@ -102,6 +113,51 @@ def _extract_tags(kwdict: dict) -> List[str]:
         tags.append(f"copyright:{copy_}")
 
     return [t for t in tags if t]
+
+
+# Community-style keys that identify a "group/channel" the post belongs to.
+# These are used as the collection name for single posts too.
+_COMMUNITY_KEYS = ("subreddit", "community", "board", "channel", "group", "userName", "user")
+
+# Gallery-style keys (collections only make sense for multi-file URLs)
+_GALLERY_KEYS = ("title", "gallery", "album", "pool", "set", "collection")
+
+
+def _extract_collection_name(meta: dict, url: str, multi: bool) -> Optional[str]:
+    """Return a collection name derived from *meta*, or None.
+
+    Community keys (subreddit, board, …) are checked for every import.
+    Gallery keys (album, pool, …) are only used when *multi* is True.
+
+    RedGifs special case: only use a niche as the collection name. A post
+    that belongs to no niche gets no collection, regardless of uploader.
+    """
+    # RedGifs: collection only if the post belongs to a niche
+    if meta.get("category") == "redgifs":
+        niches = meta.get("niches") or []
+        if isinstance(niches, (list, tuple)) and niches:
+            return str(niches[0]).strip() or None
+        return None
+
+    # Community first — applies to single posts too
+    for key in _COMMUNITY_KEYS:
+        val = meta.get(key)
+        if val and isinstance(val, str) and val.strip():
+            return val.strip()
+
+    if not multi:
+        return None
+
+    # Gallery-level name for multi-file imports
+    for key in _GALLERY_KEYS:
+        val = meta.get(key)
+        if val and isinstance(val, str) and val.strip():
+            return val.strip()
+
+    # URL-derived fallback for galleries
+    from urllib.parse import urlparse
+    path = urlparse(url).path.rstrip("/")
+    return path.split("/")[-1] if path else url
 
 
 def _extract_rating(kwdict: dict) -> PostRating:
@@ -173,8 +229,11 @@ def get_post(url: str, cookies_path: str = None) -> Optional[ImportedPost]:
     file_url: str = djob.data_urls[0]
     kwdict: dict = djob.data_meta[0] if djob.data_meta else {}
     post_meta: dict = djob.data_post[0] if djob.data_post else kwdict
+    merged = {**post_meta, **kwdict}
 
-    return _build_post(url, file_url, kwdict, post_meta)
+    p = _build_post(url, file_url, kwdict, merged)
+    p.collection_name = _extract_collection_name(merged, url, multi=False)
+    return p
 
 
 def get_all_posts(url: str, cookies_path: str = None) -> List[ImportedPost]:
@@ -190,20 +249,12 @@ def get_all_posts(url: str, cookies_path: str = None) -> List[ImportedPost]:
 
     # Shared gallery-level metadata (artist, rating, etc.)
     gallery_meta: dict = djob.data_post[0] if djob.data_post else {}
+    multi = len(djob.data_urls) > 1
 
-    # Derive a collection name when the URL represents a multi-file gallery
-    collection_name: Optional[str] = None
-    if len(djob.data_urls) > 1:
-        for key in ("title", "gallery", "album", "pool", "set", "collection", "board"):
-            val = gallery_meta.get(key) or (djob.data_meta[0].get(key) if djob.data_meta else None)
-            if val and isinstance(val, str) and val.strip():
-                collection_name = val.strip()
-                break
-        if not collection_name:
-            # Fall back to a URL-derived name
-            from urllib.parse import urlparse
-            path = urlparse(url).path.rstrip("/")
-            collection_name = path.split("/")[-1] if path else url
+    # Derive a collection name from the first item's merged metadata
+    first_kwdict = djob.data_meta[0] if djob.data_meta else {}
+    combined_meta = {**gallery_meta, **first_kwdict}
+    collection_name = _extract_collection_name(combined_meta, url, multi=multi)
 
     posts: List[ImportedPost] = []
     for i, file_url in enumerate(djob.data_urls):

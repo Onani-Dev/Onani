@@ -361,3 +361,212 @@ class TestProfileAPI:
             content_type="application/json",
         )
         assert resp.status_code == 200
+
+
+class TestCollectionsAPI:
+    def test_list_collections_empty(self, client):
+        resp = client.get("/api/v1/collections")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert "data" in data
+        assert isinstance(data["data"], list)
+
+    def test_create_collection_requires_login(self, client):
+        resp = client.post(
+            "/api/v1/collections",
+            data=json.dumps({"title": "Should Fail"}),
+            content_type="application/json",
+        )
+        assert resp.status_code in (401, 403)
+
+    def test_create_and_get_collection(self, logged_in_client, app):
+        client, user = logged_in_client
+        resp = client.post(
+            "/api/v1/collections",
+            data=json.dumps({"title": "My Collection", "description": "desc"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 201
+        data = json.loads(resp.data)
+        assert data["title"] == "My Collection"
+        collection_id = data["id"]
+
+        resp2 = client.get(f"/api/v1/collections?id={collection_id}")
+        assert resp2.status_code == 200
+        data2 = json.loads(resp2.data)
+        assert data2["id"] == collection_id
+
+    def test_get_collection_not_found(self, client):
+        resp = client.get("/api/v1/collections?id=999999")
+        assert resp.status_code == 404
+
+    def test_update_collection_title(self, logged_in_client, app):
+        client, user = logged_in_client
+        create_resp = client.post(
+            "/api/v1/collections",
+            data=json.dumps({"title": "Old Title"}),
+            content_type="application/json",
+        )
+        collection_id = json.loads(create_resp.data)["id"]
+
+        resp = client.put(
+            "/api/v1/collections",
+            data=json.dumps({"id": collection_id, "title": "New Title"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["title"] == "New Title"
+
+    def test_delete_collection(self, logged_in_client, app):
+        client, user = logged_in_client
+        create_resp = client.post(
+            "/api/v1/collections",
+            data=json.dumps({"title": "To Delete"}),
+            content_type="application/json",
+        )
+        collection_id = json.loads(create_resp.data)["id"]
+
+        del_resp = client.delete(
+            "/api/v1/collections",
+            data=json.dumps({"id": collection_id}),
+            content_type="application/json",
+        )
+        assert del_resp.status_code == 204
+
+    def test_delete_other_user_collection_forbidden(self, logged_in_client, app, make_user):
+        """A regular user cannot delete another user's collection."""
+        client, user = logged_in_client
+        with app.app_context():
+            from Onani import db as _db
+            from Onani.models import Collection, CollectionStatus
+            other = make_user(username="other_coll_owner", password="pass")
+            collection = Collection(
+                title="Other's Collection",
+                creator=other.id,
+                status=CollectionStatus.ACCEPTED,
+            )
+            _db.session.add(collection)
+            _db.session.commit()
+            collection_id = collection.id
+
+        resp = client.delete(
+            "/api/v1/collections",
+            data=json.dumps({"id": collection_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 403
+
+    def test_add_post_to_collection(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="collposttest1")
+            post_id = post.id
+
+        create_resp = client.post(
+            "/api/v1/collections",
+            data=json.dumps({"title": "Post Collection"}),
+            content_type="application/json",
+        )
+        collection_id = json.loads(create_resp.data)["id"]
+
+        resp = client.post(
+            "/api/v1/collections/posts",
+            data=json.dumps({"collection_id": collection_id, "post_id": post_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert any(p["id"] == post_id for p in data["posts"])
+
+    def test_remove_post_from_collection(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="collposttest2")
+            post_id = post.id
+
+        create_resp = client.post(
+            "/api/v1/collections",
+            data=json.dumps({"title": "Post Removal Collection"}),
+            content_type="application/json",
+        )
+        collection_id = json.loads(create_resp.data)["id"]
+
+        client.post(
+            "/api/v1/collections/posts",
+            data=json.dumps({"collection_id": collection_id, "post_id": post_id}),
+            content_type="application/json",
+        )
+
+        del_resp = client.delete(
+            "/api/v1/collections/posts",
+            data=json.dumps({"collection_id": collection_id, "post_id": post_id}),
+            content_type="application/json",
+        )
+        assert del_resp.status_code == 200
+        data = json.loads(del_resp.data)
+        assert not any(p["id"] == post_id for p in data["posts"])
+
+
+class TestAdminAPI:
+    def test_stats_requires_auth(self, client):
+        resp = client.get("/api/v1/admin/stats")
+        assert resp.status_code in (401, 403)
+
+    def test_stats_requires_moderator(self, logged_in_client):
+        client, user = logged_in_client
+        resp = client.get("/api/v1/admin/stats")
+        assert resp.status_code in (401, 403)
+
+    def test_stats_as_admin(self, admin_client):
+        client, user = admin_client
+        resp = client.get("/api/v1/admin/stats")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        for key in ("posts", "users", "tags", "collections", "errors"):
+            assert key in data
+
+    def test_celery_logs_requires_auth(self, client):
+        resp = client.get("/api/v1/admin/celery-logs")
+        assert resp.status_code in (401, 403)
+
+    def test_celery_logs_as_admin_no_file(self, admin_client, tmp_path, monkeypatch):
+        """When the log file does not exist the endpoint returns available=False."""
+        import Onani.routes.api.v1._admin.stats as stats_module
+        monkeypatch.setattr(stats_module.AdminCeleryLogs, "LOG_PATH", str(tmp_path / "missing.log"))
+        client, user = admin_client
+        resp = client.get("/api/v1/admin/celery-logs?lines=50")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["available"] is False
+
+    def test_celery_logs_returns_lines(self, admin_client, tmp_path, monkeypatch):
+        """When the log file exists the endpoint returns the last N lines."""
+        import Onani.routes.api.v1._admin.stats as stats_module
+        log_file = tmp_path / "celery.log"
+        log_file.write_text("\n".join(f"line {i}" for i in range(200)))
+        monkeypatch.setattr(stats_module.AdminCeleryLogs, "LOG_PATH", str(log_file))
+        client, user = admin_client
+        resp = client.get("/api/v1/admin/celery-logs?lines=50")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["available"] is True
+        assert len(data["lines"]) <= 50
+
+
+class TestImportAPI:
+    def test_import_status_unknown_task(self, logged_in_client):
+        """Querying an unknown task ID returns a PENDING status."""
+        client, user = logged_in_client
+        resp = client.get("/api/v1/import?id=nonexistent-task-id-12345")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["status"] == "PENDING"
+
+    def test_import_requires_login(self, client):
+        resp = client.post(
+            "/api/v1/import",
+            data=json.dumps({"url": "https://example.com/img.jpg"}),
+            content_type="application/json",
+        )
+        assert resp.status_code in (401, 403)

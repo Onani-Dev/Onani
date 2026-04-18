@@ -43,7 +43,7 @@
           <div class="post-image-wrapper">
             <video
               v-if="isVideo"
-              :src="shouldBlur(post) ? '' : post.file_url"
+              :src="post.file_url"
               class="post-image post-video"
               :class="{ 'sfw-blurred': shouldBlur(post) }"
               controls
@@ -641,7 +641,6 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
 .post-image-wrapper {
   position: relative;
   line-height: 0;
-  overflow: hidden;
   border-radius: 8px;
 }
 .post-sfw-overlay {
@@ -653,6 +652,7 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   object-fit: contain;
   cursor: zoom-in;
   display: block;
+  border-radius: 8px;
 }
 .post-video {
   cursor: default;

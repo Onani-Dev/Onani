@@ -267,8 +267,10 @@ class Post(db.Model):
 
     @validates("sha256_hash")
     def validate_hash(self, key, hash_):
-        # Duplicate detection is handled in create_post() before the Post is
-        # added to the session, avoiding an autoflush-triggered race condition.
+        if hash_:
+            existing = db.session.query(Post).filter(Post.sha256_hash == hash_).first()
+            if existing is not None and existing is not self:
+                raise ValueError(f"A post with that hash already exists.")
         return hash_ or None
 
     @validates("original_filename")

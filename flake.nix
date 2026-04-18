@@ -28,7 +28,6 @@
 
             # Node.js (frontend)
             pkgs.nodejs_22
-            pkgs.nodePackages.npm
 
             # Native deps required by pip packages
             pkgs.gcc

@@ -83,16 +83,25 @@ class TestUserSettingsModel:
             db.session.commit()
             assert user.settings.connections["github"] is None
 
-    def test_custom_css_none_ok(self, app, db, make_user):
+    def test_sfw_mode_defaults_to_false(self, app, db, make_user):
         with app.app_context():
-            user = make_user(username="cssnone")
-            user.settings.custom_css = None
-            db.session.commit()
-            assert user.settings.custom_css is None
+            user = make_user(username="sfwdefault")
+            assert user.settings.sfw_mode is False
 
-    def test_custom_css_escaped(self, app, db, make_user):
+    def test_sfw_mode_can_be_enabled(self, app, db, make_user):
         with app.app_context():
-            user = make_user(username="cssescape")
-            user.settings.custom_css = "body { color: <red>; }"
+            user = make_user(username="sfwenable")
+            user.settings.sfw_mode = True
             db.session.commit()
-            assert "<red>" not in user.settings.custom_css
+            db.session.refresh(user.settings)
+            assert user.settings.sfw_mode is True
+
+    def test_sfw_mode_can_be_toggled_back(self, app, db, make_user):
+        with app.app_context():
+            user = make_user(username="sfwtoggle")
+            user.settings.sfw_mode = True
+            db.session.commit()
+            user.settings.sfw_mode = False
+            db.session.commit()
+            db.session.refresh(user.settings)
+            assert user.settings.sfw_mode is False

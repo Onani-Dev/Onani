@@ -7,7 +7,7 @@
 import re
 from typing import List, Optional, Tuple, Union
 
-from flask import flash, request
+from flask import request
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:
@@ -40,21 +40,6 @@ def natural_join(l: List[str], *, max_length: Optional[int] = None) -> str:
         l.append(extra)  # and replace it with "X more"
 
     return f"{', '.join(l[:-1])} and {l[-1]}"
-
-
-def get_page() -> int:
-    """Get the current page from the current request's params.
-
-    Returns:
-        int: The current page
-    """
-    # Get the page, will default to 0 if there is no args
-    page = request.args.get("p", "0")
-
-    # Convert the page to an int if it is a digit, if it is not, default to 0
-    page = int(page) if page.isdigit() else 0
-
-    return page
 
 
 def hex_to_rgb(hex_code: str) -> Tuple[int, int, int]:
@@ -110,16 +95,6 @@ def complete_file_url(file_url: str) -> str:
     """
     return f"{request.base_url}{file_url.lstrip('/')}"
 
-
-def flash_form_errors(form):
-    """Flash all errors in a form
-
-    Args:
-        form (Form): The form to get errors from.
-    """
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(error, "error")  # f"Error in the {field.capitalize()} field: {error}"
 
 
 _URL_RE = re.compile(

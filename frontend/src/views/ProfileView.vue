@@ -86,19 +86,27 @@
               </button>
             </template>
             <template v-else>
-              <p class="text-muted">Scan this code with your authenticator app, then enter the 6-digit code to confirm.</p>
-              <img v-if="otpQrCode" :src="otpQrCode" class="qr-code" alt="OTP QR code" />
-              <div class="field otp-verify-field">
-                <label for="otpcode">Verification Code</label>
-                <div class="otp-verify-row">
-                  <input id="otpcode" v-model="otpCode" type="number" placeholder="000000" maxlength="6" />
-                  <button type="button" @click="verifyOtp" :disabled="otpLoading">
-                    {{ otpLoading ? 'Verifying...' : 'Verify & Enable' }}
-                  </button>
-                  <button type="button" class="btn-secondary" @click="otpSetupVisible = false">Cancel</button>
+              <div class="otp-setup-box">
+                <p class="text-muted">Scan this code with your authenticator app, then enter the 6-digit code to confirm.</p>
+                <img v-if="otpQrCode" :src="otpQrCode" class="qr-code" alt="OTP QR code" />
+                <button type="button" class="btn-link" @click="showSecret = !showSecret">
+                  {{ showSecret ? 'Hide secret key' : "Can't scan? Show secret key" }}
+                </button>
+                <div v-if="showSecret" class="otp-secret-box">
+                  <code class="otp-secret">{{ otpSecret }}</code>
                 </div>
+                <div class="field otp-verify-field">
+                  <label for="otpcode">Verification Code</label>
+                  <input id="otpcode" v-model="otpCode" type="number" placeholder="000000" maxlength="6" />
+                  <div class="otp-verify-row">
+                    <button type="button" @click="verifyOtp" :disabled="otpLoading">
+                      {{ otpLoading ? 'Verifying...' : 'Verify & Enable' }}
+                    </button>
+                    <button type="button" class="btn-secondary" @click="otpSetupVisible = false">Cancel</button>
+                  </div>
+                </div>
+                <p v-if="otpError" class="text-error">{{ otpError }}</p>
               </div>
-              <p v-if="otpError" class="text-error">{{ otpError }}</p>
             </template>
           </template>
 
@@ -176,6 +184,8 @@ const avatarBase64 = ref(null)
 const otpEnabled = ref(false)
 const otpSetupVisible = ref(false)
 const otpQrCode = ref(null)
+const otpSecret = ref(null)
+const showSecret = ref(false)
 const otpCode = ref('')
 const otpLoading = ref(false)
 const otpError = ref('')
@@ -279,6 +289,8 @@ async function startOtpSetup() {
   try {
     const { data } = await api.get('/profile/otp')
     otpQrCode.value = data.qr_code
+    otpSecret.value = data.secret
+    showSecret.value = false
     otpSetupVisible.value = true
   } catch { otpError.value = 'Failed to load OTP setup.' }
   finally { otpLoading.value = false }
@@ -293,6 +305,8 @@ async function verifyOtp() {
     otpEnabled.value = true
     otpSetupVisible.value = false
     otpQrCode.value = null
+    otpSecret.value = null
+    showSecret.value = false
     otpCode.value = ''
   } catch (err) {
     otpError.value = err.response?.data?.message || 'Invalid code.'
@@ -511,22 +525,63 @@ async function deleteCookies() {
   height: 180px;
   border-radius: 6px;
   image-rendering: pixelated;
+  display: block;
+  margin: 0 auto;
+}
+
+.otp-setup-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent, #7aa2f7);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.btn-link:hover { opacity: 0.8; }
+
+.otp-secret-box {
+  background: var(--surface2, #1e1e2e);
+  border: 1px solid var(--border, #414168);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  word-break: break-all;
+}
+
+.otp-secret {
+  font-family: monospace;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  user-select: all;
 }
 
 .otp-verify-field {
+  width: 100%;
   max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.otp-verify-field input {
+  width: 100%;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  text-align: center;
 }
 
 .otp-verify-row {
   display: flex;
   gap: 0.5rem;
-  align-items: center;
-}
-.otp-verify-row input {
-  width: 8em;
-  font-size: 1.1rem;
-  letter-spacing: 0.15em;
-  text-align: center;
+  justify-content: center;
 }
 
 /* ── Cookie status ───────────────────────────────────── */

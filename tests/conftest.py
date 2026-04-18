@@ -11,8 +11,6 @@ import pytest
 # Set all env vars BEFORE importing the app so config.py picks them up correctly.
 os.environ.setdefault("FLASK_SECRET_KEY", "test-secret-key-do-not-use-in-prod")
 os.environ.setdefault("DB_PASSWORD", "test")
-os.environ.setdefault("RECAPTCHA_PUBLIC_KEY", "test-pub")
-os.environ.setdefault("RECAPTCHA_PRIVATE_KEY", "test-priv")
 # Use SQLite in-memory so no Postgres is needed during tests
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 # Disable Redis for rate limiting in tests
@@ -33,9 +31,6 @@ def app():
         WTF_CSRF_ENABLED=False,
         # Disable rate limiting for tests
         RATELIMIT_ENABLED=False,
-        # Disable recaptcha for tests
-        RECAPTCHA_PUBLIC_KEY="test-pub",
-        RECAPTCHA_PRIVATE_KEY="test-priv",
         # Temporary dirs for files
         IMAGES_DIR=tempfile.mkdtemp(),
         AVATARS_DIR=tempfile.mkdtemp(),
@@ -81,6 +76,19 @@ def runner(app):
     """A test CLI runner for the Flask app."""
     return app.test_cli_runner()
 
+
+@pytest.fixture(autouse=True)
+def _clear_login_state(app):
+    """Clear Flask-Login's g._login_user between tests.
+
+    Flask-Login stores the current user in g, which is scoped to the app
+    context. With a session-scoped app fixture the same app context is reused
+    across all tests, so calling login_user() in one test would bleed into the
+    next. Clearing the key here ensures each test starts unauthenticated.
+    """
+    yield
+    from flask import g
+    g.pop("_login_user", None)
 
 # ---------------------------------------------------------------------------
 # Model factories

@@ -19,6 +19,7 @@ from Onani.services.auth import (
     InvalidCredentialsError,
     verify_credentials,
 )
+from Onani.services import create_user
 
 from . import api, db, limiter
 
@@ -125,5 +126,6 @@ class AuthCsrf(Resource):
 
 api.add_resource(AuthLogin, "/auth/login")
 api.add_resource(AuthLogout, "/auth/logout")
+api.add_resource(AuthRegister, "/auth/register")
 api.add_resource(AuthMe, "/auth/me")
 api.add_resource(AuthCsrf, "/auth/csrf")

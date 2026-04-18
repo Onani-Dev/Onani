@@ -466,7 +466,7 @@ footer a {
 
 /* ── SFW mode blur ────────────────────────────────────── */
 .sfw-blurred {
-    filter: blur(18px);
+    filter: blur(18px) !important;
     transition: filter 0.2s;
 }
 

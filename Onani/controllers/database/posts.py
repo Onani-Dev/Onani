@@ -11,10 +11,9 @@ from html import escape
 from typing import Iterable, List, Set
 
 from emoji import emojize
-from flask import current_app, flash, request
+from flask import current_app, request
 from flask_login import current_user
 from Onani.controllers.utils import startswith_min
-from Onani.forms import UploadForm
 from Onani.models import (
     Post,
     PostComment,
@@ -65,10 +64,6 @@ def format_tag(tag: str) -> str:
         return ""
 
     if len(tag) > current_app.config["TAG_CHAR_LIMIT"]:
-        flash(
-            f'Tag "{tag}" was not added due to it being over the tag character limit ({current_app.config["TAG_CHAR_LIMIT"]}).',
-            "warning",
-        )
         return ""
 
     tag = tag.replace(" ", "_")
@@ -228,53 +223,6 @@ def create_post(
 
     return post
 
-
-def upload_post(form: UploadForm):
-    # Get the file
-    file = request.files.getlist(form.file.name)[0]
-
-    # Turn the file into bytes.
-    file_data = file.stream.read()
-
-    # Split and Delete duplicate tags
-    tags: Set[str] = set(form.tags.data.split(" "))
-
-    # Get metadata from the file
-    try:
-        (
-            image_file,
-            filesize,
-            hash_sha256,
-            hash_md5,
-            width,
-            height,
-            filename,
-            file_type,
-        ) = get_file_data(file_data)
-    except UnidentifiedImageError as e:
-        form.file.errors.append(
-            f"The file {form.file.name} could not be read, Please ensure it is supported and not corrupted/broken."
-        )
-
-    except ValueError as e:
-        form.file.errors.append(str(e))
-    else:
-        return create_post(
-            form.source.data,
-            form.description.data,
-            current_user,
-            form.rating.data,
-            image_file,
-            filesize,
-            hash_sha256,
-            hash_md5,
-            width,
-            height,
-            filename,
-            file_type,
-            file.filename,
-            tags,
-        )
 
 
 def set_tags(post: Post, tags: Set[str], old_tags: Set[str] = None):

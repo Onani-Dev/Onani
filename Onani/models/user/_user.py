@@ -23,7 +23,6 @@ from sqlalchemy.orm import validates
 from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType
 
-from Onani.controllers.utils import colour_contrast
 
 from . import Ban, db
 from .permissions import UserPermissions
@@ -412,6 +411,7 @@ class User(UserMixin, db.Model):
 
     @property
     def profile_text_colour(self) -> str:
+        from Onani.controllers.utils import colour_contrast
         return colour_contrast(self.profile_colour)
 
     def __repr__(self):

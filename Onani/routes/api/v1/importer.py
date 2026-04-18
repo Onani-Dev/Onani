@@ -5,7 +5,7 @@
 # @Last Modified time: 2022-07-27 14:48:20
 from celery.result import AsyncResult
 from flask import session
-from flask_login import current_user
+from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.controllers.crypto import decrypt_cookies
 from Onani.tasks import import_post
@@ -15,6 +15,7 @@ from . import api
 
 class Importer(Resource):
 
+    @login_required
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument("url", location="json", type=str, required=True)
@@ -43,12 +44,16 @@ class Importer(Resource):
         parser.add_argument("id", location="args", type=str, required=True)
         args = parser.parse_args()
         task: AsyncResult = import_post.AsyncResult(args["id"])
-        result = task.result if isinstance(task.result, dict) else str(task.result) if task.result else None
-        return {
-            "status": task.state,
-            "result": result,
-            "meta": task.info if task.state == "PROGRESS" and isinstance(task.info, dict) else None,
-        }
+        try:
+            state = task.state
+            raw = task.result
+            result = raw if isinstance(raw, dict) else str(raw) if raw else None
+            meta = task.info if state == "PROGRESS" and isinstance(task.info, dict) else None
+        except Exception:
+            state = "PENDING"
+            result = None
+            meta = None
+        return {"status": state, "result": result, "meta": meta}
 
 
 api.add_resource(Importer, "/import")

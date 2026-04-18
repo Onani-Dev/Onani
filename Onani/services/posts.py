@@ -7,6 +7,7 @@ from typing import Iterable, List, Optional, Set, Tuple
 
 from emoji import emojize
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 from Onani import db
 from Onani.controllers.utils import startswith_min
@@ -100,12 +101,28 @@ def parse_tags(
                     continue
                 tag = Tag(name=new_tag_name, post_count=0, type=new_tag_type)
                 db.session.add(tag)
+                try:
+                    db.session.flush()
+                except IntegrityError:
+                    # Another worker created the same tag concurrently.
+                    db.session.rollback()
+                    tag = Tag.query.filter_by(name=new_tag_name).first()
+                    if not tag:
+                        continue
 
         if not tag:
             if not can_create_tags:
                 continue
             tag = Tag(name=tag_str, post_count=0, type=new_tag_type)
             db.session.add(tag)
+            try:
+                db.session.flush()
+            except IntegrityError:
+                # Another worker created the same tag concurrently.
+                db.session.rollback()
+                tag = Tag.query.filter_by(name=tag_str).first()
+                if not tag:
+                    continue
 
         taglist.add(tag)
 
@@ -203,6 +220,8 @@ def create_post(
 
     # Guard against duplicates before the object is associated with the
     # session (prevents autoflush from firing a poisoned INSERT later).
+    # We re-check after the flush via IntegrityError to handle the concurrent
+    # window between two workers both passing this pre-flight check.
     if Post.query.filter(
         (Post.sha256_hash == hash_sha256) | (Post.filename == filename)
     ).first():
@@ -223,6 +242,20 @@ def create_post(
     post.original_filename = original_filename
     post.imported_from = imported_from
 
+    # Add to session and flush to get a DB-assigned primary key BEFORE creating
+    # any post_tags associations. Without this, SQLAlchemy's autoflush fires
+    # inside set_tags() (triggered by Tag.query calls), tries to INSERT post_tags
+    # referencing the new post_id, but PostgreSQL's immediate FK check fails
+    # because the posts row isn't visible yet in the same flush batch.
+    db.session.add(post)
+    try:
+        db.session.flush()
+    except IntegrityError:
+        # Another worker inserted the same hash/filename between our pre-flight
+        # check and this flush — treat it as a duplicate.
+        db.session.rollback()
+        raise ValueError("Post already exists.")
+
     set_tags(post, tags, set(), can_create_tags, tag_char_limit, post_min_tags)
 
     filepath = os.path.join(images_dir, filename)
@@ -236,7 +269,6 @@ def create_post(
         thumb_path = os.path.join(images_dir, f"{stem}.jpg")
         create_video_thumbnail(filepath, thumb_path)
 
-    db.session.add(post)
     uploader.post_count = uploader.posts.with_entities(func.count()).scalar()
     db.session.commit()
 

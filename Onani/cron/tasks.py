@@ -12,7 +12,7 @@ from . import crontab, db
 @crontab.job(minute="*/1")
 def remove_expired_bans():
     from Onani.models import Ban
-    from Onani.controllers import delete_ban
+    from Onani.services import delete_ban
 
     # Only query bans that have an expiry date set; permanent bans are never expired
     expiring_bans: List[Ban] = Ban.query.filter(Ban.expires.isnot(None)).all()

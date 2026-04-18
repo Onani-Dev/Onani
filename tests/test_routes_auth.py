@@ -1,106 +1,91 @@
 # -*- coding: utf-8 -*-
-"""Tests for auth-related routes: login, register, logout."""
+"""Tests for the JSON auth API endpoints (/api/v1/auth/*)."""
 import pytest
 
 
-class TestLoginRoute:
-    def test_login_page_renders(self, client):
-        resp = client.get("/login/")
-        assert resp.status_code == 200
-
+class TestLoginAPI:
     def test_login_wrong_password(self, client, make_user, app):
         with app.app_context():
             make_user(username="loginuser", password="correctpass")
 
         resp = client.post(
-            "/login/",
-            data={"username": "loginuser", "password": "wrongpass"},
-            follow_redirects=True,
+            "/api/v1/auth/login",
+            json={"username": "loginuser", "password": "wrongpass"},
         )
-        assert resp.status_code == 200
-        # Should flash an error
-        assert b"Invalid Login" in resp.data or resp.status_code == 200
+        assert resp.status_code == 401
 
     def test_login_user_not_found(self, client):
         resp = client.post(
-            "/login/",
-            data={"username": "doesnotexist", "password": "irrelevant"},
-            follow_redirects=True,
+            "/api/v1/auth/login",
+            json={"username": "doesnotexist", "password": "irrelevant"},
         )
-        assert resp.status_code == 200
+        assert resp.status_code == 401
 
-    def test_login_success_redirects(self, client, make_user, app):
+    def test_login_success(self, client, make_user, app):
         with app.app_context():
             make_user(username="successlogin", password="mypassword")
 
         resp = client.post(
-            "/login/",
-            data={"username": "successlogin", "password": "mypassword"},
-            follow_redirects=False,
+            "/api/v1/auth/login",
+            json={"username": "successlogin", "password": "mypassword"},
         )
-        # Successful login should redirect
-        assert resp.status_code in (302, 301, 200)
-
-    def test_login_already_authenticated_redirects(self, logged_in_client):
-        client, user = logged_in_client
-        resp = client.get("/login/", follow_redirects=False)
-        assert resp.status_code == 302
-
-
-class TestRegisterRoute:
-    def test_register_page_renders(self, client):
-        resp = client.get("/register/")
         assert resp.status_code == 200
+        assert resp.json["username"] == "successlogin"
 
+
+class TestRegisterAPI:
     def test_register_success(self, client, app):
-        with app.app_context():
-            resp = client.post(
-                "/register/",
-                data={
-                    "username": "newreguser",
-                    "password": "Password123",
-                    "confirm": "Password123",
-                    "email": "",
-                },
-                follow_redirects=False,
-            )
-            # Should redirect after successful registration
-            assert resp.status_code in (200, 302)
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={
+                "username": "newreguser",
+                "password": "Password123",
+            },
+        )
+        assert resp.status_code == 201
+        assert resp.json["username"] == "newreguser"
 
     def test_register_duplicate_username(self, client, make_user, app):
         with app.app_context():
             make_user(username="existinguser")
         resp = client.post(
-            "/register/",
-            data={
-                "username": "existinguser",
-                "password": "Password123",
-                "confirm": "Password123",
-            },
-            follow_redirects=True,
+            "/api/v1/auth/register",
+            json={"username": "existinguser", "password": "Password123"},
         )
-        assert resp.status_code == 200
+        assert resp.status_code == 409
 
-    def test_register_passwords_do_not_match(self, client, app):
-        resp = client.post(
-            "/register/",
-            data={
-                "username": "nomatchuser",
-                "password": "Password123",
-                "confirm": "DifferentPassword",
-            },
-            follow_redirects=True,
-        )
-        assert resp.status_code == 200
+    def test_register_missing_fields(self, client):
+        resp = client.post("/api/v1/auth/register", json={"username": "nopass"})
+        assert resp.status_code == 400
 
 
-class TestLogoutRoute:
+class TestLogoutAPI:
     def test_logout_requires_login(self, client):
-        resp = client.get("/logout/", follow_redirects=False)
-        # Should redirect to login
-        assert resp.status_code == 302
+        resp = client.post("/api/v1/auth/logout")
+        assert resp.status_code == 401
 
     def test_logout_success(self, logged_in_client):
         client, user = logged_in_client
-        resp = client.get("/logout/", follow_redirects=False)
-        assert resp.status_code == 302
+        resp = client.post("/api/v1/auth/logout")
+        assert resp.status_code == 200
+
+
+class TestAuthMeAPI:
+    def test_me_unauthenticated(self, client):
+        resp = client.get("/api/v1/auth/me")
+        assert resp.status_code == 401
+        assert resp.json["authenticated"] is False
+
+    def test_me_authenticated(self, logged_in_client):
+        client, user = logged_in_client
+        resp = client.get("/api/v1/auth/me")
+        assert resp.status_code == 200
+        assert resp.json["authenticated"] is True
+
+
+class TestAuthCsrfAPI:
+    def test_csrf_returns_token(self, client):
+        resp = client.get("/api/v1/auth/csrf")
+        assert resp.status_code == 200
+        assert "csrf_token" in resp.json
+

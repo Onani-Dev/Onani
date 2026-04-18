@@ -229,8 +229,41 @@ class AdminImports(Resource):
         return {"tasks": tasks}
 
 
+class AdminCeleryLogs(Resource):
+    decorators = [login_required, role_required(UserRoles.MODERATOR)]
+
+    LOG_PATH = "/logs/celery.log"
+    MAX_LINES = 500
+
+    def get(self):
+        import os
+        parser = reqparse.RequestParser()
+        parser.add_argument("lines", location="args", type=int, default=100)
+        args = parser.parse_args()
+        n = max(1, min(args["lines"], self.MAX_LINES))
+
+        if not os.path.exists(self.LOG_PATH):
+            return {"lines": [], "available": False}
+
+        try:
+            # Efficient tail without loading the whole file into memory
+            with open(self.LOG_PATH, "rb") as f:
+                # Read up to 256 KB from the end
+                f.seek(0, 2)
+                size = f.tell()
+                read_size = min(size, 256 * 1024)
+                f.seek(-read_size, 2)
+                chunk = f.read()
+            raw_lines = chunk.decode("utf-8", errors="replace").splitlines()
+            tail = raw_lines[-n:]
+            return {"lines": tail, "available": True}
+        except OSError as e:
+            return {"lines": [], "available": False, "error": str(e)}
+
+
 api.add_resource(AdminStats, "/admin/stats")
 api.add_resource(AdminErrors, "/admin/errors")
 api.add_resource(AdminRunTask, "/admin/tasks")
 api.add_resource(AdminUsers, "/admin/users")
 api.add_resource(AdminImports, "/admin/imports")
+api.add_resource(AdminCeleryLogs, "/admin/celery-logs")

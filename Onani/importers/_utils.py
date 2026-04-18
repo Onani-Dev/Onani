@@ -66,13 +66,29 @@ def download_file(url: str) -> bytes:
 
 def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
     from PIL import UnidentifiedImageError
+    from .gallery_dl_importer import is_supported, get_post as _gdl_resolve
 
-    file_data = download_file(post.file_url)
+    # If the file_url is itself a gallery-dl-supported page (e.g. a RedGifs
+    # watch URL embedded inside a Reddit post), resolve it to the actual media
+    # URL before attempting to download.  gallery-dl's Reddit extractor often
+    # returns embedded cross-site URLs verbatim rather than following them
+    # through the target site's extractor.
+    file_url = post.file_url
+    if is_supported(file_url):
+        resolved = _gdl_resolve(file_url)
+        if resolved and resolved.file_url:
+            file_url = resolved.file_url
+            # Absorb any extra tags the target-site extractor found
+            for tag in resolved.tags:
+                if tag not in post.tags:
+                    post.tags.append(tag)
+
+    file_data = download_file(file_url)
 
     # Detect video format — first by URL extension, then by magic bytes
     video_fmt = None
-    if is_video_url(post.file_url):
-        video_fmt = post.file_url.split("?")[0].rsplit(".", 1)[-1].lower()
+    if is_video_url(file_url):
+        video_fmt = file_url.split("?")[0].rsplit(".", 1)[-1].lower()
     else:
         video_fmt = detect_video_format(file_data)
 

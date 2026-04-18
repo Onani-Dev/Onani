@@ -4,7 +4,7 @@
     <p class="text-muted">Paste a URL from any supported site (Danbooru, Gelbooru, Rule34, Pixiv, DeviantArt, and <a href="https://github.com/mikf/gallery-dl/blob/master/docs/supportedsites.md" target="_blank" rel="noopener">900+ more</a>).</p>
 
     <form class="import-form" @submit.prevent="startImport">
-      <input v-model="url" placeholder="https://danbooru.donmai.us/posts/12345" required />
+      <input v-model="url" placeholder="Post, Gallery, or User URL" required />
       <button type="submit" :disabled="importing">{{ importing ? 'Importing...' : 'Import' }}</button>
     </form>
 
@@ -53,18 +53,30 @@
 
         <!-- Results -->
         <template v-if="job.status === 'SUCCESS' && job.result && !job.result.error">
-          <p class="import-count">Imported {{ job.result.count }} post{{ job.result.count !== 1 ? 's' : '' }}</p>
+          <p class="import-count">Imported {{ job.result.count }} post{{ job.result.count !== 1 ? 's' : '' }}
+            <span v-if="job.result.collection" class="collection-badge">
+              → <router-link :to="`/collections/${job.result.collection.id}`">{{ job.result.collection.title }}</router-link>
+            </span>
+          </p>
           <div class="import-posts-grid">
             <router-link
-              v-for="post in job.result.posts.filter(p => p.post_id)"
+              v-for="post in job.result.posts.filter(p => p.post_id).slice(0, job.showAllPosts ? undefined : 4)"
               :key="post.post_id"
               :to="`/posts/${post.post_id}`"
               class="post-thumb"
             >
-              <img :src="post.thumbnail_url" :alt="`Post #${post.post_id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post, post.post_id) }" />
-              <div v-if="shouldBlur(post, post.post_id)" class="sfw-overlay" @click.stop="reveal(post.post_id)">Show</div>
+              <img v-if="post.thumbnail_url" :src="post.thumbnail_url" :alt="`Post #${post.post_id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post, post.post_id) }" />
+              <span v-else class="thumb-missing">#{{ post.post_id }}</span>
+              <div v-if="post.thumbnail_url && shouldBlur(post, post.post_id)" class="sfw-overlay" @click.stop="reveal(post.post_id)">Show</div>
             </router-link>
           </div>
+          <button
+            v-if="job.result.posts.filter(p => p.post_id).length > 4"
+            class="show-more-btn"
+            @click.stop="job.showAllPosts = !job.showAllPosts"
+          >
+            {{ job.showAllPosts ? 'Show less' : `Show all ${job.result.posts.filter(p => p.post_id).length} posts` }}
+          </button>
           <ul v-if="job.result.posts.some(p => p.error)" class="error-list">
             <li v-for="(post, i) in job.result.posts.filter(p => p.error)" :key="i" class="text-error">
               {{ post.file_url }}: {{ post.error }}
@@ -143,11 +155,21 @@ function displayStatus(job) {
 
 function elapsed(job) {
   const ms = (job.finishedAt || now.value) - job.startedAt
-  const secs = Math.floor(ms / 1000)
-  if (secs < 60) return `${secs}s`
-  const mins = Math.floor(secs / 60)
-  const rem = secs % 60
-  return `${mins}m ${rem}s`
+  const totalSecs = Math.floor(ms / 1000)
+  if (totalSecs < 60) return `${totalSecs}s`
+  const totalMins = Math.floor(totalSecs / 60)
+  if (totalMins < 60) {
+    const secs = totalSecs % 60
+    return `${totalMins}m ${secs}s`
+  }
+  const hours = Math.floor(totalMins / 60)
+  if (hours < 24) {
+    const mins = totalMins % 60
+    return `${hours}h ${mins}m`
+  }
+  const days = Math.floor(hours / 24)
+  const remHours = hours % 24
+  return `${days}d ${remHours}h`
 }
 
 onMounted(() => {
@@ -166,6 +188,7 @@ onMounted(() => {
         expanded: !finished,
         startedAt: s.startedAt || Date.now(),
         finishedAt: s.finishedAt || null,
+        showAllPosts: false,
       }
       jobs.push(job)
       if (!finished) pollJob(job)
@@ -183,7 +206,7 @@ async function startImport() {
   error.value = ''
   try {
     const { data } = await api.post('/import', { url: url.value })
-    const job = { id: data.id, url: url.value, status: 'PENDING', result: null, meta: null, logs: [], expanded: true, startedAt: Date.now(), finishedAt: null }
+    const job = { id: data.id, url: url.value, status: 'PENDING', result: null, meta: null, logs: [], expanded: true, startedAt: Date.now(), finishedAt: null, showAllPosts: false }
     jobs.unshift(job)
     saveJobs()
     pollJob(job)
@@ -386,12 +409,36 @@ async function deleteCookies() {
   display: block;
   height: 9em;
   overflow: hidden;
+  position: relative;
 }
 .import-posts-grid .post-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+.thumb-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.show-more-btn {
+  margin-top: 0.5em;
+  background: none;
+  border: 1px solid var(--border-color, #444);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding: 0.3em 0.8em;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+.show-more-btn:hover { background: var(--item-hover); }
+.collection-badge { font-size: 0.85em; color: var(--text-muted); }
 
 .error-list {
   list-style: none;

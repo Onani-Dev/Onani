@@ -8,7 +8,7 @@ import string
 import random
 
 from Onani import db, init_app
-from Onani.controllers import create_default_tags
+from Onani.services import create_default_tags
 from Onani.models import UserPermissions, UserRoles, User
 
 app = init_app()

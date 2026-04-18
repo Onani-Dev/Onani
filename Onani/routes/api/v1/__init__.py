@@ -3,30 +3,16 @@
 # @Date:   2022-05-14 07:44:16
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-08-10 12:51:09
-from functools import wraps
-
-from flask import Blueprint, jsonify, request
-from flask_login import current_user
+from flask import Blueprint
 from flask_restful import Api
 
 from .. import csrf, limiter, db
 
 api_v1 = Blueprint("v1", __name__, url_prefix="/v1")
 
-
-def api_login_required(f):
-    """Require login for all API endpoints except auth routes."""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if "/auth/" in request.path:
-            return f(*args, **kwargs)
-        if not current_user.is_authenticated:
-            return {"message": "Authentication required."}, 401
-        return f(*args, **kwargs)
-    return decorated
-
-
-api = Api(api_v1, decorators=[csrf.exempt, api_login_required])
+# Auth is enforced per-resource via login_required / permissions_required decorators.
+# A global auth wrapper would incorrectly block public read endpoints.
+api = Api(api_v1, decorators=[csrf.exempt])
 
 from .auth import *
 from .collections import *

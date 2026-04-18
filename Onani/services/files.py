@@ -218,6 +218,7 @@ def create_video_thumbnail(video_path: str, thumbnail_path: str, seek_seconds: i
                 return False
         import shutil
         shutil.move(tmp, thumbnail_path)
+        os.chmod(thumbnail_path, 0o644)
         return True
     except Exception:
         return False
