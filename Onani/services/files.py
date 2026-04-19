@@ -17,6 +17,31 @@ from Onani import db
 
 _VIDEO_EXTENSIONS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
 
+
+def shard_path(images_dir: str, filename: str) -> str:
+    """Return the full filesystem path for *filename* using a two-level shard layout.
+
+    Files are stored as ``<images_dir>/<first-2-hex-chars>/<filename>`` to keep
+    directory entry counts below ~1 000 even at millions of posts, which avoids
+    the performance cliff on ext4/XFS with large flat directories.
+
+    Examples::
+
+        shard_path("/images", "abcdef1234.jpg")
+        # → "/images/ab/abcdef1234.jpg"
+    """
+    shard = filename[:2]
+    return os.path.join(images_dir, shard, filename)
+
+
+def ensure_shard_dir(images_dir: str, filename: str) -> str:
+    """Create the shard subdirectory for *filename* if it doesn't exist and
+    return the full file path (same as :func:`shard_path`)."""
+    path = shard_path(images_dir, filename)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    return path
+
+
 # Magic-byte signatures → (format_hint, description)
 # Checked in order; first match wins.
 _VIDEO_MAGIC = [
@@ -154,7 +179,7 @@ def get_video_data(
     import json as _json
 
     video_file = io.BytesIO(video_data)
-    filesize = sys.getsizeof(video_data)
+    filesize = len(video_data)
     hash_md5 = hashlib.md5(video_file.getbuffer()).hexdigest()
     hash_sha256 = hashlib.sha256(video_file.getbuffer()).hexdigest()
 
@@ -236,7 +261,7 @@ def get_file_data(
         (image_file, filesize, sha256, md5, width, height, filename, file_type)
     """
     image_file = io.BytesIO(file_data)
-    filesize = sys.getsizeof(file_data)
+    filesize = len(file_data)
     hash_md5 = hashlib.md5(image_file.getbuffer()).hexdigest()
     hash_sha256 = hashlib.sha256(image_file.getbuffer()).hexdigest()
 

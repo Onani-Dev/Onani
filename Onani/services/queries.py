@@ -2,6 +2,7 @@
 from typing import List, Optional
 
 from Onani.models import Post, Tag
+from Onani.models.post._post import post_tags as _post_tags
 from Onani.models.post.status import PostStatus
 from sqlalchemy import distinct, func
 
@@ -42,11 +43,17 @@ def query_posts(
         posts = posts.order_by(Post.id.desc())
 
     if exclude_tags:
-        excluded_ids = (
-            db.session.query(Post.id)
-            .join(Post.tags)
+        # LEFT JOIN anti-join: avoids the NOT IN (SELECT …) plan which PostgreSQL
+        # cannot use an index-only scan for when the subquery is large.
+        excl_subq = (
+            db.session.query(_post_tags.c.post_id)
+            .join(Tag, Tag.id == _post_tags.c.tag_id)
             .filter(Tag.name.in_(exclude_tags))
+            .distinct()
+            .subquery()
         )
-        posts = posts.filter(Post.id.notin_(excluded_ids))
+        posts = posts.outerjoin(excl_subq, Post.id == excl_subq.c.post_id).filter(
+            excl_subq.c.post_id.is_(None)
+        )
 
     return posts

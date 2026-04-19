@@ -114,23 +114,13 @@ const jobs = reactive([])
 const timers = {}
 let elapsedInterval = null
 
-const STORAGE_KEY = 'importJobs'
-const MAX_HISTORY = 50
 const now = ref(Date.now())
 
 function jobFailed(job) {
-  return job.status === 'FAILURE' || job.status === 'ERROR' || (job.status === 'SUCCESS' && !!job.result?.error)
+  return job.status === 'FAILURE' || job.status === 'ERROR' || job.status === 'REVOKED' || (job.status === 'SUCCESS' && !!job.result?.error)
 }
 function jobSucceeded(job) {
   return job.status === 'SUCCESS' && !job.result?.error
-}
-
-function saveJobs() {
-  const toSave = jobs.slice(0, MAX_HISTORY).map(j => ({
-    id: j.id, url: j.url, status: j.status, result: j.result,
-    meta: j.meta, logs: j.logs, startedAt: j.startedAt, finishedAt: j.finishedAt,
-  }))
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
 }
 
 function dotClass(job) {
@@ -148,6 +138,8 @@ function badgeClass(job) {
 }
 
 function displayStatus(job) {
+  if (job.status === 'REVOKED') return 'STOPPED'
+  if (job.status === 'QUEUED') return 'QUEUED'
   if (jobFailed(job)) return 'FAILED'
   if (job.status === 'PROGRESS' && job.meta) return `${job.meta.current}/${job.meta.total}`
   return job.status
@@ -172,28 +164,49 @@ function elapsed(job) {
   return `${days}d ${remHours}h`
 }
 
-onMounted(() => {
-  elapsedInterval = setInterval(() => { now.value = Date.now() }, 1000)
-  if (auth.user) loadCookieStatus()
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-    for (const s of saved) {
-      const finished = ['SUCCESS', 'FAILURE', 'ERROR'].includes(s.status)
-      const job = {
-        id: s.id, url: s.url,
-        status: s.status || 'PENDING',
-        result: s.result || null,
-        meta: s.meta || null,
-        logs: s.logs || [],
-        expanded: !finished,
-        startedAt: s.startedAt || Date.now(),
-        finishedAt: s.finishedAt || null,
-        showAllPosts: false,
-      }
-      jobs.push(job)
-      if (!finished) pollJob(job)
+/** Merge a server-side job record into the local reactive array. */
+function mergeServerJob(s) {
+  const existing = jobs.find(j => j.id === s.id)
+  const finished = ['SUCCESS', 'FAILURE', 'REVOKED', 'ERROR'].includes(s.status)
+  const startedAt = s.created_at ? new Date(s.created_at).getTime() : Date.now()
+  const finishedAt = s.finished_at ? new Date(s.finished_at).getTime() : null
+  if (existing) {
+    // Only update fields that the server controls — preserve live polling state
+    if (finished && !['SUCCESS', 'FAILURE', 'REVOKED', 'ERROR'].includes(existing.status)) {
+      existing.status = s.status
+      existing.result = s.result
+      existing.finishedAt = finishedAt || Date.now()
+      if (s.result?.logs) existing.logs = s.result.logs
     }
-  } catch { /* ignore corrupt data */ }
+  } else {
+    const job = {
+      id: s.id,
+      url: s.url,
+      status: s.status || 'PENDING',
+      result: s.result || null,
+      meta: null,
+      logs: s.result?.logs || [],
+      expanded: !finished,
+      startedAt,
+      finishedAt,
+      showAllPosts: false,
+    }
+    jobs.push(job)
+    if (!finished) pollJob(job)
+  }
+}
+
+onMounted(async () => {
+  elapsedInterval = setInterval(() => { now.value = Date.now() }, 1000)
+  if (auth.user) {
+    loadCookieStatus()
+    try {
+      // Load own import history from the server (?mine=1 keeps it own-only even for admins)
+      const { data } = await api.get('/imports', { params: { mine: 1, per_page: 50 } })
+      for (const s of data.data) mergeServerJob(s)
+      jobs.sort((a, b) => b.startedAt - a.startedAt)
+    } catch { /* non-critical */ }
+  }
 })
 
 onUnmounted(() => {
@@ -206,9 +219,9 @@ async function startImport() {
   error.value = ''
   try {
     const { data } = await api.post('/import', { url: url.value })
-    const job = { id: data.id, url: url.value, status: 'PENDING', result: null, meta: null, logs: [], expanded: true, startedAt: Date.now(), finishedAt: null, showAllPosts: false }
+    const initialStatus = data.queued ? 'QUEUED' : 'PENDING'
+    const job = { id: data.id, url: url.value, status: initialStatus, result: null, meta: null, logs: [], expanded: true, startedAt: Date.now(), finishedAt: null, showAllPosts: false }
     jobs.unshift(job)
-    saveJobs()
     pollJob(job)
     url.value = ''
   } catch (err) {
@@ -229,19 +242,19 @@ async function pollJob(job) {
       if (data.meta.logs) job.logs = data.meta.logs
     }
 
-    if (data.status === 'SUCCESS' || data.status === 'FAILURE') {
+    if (data.status === 'SUCCESS' || data.status === 'FAILURE' || data.status === 'REVOKED') {
       job.result = data.result
       job.finishedAt = Date.now()
       if (data.result?.logs) job.logs = data.result.logs
       delete timers[job.id]
-      saveJobs()
     } else {
-      timers[job.id] = setTimeout(() => pollJob(job), 2000)
+      // QUEUED and PENDING jobs poll less frequently to reduce server load
+      const delay = (data.status === 'QUEUED' || data.status === 'PENDING') ? 5000 : 2000
+      timers[job.id] = setTimeout(() => pollJob(job), delay)
     }
   } catch {
     job.status = 'ERROR'
     job.finishedAt = Date.now()
-    saveJobs()
     delete timers[job.id]
   }
 }
@@ -250,7 +263,6 @@ function dismissJob(id) {
   if (timers[id]) { clearTimeout(timers[id]); delete timers[id] }
   const idx = jobs.findIndex(j => j.id === id)
   if (idx !== -1) jobs.splice(idx, 1)
-  saveJobs()
 }
 
 async function loadCookieStatus() {

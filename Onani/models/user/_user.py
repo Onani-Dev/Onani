@@ -359,7 +359,7 @@ class User(UserMixin, db.Model):
         """
         return bool(post.downvoters.filter_by(id=self.id).first())
 
-    def has_watered(self, post: "Post") -> bool:
+    def has_favourited(self, post: "Post") -> bool:
         return bool(post.waterers.filter_by(id=self.id).first())
 
     def can_edit_post(self, post: "Post") -> bool:

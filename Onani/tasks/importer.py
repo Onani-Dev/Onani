@@ -12,9 +12,47 @@ from celery import shared_task
 from . import db
 
 
+def _dispatch_next_queued(domain: str) -> None:
+    """Dispatch the oldest QUEUED ImportJob for *domain*, if any.
+
+    Called at the end of ``import_post`` so that imports from the same
+    extractor domain run serially rather than concurrently.
+
+    Uses SELECT FOR UPDATE SKIP LOCKED to be safe under multiple Celery workers.
+    """
+    if not domain:
+        return
+    try:
+        from Onani.models.import_job import ImportJob
+        job = (
+            ImportJob.query
+            .filter_by(domain=domain, status="QUEUED")
+            .order_by(ImportJob.created_at.asc())
+            .with_for_update(skip_locked=True)
+            .first()
+        )
+        if not job:
+            db.session.rollback()  # release the advisory lock
+            return
+        cookies_content = (job.queue_meta or {}).get("cookies_content")
+        job.status = "PENDING"
+        db.session.commit()
+        import_post.apply_async(
+            args=[job.url, job.user_id, cookies_content],
+            task_id=job.task_id,
+        )
+    except Exception:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+
+
 @shared_task(bind=True)
 def import_post(self, post_url: str, importer_id: int, cookies_content: str = None):
+    import datetime
     from Onani.importers import get_all_posts, save_imported_post, ImportedPostSchema
+    from Onani.importers.gallery_dl_importer import is_supported, GalleryDLTimeoutError, GalleryDLAbortError
     from Onani.models import Collection, CollectionStatus
 
     # Discard any stale session/connection from a previous task or failed request.
@@ -40,18 +78,35 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
             logs.append(f"Warning: could not write cookies file: {e}")
             cookies_path = None
 
+    result = None
     try:
         try:
             imported_posts = get_all_posts(post_url, cookies_path=cookies_path)
+        except GalleryDLTimeoutError as e:
+            result = {"error": str(e), "logs": logs + [f"Error: {e}"], "url": post_url}
+            return result
+        except GalleryDLAbortError as e:
+            result = {"error": str(e), "logs": logs + [f"Error: {e}"], "url": post_url}
+            return result
         except Exception as e:
-            return {"error": f"Failed to fetch: {e}", "logs": [f"Error: {e}"], "url": post_url}
+            result = {"error": f"Failed to fetch: {e}", "logs": [f"Error: {e}"], "url": post_url}
+            return result
 
         if not imported_posts:
-            return {"error": f"No importer found or no posts returned for URL: {post_url}", "logs": logs, "url": post_url}
+            # Distinguish between unsupported URLs and supported-but-empty results
+            if not is_supported(post_url):
+                msg = f"URL is not supported by any importer: {post_url}"
+            else:
+                msg = (
+                    f"No posts returned for URL: {post_url}. "
+                    "The page may be empty, private, or rate-limited."
+                )
+            result = {"error": msg, "logs": logs, "url": post_url}
+            return result
 
         total = len(imported_posts)
         results = []
-        saved_posts = []  # successfully imported Post objects
+        saved_post_ids = []  # IDs of successfully imported posts (avoids detached-instance)
         logs.append(f"Found {total} post(s). Starting import...")
 
         for i, imported_post in enumerate(imported_posts):
@@ -61,7 +116,7 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                 result["post_id"] = post.id
                 result["thumbnail_url"] = post.thumbnail(size="large")
                 results.append(result)
-                saved_posts.append(post)
+                saved_post_ids.append(post.id)
                 logs.append(f"[{i+1}/{total}] Imported: post #{post.id}")
             except Exception as e:
                 # Use remove() instead of rollback() — after a DB error (e.g. FK
@@ -87,9 +142,10 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
         collection_name = next(
             (p.collection_name for p in imported_posts if p.collection_name), None
         )
-        if collection_name and saved_posts:
+        if collection_name and saved_post_ids:
             try:
                 from sqlalchemy.exc import IntegrityError
+                from Onani.models import Post
                 collection = Collection.query.filter_by(
                     title=collection_name, creator=importer_id
                 ).first()
@@ -110,27 +166,52 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                             title=collection_name, creator=importer_id
                         ).first()
 
-                for post in saved_posts:
-                    if not collection.posts.filter_by(id=post.id).first():
-                        collection.posts.append(post)
+                # Re-query posts by ID so we have fresh session-bound instances
+                # (saved_post_ids are plain ints — immune to session.remove() calls).
+                existing_ids = {p.id for p in collection.posts}
+                for post_id in saved_post_ids:
+                    if post_id not in existing_ids:
+                        post = db.session.get(Post, post_id)
+                        if post:
+                            collection.posts.append(post)
 
                 db.session.commit()
                 collection_info = {"id": collection.id, "title": collection.title}
-                logs.append(f"Added {len(saved_posts)} post(s) to collection '{collection_name}' (#{collection.id}).")
+                logs.append(f"Added {len(saved_post_ids)} post(s) to collection '{collection_name}' (#{collection.id}).")
             except Exception as e:
                 db.session.rollback()
                 logs.append(f"Warning: could not create collection: {e}")
 
-        return {
+        result = {
             "posts": results,
             "count": len(results),
             "url": post_url,
             "logs": logs,
             "collection": collection_info,
         }
+        return result
     finally:
         if cookies_path:
             try:
                 os.unlink(cookies_path)
             except OSError:
                 pass
+        # Sync terminal state back to the ImportJob DB record (if one exists).
+        # This ensures scheduled imports and any task that completes without a
+        # polling client still updates the history.
+        if result is not None:
+            try:
+                from Onani.models.import_job import ImportJob
+                job_rec = ImportJob.query.filter_by(task_id=self.request.id).first()
+                if job_rec and job_rec.status not in ("SUCCESS", "FAILURE", "REVOKED"):
+                    job_rec.status = "FAILURE" if result.get("error") else "SUCCESS"
+                    job_rec.result = result
+                    job_rec.finished_at = datetime.datetime.now(datetime.timezone.utc)
+                    db.session.commit()
+            except Exception:
+                db.session.rollback()
+        # Dispatch the next queued job for this domain (if any) so that
+        # imports from the same extractor run serially.
+        from urllib.parse import urlparse as _urlparse
+        _domain = _urlparse(post_url).hostname or ""
+        _dispatch_next_queued(_domain)

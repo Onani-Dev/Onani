@@ -1,5 +1,5 @@
 <template>
-  <div class="posts-container">
+  <div class="page-container posts-content">
     <h1>Posts</h1>
     <form class="search-bar" @submit.prevent="search">
       <div class="tag-input-wrap" ref="wrapRef">
@@ -188,16 +188,13 @@ onMounted(fetchPosts)
 </script>
 
 <style scoped>
-.posts-container {
-  background-color: var(--bg-raised);
-  padding: 10px 10px 1.5em 10px;
-  width: 100%;
+.posts-content {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-height: 50vh;
 }
-.posts-container h1 { margin: 0.5em; }
+.posts-content h1 { margin: 0.5em; }
 .no-results { padding: 1em; color: var(--text-muted); }
 
 /* Search bar */
@@ -288,8 +285,6 @@ onMounted(fetchPosts)
 .ac-name { font-weight: 600; }
 .ac-count { font-size: 0.78em; color: var(--text-muted); margin-left: 0.5em; }
 
-@media (max-width: 689px) {
-  .posts-container { margin-right: auto; margin-left: auto; padding: 0; }
-}
+
 </style>
 

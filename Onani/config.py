@@ -18,6 +18,15 @@ SQLALCHEMY_DATABASE_URI = os.getenv(
 )
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# Pool pre-ping validates each connection before use, discarding ones left in
+# a bad state after connection errors or aborted transactions.  Critical for
+# long-running Celery workers doing bulk imports where individual post saves
+# can fail and leave connections in an aborted-transaction state.
+SQLALCHEMY_ENGINE_OPTIONS = {
+    "pool_pre_ping": True,
+    "pool_recycle": 3600,  # discard connections older than 1 hour
+}
+
 SQLALCHEMY_ECHO = bool(os.environ.get("FLASK_SQLALCHEMY_ECHO"))
 
 

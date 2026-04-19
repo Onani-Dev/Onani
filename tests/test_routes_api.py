@@ -133,6 +133,145 @@ class TestVoteAPI:
         assert data["has_upvoted"] is False
 
 
+
+class TestWaterAPI:
+    def test_water_requires_login(self, client, make_post, app):
+        with app.app_context():
+            post = make_post(sha256_hash="waterhash1")
+            post_id = post.id
+
+        resp = client.post(
+            "/api/v1/posts/water",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code in (401, 302)
+
+    def test_water_increments_count(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="waterhash2")
+            post_id = post.id
+
+        resp = client.post(
+            "/api/v1/posts/water",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["water_count"] == 1
+
+    def test_water_keeps_incrementing(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="waterhash3")
+            post_id = post.id
+
+        for _ in range(3):
+            client.post(
+                "/api/v1/posts/water",
+                data=json.dumps({"post_id": post_id}),
+                content_type="application/json",
+            )
+        resp = client.post(
+            "/api/v1/posts/water",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+        data = json.loads(resp.data)
+        assert data["water_count"] == 4
+
+    def test_post_get_returns_has_favourited(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="waterhash4")
+            post_id = post.id
+
+        resp = client.get(f"/api/v1/post?id={post_id}")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert "has_favourited" in data
+        assert data["has_favourited"] is False
+
+    def test_favourite_requires_login(self, client, make_post, app):
+        with app.app_context():
+            post = make_post(sha256_hash="favhash0")
+            post_id = post.id
+
+        resp = client.post(
+            "/api/v1/posts/favourite",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code in (401, 302)
+
+    def test_favourite_post(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="favhash1")
+            post_id = post.id
+
+        resp = client.post(
+            "/api/v1/posts/favourite",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["has_favourited"] is True
+
+    def test_favourite_toggle_off(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="favhash2")
+            post_id = post.id
+
+        payload = json.dumps({"post_id": post_id})
+        client.post("/api/v1/posts/favourite", data=payload, content_type="application/json")
+        resp = client.post("/api/v1/posts/favourite", data=payload, content_type="application/json")
+        data = json.loads(resp.data)
+        assert data["has_favourited"] is False
+
+    def test_favourites_listing(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="favhash3")
+            post_id = post.id
+
+        client.post(
+            "/api/v1/posts/favourite",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+
+        resp = client.get("/api/v1/posts/favourites")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        ids = [p["id"] for p in data["data"]]
+        assert post_id in ids
+
+    def test_favourites_empty_after_unfavourite(self, logged_in_client, make_post, app):
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="favhash4")
+            post_id = post.id
+
+        payload = json.dumps({"post_id": post_id})
+        # Favourite then unfavourite
+        for _ in range(2):
+            client.post("/api/v1/posts/favourite", data=payload, content_type="application/json")
+
+        resp = client.get("/api/v1/posts/favourites")
+        data = json.loads(resp.data)
+        ids = [p["id"] for p in data["data"]]
+        assert post_id not in ids
+
+    def test_favourites_listing_requires_login(self, client):
+        resp = client.get("/api/v1/posts/favourites")
+        assert resp.status_code in (401, 302)
+
+
 class TestTagsAPI:
     def test_get_tags_empty(self, client):
         resp = client.get("/api/v1/tags")

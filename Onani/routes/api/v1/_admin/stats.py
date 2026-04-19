@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """Admin dashboard API endpoints — stats, task management, error logs."""
+import datetime
+import os
+
 from flask import abort
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
@@ -9,6 +12,7 @@ from Onani.models import (
     Collection,
     Error,
     Post,
+    ScheduledImport,
     Tag,
     User,
     UserPermissions,
@@ -33,10 +37,7 @@ class AdminStats(Resource):
 
 
 class AdminErrors(Resource):
-    decorators = [
-        login_required,
-        permissions_required(UserPermissions.VIEW_LOGS),
-    ]
+    decorators = [login_required, role_required(UserRoles.MODERATOR)]
 
     def get(self):
         parser = reqparse.RequestParser()
@@ -54,6 +55,7 @@ class AdminErrors(Resource):
                     "id": str(e.id),
                     "exception_type": e.exception_type,
                     "created_at": e.created_at.isoformat() if e.created_at else None,
+                    "traceback": e.traceback,
                 }
                 for e in page.items
             ],
@@ -71,18 +73,77 @@ class AdminRunTask(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             "task", location="json", type=str, required=True,
-            choices=["remove_expired_bans", "backfill_video_thumbnails", "recount_tags"],
+            choices=["remove_expired_bans", "backfill_video_thumbnails", "recount_tags", "migrate_images", "clear_import_queue", "restart_celery"],
         )
         args = parser.parse_args()
         task_name = args["task"]
+
+        if task_name == "clear_import_queue":
+            from Onani.models.import_job import ImportJob
+            count = (
+                ImportJob.query
+                .filter_by(status="QUEUED")
+                .update({"status": "REVOKED", "finished_at": datetime.datetime.now(datetime.timezone.utc)})
+            )
+            db.session.commit()
+            return {"message": f"Cleared {count} queued import job(s)."}
+
+        if task_name == "restart_celery":
+            # ext.celery is None at module import time — it is only set after
+            # init_app() runs.  Retrieve the live Celery app from the Flask
+            # extension registry instead.
+            from flask import current_app as _app
+            _ext = _app.extensions.get("flask-celeryext")
+            if _ext is None or _ext.celery is None:
+                return {"message": "Celery app not found."}, 500
+            replies = _ext.celery.control.broadcast("pool_restart", reply=True, timeout=5)
+            if not replies:
+                return {"message": "No Celery workers responded (queue may still be running)."}
+            errors = [
+                f"{worker}: {list(r.values())[0].get('error', '')}"
+                for reply in replies
+                for worker, r in reply.items()
+                if isinstance(list(r.values())[0], dict) and list(r.values())[0].get("error")
+            ]
+            if errors:
+                return {"message": f"pool_restart failed: {'; '.join(errors)}"}, 500
+            return {"message": f"Sent pool_restart to {len(replies)} Celery worker(s)."}
 
         if task_name == "remove_expired_bans":
             from Onani.cron.tasks import remove_expired_bans
             remove_expired_bans()
             return {"message": "Task 'remove_expired_bans' completed."}
 
+        if task_name == "migrate_images":
+            import shutil
+            from flask import current_app as _app
+            from Onani.services.files import shard_path
+            images_dir = _app.config.get("IMAGES_DIR", "/images")
+            moved = skipped = failed = 0
+            for entry in os.scandir(images_dir):
+                if not entry.is_file():
+                    continue
+                filename = entry.name
+                if len(filename) < 2 or not filename[0:2].isalnum():
+                    continue
+                dest = shard_path(images_dir, filename)
+                if os.path.exists(dest):
+                    try:
+                        os.remove(entry.path)
+                        skipped += 1
+                    except OSError:
+                        skipped += 1
+                    continue
+                try:
+                    os.makedirs(os.path.dirname(dest), exist_ok=True)
+                    shutil.move(entry.path, dest)
+                    moved += 1
+                except Exception as exc:
+                    failed += 1
+            return {"message": f"migrate-images completed — moved:{moved} skipped:{skipped} failed:{failed}"}
+
         if task_name == "backfill_video_thumbnails":
-            from Onani.services.files import create_video_thumbnail
+            from Onani.services.files import create_video_thumbnail, shard_path, ensure_shard_dir
             from flask import current_app
             import os
             images_dir = current_app.config["IMAGES_DIR"]
@@ -91,15 +152,17 @@ class AdminRunTask(Resource):
             ok = skipped = failed = 0
             for post in videos:
                 stem = post.filename.rsplit(".", 1)[0]
-                thumb = os.path.join(images_dir, f"{stem}.jpg")
+                thumb_name = f"{stem}.jpg"
+                thumb = shard_path(images_dir, thumb_name)
                 if os.path.exists(thumb):
                     skipped += 1
                     continue
-                src = os.path.join(images_dir, post.filename)
+                src = shard_path(images_dir, post.filename)
                 if not os.path.exists(src):
                     failed += 1
                     continue
-                if create_video_thumbnail(src, thumb):
+                dest = ensure_shard_dir(images_dir, thumb_name)
+                if create_video_thumbnail(src, dest):
                     ok += 1
                 else:
                     failed += 1
@@ -150,7 +213,7 @@ class AdminUsers(Resource):
         parser.add_argument("password", location="json", type=str, required=True)
         parser.add_argument(
             "role", location="json", type=str, default="MEMBER",
-            choices=["MEMBER", "ARTIST", "PREMIUM", "HELPER", "MODERATOR", "ADMIN"],
+            choices=["MEMBER", "HELPER", "MODERATOR", "ADMIN", "OWNER"],
         )
         args = parser.parse_args()
 
@@ -172,14 +235,14 @@ class AdminUsers(Resource):
         parser.add_argument("id", location="json", type=int, required=True)
         parser.add_argument(
             "role", location="json", type=str, required=True,
-            choices=["MEMBER", "ARTIST", "PREMIUM", "HELPER", "MODERATOR", "ADMIN"],
+            choices=["MEMBER", "HELPER", "MODERATOR", "ADMIN", "OWNER"],
         )
         args = parser.parse_args()
 
         user = User.query.filter_by(id=args["id"]).first_or_404()
         if user.id == current_user.id:
             abort(400)
-        if user.has_role(UserRoles.OWNER):
+        if user.has_role(UserRoles.OWNER) and not current_user.has_role(UserRoles.OWNER):
             abort(403)
 
         user.role = UserRoles[args["role"]]
@@ -204,29 +267,50 @@ class AdminUsers(Resource):
 
 
 class AdminImports(Resource):
+    """DB-backed import history for MODERATOR+ admins.
+
+    The frontend now uses the role-aware ``GET /imports`` endpoint directly.
+    This resource is kept for backward-compat and adds the Celery active-task
+    overlay on top of the DB view.
+    """
     decorators = [login_required, role_required(UserRoles.MODERATOR)]
 
     def get(self):
-        try:
-            from Onani import ext
-            inspector = ext.celery.control.inspect(timeout=1.0)
-            active = inspector.active() or {}
-        except Exception:
-            active = {}
+        from Onani.models.import_job import ImportJob
+
+        parser = reqparse.RequestParser()
+        parser.add_argument("page",     location="args", type=int, default=1)
+        parser.add_argument("per_page", location="args", type=int, default=20)
+        args = parser.parse_args()
+        per_page = max(1, min(args["per_page"], 50))
+
+        page = (
+            ImportJob.query
+            .order_by(ImportJob.created_at.desc())
+            .paginate(page=args["page"], per_page=per_page, error_out=False)
+        )
 
         tasks = []
-        for worker, worker_tasks in active.items():
-            for t in worker_tasks:
-                name = t.get("name", "")
-                if "import_post" in name:
-                    args = t.get("args", [])
-                    tasks.append({
-                        "id": t["id"],
-                        "url": args[0] if args else None,
-                        "worker": worker,
-                    })
+        for j in page.items:
+            tasks.append({
+                "id":          j.task_id,
+                "url":         j.url,
+                "status":      j.status,
+                "result":      j.result,
+                "created_at":  j.created_at.isoformat() if j.created_at else None,
+                "finished_at": j.finished_at.isoformat() if j.finished_at else None,
+                "user": {
+                    "id":       j.user.id,
+                    "username": j.user.username,
+                } if j.user else None,
+            })
 
-        return {"tasks": tasks}
+        return {
+            "tasks": tasks,
+            "total": page.total,
+            "page":  page.page,
+            "pages": page.pages,
+        }
 
 
 class AdminCeleryLogs(Resource):
@@ -261,9 +345,156 @@ class AdminCeleryLogs(Resource):
             return {"lines": [], "available": False, "error": str(e)}
 
 
+class AdminFlaskLogs(Resource):
+    decorators = [login_required, role_required(UserRoles.MODERATOR)]
+
+    LOG_PATHS = {
+        "access": "/logs/onani.access.log",
+        "error":  "/logs/onani.error.log",
+    }
+    MAX_LINES = 500
+
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("type",  location="args", type=str, default="error",
+                            choices=["access", "error"])
+        parser.add_argument("lines", location="args", type=int, default=100)
+        args = parser.parse_args()
+        n = max(1, min(args["lines"], self.MAX_LINES))
+
+        log_path = self.LOG_PATHS[args["type"]]
+        if not os.path.exists(log_path):
+            return {"lines": [], "available": False}
+
+        try:
+            with open(log_path, "rb") as f:
+                f.seek(0, 2)
+                size = f.tell()
+                read_size = min(size, 256 * 1024)
+                f.seek(-read_size, 2)
+                chunk = f.read()
+            raw_lines = chunk.decode("utf-8", errors="replace").splitlines()
+            return {"lines": raw_lines[-n:], "available": True}
+        except OSError as e:
+            return {"lines": [], "available": False, "error": str(e)}
+
+
+class AdminScheduledImports(Resource):
+    decorators = [login_required, role_required(UserRoles.ADMIN)]
+
+    VALID_INTERVALS = {30, 60, 120, 360, 720, 1440, 2880, 10080}
+
+    def _serialize(self, task):
+        return {
+            "id": task.id,
+            "label": task.label,
+            "url": task.url,
+            "interval_minutes": task.interval_minutes,
+            "enabled": task.enabled,
+            "has_cookies": bool(task.cookies),
+            "created_at": task.created_at.isoformat() if task.created_at else None,
+            "last_run_at": task.last_run_at.isoformat() if task.last_run_at else None,
+            "last_run_status": task.last_run_status,
+            "last_error": task.last_error,
+            "creator_id": task.creator_id,
+            # Note: cookies are never returned to the client
+        }
+
+    def get(self):
+        tasks = ScheduledImport.query.order_by(ScheduledImport.id.asc()).all()
+        return {"data": [self._serialize(t) for t in tasks]}
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("url",              location="json", type=str, required=True)
+        parser.add_argument("label",            location="json", type=str, default=None)
+        parser.add_argument("interval_minutes", location="json", type=int, required=True)
+        parser.add_argument("enabled",          location="json", type=bool, default=True)
+        parser.add_argument("cookies",          location="json", type=str, default=None)
+        args = parser.parse_args()
+
+        if args["interval_minutes"] not in self.VALID_INTERVALS:
+            return {"message": f"interval_minutes must be one of {sorted(self.VALID_INTERVALS)}."}, 400
+
+        task = ScheduledImport(
+            url=args["url"].strip(),
+            label=args["label"] or None,
+            interval_minutes=args["interval_minutes"],
+            enabled=args["enabled"],
+            cookies=args["cookies"] or None,
+            creator_id=current_user.id,
+        )
+        db.session.add(task)
+        db.session.commit()
+        return self._serialize(task), 201
+
+    def put(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("id",               location="json", type=int, required=True)
+        parser.add_argument("url",              location="json", type=str, default=None)
+        parser.add_argument("label",            location="json", type=str, default=None)
+        parser.add_argument("interval_minutes", location="json", type=int, default=None)
+        parser.add_argument("enabled",          location="json", type=bool, default=None)
+        # Pass cookies=null to clear, omit the key to leave unchanged.
+        # reqparse treats missing keys as None by default, so use store_missing=False here.
+        args = parser.parse_args()
+
+        task = ScheduledImport.query.filter_by(id=args["id"]).first_or_404()
+
+        if args["url"] is not None:
+            task.url = args["url"].strip()
+        if args["label"] is not None:
+            task.label = args["label"] or None
+        if args["interval_minutes"] is not None:
+            if args["interval_minutes"] not in self.VALID_INTERVALS:
+                return {"message": f"interval_minutes must be one of {sorted(self.VALID_INTERVALS)}."}, 400
+            task.interval_minutes = args["interval_minutes"]
+        if args["enabled"] is not None:
+            task.enabled = args["enabled"]
+
+        # cookies: explicit empty string clears it; non-empty string sets it
+        raw_cookies = args["cookies"]
+        if raw_cookies is not None:
+            task.cookies = raw_cookies.strip() or None
+
+        db.session.commit()
+        return self._serialize(task)
+
+    def delete(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("id", location="json", type=int, required=True)
+        args = parser.parse_args()
+        task = ScheduledImport.query.filter_by(id=args["id"]).first_or_404()
+        db.session.delete(task)
+        db.session.commit()
+        return {}, 204
+
+
+class AdminScheduledImportRun(Resource):
+    decorators = [login_required, role_required(UserRoles.ADMIN)]
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("id", location="json", type=int, required=True)
+        args = parser.parse_args()
+
+        task = ScheduledImport.query.filter_by(id=args["id"]).first_or_404()
+        task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
+        task.last_run_status = "DISPATCHED"
+        task.last_error = None
+        db.session.commit()
+
+        from Onani.tasks.importer import import_post
+        celery_task = import_post.delay(task.url, task.creator_id or 1, task.cookies)
+        return {"message": "Task dispatched.", "task_id": celery_task.id}
+
+
 api.add_resource(AdminStats, "/admin/stats")
 api.add_resource(AdminErrors, "/admin/errors")
 api.add_resource(AdminRunTask, "/admin/tasks")
 api.add_resource(AdminUsers, "/admin/users")
 api.add_resource(AdminImports, "/admin/imports")
 api.add_resource(AdminCeleryLogs, "/admin/celery-logs")
+api.add_resource(AdminFlaskLogs, "/admin/flask-logs")
+api.add_resource(AdminScheduledImports, "/admin/scheduled-imports")
+api.add_resource(AdminScheduledImportRun, "/admin/scheduled-imports/run")

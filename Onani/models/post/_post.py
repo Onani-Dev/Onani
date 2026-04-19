@@ -284,18 +284,21 @@ class Post(db.Model):
     def thumbnail(self, size: str = "small") -> str:
         _VIDEO_EXTS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
         ext = (self.file_type or "").lower()
+        shard = self.filename[:2]
         if ext in _VIDEO_EXTS:
             stem = self.filename.rsplit(".", 1)[0]
-            return f"/images/thumbnail/{stem}.jpg?size={size}"
-        return f"/images/thumbnail/{self.filename}?size={size}"
+            return f"/images/thumbnail/{shard}/{stem}.jpg?size={size}"
+        return f"/images/thumbnail/{shard}/{self.filename}?size={size}"
 
     @property
     def sample(self) -> str:
-        return f"/sample/{self.filename}"
+        shard = self.filename[:2]
+        return f"/sample/{shard}/{self.filename}"
 
     @property
     def file_url(self) -> str:
-        return f"/images/{self.filename}"
+        shard = self.filename[:2]
+        return f"/images/{shard}/{self.filename}"
 
     @property
     def is_safe(self) -> bool:
@@ -308,10 +311,18 @@ class Post(db.Model):
         Raises:
             Exception: The file couldn't be deleted.
         """
+        from Onani.services.files import shard_path
         images_dir = current_app.config.get("IMAGES_DIR", "/images")
-        filepath = os.path.join(images_dir, self.filename)
+        filepath = shard_path(images_dir, self.filename)
         with contextlib.suppress(FileNotFoundError):
             os.remove(filepath)
+        # Remove video thumbnail if present
+        _VIDEO_EXTS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
+        if (self.file_type or "").lower() in _VIDEO_EXTS:
+            stem = self.filename.rsplit(".", 1)[0]
+            thumb_path = shard_path(images_dir, f"{stem}.jpg")
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(thumb_path)
         db.session.delete(self)
         db.session.commit()
 

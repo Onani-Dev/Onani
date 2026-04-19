@@ -25,7 +25,7 @@ class Tags(Resource):
         parser = reqparse.RequestParser()
 
         parser.add_argument(
-            "page", location="args", type=int, required=False, default=0
+            "page", location="args", type=int, required=False, default=1
         )
 
         parser.add_argument(

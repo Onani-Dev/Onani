@@ -131,8 +131,23 @@
               </template>
             </div>
 
-            <!-- Actions row: water + vote + edit -->
-            <div class="actions-row">
+            <!-- Actions: vote + favourite + water -->
+            <div class="actions-row actions-primary">
+              <div class="vote-container">
+                <button class="vote-btn" :class="{ voted: hasUpvoted }" @click="vote('upvote')">▲</button>
+                <span class="score" :class="{ positive: post.score > 0, negative: post.score < 0 }">{{ post.score }}</span>
+                <button class="vote-btn downvote" :class="{ voted: hasDownvoted }" @click="vote('downvote')">▼</button>
+              </div>
+
+              <button
+                class="fav-btn"
+                :class="{ favourited: hasFavourited }"
+                @click="doFavourite"
+                :title="hasFavourited ? 'Remove from favourites' : 'Add to favourites'"
+              >
+                {{ hasFavourited ? '♥' : '♡' }}
+              </button>
+
               <button
                 class="water-btn"
                 :class="{ splash: waterSplash }"
@@ -141,17 +156,10 @@
               >
                 💧 {{ waterCount }}
               </button>
+            </div>
 
-              <div class="vote-container">
-                <button class="vote-btn" :class="{ voted: hasUpvoted }" @click="vote('upvote')">▲</button>
-                <span class="score" :class="{ positive: post.score > 0, negative: post.score < 0 }">{{ post.score }}</span>
-                <button class="vote-btn downvote" :class="{ voted: hasDownvoted }" @click="vote('downvote')">▼</button>
-              </div>
-
-              <button v-if="canEdit" class="btn-sm" @click="metaEditMode = !metaEditMode">
-                {{ metaEditMode ? '✕ Cancel' : '✏ Edit' }}
-              </button>
-
+            <!-- Actions: collection + edit -->
+            <div class="actions-row actions-secondary">
               <div v-if="auth.isAuthenticated" class="collection-picker-wrap" @focusout="handleCollectionBlur">
                 <button class="btn-sm" @click="showCollectionPicker = !showCollectionPicker" title="Add to collection">
                   + Collection
@@ -168,6 +176,10 @@
                   <router-link to="/collections" class="coll-new-link" @mousedown.prevent>New collection…</router-link>
                 </div>
               </div>
+
+              <button v-if="canEdit" class="btn-sm" @click="metaEditMode = !metaEditMode">
+                {{ metaEditMode ? '✕ Cancel' : '✏ Edit' }}
+              </button>
             </div>
 
             <!-- Meta edit form (rating / source / description) -->
@@ -188,6 +200,16 @@
               <div class="field">
                 <label>Description</label>
                 <textarea v-model="editDescription" rows="3"></textarea>
+              </div>
+              <div class="meta-edit-delete">
+                <template v-if="!deleteConfirm">
+                  <button type="button" class="btn-delete" @click="deleteConfirm = true">🗑 Delete post</button>
+                </template>
+                <template v-else>
+                  <span class="delete-confirm-msg">Are you sure? This cannot be undone.</span>
+                  <button type="button" class="btn-delete btn-delete-confirm" :disabled="deleting" @click="deletePost">{{ deleting ? 'Deleting…' : 'Yes, delete' }}</button>
+                  <button type="button" class="btn-sm" @click="deleteConfirm = false">Cancel</button>
+                </template>
               </div>
             </form>
 
@@ -283,11 +305,13 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useSfwMode } from '@/composables/useSfwMode'
 const props = defineProps({ id: [String, Number] })
 const auth = useAuthStore()
+const router = useRouter()
 const { shouldBlur, reveal } = useSfwMode()
 
 // ── Post data ──
@@ -298,6 +322,7 @@ const loading = ref(true)
 // ── Votes / water ──
 const hasUpvoted = ref(false)
 const hasDownvoted = ref(false)
+const hasFavourited = ref(false)
 const waterCount = ref(0)
 const waterSplash = ref(false)
 
@@ -395,6 +420,8 @@ const metaEditError = ref('')
 const editRating = ref('')
 const editSource = ref('')
 const editDescription = ref('')
+const deleteConfirm = ref(false)
+const deleting = ref(false)
 
 // ── Tag editing ──
 const tagQuery = ref('')
@@ -451,9 +478,10 @@ onMounted(async () => {
       api.get('/comments', { params: { post_id: props.id } }),
     ])
     post.value = postRes.data
-    hasUpvoted.value  = postRes.data.has_upvoted  ?? false
-    hasDownvoted.value = postRes.data.has_downvoted ?? false
-    waterCount.value  = postRes.data.water_count  ?? 0
+    hasUpvoted.value   = postRes.data.has_upvoted    ?? false
+    hasDownvoted.value = postRes.data.has_downvoted  ?? false
+    hasFavourited.value = postRes.data.has_favourited ?? false
+    waterCount.value   = postRes.data.water_count    ?? 0
     comments.value    = commentRes.data.data ?? []
   } finally {
     loading.value = false
@@ -461,8 +489,8 @@ onMounted(async () => {
   // Pre-load collections for authenticated users
   if (auth.isAuthenticated) {
     try {
-      const { data } = await api.get('/collections', { params: { per_page: 200 } })
-      userCollections.value = (data.data ?? []).filter(c => c.creator === auth.user?.id)
+      const { data } = await api.get('/collections', { params: { per_page: 200, creator: auth.user?.id } })
+      userCollections.value = data.data ?? []
     } catch { /* non-fatal */ }
   }
 })
@@ -478,6 +506,7 @@ watch(metaEditMode, val => {
     editSource.value = post.value.source || ''
     editDescription.value = post.value.description || ''
     metaEditError.value = ''
+    deleteConfirm.value = false
   }
 })
 
@@ -498,6 +527,19 @@ async function saveMetaEdit() {
     metaEditError.value = err.response?.data?.message || 'Save failed.'
   } finally {
     saving.value = false
+  }
+}
+
+async function deletePost() {
+  deleting.value = true
+  try {
+    await api.delete('/post', { data: { id: Number(props.id) } })
+    router.push('/posts')
+  } catch (err) {
+    metaEditError.value = err.response?.data?.message || 'Delete failed.'
+    deleteConfirm.value = false
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -559,6 +601,17 @@ async function doWater() {
     waterCount.value = data.water_count
   } catch {
     waterCount.value--
+  }
+}
+
+async function doFavourite() {
+  const prev = hasFavourited.value
+  hasFavourited.value = !prev
+  try {
+    const { data } = await api.post('/posts/favourite', { post_id: Number(props.id) })
+    hasFavourited.value = data.has_favourited
+  } catch {
+    hasFavourited.value = prev
   }
 }
 
@@ -732,7 +785,9 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   display: flex;
   align-items: center;
   gap: 0.6em;
-  flex-wrap: wrap;
+}
+.actions-secondary {
+  margin-top: 0.3em;
 }
 .water-btn {
   display: flex;
@@ -741,8 +796,9 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   background: var(--bg-raised);
   border: none;
   cursor: pointer;
-  padding: 0.35em 0.8em;
-  font-size: 0.95rem;
+  height: 2.2em;
+  padding: 0 0.8em;
+  font-size: 0.9rem;
   font-weight: 600;
   transition: background 0.15s, color 0.15s;
 }
@@ -753,18 +809,34 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   30%  { transform: scale(1.25); filter: brightness(1.4); }
   100% { transform: scale(1); }
 }
+.fav-btn {
+  display: flex;
+  align-items: center;
+  background: var(--bg-raised);
+  border: none;
+  cursor: pointer;
+  height: 2.2em;
+  padding: 0 0.7em;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: color 0.15s, background 0.15s;
+}
+.fav-btn:hover { background: var(--item-hover); color: #f87171; }
+.fav-btn.favourited { color: #f87171; }
 .vote-container {
   display: flex;
   align-items: center;
   gap: 0.2em;
   background: var(--bg-raised);
-  padding: 0.25em 0.5em;
+  height: 2.2em;
+  padding: 0 0.5em;
 }
 .vote-btn {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.15em 0.4em;
+  padding: 0 0.4em;
   font-size: 0.9rem;
   color: var(--text-muted);
   transition: color 0.15s;
@@ -779,10 +851,10 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   background: var(--bg-raised);
   border: none;
   cursor: pointer;
-  padding: 0.35em 0.8em;
+  height: 2.2em;
+  padding: 0 0.8em;
   font-size: 0.82rem;
   color: var(--text-muted);
-  margin-left: auto;
 }
 .btn-sm:hover { background: var(--item-hover); color: var(--text); }
 
@@ -793,17 +865,42 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   gap: 0.55em;
   padding-top: 0.6em;
   border-top: 1px solid var(--border);
+  border-radius: 0;
 }
 .meta-edit-form .field { display: flex; flex-direction: column; gap: 0.2em; }
 .meta-edit-form label { font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
 .meta-edit-form input,
 .meta-edit-form select,
 .meta-edit-form textarea { width: 100%; }
+.meta-edit-delete {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  padding-top: 0.5em;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  margin-top: 0.25em;
+}
+.delete-confirm-msg { font-size: 0.82rem; color: var(--text-muted); flex: 1; }
+.btn-delete {
+  background: transparent;
+  border: 1px solid #7f3434;
+  color: #f87171;
+  cursor: pointer;
+  padding: 0.3em 0.75em;
+  font-size: 0.82rem;
+  transition: background 0.15s;
+}
+.btn-delete:hover { background: #3d1a1a; }
+.btn-delete-confirm { background: #5a1f1f; }
+.btn-delete-confirm:hover { background: #7f2a2a; }
 
 /* ── Description view ── */
 .description-block {
   padding-top: 0.6em;
   border-top: 1px solid var(--border);
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   gap: 0.3em;

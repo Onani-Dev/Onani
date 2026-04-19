@@ -12,8 +12,6 @@ class UserRoles(enum.Enum):
     """
 
     MEMBER = 0
-    ARTIST = 1
-    PREMIUM = 2
     HELPER = 100
     MODERATOR = 200
     ADMIN = 300

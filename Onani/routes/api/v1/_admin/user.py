@@ -60,8 +60,8 @@ class AdminUser(Resource):
 
         user = User.query.filter_by(id=args["user_id"]).first_or_404()
 
-        # Prevent editing users with an equal or higher role
-        if user.role.value >= current_user.role.value:
+        # Prevent editing users with a higher role — OWNER may edit anyone
+        if user.role.value >= current_user.role.value and not current_user.has_role(UserRoles.OWNER):
             abort(403, description="Cannot edit a user with an equal or higher role.")
 
         try:
@@ -87,8 +87,8 @@ class AdminUser(Resource):
                 new_role = _ROLE_MAP.get(args["role"])
                 if new_role is None:
                     abort(400, description=f"Unknown role '{args['role']}'.")
-                # Can only grant up to (but not including) the actor's own role
-                if new_role.value >= current_user.role.value:
+                # OWNER may assign any role; others may only assign roles strictly below their own
+                if not current_user.has_role(UserRoles.OWNER) and new_role.value >= current_user.role.value:
                     abort(403, description="Cannot assign a role equal to or higher than your own.")
                 user.role = new_role
 

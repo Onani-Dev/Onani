@@ -24,6 +24,7 @@ class Collections(Resource):
         parser.add_argument("per_page", location="args", type=int, required=False,
             default=current_app.config.get("PER_PAGE_COLLECTIONS", 80))
         parser.add_argument("id", location="args", type=int, default=None)
+        parser.add_argument("creator", location="args", type=int, default=None)
         parser.add_argument("post_page", location="args", type=int, required=False, default=1)
         parser.add_argument("post_per_page", location="args", type=int, required=False, default=40)
 
@@ -43,7 +44,10 @@ class Collections(Resource):
             result["posts_total"] = paginated.total
             return result
 
-        collections = Collection.query.paginate(
+        query = Collection.query
+        if args["creator"] is not None:
+            query = query.filter_by(creator=args["creator"])
+        collections = query.paginate(
             per_page=args["per_page"], page=args["page"], error_out=False
         )
         return {

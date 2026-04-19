@@ -4,6 +4,7 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-07-01 14:12:39
 import contextlib
+import random
 
 from flask import current_app, abort, request
 from flask_login import current_user, login_required
@@ -12,9 +13,9 @@ from Onani.controllers import permissions_required
 from Onani.services.posts import create_comment, set_tags, upload_post
 from Onani.services.queries import query_posts
 from Onani.models import Post as _Post
-from Onani.models import PostRating, PostSchema, UserPermissions
+from Onani.models import PostRating, PostSchema, PostStatus, UserPermissions
 from Onani.models import Tag, TagSchema
-from Onani.models.post._post import post_upvotes, post_downvotes
+from Onani.models.post._post import post_upvotes, post_downvotes, post_waters
 from sqlalchemy import func
 from PIL import UnidentifiedImageError
 
@@ -143,6 +144,7 @@ class Post(Resource):
         dump = PostSchema().dump(post)
         dump["has_upvoted"] = current_user.is_authenticated and current_user.has_upvoted(post)
         dump["has_downvoted"] = current_user.is_authenticated and current_user.has_downvoted(post)
+        dump["has_favourited"] = current_user.is_authenticated and current_user.has_favourited(post)
         return dump
 
     def put(self):
@@ -226,6 +228,30 @@ class Post(Resource):
     def patch(self):
         return self.put()
 
+    def delete(self):
+        if not current_user.is_authenticated:
+            abort(401)
+
+        parser = reqparse.RequestParser()
+        parser.add_argument("id", location="json", type=int, required=True)
+        args = parser.parse_args()
+
+        post = _Post.query.filter_by(id=args["id"]).first_or_404()
+
+        can_hard_delete = current_user.has_permissions(UserPermissions.DELETE_POSTS)
+        is_uploader = current_user.id == post.uploader_id
+
+        if not (can_hard_delete or is_uploader):
+            abort(403)
+
+        if can_hard_delete:
+            db.session.delete(post)
+        else:
+            post.status = PostStatus.REMOVED
+
+        db.session.commit()
+        return "", 204
+
 
 class PostUpload(Resource):
     """Multipart file upload endpoint for the Vue SPA."""
@@ -282,8 +308,54 @@ class PostWater(Resource):
         post = _Post.query.filter_by(id=args["post_id"]).first_or_404()
         post.water_count = (post.water_count or 0) + 1
         db.session.commit()
-
         return {"water_count": post.water_count}
+
+
+class PostFavourite(Resource):
+    decorators = [login_required]
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("post_id", location="json", type=int, required=True)
+        args = parser.parse_args()
+
+        post = _Post.query.filter_by(id=args["post_id"]).first_or_404()
+
+        if post.waterers.filter_by(id=current_user.id).first():
+            post.waterers.remove(current_user)
+            favourited = False
+        else:
+            post.waterers.append(current_user)
+            favourited = True
+
+        db.session.commit()
+        return {"has_favourited": favourited}
+
+
+class PostFavourites(Resource):
+    decorators = [login_required]
+
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("page", location="args", type=int, default=1)
+        parser.add_argument("per_page", location="args", type=int, default=20)
+        args = parser.parse_args()
+
+        per_page = min(args["per_page"], 50)
+        paginated = (
+            _Post.query
+            .join(post_waters, _Post.id == post_waters.c.post_id)
+            .filter(post_waters.c.user_id == current_user.id)
+            .order_by(_Post.id.desc())
+            .paginate(page=args["page"], per_page=per_page, error_out=False)
+        )
+
+        return {
+            "data": PostSchema(many=True).dump(paginated.items),
+            "page": args["page"],
+            "next_page": args["page"] + 1 if paginated.has_next else None,
+            "prev_page": args["page"] - 1 if paginated.has_prev else None,
+        }
 
 
 class PostsHome(Resource):
@@ -313,17 +385,21 @@ class PostsHome(Resource):
             .all()
         )
 
-        # Random single post
-        random_post = _Post.query.order_by(func.random()).first()
+        # Random single post — use a random offset to avoid full-table ORDER BY random()
+        post_count = _Post.query.count()
+        random_post = (
+            _Post.query.offset(random.randint(0, post_count - 1)).first()
+            if post_count
+            else None
+        )
 
         # Random tags with at least one post
-        random_tags = (
-            Tag.query
-            .filter(Tag.post_count > 0)
-            .order_by(func.random())
-            .limit(20)
-            .all()
-        )
+        tag_q = Tag.query.filter(Tag.post_count > 0)
+        tag_count = tag_q.count()
+        if tag_count > 20:
+            random_tags = tag_q.offset(random.randint(0, tag_count - 20)).limit(20).all()
+        else:
+            random_tags = tag_q.all()
 
         schema = PostSchema(many=True)
         return {
@@ -338,5 +414,7 @@ api.add_resource(PostsHome, "/posts/home")
 api.add_resource(Posts, "/posts")
 api.add_resource(PostVote, "/posts/vote")
 api.add_resource(PostWater, "/posts/water")
+api.add_resource(PostFavourite, "/posts/favourite")
+api.add_resource(PostFavourites, "/posts/favourites")
 api.add_resource(PostUpload, "/posts/upload")
 api.add_resource(Post, "/post")

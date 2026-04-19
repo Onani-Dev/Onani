@@ -19,6 +19,7 @@
             <span class="user-menu-trigger">{{ auth.user?.username }}</span>
             <div class="user-dropdown">
               <router-link to="/profile">Profile</router-link>
+              <router-link to="/favourites">Favourites</router-link>
               <router-link v-if="auth.user?.role >= 200" to="/admin">Administration</router-link>
               <a href="#" @click.prevent="handleLogout">Logout</a>
             </div>

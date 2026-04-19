@@ -23,6 +23,7 @@ const routes = [
             { path: 'import', name: 'import', component: () => import('@/views/ImportView.vue') },
             { path: 'upload', name: 'upload', component: () => import('@/views/UploadView.vue') },
             { path: 'profile', name: 'profile', component: () => import('@/views/ProfileView.vue') },
+            { path: 'favourites', name: 'favourites', component: () => import('@/views/FavouritesView.vue') },
             { path: 'admin', name: 'admin', component: () => import('@/views/AdminView.vue') },
             { path: 'admin/users/:id/edit', name: 'adminUserEdit', component: () => import('@/views/AdminUserEditView.vue'), props: true },
         ],

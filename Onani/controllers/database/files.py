@@ -66,7 +66,7 @@ def get_file_data(file_data: bytes):
     image_file = io.BytesIO(file_data)
 
     # Get filesize
-    filesize = sys.getsizeof(file_data)
+    filesize = len(file_data)
 
     # Get MD5 hash
     hash_md5 = hashlib.md5(image_file.getbuffer()).hexdigest()

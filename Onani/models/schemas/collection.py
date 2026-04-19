@@ -11,6 +11,15 @@ from . import ma
 
 class CollectionSchema(ma.SQLAlchemyAutoSchema):
     posts = ma.Nested("PostSchema", many=True)
+    preview_thumbnails = fields.Method("get_preview_thumbnails", dump_only=True)
+
+    def get_preview_thumbnails(self, obj):
+        previews = []
+        for post in obj.posts.limit(4).all():
+            url = post.thumbnail(size="large")
+            if url:
+                previews.append({"url": url, "rating": post.rating.value if post.rating else "g"})
+        return previews
 
     class Meta:
         model = Collection

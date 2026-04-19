@@ -35,7 +35,7 @@ celery = ext.celery
 def init_app():
     app = Flask(__name__, static_url_path="/static/", static_folder="static")
 
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 
     app.config.from_pyfile("./config.py")
 
@@ -55,6 +55,8 @@ def init_app():
     csrf.init_app(app)
     db.init_app(app)
     ext.init_app(app)
+    # Allow pool_restart broadcast (used by the admin "Restart Celery" task).
+    ext.celery.conf.worker_pool_restarts = True
     limiter.init_app(app)
     login_manager.init_app(app)
     ma.init_app(app)
@@ -116,6 +118,48 @@ def init_app():
                         db.session.commit()
         except Exception:
             pass
+
+    # ── CLI: migrate flat image/video files to sharded layout ────────────
+    @app.cli.command("migrate-images")
+    def migrate_images_command():
+        """Move existing flat-directory image/video files into the sharded layout.
+
+        Files are relocated from  <IMAGES_DIR>/<filename>
+        to                        <IMAGES_DIR>/<first-2-hex-chars>/<filename>
+
+        Safe to re-run: files already in the correct location are skipped.
+        """
+        import shutil
+        from .services.files import shard_path
+
+        images_dir = app.config.get("IMAGES_DIR", "/images")
+        moved = skipped = failed = 0
+
+        for entry in os.scandir(images_dir):
+            if not entry.is_file():
+                continue  # skip subdirectories (already sharded)
+            filename = entry.name
+            # Skip hidden / non-hash files (e.g. .gitkeep)
+            if len(filename) < 2 or not filename[0:2].isalnum():
+                continue
+            dest = shard_path(images_dir, filename)
+            if os.path.exists(dest):
+                # Already migrated — remove the flat copy if it still exists
+                try:
+                    os.remove(entry.path)
+                    skipped += 1
+                except OSError:
+                    skipped += 1
+                continue
+            try:
+                os.makedirs(os.path.dirname(dest), exist_ok=True)
+                shutil.move(entry.path, dest)
+                moved += 1
+            except Exception as exc:
+                print(f"  ERROR moving {filename}: {exc}")
+                failed += 1
+
+        print(f"migrate-images done — moved: {moved}  skipped: {skipped}  failed: {failed}")
 
     return app
 

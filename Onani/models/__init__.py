@@ -11,6 +11,8 @@ from .post import Note, Post, PostComment, PostRating, PostStatus
 from .tag import Tag, TagType
 from .user import Ban, User, UserRoles, UserSettings, UserPermissions
 from .error import Error
+from .import_job import ImportJob
+from .scheduled_import import ScheduledImport
 
 from .schemas import (
     BanSchema,

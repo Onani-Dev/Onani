@@ -19,6 +19,25 @@
     <div v-if="collections.length" class="collections-grid">
       <div v-for="c in collections" :key="c.id" class="collection-card">
         <router-link :to="`/collections/${c.id}`" class="card-link">
+          <div class="thumb-stack">
+            <template v-if="c.preview_thumbnails && c.preview_thumbnails.length">
+              <img
+                v-for="(thumb, i) in c.preview_thumbnails.slice().reverse()"
+                :key="i"
+                :src="thumb.url"
+                :class="[
+                  'thumb-layer',
+                  `thumb-layer-${c.preview_thumbnails.length - 1 - i}`,
+                  { 'thumb-sfw-blur': shouldBlur(thumb) }
+                ]"
+                alt=""
+                draggable="false"
+              />
+            </template>
+            <div v-else class="thumb-empty">
+              <span>&#128247;</span>
+            </div>
+          </div>
           <h3>{{ c.title }}</h3>
           <p class="card-desc text-muted">{{ c.description }}</p>
         </router-link>
@@ -64,9 +83,11 @@
 import { ref, onMounted, watch } from 'vue'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useSfwMode } from '@/composables/useSfwMode'
 import Pagination from '@/components/Pagination.vue'
 
 const auth = useAuthStore()
+const { shouldBlur } = useSfwMode()
 const collections = ref([])
 const page = ref(1)
 const nextPage = ref(null)
@@ -210,10 +231,55 @@ async function deleteCollection(id) {
   text-decoration: none;
   color: inherit;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .card-link:hover { background: var(--item-hover); }
-.card-link h3 { margin: 0 0 0.4em; }
-.card-desc { font-size: 0.85rem; margin: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.card-link h3 { margin: 0.75em 0 0.3em; text-align: center; width: 100%; }
+.card-desc { font-size: 0.85rem; margin: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; width: 100%; text-align: center; }
+
+/* ── Thumbnail stack ─────────────────────────── */
+.thumb-stack {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0.25em auto 0;
+  flex-shrink: 0;
+}
+.thumb-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.thumb-sfw-blur { filter: blur(12px); }
+/* each layer is slightly rotated so they fan out like scattered papers */
+.thumb-layer-0 { transform: rotate(-6deg) translate(-3px, 3px);  z-index: 1; }
+.thumb-layer-1 { transform: rotate(-2deg) translate(-1px, 1px); z-index: 2; }
+.thumb-layer-2 { transform: rotate( 2deg) translate( 1px, 1px); z-index: 3; }
+.thumb-layer-3 { transform: rotate( 0deg);                        z-index: 4; }
+.card-link:hover .thumb-layer-0 { transform: rotate(-9deg)  translate(-7px, 5px); }
+.card-link:hover .thumb-layer-1 { transform: rotate(-3deg)  translate(-3px, 2px); }
+.card-link:hover .thumb-layer-2 { transform: rotate( 3deg)  translate( 3px, 2px); }
+.card-link:hover .thumb-layer-3 { transform: rotate( 0deg)  translate(  0,  0);  box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+
+.thumb-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 2.5rem;
+  color: var(--text-muted);
+}
 
 .card-actions {
   position: absolute;

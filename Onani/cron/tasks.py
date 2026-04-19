@@ -20,3 +20,25 @@ def remove_expired_bans():
     for ban in expiring_bans:
         if ban.has_expired:
             delete_ban(ban.user)
+
+
+@crontab.job(minute="*/1")
+def run_scheduled_imports():
+    import datetime
+    from Onani.models.scheduled_import import ScheduledImport
+    from Onani.tasks.importer import import_post
+
+    due = ScheduledImport.query.filter_by(enabled=True).all()
+    for task in due:
+        if not task.is_due():
+            continue
+        task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
+        task.last_run_status = "DISPATCHED"
+        task.last_error = None
+        try:
+            db.session.commit()
+            import_post.delay(task.url, task.creator_id or 1, task.cookies)
+        except Exception as exc:
+            task.last_run_status = "FAILED"
+            task.last_error = str(exc)
+            db.session.commit()

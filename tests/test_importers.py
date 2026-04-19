@@ -79,11 +79,12 @@ class TestGalleryDlImporter:
             assert gdl_config.get(("extractor",), "metadata") is True
 
     @patch("gallery_dl.job.DataJob")
-    def test_run_job_times_out_and_returns_none(self, mock_datajob_cls, app):
-        """_run_job returns None when the DataJob exceeds _JOB_TIMEOUT."""
+    def test_run_job_times_out_raises(self, mock_datajob_cls, app):
+        """get_post raises GalleryDLTimeoutError when the DataJob exceeds _JOB_TIMEOUT."""
         import threading
         with app.app_context():
             from Onani.importers import gallery_dl_importer as gdl_mod
+            from Onani.importers.gallery_dl_importer import GalleryDLTimeoutError
 
             barrier = threading.Event()
 
@@ -97,12 +98,11 @@ class TestGalleryDlImporter:
             orig_timeout = gdl_mod._JOB_TIMEOUT
             gdl_mod._JOB_TIMEOUT = 0.05  # 50 ms — instant for tests
             try:
-                result = gdl_mod.get_post("https://sizebooru.com/Details/12345")
+                with pytest.raises(GalleryDLTimeoutError):
+                    gdl_mod.get_post("https://sizebooru.com/Details/12345")
             finally:
                 gdl_mod._JOB_TIMEOUT = orig_timeout
                 barrier.set()
-
-            assert result is None
 
     @patch("gallery_dl.job.DataJob")
     def test_get_post_returns_imported_post(self, mock_datajob_cls, app):

@@ -1,7 +1,7 @@
 <template>
   <div class="page-container admin-user-edit-page">
     <div class="page-header">
-      <router-link to="/admin" class="back-link">← Back to Admin</router-link>
+      <router-link :to="{ name: 'admin', query: { tab: 'users' } }" class="back-link">← Back to Admin</router-link>
       <h1>Edit User</h1>
     </div>
 
@@ -93,20 +93,22 @@
       </div>
     </div>
 
-    <p v-else class="text-error">User not found.</p>
+    <p v-else class="text-error">{{ loadError || 'User not found.' }}</p>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/client'
 
 const route = useRoute()
+const router = useRouter()
 const userId = Number(route.params.id)
 
 const user = ref(null)
 const loading = ref(true)
+const loadError = ref('')
 const saving = ref(false)
 const successMsg = ref('')
 const errorMsg = ref('')
@@ -125,11 +127,10 @@ const form = reactive({
 // enforces the hard limit as well)
 const availableRoles = [
   { name: 'MEMBER',    value: 0   },
-  { name: 'ARTIST',    value: 1   },
-  { name: 'PREMIUM',   value: 2   },
   { name: 'HELPER',    value: 100 },
   { name: 'MODERATOR', value: 200 },
   { name: 'ADMIN',     value: 300 },
+  { name: 'OWNER',     value: 666 },
 ]
 
 // ── Permissions ────────────────────────────────────────────────────────────
@@ -240,14 +241,21 @@ onMounted(async () => {
     form.password    = ''
     form.role        = roleIntToName(data.role_int)
     form.permissions = data.permissions_int ?? 0
-  } catch {
-    user.value = null
+  } catch (err) {
+    console.error('AdminUserEdit fetch failed:', err)
+    const status = err.response?.status
+    if (status === 401) {
+      router.push({ name: 'login', query: { redirect: route.fullPath } })
+      return
+    }
+    loadError.value = err.response?.data?.description || err.response?.data?.message ||
+      (status ? `Error ${status}` : 'Network error — check your connection.')
   } finally {
     loading.value = false
   }
 })
 
-const ROLE_VALUE_MAP = { 0: 'MEMBER', 1: 'ARTIST', 2: 'PREMIUM', 100: 'HELPER', 200: 'MODERATOR', 300: 'ADMIN', 666: 'OWNER' }
+const ROLE_VALUE_MAP = { 0: 'MEMBER', 100: 'HELPER', 200: 'MODERATOR', 300: 'ADMIN', 666: 'OWNER' }
 function roleIntToName(val) { return ROLE_VALUE_MAP[val] || 'MEMBER' }
 
 // ── Save ───────────────────────────────────────────────────────────────────

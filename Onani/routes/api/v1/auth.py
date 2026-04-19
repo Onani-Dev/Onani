@@ -47,7 +47,7 @@ class AuthLogin(Resource):
         except DeletedAccountError as e:
             return {"message": str(e)}, 403
 
-        login_user(user, duration=timedelta(days=7))
+        login_user(user, remember=True, duration=timedelta(days=7))
 
         # Cache password for encrypted cookies decryption in imports
         if user.settings and user.settings.encrypted_cookies:
@@ -88,6 +88,9 @@ class AuthRegister(Resource):
         if User.query.filter_by(username=html.escape(args["username"])).first():
             return {"message": "Username is already taken."}, 409
 
+        if len(args["password"]) < 8:
+            return {"message": "Password must be at least 8 characters."}, 400
+
         try:
             user = create_user(
                 username=args["username"],
@@ -97,7 +100,7 @@ class AuthRegister(Resource):
         except ValueError as e:
             return {"message": str(e)}, 400
 
-        login_user(user, duration=timedelta(days=7))
+        login_user(user, remember=True, duration=timedelta(days=7))
 
         resp = make_response(UserSchema().dump(current_user), 201)
         resp.set_cookie(

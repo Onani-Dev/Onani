@@ -29,6 +29,43 @@ from ._importedpost import ImportedPost
 
 log = logging.getLogger(__name__)
 
+
+class GalleryDLTimeoutError(Exception):
+    """Raised when a gallery-dl DataJob exceeds _JOB_TIMEOUT seconds."""
+
+
+class GalleryDLAbortError(Exception):
+    """Raised when a gallery-dl DataJob is aborted by the remote site (e.g. WAF block)."""
+
+
+# Sites known to require OAuth credentials in the gallery-dl config file in
+# order to return results.  When a timeout occurs for one of these hosts we
+# include specific guidance in the error message.
+_CRED_REQUIRED_HINTS: dict[str, str] = {
+    "reddit.com": (
+        "Reddit blocked the request (no credentials). "
+        "Upload a cookies file exported from a logged-in Reddit browser session, "
+        "or add OAuth credentials (\"client-id\", \"client-secret\", \"refresh-token\") "
+        "under extractor.reddit in your gallery-dl config. "
+        "Note: accounts with many posts may also time out — this is normal for large profiles."
+    ),
+    "pixiv.net": (
+        "Pixiv requires a refresh-token. "
+        "See https://gdl-org.github.io/docs/configuration.html#extractor-pixiv-refresh-token"
+    ),
+}
+
+
+def _credential_hint(url: str) -> str:
+    """Return a site-specific credentials hint if one is known, else empty string."""
+    from urllib.parse import urlparse
+    host = urlparse(url).hostname or ""
+    for domain, hint in _CRED_REQUIRED_HINTS.items():
+        if host == domain or host.endswith("." + domain):
+            return hint
+    return ""
+
+
 # Map the various rating strings gallery-dl extractors can emit to PostRating
 _RATING_MAP: dict[str, PostRating] = {
     "g": PostRating.GENERAL,
@@ -177,7 +214,9 @@ def _extract_rating(kwdict: dict) -> PostRating:
 # ---------------------------------------------------------------------------
 
 # Wall-clock limit for a single gallery-dl DataJob (metadata fetches included).
-_JOB_TIMEOUT = 90  # seconds
+# Large accounts (Reddit, Twitter, etc.) can have hundreds of posts spread across
+# many paginated API requests, so allow up to 10 minutes.
+_JOB_TIMEOUT = 600  # seconds
 
 
 def _run_job(url: str, cookies_path: str = None) -> Optional[gdl_job.DataJob]:
@@ -202,22 +241,66 @@ def _run_job(url: str, cookies_path: str = None) -> Optional[gdl_job.DataJob]:
     gdl_config.set(("extractor",), "timeout", 20)
     gdl_config.set(("extractor",), "retries", 2)
 
-    # Inject cookies file into gallery-dl config if provided
+    # Cap rate-limit sleep.  Reddit paginates 25 posts per page and a user with
+    # hundreds of posts needs many API calls; capping each wait at 3 s keeps the
+    # total run time reasonable while still respecting soft throttling signals.
+    gdl_config.set(("extractor",), "wait-min", 0.5)
+    gdl_config.set(("extractor",), "wait-max", 3)
+
+    # Inject cookies file into gallery-dl config if provided.
+    # Must be set at ("extractor",) scope — extractors read cookies via
+    # config.interpolate(("extractor", category, subcategory), "cookies"),
+    # which walks up to ("extractor",) but NOT to the root () scope.
     if cookies_path:
-        gdl_config.set((), "cookies", cookies_path)
+        gdl_config.set(("extractor",), "cookies", cookies_path)
+    else:
+        # Clear any leftover cookies from a previous task in this worker
+        # (gdl_config state is global and persists across tasks).
+        gdl_config.set(("extractor",), "cookies", None)
 
     djob = gdl_job.DataJob(url, file=io.StringIO())
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    # Do NOT use the context-manager form of ThreadPoolExecutor here.
+    # Its __exit__ calls shutdown(wait=True), which would block until the
+    # gallery-dl thread finishes — completely defeating the timeout.
+    # Instead, call shutdown(wait=False) ourselves so the task returns
+    # immediately and the background thread is left to finish on its own.
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    try:
         future = executor.submit(djob.run)
         try:
             future.result(timeout=_JOB_TIMEOUT)
         except concurrent.futures.TimeoutError:
-            log.warning("gallery-dl timed out after %ds for %s", _JOB_TIMEOUT, url)
-            return None
+            hint = _credential_hint(url)
+            msg = f"Timed out after {_JOB_TIMEOUT}s fetching {url}."
+            if hint:
+                msg += " " + hint
+            log.warning(msg)
+            raise GalleryDLTimeoutError(msg)
         except Exception:
             log.exception("gallery-dl DataJob failed for %s", url)
             return None
+    finally:
+        # wait=False: release the executor without blocking on the thread.
+        executor.shutdown(wait=False)
+
+    # DataJob.run() never re-raises exceptions — they're stored in djob.exception.
+    # Check for AbortExtraction (e.g. WAF block, site returning HTML for API call).
+    if isinstance(djob.exception, BaseException):
+        exc = djob.exception
+        try:
+            from gallery_dl.exception import AbortExtraction
+            if isinstance(exc, AbortExtraction):
+                hint = _credential_hint(url)
+                msg = f"Import was blocked or aborted by the remote site for {url}."
+                if hint:
+                    msg += " " + hint
+                log.warning("gallery-dl AbortExtraction for %s: %s", url, exc)
+                raise GalleryDLAbortError(msg)
+        except ImportError:
+            pass
+        log.error("gallery-dl DataJob error for %s: %s", url, exc)
+        return None
 
     if not djob.data_urls:
         log.debug("gallery-dl found no file URLs for %s", url)

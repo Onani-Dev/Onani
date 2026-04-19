@@ -23,7 +23,7 @@ from Onani.models import (
 from Onani.models.post import FileType
 from PIL import UnidentifiedImageError
 
-from .files import determine_meta_tags, get_file_data, get_video_data, detect_video_format, create_video_thumbnail
+from .files import determine_meta_tags, get_file_data, get_video_data, detect_video_format, create_video_thumbnail, ensure_shard_dir, shard_path
 
 _VIDEO_FORMATS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
 
@@ -260,7 +260,7 @@ def create_post(
 
     set_tags(post, tags, set(), can_create_tags, tag_char_limit, post_min_tags)
 
-    filepath = os.path.join(images_dir, filename)
+    filepath = ensure_shard_dir(images_dir, filename)
     with open(filepath, "wb") as f:
         image_file.seek(0)
         f.write(image_file.read())
@@ -268,7 +268,8 @@ def create_post(
     # For videos, generate a JPEG thumbnail so nginx image_filter can serve it
     if file_type in _VIDEO_FORMATS:
         stem = filename.rsplit(".", 1)[0]
-        thumb_path = os.path.join(images_dir, f"{stem}.jpg")
+        thumb_name = f"{stem}.jpg"
+        thumb_path = ensure_shard_dir(images_dir, thumb_name)
         create_video_thumbnail(filepath, thumb_path)
 
     uploader.post_count = uploader.posts.with_entities(func.count()).scalar()

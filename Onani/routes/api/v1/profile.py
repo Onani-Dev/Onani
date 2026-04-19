@@ -71,9 +71,14 @@ class Profile(Resource):
         if args["new_password"] and current_user.check_password(
             args["current_password"]
         ):
+            if len(args["new_password"]) < 8:
+                return {"message": "Password must be at least 8 characters."}, 400
             current_user.set_password(args["new_password"])
 
         if args["otp_enabled"] is not None:
+            if not args["otp_enabled"] and current_user.otp_enabled:
+                if not current_user.check_password(args.get("current_password") or ""):
+                    return {"message": "Current password is required to disable 2FA."}, 403
             current_user.otp_enabled = args["otp_enabled"]
 
         # PROFILE SETTINGS
@@ -175,6 +180,13 @@ class ProfileOTP(Resource):
 
     def delete(self):
         """Disable 2FA."""
+        parser = reqparse.RequestParser()
+        parser.add_argument("password", location="json", type=str, required=True)
+        args = parser.parse_args()
+
+        if not current_user.check_password(args["password"]):
+            return {"message": "Incorrect password."}, 403
+
         current_user.otp_enabled = False
         db.session.commit()
         return {"enabled": False}
