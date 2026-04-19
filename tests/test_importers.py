@@ -20,6 +20,21 @@ class TestIsSupported:
             from Onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://rule34.xxx/index.php?page=post&s=view&id=1")
 
+    def test_known_site_sizebooru_post(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import is_supported
+            assert is_supported("https://sizebooru.com/Details/12345")
+
+    def test_known_site_sizebooru_gallery(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import is_supported
+            assert is_supported("https://sizebooru.com/Galleries/List/1039")
+
+    def test_known_site_sizebooru_tags(self, app):
+        with app.app_context():
+            from Onani.importers.gallery_dl_importer import is_supported
+            assert is_supported("https://sizebooru.com/Search/giantess")
+
     def test_unsupported_site_returns_false(self, app):
         with app.app_context():
             from Onani.importers.gallery_dl_importer import is_supported
@@ -45,6 +60,49 @@ class TestGalleryDlImporter:
         with app.app_context():
             from Onani.importers.gallery_dl_importer import is_supported
             assert not is_supported("https://unknown-site-xyz.example.com/post/1")
+
+    @patch("gallery_dl.job.DataJob")
+    def test_run_job_enables_global_metadata_config(self, mock_datajob_cls, app):
+        """_run_job sets gallery-dl metadata=True globally for all extractors."""
+        with app.app_context():
+            from gallery_dl import config as gdl_config
+            from Onani.importers.gallery_dl_importer import get_post
+
+            mock_job = MagicMock()
+            mock_job.data_urls = ["https://sizebooru.com/Picture/12345"]
+            mock_job.data_meta = [{}]
+            mock_job.data_post = [{"tags": ["giantess"], "rating": "q"}]
+            mock_datajob_cls.return_value = mock_job
+
+            get_post("https://sizebooru.com/Details/12345")
+
+            assert gdl_config.get(("extractor",), "metadata") is True
+
+    @patch("gallery_dl.job.DataJob")
+    def test_run_job_times_out_and_returns_none(self, mock_datajob_cls, app):
+        """_run_job returns None when the DataJob exceeds _JOB_TIMEOUT."""
+        import threading
+        with app.app_context():
+            from Onani.importers import gallery_dl_importer as gdl_mod
+
+            barrier = threading.Event()
+
+            def _hang():
+                barrier.wait(timeout=10)
+
+            mock_job = MagicMock()
+            mock_job.run.side_effect = _hang
+            mock_datajob_cls.return_value = mock_job
+
+            orig_timeout = gdl_mod._JOB_TIMEOUT
+            gdl_mod._JOB_TIMEOUT = 0.05  # 50 ms — instant for tests
+            try:
+                result = gdl_mod.get_post("https://sizebooru.com/Details/12345")
+            finally:
+                gdl_mod._JOB_TIMEOUT = orig_timeout
+                barrier.set()
+
+            assert result is None
 
     @patch("gallery_dl.job.DataJob")
     def test_get_post_returns_imported_post(self, mock_datajob_cls, app):

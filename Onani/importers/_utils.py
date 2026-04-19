@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import http.cookiejar
+import logging
 from typing import Optional
 
 import requests
+from curl_cffi import requests as cffi_requests
 from flask import current_app
 from Onani.services.posts import create_post
 from Onani.services.files import get_file_data, get_video_data, is_video_url, detect_video_format
@@ -42,18 +45,107 @@ _DOWNLOAD_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
+        "Chrome/135.0.0.0 Safari/537.36"
     ),
+    "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Sec-Fetch-Dest": "image",
+    "Sec-Fetch-Mode": "no-cors",
+    "Sec-Fetch-Site": "cross-site",
 }
+
+import re as _re
+
+log = logging.getLogger(__name__)
 
 # Byte prefixes that indicate an HTML/JSON error page rather than binary media
 _TEXT_PREFIXES = (b"<!doctype", b"<html", b"{", b"[")
 
+# Danbooru CDN original URL pattern:
+#   https://cdn.donmai.us/original/{a}/{b}/{hash}.{ext}
+# Sample URL pattern (publicly accessible without Gold):
+#   https://cdn.donmai.us/sample/{a}/{b}/sample-{hash}.jpg
+_DANBOORU_ORIGINAL_RE = _re.compile(
+    r"(https://cdn\.donmai\.us)/original/([0-9a-f]{2}/[0-9a-f]{2})/([0-9a-f]+)\.[^/?#]+"
+)
 
-def download_file(url: str) -> bytes:
-    with requests.Session() as s:
-        r = s.get(url, headers=_DOWNLOAD_HEADERS, timeout=60)
-        r.raise_for_status()
+# Kemono CDN node pattern — URLs are https://n{1-4}.kemono.cr/data/...
+_KEMONO_NODE_RE = _re.compile(r"https://n(\d+)\.kemono\.cr/(.+)")
+_KEMONO_NODES = list(range(1, 5))  # n1 … n4
+
+
+def _danbooru_sample_url(original_url: str) -> str | None:
+    """Convert a Danbooru /original/ URL to its /sample/ equivalent, or return None."""
+    m = _DANBOORU_ORIGINAL_RE.match(original_url)
+    if not m:
+        return None
+    base, dirs, hash_ = m.group(1), m.group(2), m.group(3)
+    return f"{base}/sample/{dirs}/sample-{hash_}.jpg"
+
+
+def _load_cookiejar(cookies_path: str) -> http.cookiejar.CookieJar:
+    """Load a Netscape-format cookies file into a CookieJar."""
+    jar = http.cookiejar.MozillaCookieJar()
+    try:
+        jar.load(cookies_path, ignore_discard=True, ignore_expires=True)
+    except (http.cookiejar.LoadError, OSError):
+        pass
+    return jar
+
+
+def _kemono_alt_urls(url: str) -> list[str]:
+    """Return alternative kemono CDN node URLs for *url*, excluding the original node."""
+    m = _KEMONO_NODE_RE.match(url)
+    if not m:
+        return []
+    failed_node = int(m.group(1))
+    path = m.group(2)
+    return [
+        f"https://n{n}.kemono.cr/{path}"
+        for n in _KEMONO_NODES
+        if n != failed_node
+    ]
+
+
+def _fetch(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requests.Response:
+    """GET *url*, with fallbacks for Danbooru sample URLs and kemono CDN nodes."""
+    try:
+        r = session.get(url, headers=headers, timeout=60)
+    except Exception as exc:
+        # Connection-level failure (curl error 7, timeout, etc.).
+        # Try alternate kemono CDN nodes before giving up.
+        alt_urls = _kemono_alt_urls(url)
+        last_exc = exc
+        for alt in alt_urls:
+            log.debug("Connection failed on %s, retrying on %s", url, alt)
+            try:
+                r = session.get(alt, headers=headers, timeout=60)
+                break
+            except Exception as alt_exc:
+                last_exc = alt_exc
+        else:
+            raise last_exc
+
+    if r.status_code == 403:
+        sample_url = _danbooru_sample_url(url)
+        if sample_url:
+            log.debug("403 on original, retrying with sample: %s", sample_url)
+            r = session.get(sample_url, headers=headers, timeout=60)
+    r.raise_for_status()
+    return r
+
+
+def download_file(url: str, cookies_path: str = None, referer: str = None) -> bytes:
+    headers = dict(_DOWNLOAD_HEADERS)
+    if referer:
+        headers["Referer"] = referer
+    with cffi_requests.Session(impersonate="chrome") as s:
+        if cookies_path:
+            jar = _load_cookiejar(cookies_path)
+            for cookie in jar:
+                s.cookies.set(cookie.name, cookie.value, domain=cookie.domain)
+        r = _fetch(s, url, headers)
         data = r.content
     for prefix in _TEXT_PREFIXES:
         if data[: len(prefix)].lower() == prefix:
@@ -64,7 +156,7 @@ def download_file(url: str) -> bytes:
     return data
 
 
-def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
+def save_imported_post(post: ImportedPost, importer_id: int, cookies_path: str = None) -> Post:
     from PIL import UnidentifiedImageError
     from .gallery_dl_importer import is_supported, get_post as _gdl_resolve
 
@@ -83,7 +175,7 @@ def save_imported_post(post: ImportedPost, importer_id: int) -> Post:
                 if tag not in post.tags:
                     post.tags.append(tag)
 
-    file_data = download_file(file_url)
+    file_data = download_file(file_url, cookies_path=cookies_path, referer=post.imported_url)
 
     # Detect video format — first by URL extension, then by magic bytes
     video_fmt = None

@@ -56,7 +56,7 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
 
         for i, imported_post in enumerate(imported_posts):
             try:
-                post = save_imported_post(imported_post, importer_id)
+                post = save_imported_post(imported_post, importer_id, cookies_path=cookies_path)
                 result = ImportedPostSchema().dump(imported_post)
                 result["post_id"] = post.id
                 result["thumbnail_url"] = post.thumbnail(size="large")
@@ -102,10 +102,10 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                     )
                     db.session.add(collection)
                     try:
-                        db.session.flush()
+                        with db.session.begin_nested():
+                            db.session.flush()
                     except IntegrityError:
                         # Another worker created the same collection concurrently.
-                        db.session.rollback()
                         collection = Collection.query.filter_by(
                             title=collection_name, creator=importer_id
                         ).first()

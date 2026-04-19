@@ -13,6 +13,7 @@ Per-site authentication and cookies can be configured by pointing
 """
 from __future__ import annotations
 
+import concurrent.futures
 import io
 import logging
 from functools import lru_cache
@@ -175,23 +176,48 @@ def _extract_rating(kwdict: dict) -> PostRating:
 # Public interface
 # ---------------------------------------------------------------------------
 
+# Wall-clock limit for a single gallery-dl DataJob (metadata fetches included).
+_JOB_TIMEOUT = 90  # seconds
+
+
 def _run_job(url: str, cookies_path: str = None) -> Optional[gdl_job.DataJob]:
-    """Run a gallery-dl DataJob and return it, or None on failure."""
+    """Run a gallery-dl DataJob and return it, or None on failure.
+
+    ``metadata`` is enabled globally so any extractor that supports the option
+    (sizebooru, kemono, etc.) will scrape extended fields (tags, artist, source
+    date, …) rather than returning bare filenames.
+
+    The job runs in a daemon thread and is abandoned after ``_JOB_TIMEOUT``
+    seconds to prevent a stalled HTTP connection from hanging the Celery task.
+    """
     from flask import current_app
 
     config_file: str | None = current_app.config.get("GALLERY_DL_CONFIG_FILE")
     _init_gdl_config(config_file)
 
+    # Enable extended metadata for every extractor that supports the option.
+    gdl_config.set(("extractor",), "metadata", True)
+
+    # Reduce per-request timeout and retry count so a dead server fails fast.
+    gdl_config.set(("extractor",), "timeout", 20)
+    gdl_config.set(("extractor",), "retries", 2)
+
     # Inject cookies file into gallery-dl config if provided
     if cookies_path:
         gdl_config.set((), "cookies", cookies_path)
 
-    try:
-        djob = gdl_job.DataJob(url, file=io.StringIO())
-        djob.run()
-    except Exception:
-        log.exception("gallery-dl DataJob failed for %s", url)
-        return None
+    djob = gdl_job.DataJob(url, file=io.StringIO())
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(djob.run)
+        try:
+            future.result(timeout=_JOB_TIMEOUT)
+        except concurrent.futures.TimeoutError:
+            log.warning("gallery-dl timed out after %ds for %s", _JOB_TIMEOUT, url)
+            return None
+        except Exception:
+            log.exception("gallery-dl DataJob failed for %s", url)
+            return None
 
     if not djob.data_urls:
         log.debug("gallery-dl found no file URLs for %s", url)

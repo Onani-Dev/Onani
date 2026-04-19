@@ -102,10 +102,12 @@ def parse_tags(
                 tag = Tag(name=new_tag_name, post_count=0, type=new_tag_type)
                 db.session.add(tag)
                 try:
-                    db.session.flush()
+                    with db.session.begin_nested():
+                        db.session.flush()
                 except IntegrityError:
                     # Another worker created the same tag concurrently.
-                    db.session.rollback()
+                    # begin_nested() rolls back only this savepoint, not the
+                    # whole transaction.
                     tag = Tag.query.filter_by(name=new_tag_name).first()
                     if not tag:
                         continue
@@ -116,10 +118,10 @@ def parse_tags(
             tag = Tag(name=tag_str, post_count=0, type=new_tag_type)
             db.session.add(tag)
             try:
-                db.session.flush()
+                with db.session.begin_nested():
+                    db.session.flush()
             except IntegrityError:
                 # Another worker created the same tag concurrently.
-                db.session.rollback()
                 tag = Tag.query.filter_by(name=tag_str).first()
                 if not tag:
                     continue
@@ -249,11 +251,11 @@ def create_post(
     # because the posts row isn't visible yet in the same flush batch.
     db.session.add(post)
     try:
-        db.session.flush()
+        with db.session.begin_nested():
+            db.session.flush()
     except IntegrityError:
         # Another worker inserted the same hash/filename between our pre-flight
         # check and this flush — treat it as a duplicate.
-        db.session.rollback()
         raise ValueError("Post already exists.")
 
     set_tags(post, tags, set(), can_create_tags, tag_char_limit, post_min_tags)

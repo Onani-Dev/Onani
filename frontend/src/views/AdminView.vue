@@ -102,6 +102,7 @@
               </td>
               <td>{{ u.post_count }}</td>
               <td>
+                <router-link v-if="auth.user?.role >= 300" :to="`/admin/users/${u.id}/edit`" class="btn-sm">Edit</router-link>
                 <button v-if="auth.user?.role >= 300 && u.id !== auth.user?.id" class="btn-sm danger" @click="deleteUser(u.id)">✕</button>
               </td>
             </tr>

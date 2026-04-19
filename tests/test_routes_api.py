@@ -508,6 +508,157 @@ class TestCollectionsAPI:
         assert not any(p["id"] == post_id for p in data["posts"])
 
 
+class TestAdminUserEditAPI:
+    def test_get_user_requires_auth(self, client, make_user, app):
+        with app.app_context():
+            target = make_user(username="edittarget1")
+            target_id = target.id
+        resp = client.get(f"/api/v1/admin/user?user_id={target_id}")
+        assert resp.status_code in (401, 403)
+
+    def test_get_user_requires_edit_users_permission(self, logged_in_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="edittarget2")
+            target_id = target.id
+        client, user = logged_in_client
+        resp = client.get(f"/api/v1/admin/user?user_id={target_id}")
+        assert resp.status_code in (401, 403)
+
+    def test_get_user_as_admin(self, admin_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="edittarget3", email="target3@example.com")
+            target_id = target.id
+        client, _ = admin_client
+        resp = client.get(f"/api/v1/admin/user?user_id={target_id}")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["id"] == target_id
+        assert data["username"] == "edittarget3"
+        assert "permissions_int" in data
+        assert "role_int" in data
+
+    def test_get_user_not_found(self, admin_client):
+        client, _ = admin_client
+        resp = client.get("/api/v1/admin/user?user_id=999999")
+        assert resp.status_code == 404
+
+    def test_put_change_nickname(self, admin_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="nickedit1")
+            target_id = target.id
+        client, _ = admin_client
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": target_id, "nickname": "CoolNick"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["nickname"] == "CoolNick"
+
+    def test_put_change_email(self, admin_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="emailedit1")
+            target_id = target.id
+        client, _ = admin_client
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": target_id, "email": "new@example.com"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["email"] == "new@example.com"
+
+    def test_put_reset_password(self, admin_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="pwreset1")
+            target_id = target.id
+        client, _ = admin_client
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": target_id, "password": "newpassword123"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        with app.app_context():
+            from Onani.models import User
+            u = User.query.get(target_id)
+            assert u.check_password("newpassword123")
+
+    def test_put_password_too_short(self, admin_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="pwshort1")
+            target_id = target.id
+        client, _ = admin_client
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": target_id, "password": "short"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+
+    def test_put_change_role(self, admin_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="roleedit1")
+            target_id = target.id
+        client, _ = admin_client
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": target_id, "role": "MODERATOR"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["role_int"] == 200
+
+    def test_put_change_permissions(self, admin_client, make_user, app):
+        with app.app_context():
+            target = make_user(username="permedit1")
+            target_id = target.id
+        client, _ = admin_client
+        new_perms = 1 | 32 | 65536  # CREATE_POSTS | CREATE_TAGS | CREATE_COMMENTS
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": target_id, "permissions": new_perms}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["permissions_int"] == new_perms
+
+    def test_put_cannot_edit_equal_role(self, admin_client, make_user, app):
+        """An admin cannot edit another user with an equal or higher role."""
+        from Onani.models import UserRoles, UserPermissions
+        with app.app_context():
+            peer = make_user(
+                username="peereditor",
+                role=UserRoles.ADMIN,
+                permissions=UserPermissions.ADMINISTRATION,
+            )
+            peer_id = peer.id
+        client, _ = admin_client
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": peer_id, "nickname": "Hacked"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 403
+
+    def test_put_cannot_assign_equal_role(self, admin_client, make_user, app):
+        """Admin cannot promote someone to ADMIN (same as their own role)."""
+        with app.app_context():
+            target = make_user(username="promote1")
+            target_id = target.id
+        client, _ = admin_client
+        resp = client.put(
+            "/api/v1/admin/user",
+            data=json.dumps({"user_id": target_id, "role": "ADMIN"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 403
+
+
 class TestAdminAPI:
     def test_stats_requires_auth(self, client):
         resp = client.get("/api/v1/admin/stats")
