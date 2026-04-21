@@ -2,20 +2,48 @@
 
 ## Running the Dev Server
 
-The development environment runs via Podman Compose. Always use this — do not run Flask or Vite directly.
+Use Podman Compose profiles as the primary workflow.
+
+There are two main modes:
+
+1. `prod` mode: Gunicorn + Flask production stack.
+2. `dev` mode: Flask debug server + Vite dev server.
 
 ```sh
-# Start all dev services (Flask on :5000, Vite on :5173, Postgres, Redis, Celery)
+# Start all dev services (Flask debug on :5000, Vite on :5173, Postgres, Redis, Celery)
 podman-compose -f docker-compose.yml --profile dev up -d --build
+```
+
+```sh
+# Start production-mode app services (Gunicorn on :5000, Postgres, Redis, Celery)
+podman-compose -f docker-compose.yml --profile prod up -d --build
 ```
 
 - Flask API: http://localhost:5000
 - Vite SPA: http://localhost:5173
 - Source code is volume-mounted, so changes hot-reload without rebuilding.
+- In-repo nginx is optional (`proxy` profile) and not required for normal prod/dev modes.
 - **Celery does not auto-reload.** After any change to `Onani/tasks/`, `celery_worker.py`, or anything imported by the worker, restart it manually:
   ```sh
   podman restart onani_celery-dev_1
   ```
+
+### Manual run (fallback)
+
+If needed, you can run services manually outside compose:
+
+```sh
+# Backend dev mode
+flask run --host=0.0.0.0 --port=5000 --debug
+
+# Frontend dev mode (separate terminal)
+cd frontend && npm run dev
+```
+
+```sh
+# Backend production-style run
+gunicorn -b 0.0.0.0:5000 -w 10 --threads 100 run:app
+```
 
 ## Testing Requirements
 
@@ -66,7 +94,7 @@ podman-compose -f docker-compose.yml --profile dev up -d --build
 | File Processing | Pillow (images) + ffmpeg-python (video/GIF) |
 | Content Import | gallery-dl (900+ sites) |
 | Frontend | Vue 3 + Vite, Vue Router, Pinia, Axios |
-| Server (prod) | Gunicorn (20 workers, 100 threads) |
+| Server (prod) | Gunicorn |
 
 ---
 
@@ -158,6 +186,12 @@ Celery async tasks (remember: **restart the celery container after editing**):
 - `importer.py` — `import_post(post_url, importer_id, cookies_content)` — fetches & saves imported posts, reports progress via `self.update_state()`, cleans up DB session on error
 - `database.py` — `database_test(user_id)`, `delete_user_posts(user_id)`
 - `video.py` — placeholder video task
+
+### Media and thumbnails
+
+- Original media files are stored on disk using sharded paths (`<root>/<first-two-chars>/<filename>`).
+- Thumbnails and sample images are generated/served by Flask routes and cached on disk.
+- nginx image_filter is not required for thumbnail generation.
 
 ### `Onani/cron/`
 

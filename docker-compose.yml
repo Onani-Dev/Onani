@@ -34,7 +34,7 @@ x-db-deps: &db-deps
 services:
   # ── Flask ───────────────────────────────────────────────
   flask:
-    profiles: ["prod"]
+    profiles: [ "prod" ]
     build: .
     restart: unless-stopped
     expose:
@@ -48,7 +48,7 @@ services:
       - logs:/logs
 
   flask-dev:
-    profiles: ["dev"]
+    profiles: [ "dev" ]
     hostname: flask
     build:
       context: .
@@ -67,7 +67,7 @@ services:
 
   # ── Optional in-repo proxy (not required) ───────────────
   nginx:
-    profiles: ["proxy"]
+    profiles: [ "proxy" ]
     build:
       context: .
       dockerfile: ./nginx/dockerfile
@@ -84,7 +84,7 @@ services:
       - frontend_dist:/frontend/dist
 
   nginx-dev:
-    profiles: ["proxy"]
+    profiles: [ "proxy" ]
     build:
       context: .
       dockerfile: ./nginx/dockerfile
@@ -102,7 +102,7 @@ services:
 
   # ── Frontend ────────────────────────────────────────────
   frontend:
-    profiles: ["frontend-build"]
+    profiles: [ "frontend-build" ]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -110,7 +110,7 @@ services:
       - frontend_dist:/app/dist
 
   frontend-dev:
-    profiles: ["dev"]
+    profiles: [ "dev" ]
     image: node:22-alpine
     working_dir: /app
     command: sh -c "npm install && npm run dev"
@@ -122,7 +122,7 @@ services:
 
   # ── Celery ──────────────────────────────────────────────
   celery:
-    profiles: ["prod"]
+    profiles: [ "prod" ]
     build:
       context: .
       dockerfile: ./celery/dockerfile
@@ -136,7 +136,7 @@ services:
       - logs:/logs
 
   celery-dev:
-    profiles: ["dev"]
+    profiles: [ "dev" ]
     build:
       context: .
       dockerfile: ./celery/dockerfile.dev
@@ -166,7 +166,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-onani_db}
       POSTGRES_DB: onani_db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: [ "CMD-SHELL", "pg_isready" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -177,7 +177,7 @@ services:
     ports:
       - 6379:6379
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
       interval: 1s
       timeout: 3s
       retries: 5
