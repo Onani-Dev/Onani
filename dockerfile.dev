@@ -1,16 +1,14 @@
 # Container Image
-FROM python:3.10-alpine
+FROM python:3.10-slim
 
 # Environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install the shit required to install pip requirements
-RUN apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev \
-    && apk add libffi-dev
-
-# FFmpeg for transcoding videos
-RUN apk add --no-cache ffmpeg
+# Install build deps and FFmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libffi-dev ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install requirements
 COPY requirements.txt /

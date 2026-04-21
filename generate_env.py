@@ -27,5 +27,14 @@ print(
 Generated environment variables:
 DB_PASSWORD={DB_PASSWORD}
 FLASK_SECRET_KEY={FLASK_SECRET_KEY}
+
+Optional — set these in .env to store data outside Docker named volumes:
+  IMAGES_HOST_DIR=/srv/onani/images     # host path for post images
+  AVATARS_HOST_DIR=/srv/onani/avatars   # host path for user avatars
+  DATABASE_HOST_DIR=/srv/onani/db       # host path for PostgreSQL data
+
+Tip: instead of env vars, you can configure the app with a TOML file.
+Copy onani.toml.example to onani.toml, fill in your values, then set:
+  ONANI_CONFIG=/path/to/onani.toml
 """
 )

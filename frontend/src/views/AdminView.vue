@@ -21,7 +21,18 @@
 
         <!-- Stats -->
         <section v-show="activeTab === 'stats'" class="admin-section">
-          <h2>Site Statistics</h2>
+          <div class="section-header">
+            <h2>Site Statistics</h2>
+            <button class="btn-sm" @click="fetchStats">↻</button>
+            <span class="text-muted" v-if="statsLastUpdated">Updated {{ formatDate(statsLastUpdated) }}</span>
+          </div>
+          <div v-if="stats" class="health-row">
+            <span class="status-badge" :class="stats.errors ? 'status-failure' : 'status-success'">
+              {{ stats.errors ? `${stats.errors} logged errors` : 'No logged errors' }}
+            </span>
+            <span class="status-badge status-pending">{{ stats.posts }} posts indexed</span>
+            <span class="status-badge status-pending">{{ stats.users }} users</span>
+          </div>
           <div v-if="stats" class="stats-grid">
             <div class="stat-card">
               <span class="stat-value">{{ stats.posts }}</span>
@@ -51,11 +62,22 @@
         <section v-show="activeTab === 'imports'" class="admin-section">
           <div class="section-header">
             <h2>Import Jobs</h2>
+            <input v-model="importSearch" class="admin-inline-input" placeholder="Search URL or user" />
+            <select v-model="importStatusFilter" class="admin-inline-select">
+              <option value="">All statuses</option>
+              <option value="active">Active</option>
+              <option value="SUCCESS">Success</option>
+              <option value="FAILURE">Failed</option>
+              <option value="REVOKED">Stopped</option>
+            </select>
+            <button class="btn-sm" @click="expandAllImports">Expand all</button>
+            <button class="btn-sm" @click="collapseAllImports">Collapse all</button>
             <button class="btn-sm" @click="refreshImports" title="Refresh">↻</button>
           </div>
+          <p class="text-muted">Showing {{ filteredImportJobs.length }} of {{ importJobs.length }} jobs on this page.</p>
 
-          <div v-if="importJobs.length" class="import-list">
-            <div v-for="job in importJobs" :key="job.id" class="import-job">
+          <div v-if="filteredImportJobs.length" class="import-list">
+            <div v-for="job in filteredImportJobs" :key="job.id" class="import-job">
               <div class="job-header" @click="job.expanded = !job.expanded">
                 <span class="status-dot" :class="dotClass(job)"></span>
                 <span class="job-url">{{ job.url || job.id }}</span>
@@ -97,7 +119,14 @@
 
         <!-- User Management -->
         <section v-show="activeTab === 'users'" class="admin-section">
-          <h2>User Management</h2>
+          <div class="section-header">
+            <h2>User Management</h2>
+            <select v-model="userRoleFilter" class="admin-inline-select">
+              <option value="">All roles</option>
+              <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+            </select>
+            <button class="btn-sm" @click="fetchUsers">↻</button>
+          </div>
 
           <details class="create-user-details" v-if="auth.user?.role >= 300">
             <summary class="btn-sm" style="display:inline-block;margin-bottom:0.75em;cursor:pointer">+ Create User</summary>
@@ -117,12 +146,13 @@
             <input v-model="userSearch" placeholder="Search by username..." @keyup.enter="fetchUsers" />
             <button class="btn-sm" @click="fetchUsers">Search</button>
           </div>
-          <table v-if="users.length">
+          <p class="text-muted">Showing {{ filteredUsers.length }} user{{ filteredUsers.length !== 1 ? 's' : '' }}.</p>
+          <table v-if="filteredUsers.length">
             <thead>
               <tr><th>ID</th><th>Username</th><th>Role</th><th>Posts</th><th></th></tr>
             </thead>
             <tbody>
-              <tr v-for="u in users" :key="u.id">
+              <tr v-for="u in filteredUsers" :key="u.id">
                 <td>{{ u.id }}</td>
                 <td>
                   <router-link :to="`/users/${u.id}`">{{ u.username }}</router-link>
@@ -202,30 +232,55 @@
                 {{ runningTask === 'restart_celery' ? 'Restarting...' : 'Restart' }}
               </button>
             </div>
+            <div class="task-item">
+              <div>
+                <strong>DeepDanbooru Tag All Posts</strong>
+                <p class="text-muted">Run AI tag estimation across every post and append missing suggestions.</p>
+                <p v-if="deepdanbooruStatus.loaded && !deepdanbooruStatus.available" class="text-muted">{{ deepdanbooruStatus.reason }}</p>
+              </div>
+              <button @click="runTask('deepdanbooru_tag_posts')" :disabled="!!runningTask || !deepdanbooruStatus.available">
+                {{ runningTask === 'deepdanbooru_tag_posts' ? 'Queueing...' : 'Run' }}
+              </button>
+            </div>
           </div>
           <p v-if="taskMessage" :class="taskError ? 'text-error' : 'text-success'">{{ taskMessage }}</p>
+          <div v-if="taskRuns.length" class="task-run-history">
+            <h3>Recent Task Runs</h3>
+            <div v-for="(run, idx) in taskRuns" :key="idx" class="task-run-row">
+              <span>{{ run.name }}</span>
+              <span class="text-muted">{{ formatDate(run.at) }}</span>
+              <span :class="run.error ? 'text-error' : 'text-success'">{{ run.message }}</span>
+            </div>
+          </div>
         </section>
 
         <!-- Error Log -->
         <section v-show="activeTab === 'errors'" class="admin-section">
-          <h2>Recent Errors</h2>
-          <table v-if="errors.length" class="errors-table">
-            <thead><tr><th>Type</th><th>Date</th><th></th></tr></thead>
-            <tbody>
-              <template v-for="err in errors" :key="err.id">
-                <tr class="error-row" @click="toggleError(err.id)">
-                  <td>{{ err.exception_type }}</td>
-                  <td>{{ formatDate(err.created_at) }}</td>
-                  <td class="expand-col">{{ expandedErrors.has(err.id) ? '▲' : '▼' }}</td>
-                </tr>
-                <tr v-if="expandedErrors.has(err.id)" class="error-traceback-row">
-                  <td colspan="3">
-                    <pre class="traceback-box">{{ err.traceback || 'No traceback available.' }}</pre>
-                  </td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
+          <div class="section-header">
+            <h2>Recent Errors</h2>
+            <input v-model="errorSearch" class="admin-inline-input" placeholder="Filter by type/traceback" />
+            <button class="btn-sm" @click="expandAllErrors">Expand all</button>
+            <button class="btn-sm" @click="collapseAllErrors">Collapse all</button>
+          </div>
+          <div v-if="filteredErrors.length" class="table-wrap">
+            <table class="errors-table">
+              <thead><tr><th>Type</th><th>Date</th><th></th></tr></thead>
+              <tbody>
+                <template v-for="err in filteredErrors" :key="err.id">
+                  <tr class="error-row" @click="toggleError(err.id)">
+                    <td>{{ err.exception_type }}</td>
+                    <td>{{ formatDate(err.created_at) }}</td>
+                    <td class="expand-col">{{ expandedErrors.has(err.id) ? '▲' : '▼' }}</td>
+                  </tr>
+                  <tr v-if="expandedErrors.has(err.id)" class="error-traceback-row">
+                    <td colspan="3">
+                      <pre class="traceback-box">{{ err.traceback || 'No traceback available.' }}</pre>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
           <p v-else class="text-muted">No errors logged.</p>
         </section>
 
@@ -233,7 +288,14 @@
         <section v-show="activeTab === 'scheduled'" class="admin-section">
           <div class="section-header">
             <h2>Scheduled Imports</h2>
+            <input v-model="scheduledSearch" class="admin-inline-input" placeholder="Search label/URL" />
+            <select v-model="scheduledEnabledFilter" class="admin-inline-select">
+              <option value="">All</option>
+              <option value="enabled">Enabled</option>
+              <option value="disabled">Disabled</option>
+            </select>
             <button class="btn-sm" @click="openNewScheduledForm">+ New</button>
+            <button class="btn-sm" @click="fetchScheduledTasks">↻</button>
           </div>
 
           <!-- Create / Edit form -->
@@ -267,42 +329,225 @@
             </div>
           </div>
 
-          <p v-if="scheduledLoading && !scheduledTasks.length" class="text-muted">Loading…</p>
-          <p v-else-if="!scheduledTasks.length && !scheduledFormVisible" class="text-muted">No scheduled tasks yet.</p>
+          <p class="text-muted">Showing {{ filteredScheduledTasks.length }} of {{ scheduledTasks.length }} scheduled task{{ scheduledTasks.length !== 1 ? 's' : '' }}.</p>
+          <p v-if="scheduledLoading && !filteredScheduledTasks.length" class="text-muted">Loading…</p>
+          <p v-else-if="!filteredScheduledTasks.length && !scheduledFormVisible" class="text-muted">No scheduled tasks match current filters.</p>
 
-          <table v-if="scheduledTasks.length" class="scheduled-table">
-            <thead>
-              <tr>
-                <th>Label / URL</th>
-                <th>Interval</th>
-                <th>Last Run</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="task in scheduledTasks" :key="task.id" :class="{ 'task-disabled': !task.enabled }">
-                <td class="task-url-cell">
-                  <span v-if="task.label" class="task-label">{{ task.label }}</span>
-                  <span class="task-url">{{ task.url }}</span>
-                  <span v-if="task.has_cookies" class="cookie-badge" title="Has cookies stored">🍪</span>
-                </td>
-                <td>{{ intervalLabel(task.interval_minutes) }}</td>
-                <td class="text-muted">{{ task.last_run_at ? formatDate(task.last_run_at) : 'Never' }}</td>
-                <td>
-                  <span v-if="task.last_run_status" :class="['status-badge', scheduledStatusClass(task.last_run_status)]">
-                    {{ task.last_run_status }}
-                  </span>
-                  <span v-else class="text-muted">—</span>
-                </td>
-                <td class="task-actions">
-                  <button class="btn-sm" @click="openEditScheduledForm(task)">Edit</button>
-                  <button class="btn-sm" @click="runScheduledTaskNow(task)" title="Dispatch now, ignoring interval">Run now</button>
-                  <button class="btn-sm danger" @click="deleteScheduledTask(task)">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div v-if="filteredScheduledTasks.length" class="table-wrap">
+            <table class="scheduled-table">
+              <thead>
+                <tr>
+                  <th>Label / URL</th>
+                  <th>Interval</th>
+                  <th>Last Run</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="task in filteredScheduledTasks" :key="task.id" :class="{ 'task-disabled': !task.enabled }">
+                  <td class="task-url-cell">
+                    <span v-if="task.label" class="task-label">{{ task.label }}</span>
+                    <span class="task-url">{{ task.url }}</span>
+                    <span v-if="task.has_cookies" class="cookie-badge" title="Has cookies stored">🍪</span>
+                  </td>
+                  <td>{{ intervalLabel(task.interval_minutes) }}</td>
+                  <td class="text-muted">{{ task.last_run_at ? formatDate(task.last_run_at) : 'Never' }}</td>
+                  <td>
+                    <span v-if="task.last_run_status" :class="['status-badge', scheduledStatusClass(task.last_run_status)]">
+                      {{ task.last_run_status }}
+                    </span>
+                    <span v-else class="text-muted">—</span>
+                  </td>
+                  <td class="task-actions">
+                    <button class="btn-sm" @click="toggleScheduledEnabled(task)">{{ task.enabled ? 'Disable' : 'Enable' }}</button>
+                    <button class="btn-sm" @click="openEditScheduledForm(task)">Edit</button>
+                    <button class="btn-sm" @click="runScheduledTaskNow(task)" title="Dispatch now, ignoring interval">Run now</button>
+                    <button class="btn-sm danger" @click="deleteScheduledTask(task)">Delete</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- External Libraries -->
+        <section v-show="activeTab === 'libraries'" class="admin-section">
+          <div class="section-header">
+            <h2>External Libraries</h2>
+            <button class="btn-sm" @click="openNewLibraryWizard">+ New Library</button>
+            <button class="btn-sm" @click="scanAllLibraries" :disabled="scanningAllLibraries">
+              {{ scanningAllLibraries ? 'Starting scans…' : 'Scan all enabled' }}
+            </button>
+            <button class="btn-sm" @click="fetchLibraries" :disabled="librariesLoading">↻</button>
+          </div>
+
+          <div v-if="libraryWizardVisible" class="library-wizard">
+            <div class="wizard-header">
+              <h3>{{ libraryWizardMode === 'create' ? 'New External Library' : 'Edit External Library' }}</h3>
+              <div class="wizard-steps">
+                <button class="wizard-step" :class="{ active: libraryWizardStep === 1 }" @click="libraryWizardStep = 1">1. Basics</button>
+                <button class="wizard-step" :class="{ active: libraryWizardStep === 2 }" @click="libraryWizardStep = 2">2. Path</button>
+                <button class="wizard-step" :class="{ active: libraryWizardStep === 3 }" @click="libraryWizardStep = 3">3. Defaults</button>
+                <button class="wizard-step" :class="{ active: libraryWizardStep === 4 }" @click="libraryWizardStep = 4">4. Review</button>
+              </div>
+            </div>
+
+            <div v-if="libraryWizardStep === 1" class="wizard-body">
+              <label class="wizard-label">Library Name</label>
+              <input v-model="libraryWizardForm.name" class="full-width" placeholder="e.g. Artist Archive" />
+              <label class="wizard-inline-checkbox">
+                <input type="checkbox" v-model="libraryWizardForm.enabled" />
+                Enabled
+              </label>
+              <p class="text-muted">Disabled libraries remain configured but cannot be scanned until re-enabled.</p>
+            </div>
+
+            <div v-if="libraryWizardStep === 2" class="wizard-body">
+              <label class="wizard-label">Absolute Filesystem Path</label>
+              <input v-model="libraryWizardForm.path" class="full-width" placeholder="/images/external/my-folder" />
+              <p class="text-muted">Path must be absolute and readable inside the Flask/Celery container.</p>
+            </div>
+
+            <div v-if="libraryWizardStep === 3" class="wizard-body">
+              <label class="wizard-label">Default Rating</label>
+              <select v-model="libraryWizardForm.default_rating" class="full-width">
+                <option value="g">General (g)</option>
+                <option value="q">Questionable (q)</option>
+                <option value="e">Explicit (e)</option>
+              </select>
+
+              <label class="wizard-label">Default Tags</label>
+              <input v-model="libraryWizardForm.default_tags" class="full-width" placeholder="space separated tags" />
+
+              <label class="wizard-inline-checkbox" v-if="libraryWizardMode === 'create'">
+                <input type="checkbox" v-model="libraryWizardForm.run_initial_scan" />
+                Run initial scan after create
+              </label>
+            </div>
+
+            <div v-if="libraryWizardStep === 4" class="wizard-body review-grid">
+              <div><strong>Name</strong><p>{{ libraryWizardForm.name || '—' }}</p></div>
+              <div><strong>Path</strong><p>{{ libraryWizardForm.path || '—' }}</p></div>
+              <div><strong>Enabled</strong><p>{{ libraryWizardForm.enabled ? 'Yes' : 'No' }}</p></div>
+              <div><strong>Default Rating</strong><p>{{ libraryWizardForm.default_rating }}</p></div>
+              <div><strong>Default Tags</strong><p>{{ libraryWizardForm.default_tags || '—' }}</p></div>
+            </div>
+
+            <p v-if="libraryWizardError" class="text-error">{{ libraryWizardError }}</p>
+
+            <div class="wizard-actions">
+              <button class="btn-sm" @click="prevLibraryWizardStep" :disabled="libraryWizardStep === 1">Back</button>
+              <button
+                v-if="libraryWizardStep < 4"
+                class="btn-primary"
+                @click="nextLibraryWizardStep"
+              >Next</button>
+              <button
+                v-else
+                class="btn-primary"
+                @click="saveLibraryWizard"
+                :disabled="libraryWizardSaving"
+              >{{ libraryWizardSaving ? 'Saving…' : (libraryWizardMode === 'create' ? 'Create Library' : 'Save Changes') }}</button>
+              <button class="btn-sm" @click="cancelLibraryWizard">Cancel</button>
+            </div>
+          </div>
+
+          <p v-if="librariesLoading && !libraries.length" class="text-muted">Loading libraries…</p>
+          <p v-else-if="!libraries.length && !libraryWizardVisible" class="text-muted">No external libraries configured.</p>
+
+          <div v-if="libraries.length" class="library-layout">
+            <div class="library-list">
+              <article
+                v-for="lib in libraries"
+                :key="lib.id"
+                class="library-card"
+                :class="{ selected: selectedLibraryId === lib.id }"
+              >
+                <header class="library-card-header" @click="openLibraryDetails(lib)">
+                  <h3>{{ lib.name }}</h3>
+                  <span class="status-badge" :class="libraryStatusClass(lib)">{{ lib.last_scan_status || 'IDLE' }}</span>
+                </header>
+                <p class="library-path">{{ lib.path }}</p>
+                <div class="library-stats">
+                  <span>{{ lib.file_count }} files</span>
+                  <span>{{ lib.imported_count }} imported</span>
+                  <span>{{ lib.enabled ? 'Enabled' : 'Disabled' }}</span>
+                </div>
+                <div class="library-actions">
+                  <button class="btn-sm" @click="triggerLibraryScan(lib)" :disabled="isLibraryScanActive(lib)">Scan</button>
+                  <button class="btn-sm" @click="openEditLibraryWizard(lib)">Edit</button>
+                  <button class="btn-sm" @click="toggleLibraryEnabled(lib)">{{ lib.enabled ? 'Disable' : 'Enable' }}</button>
+                  <button class="btn-sm danger" @click="deleteLibrary(lib)">Delete</button>
+                </div>
+              </article>
+            </div>
+
+            <div class="library-detail" v-if="selectedLibrary">
+              <div class="section-header detail-header">
+                <h3>{{ selectedLibrary.name }}</h3>
+                <button class="btn-sm" @click="refreshSelectedLibrary">↻</button>
+              </div>
+
+              <div class="detail-status-grid">
+                <div>
+                  <strong>Last Scan</strong>
+                  <p class="text-muted">{{ selectedLibrary.last_scan_at ? formatDate(selectedLibrary.last_scan_at) : 'Never' }}</p>
+                </div>
+                <div>
+                  <strong>Status</strong>
+                  <p>{{ selectedLibraryScan.status || selectedLibrary.last_scan_status || 'IDLE' }}</p>
+                </div>
+                <div>
+                  <strong>Task ID</strong>
+                  <p class="text-muted">{{ selectedLibraryScan.task_id || selectedLibrary.last_scan_task_id || '—' }}</p>
+                </div>
+              </div>
+
+              <div v-if="selectedLibraryScan.meta?.logs?.length" class="import-logs">
+                <pre class="log-output log-box">{{ joinLines(selectedLibraryScan.meta.logs) }}</pre>
+              </div>
+
+              <div class="library-files-toolbar">
+                <select v-model="selectedLibraryFilesStatus" @change="resetAndFetchSelectedLibraryFiles">
+                  <option value="">All statuses</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="IMPORTED">IMPORTED</option>
+                  <option value="FAILED">FAILED</option>
+                  <option value="MISSING">MISSING</option>
+                </select>
+              </div>
+
+              <p v-if="selectedLibraryFilesLoading && !selectedLibraryFiles.length" class="text-muted">Loading files…</p>
+              <div v-else-if="selectedLibraryFiles.length" class="table-wrap">
+                <table class="scheduled-table library-files-table">
+                  <thead>
+                    <tr>
+                      <th>File</th>
+                      <th>Status</th>
+                      <th>Post</th>
+                      <th>Error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="f in selectedLibraryFiles" :key="f.id">
+                      <td class="library-file-path">{{ f.file_path }}</td>
+                      <td>{{ f.status }}</td>
+                      <td>{{ f.post_id || '—' }}</td>
+                      <td class="text-muted">{{ f.error || '—' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p v-else class="text-muted">No tracked files yet.</p>
+
+              <div v-if="selectedLibraryFilesPages > 1" class="import-pagination">
+                <button class="btn-sm" :disabled="selectedLibraryFilesPage <= 1" @click="selectedLibraryFilesPage--; fetchSelectedLibraryFiles()">‹</button>
+                <span class="text-muted">{{ selectedLibraryFilesPage }} / {{ selectedLibraryFilesPages }}</span>
+                <button class="btn-sm" :disabled="selectedLibraryFilesPage >= selectedLibraryFilesPages" @click="selectedLibraryFilesPage++; fetchSelectedLibraryFiles()">›</button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- Logs (Celery + Flask access/error) -->
@@ -310,6 +555,7 @@
           <div class="section-header">
             <h2>Logs</h2>
             <span class="log-controls">
+              <input v-model="logSearch" class="admin-inline-input" placeholder="Filter lines" />
               <select v-model="logsLines" @change="fetchActiveLog" class="lines-select">
                 <option :value="50">Last 50</option>
                 <option :value="100">Last 100</option>
@@ -333,7 +579,7 @@
 
           <template v-if="logsData.available">
             <div ref="logBoxEl" class="log-output log-box log-box-tall">
-              <div v-for="(line, i) in logsData.lines" :key="i" :class="logLineClass(line)">{{ line }}</div>
+              <div v-for="(line, i) in filteredLogLines" :key="i" :class="logLineClass(line)">{{ line }}</div>
             </div>
           </template>
           <p v-else-if="logsLoading" class="text-muted">Loading…</p>
@@ -346,7 +592,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -355,11 +601,13 @@ const route = useRoute()
 
 const auth = useAuthStore()
 const stats = ref(null)
+const statsLastUpdated = ref(null)
 const errors = ref([])
 const expandedErrors = ref(new Set())
 const runningTask = ref(null)
 const taskMessage = ref('')
 const taskError = ref(false)
+const deepdanbooruStatus = ref({ loaded: false, available: false, reason: '' })
 const importJobs = reactive([])
 const users = ref([])
 const userSearch = ref('')
@@ -405,18 +653,46 @@ const logsLoading = ref(false)
 const logsData = ref({ lines: [], available: false })
 const logBoxEl = ref(null)
 
+// External libraries state
+const libraries = ref([])
+const librariesLoading = ref(false)
+const scanningAllLibraries = ref(false)
+const libraryWizardVisible = ref(false)
+const libraryWizardMode = ref('create')
+const libraryWizardStep = ref(1)
+const libraryWizardSaving = ref(false)
+const libraryWizardError = ref('')
+const libraryWizardEditId = ref(null)
+const libraryWizardForm = reactive({
+  name: '',
+  path: '',
+  enabled: true,
+  default_rating: 'q',
+  default_tags: '',
+  run_initial_scan: true,
+})
+const selectedLibraryId = ref(null)
+const selectedLibraryFiles = ref([])
+const selectedLibraryFilesLoading = ref(false)
+const selectedLibraryFilesPage = ref(1)
+const selectedLibraryFilesPages = ref(1)
+const selectedLibraryFilesStatus = ref('')
+const selectedLibraryScan = ref({ status: null, task_id: null, meta: null, result: null })
+const libraryScanPollers = {}
+
 const newUser = reactive({ username: '', email: '', password: '', role: 'MEMBER' })
 const creatingUser = ref(false)
 const createUserMsg = ref('')
 const createUserError = ref(false)
 
 // Sidebar tabs — restore from ?tab= query param if present
-const VALID_TABS = new Set(['stats','imports','scheduled','users','tasks','errors','logs'])
+const VALID_TABS = new Set(['stats','imports','scheduled','libraries','users','tasks','errors','logs'])
 const activeTab = ref(VALID_TABS.has(route.query.tab) ? route.query.tab : 'stats')
 const tabs = [
   { id: 'stats',     icon: '📊', label: 'Statistics' },
   { id: 'imports',   icon: '📥', label: 'Imports' },
   { id: 'scheduled', icon: '🕐', label: 'Scheduled' },
+  { id: 'libraries', icon: '🗂️', label: 'Libraries' },
   { id: 'users',     icon: '👥', label: 'Users' },
   { id: 'tasks',     icon: '🔧', label: 'Tasks' },
   { id: 'errors',    icon: '🟠', label: 'Errors' },
@@ -427,9 +703,21 @@ const tabs = [
 const importPage = ref(1)
 const importPerPage = 20
 const importTotalPages = ref(1)
+const importSearch = ref('')
+const importStatusFilter = ref('')
 
 const ROLE_VALUES = { 0: 'MEMBER', 100: 'HELPER', 200: 'MODERATOR', 300: 'ADMIN', 666: 'OWNER' }
 const roles = ['MEMBER', 'HELPER', 'MODERATOR', 'ADMIN', 'OWNER']
+const userRoleFilter = ref('')
+
+const taskRuns = ref([])
+
+const errorSearch = ref('')
+
+const scheduledSearch = ref('')
+const scheduledEnabledFilter = ref('')
+
+const logSearch = ref('')
 
 function roleName(val) { return ROLE_VALUES[val] || val }
 function joinLines(arr) { return arr.join('\n') }
@@ -438,6 +726,350 @@ function toggleError(id) {
   const s = new Set(expandedErrors.value)
   if (s.has(id)) s.delete(id); else s.add(id)
   expandedErrors.value = s
+}
+
+const filteredImportJobs = computed(() => {
+  let rows = importJobs.slice()
+  if (importStatusFilter.value) {
+    if (importStatusFilter.value === 'active') {
+      rows = rows.filter(j => isJobActive(j))
+    } else if (importStatusFilter.value === 'SUCCESS') {
+      rows = rows.filter(j => jobSucceeded(j))
+    } else if (importStatusFilter.value === 'FAILURE') {
+      rows = rows.filter(j => j.status === 'FAILURE' || j.status === 'ERROR')
+    } else if (importStatusFilter.value === 'REVOKED') {
+      rows = rows.filter(j => j.status === 'REVOKED')
+    }
+  }
+
+  const q = importSearch.value.trim().toLowerCase()
+  if (!q) return rows
+
+  return rows.filter(j => {
+    const haystack = `${j.url || ''} ${j.user?.username || ''} ${j.id}`.toLowerCase()
+    return haystack.includes(q)
+  })
+})
+
+const filteredUsers = computed(() => {
+  let rows = users.value.slice()
+  if (userRoleFilter.value) {
+    rows = rows.filter(u => roleName(u.role) === userRoleFilter.value)
+  }
+  return rows
+})
+
+const filteredErrors = computed(() => {
+  const q = errorSearch.value.trim().toLowerCase()
+  if (!q) return errors.value
+  return errors.value.filter(err => {
+    const haystack = `${err.exception_type || ''} ${err.traceback || ''}`.toLowerCase()
+    return haystack.includes(q)
+  })
+})
+
+const filteredScheduledTasks = computed(() => {
+  let rows = scheduledTasks.value.slice()
+  if (scheduledEnabledFilter.value === 'enabled') rows = rows.filter(t => t.enabled)
+  if (scheduledEnabledFilter.value === 'disabled') rows = rows.filter(t => !t.enabled)
+  const q = scheduledSearch.value.trim().toLowerCase()
+  if (!q) return rows
+  return rows.filter(t => `${t.label || ''} ${t.url || ''}`.toLowerCase().includes(q))
+})
+
+const filteredLogLines = computed(() => {
+  const q = logSearch.value.trim().toLowerCase()
+  if (!q) return logsData.value.lines || []
+  return (logsData.value.lines || []).filter(line => String(line).toLowerCase().includes(q))
+})
+
+function expandAllImports() {
+  for (const job of filteredImportJobs.value) job.expanded = true
+}
+
+function collapseAllImports() {
+  for (const job of filteredImportJobs.value) job.expanded = false
+}
+
+function expandAllErrors() {
+  expandedErrors.value = new Set(filteredErrors.value.map(e => e.id))
+}
+
+function collapseAllErrors() {
+  expandedErrors.value = new Set()
+}
+
+const selectedLibrary = computed(() => {
+  return libraries.value.find(lib => lib.id === selectedLibraryId.value) || null
+})
+
+function libraryStatusClass(lib) {
+  const status = (lib.last_scan_status || '').toUpperCase()
+  if (status === 'SUCCESS') return 'status-success'
+  if (status === 'FAILED' || status === 'FAILURE') return 'status-failure'
+  return 'status-pending'
+}
+
+function isLibraryScanActive(lib) {
+  const status = (lib.last_scan_status || '').toUpperCase()
+  return status === 'SCANNING' || status === 'PROGRESS' || status === 'PENDING'
+}
+
+async function fetchLibraries() {
+  librariesLoading.value = true
+  try {
+    const { data } = await api.get('/libraries')
+    libraries.value = data
+    if (!selectedLibraryId.value && data.length) {
+      selectedLibraryId.value = data[0].id
+      await refreshSelectedLibrary()
+    } else if (selectedLibraryId.value) {
+      const stillExists = data.some(x => x.id === selectedLibraryId.value)
+      if (!stillExists) {
+        selectedLibraryId.value = data[0]?.id || null
+        if (selectedLibraryId.value) await refreshSelectedLibrary()
+      }
+    }
+  } catch (err) {
+    if (err.response?.status !== 403) console.error('fetchLibraries failed:', err)
+  } finally {
+    librariesLoading.value = false
+  }
+}
+
+function resetLibraryWizard() {
+  libraryWizardMode.value = 'create'
+  libraryWizardStep.value = 1
+  libraryWizardEditId.value = null
+  libraryWizardError.value = ''
+  Object.assign(libraryWizardForm, {
+    name: '',
+    path: '',
+    enabled: true,
+    default_rating: 'q',
+    default_tags: '',
+    run_initial_scan: true,
+  })
+}
+
+function openNewLibraryWizard() {
+  resetLibraryWizard()
+  libraryWizardVisible.value = true
+}
+
+function openEditLibraryWizard(lib) {
+  libraryWizardMode.value = 'edit'
+  libraryWizardVisible.value = true
+  libraryWizardStep.value = 1
+  libraryWizardError.value = ''
+  libraryWizardEditId.value = lib.id
+  Object.assign(libraryWizardForm, {
+    name: lib.name,
+    path: lib.path,
+    enabled: !!lib.enabled,
+    default_rating: lib.default_rating || 'q',
+    default_tags: lib.default_tags || '',
+    run_initial_scan: false,
+  })
+}
+
+function cancelLibraryWizard() {
+  libraryWizardVisible.value = false
+  resetLibraryWizard()
+}
+
+function nextLibraryWizardStep() {
+  libraryWizardError.value = ''
+  if (libraryWizardStep.value === 1 && !libraryWizardForm.name.trim()) {
+    libraryWizardError.value = 'Library name is required.'
+    return
+  }
+  if (libraryWizardStep.value === 2) {
+    const path = libraryWizardForm.path.trim()
+    if (!path) {
+      libraryWizardError.value = 'Path is required.'
+      return
+    }
+    if (!path.startsWith('/')) {
+      libraryWizardError.value = 'Path must be absolute.'
+      return
+    }
+  }
+  if (libraryWizardStep.value < 4) libraryWizardStep.value += 1
+}
+
+function prevLibraryWizardStep() {
+  libraryWizardError.value = ''
+  if (libraryWizardStep.value > 1) libraryWizardStep.value -= 1
+}
+
+async function saveLibraryWizard() {
+  libraryWizardSaving.value = true
+  libraryWizardError.value = ''
+  const payload = {
+    name: libraryWizardForm.name.trim(),
+    path: libraryWizardForm.path.trim(),
+    enabled: !!libraryWizardForm.enabled,
+    default_rating: libraryWizardForm.default_rating,
+    default_tags: libraryWizardForm.default_tags.trim(),
+  }
+
+  try {
+    let id = libraryWizardEditId.value
+    if (libraryWizardMode.value === 'create') {
+      const { data } = await api.post('/libraries', payload)
+      id = data.id
+    } else {
+      await api.put(`/libraries/${libraryWizardEditId.value}`, payload)
+    }
+    libraryWizardVisible.value = false
+    await fetchLibraries()
+    if (id) {
+      selectedLibraryId.value = id
+      await refreshSelectedLibrary()
+      if (libraryWizardMode.value === 'create' && libraryWizardForm.run_initial_scan && payload.enabled) {
+        const lib = libraries.value.find(x => x.id === id)
+        if (lib) await triggerLibraryScan(lib, true)
+      }
+    }
+    resetLibraryWizard()
+  } catch (err) {
+    libraryWizardError.value = err.response?.data?.message || 'Could not save library.'
+  } finally {
+    libraryWizardSaving.value = false
+  }
+}
+
+async function openLibraryDetails(lib) {
+  selectedLibraryId.value = lib.id
+  selectedLibraryFilesPage.value = 1
+  selectedLibraryFilesStatus.value = ''
+  await refreshSelectedLibrary()
+}
+
+function resetAndFetchSelectedLibraryFiles() {
+  selectedLibraryFilesPage.value = 1
+  fetchSelectedLibraryFiles()
+}
+
+async function fetchSelectedLibraryFiles() {
+  if (!selectedLibraryId.value) return
+  selectedLibraryFilesLoading.value = true
+  try {
+    const params = {
+      page: selectedLibraryFilesPage.value,
+      per_page: 25,
+    }
+    if (selectedLibraryFilesStatus.value) params.status = selectedLibraryFilesStatus.value
+    const { data } = await api.get(`/libraries/${selectedLibraryId.value}/files`, { params })
+    selectedLibraryFiles.value = data.data || []
+    selectedLibraryFilesPages.value = data.pages || 1
+  } catch (err) {
+    selectedLibraryFiles.value = []
+    selectedLibraryFilesPages.value = 1
+    if (err.response?.status !== 403) console.error('fetchSelectedLibraryFiles failed:', err)
+  } finally {
+    selectedLibraryFilesLoading.value = false
+  }
+}
+
+async function pollLibraryScan(libraryId) {
+  if (libraryScanPollers[libraryId]) clearTimeout(libraryScanPollers[libraryId])
+  try {
+    const { data } = await api.get(`/libraries/${libraryId}/scan`)
+    const lib = libraries.value.find(x => x.id === libraryId)
+    if (lib) {
+      lib.last_scan_status = data.status || lib.last_scan_status
+      lib.last_scan_task_id = data.task_id || lib.last_scan_task_id
+      if (data.last_scan_at) lib.last_scan_at = data.last_scan_at
+    }
+
+    if (selectedLibraryId.value === libraryId) {
+      selectedLibraryScan.value = {
+        status: data.status,
+        task_id: data.task_id,
+        meta: data.meta || null,
+        result: data.result || null,
+      }
+    }
+
+    const status = (data.status || '').toUpperCase()
+    if (status === 'PENDING' || status === 'PROGRESS' || status === 'SCANNING' || status === 'STARTED') {
+      libraryScanPollers[libraryId] = setTimeout(() => pollLibraryScan(libraryId), 2500)
+    } else {
+      delete libraryScanPollers[libraryId]
+      if (selectedLibraryId.value === libraryId) {
+        await fetchSelectedLibraryFiles()
+      }
+      await fetchLibraries()
+    }
+  } catch (err) {
+    delete libraryScanPollers[libraryId]
+    if (err.response?.status !== 403) console.error('pollLibraryScan failed:', err)
+  }
+}
+
+async function triggerLibraryScan(lib, silent = false) {
+  try {
+    const { data } = await api.post(`/libraries/${lib.id}/scan`)
+    lib.last_scan_status = 'SCANNING'
+    lib.last_scan_task_id = data.task_id || lib.last_scan_task_id
+    pollLibraryScan(lib.id)
+  } catch (err) {
+    if (!silent) alert(err.response?.data?.message || 'Could not start scan.')
+  }
+}
+
+async function refreshSelectedLibrary() {
+  if (!selectedLibraryId.value) return
+  await Promise.all([
+    fetchSelectedLibraryFiles(),
+    pollLibraryScan(selectedLibraryId.value),
+  ])
+}
+
+async function toggleLibraryEnabled(lib) {
+  try {
+    await api.put(`/libraries/${lib.id}`, {
+      enabled: !lib.enabled,
+    })
+    lib.enabled = !lib.enabled
+  } catch (err) {
+    alert(err.response?.data?.message || 'Could not update library state.')
+  }
+}
+
+async function deleteLibrary(lib) {
+  if (!confirm(`Delete external library "${lib.name}"?`)) return
+  try {
+    await api.delete(`/libraries/${lib.id}`)
+    if (libraryScanPollers[lib.id]) {
+      clearTimeout(libraryScanPollers[lib.id])
+      delete libraryScanPollers[lib.id]
+    }
+    if (selectedLibraryId.value === lib.id) {
+      selectedLibraryId.value = null
+      selectedLibraryFiles.value = []
+      selectedLibraryScan.value = { status: null, task_id: null, meta: null, result: null }
+    }
+    await fetchLibraries()
+  } catch (err) {
+    alert(err.response?.data?.message || 'Could not delete library.')
+  }
+}
+
+async function scanAllLibraries() {
+  scanningAllLibraries.value = true
+  try {
+    const enabled = libraries.value.filter(lib => lib.enabled)
+    for (const lib of enabled) {
+      if (!isLibraryScanActive(lib)) {
+        await triggerLibraryScan(lib, true)
+      }
+    }
+  } finally {
+    scanningAllLibraries.value = false
+  }
 }
 
 // ── Scheduled imports ───────────────────────────────────────
@@ -523,6 +1155,7 @@ function intervalLabel(minutes) {
 function scheduledStatusClass(status) {
   if (status === 'DISPATCHED') return 'status-success'
   if (status === 'FAILED') return 'status-failure'
+  if (status === 'QUEUED') return 'status-pending'
   return 'status-pending'
 }
 // ────────────────────────────────────────────────────────────
@@ -604,12 +1237,7 @@ async function stopJob(job) {
 onMounted(async () => {
   clockTimer = setInterval(() => { now.value = Date.now() }, 1000)
 
-  try {
-    const { data } = await api.get('/admin/stats')
-    stats.value = data
-  } catch (err) {
-    if (err.response?.status !== 403) console.error('Admin stats error:', err)
-  }
+  await fetchStats()
   try {
     const { data } = await api.get('/admin/errors', { params: { per_page: 10 } })
     errors.value = data.data
@@ -620,12 +1248,21 @@ onMounted(async () => {
   fetchActiveLog()
   fetchUsers()
   fetchScheduledTasks()
+  fetchLibraries()
+  fetchDeepDanbooruStatus()
   refreshImports()
   refreshTimer = setInterval(refreshImports, 10000)
 })
 
+watch(activeTab, (tab) => {
+  if (tab === 'libraries') {
+    fetchLibraries()
+  }
+})
+
 onUnmounted(() => {
   Object.values(pollTimers).forEach(clearTimeout)
+  Object.values(libraryScanPollers).forEach(clearTimeout)
   if (refreshTimer) clearInterval(refreshTimer)
   if (clockTimer) clearInterval(clockTimer)
 })
@@ -724,6 +1361,33 @@ async function fetchUsers() {
   } catch { /* ignore */ }
 }
 
+async function fetchStats() {
+  try {
+    const { data } = await api.get('/admin/stats')
+    stats.value = data
+    statsLastUpdated.value = new Date().toISOString()
+  } catch (err) {
+    if (err.response?.status !== 403) console.error('Admin stats error:', err)
+  }
+}
+
+async function fetchDeepDanbooruStatus() {
+  try {
+    const { data } = await api.get('/posts/auto-tags/status')
+    deepdanbooruStatus.value = {
+      loaded: true,
+      available: !!data.available,
+      reason: data.reason || '',
+    }
+  } catch {
+    deepdanbooruStatus.value = {
+      loaded: true,
+      available: false,
+      reason: 'Could not check DeepDanbooru availability.',
+    }
+  }
+}
+
 async function createUser() {
   creatingUser.value = true
   createUserMsg.value = ''
@@ -771,11 +1435,26 @@ async function runTask(name) {
   try {
     const { data } = await api.post('/admin/tasks', { task: name })
     taskMessage.value = data.message
+    taskRuns.value.unshift({ name, at: new Date().toISOString(), message: data.message, error: false })
   } catch (err) {
     taskMessage.value = err.response?.data?.message || 'Task failed.'
     taskError.value = true
+    taskRuns.value.unshift({ name, at: new Date().toISOString(), message: taskMessage.value, error: true })
   } finally {
+    if (taskRuns.value.length > 12) taskRuns.value = taskRuns.value.slice(0, 12)
     runningTask.value = null
+  }
+}
+
+async function toggleScheduledEnabled(task) {
+  try {
+    await api.put('/admin/scheduled-imports', {
+      id: task.id,
+      enabled: !task.enabled,
+    })
+    task.enabled = !task.enabled
+  } catch (err) {
+    alert(err.response?.data?.message || 'Could not update scheduled task.')
   }
 }
 
@@ -822,7 +1501,17 @@ function switchLogType(type) {
 <style scoped>
 /* ── Layout ─────────────────────────────────────────────── */
 .admin-page {
-  padding: 0 !important; /* override page-container; sidebar border must touch edges */
+  padding: 0 !important;
+  overflow: hidden;
+  --admin-status-success-bg: #2d5a2d;
+  --admin-status-success-fg: #8fdf8f;
+  --admin-status-failure-bg: #5a2d2d;
+  --admin-status-failure-fg: #df8f8f;
+  --admin-status-pending-bg: #5a4d2d;
+  --admin-status-pending-fg: #dfcf8f;
+  --admin-log-bg: #0d0d0d;
+  --admin-log-fg: #c8c8c8;
+  --admin-focus-ring: var(--accent, #5a8a5a);
 }
 .admin-layout {
   display: flex;
@@ -855,6 +1544,10 @@ function switchLogType(type) {
   transition: background 0.1s, border-color 0.1s;
 }
 .sidebar-item:hover { background: var(--item-hover); }
+.sidebar-item:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: -2px;
+}
 .sidebar-item.active {
   background: var(--item-hover);
   border-left-color: var(--accent, #5a8a5a);
@@ -862,6 +1555,154 @@ function switchLogType(type) {
 }
 .sidebar-icon { font-size: 1rem; flex-shrink: 0; }
 .sidebar-label { white-space: nowrap; }
+
+/* ── External Libraries ─────────────────────────────────── */
+.library-wizard {
+  background: var(--bg-overlay);
+  border-radius: 10px;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+.wizard-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8em;
+  align-items: center;
+  margin-bottom: 0.8em;
+}
+.wizard-header h3 { margin: 0; }
+.wizard-steps {
+  display: flex;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+.wizard-step {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.3em 0.55em;
+  font-size: 0.8rem;
+}
+.wizard-step.active {
+  background: var(--item-hover);
+  border-color: var(--accent, #5a8a5a);
+}
+.wizard-step:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: 1px;
+}
+.wizard-body {
+  display: grid;
+  gap: 0.6em;
+  margin-bottom: 0.8em;
+}
+.wizard-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.wizard-inline-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.wizard-actions {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+.review-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.review-grid p { margin: 0.2em 0 0 0; }
+
+.library-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 1em;
+}
+.library-list {
+  display: grid;
+  gap: 0.6em;
+  align-content: start;
+}
+.library-card {
+  background: var(--bg-overlay);
+  border-radius: 10px;
+  padding: 0.8em;
+  border: 1px solid transparent;
+}
+.library-card.selected {
+  border-color: var(--accent, #5a8a5a);
+}
+.library-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  cursor: pointer;
+}
+.library-card-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.library-path {
+  margin: 0.45em 0;
+  color: var(--text-muted);
+  font-family: monospace;
+  word-break: break-all;
+}
+.library-stats {
+  display: flex;
+  gap: 0.8em;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.6em;
+  flex-wrap: wrap;
+}
+.library-actions {
+  display: flex;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+
+.library-detail {
+  background: var(--bg-overlay);
+  border-radius: 10px;
+  padding: 0.9em;
+}
+.detail-header {
+  margin-bottom: 0.8em;
+}
+.detail-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6em;
+  margin-bottom: 0.8em;
+}
+.detail-status-grid p {
+  margin: 0.25em 0 0 0;
+}
+.library-files-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.6em;
+}
+.library-files-table {
+  width: 100%;
+}
+.library-file-path {
+  max-width: 24em;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1100px) {
+  .library-layout {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ── Content pane ─────────────────────────────────────────── */
 .admin-content {
@@ -878,8 +1719,42 @@ function switchLogType(type) {
   align-items: center;
   gap: 0.75em;
   margin-bottom: 1em;
+  flex-wrap: wrap;
 }
 .section-header h2 { margin: 0; }
+
+.admin-inline-input,
+.admin-inline-select {
+  font: inherit;
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 0.3em 0.5em;
+  font-size: 0.82rem;
+}
+.admin-inline-input:focus-visible,
+.admin-inline-select:focus-visible,
+.lines-select:focus-visible,
+.role-select:focus-visible,
+.btn-sm:focus-visible,
+.btn-primary:focus-visible,
+.log-tab-btn:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: 1px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.health-row {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  margin-bottom: 0.8em;
+}
 
 /* ── Import jobs ──────────────────────────────────────────── */
 .import-list { display: flex; flex-direction: column; gap: 0.5em; }
@@ -1012,9 +1887,9 @@ function switchLogType(type) {
   padding: 0.5rem;
 }
 .log-box {
-  background: #0d0d0d;
+  background: var(--admin-log-bg);
   border: 1px solid var(--border);
-  color: #c8c8c8;
+  color: var(--admin-log-fg);
 }
 .celery-log-output {
   max-height: 28rem;
@@ -1061,6 +1936,11 @@ function switchLogType(type) {
 
 /* ── Errors ───────────────────────────────────────────────── */
 .errors-table { width: 100%; }
+.errors-table,
+.scheduled-table,
+.library-files-table {
+  min-width: 42rem;
+}
 .error-row { cursor: pointer; }
 .error-row:hover { background: var(--bg-overlay); }
 .expand-col { width: 2em; text-align: center; color: var(--text-muted); }
@@ -1069,9 +1949,9 @@ function switchLogType(type) {
   white-space: pre-wrap;
   word-break: break-all;
   padding: 0.5rem;
-  background: #0d0d0d;
+  background: var(--admin-log-bg);
   border: 1px solid var(--border);
-  color: #c8c8c8;
+  color: var(--admin-log-fg);
   margin: 0.25rem 0;
   border-radius: 4px;
   max-height: 20rem;
@@ -1141,6 +2021,26 @@ function switchLogType(type) {
 }
 .task-item p { font-size: 0.85rem; margin: 0; }
 
+.task-run-history {
+  margin-top: 1em;
+  background: var(--bg-overlay);
+  border-radius: 6px;
+  padding: 0.75em;
+}
+.task-run-history h3 {
+  margin: 0 0 0.5em 0;
+  font-size: 0.9rem;
+}
+.task-run-row {
+  display: grid;
+  grid-template-columns: 1fr auto 2fr;
+  gap: 0.6em;
+  font-size: 0.82rem;
+  padding: 0.25em 0;
+  border-top: 1px solid var(--border);
+}
+.task-run-row:first-of-type { border-top: none; }
+
 /* ── Badges ───────────────────────────────────────────────── */
 .status-badge {
   padding: 0.15em 0.5em;
@@ -1150,9 +2050,9 @@ function switchLogType(type) {
   text-transform: uppercase;
   flex-shrink: 0;
 }
-.status-success { background: #2d5a2d; color: #8fdf8f; }
-.status-failure { background: #5a2d2d; color: #df8f8f; }
-.status-pending { background: #5a4d2d; color: #dfcf8f; }
+.status-success { background: var(--admin-status-success-bg); color: var(--admin-status-success-fg); }
+.status-failure { background: var(--admin-status-failure-bg); color: var(--admin-status-failure-fg); }
+.status-pending { background: var(--admin-status-pending-bg); color: var(--admin-status-pending-fg); }
 
 /* ── Buttons ──────────────────────────────────────────────── */
 .btn-sm {
@@ -1179,7 +2079,8 @@ function switchLogType(type) {
     border-bottom: 1px solid var(--border);
     overflow-x: auto;
     padding: 0;
-  }  .sidebar-item {
+  }
+  .sidebar-item {
     border-left: none;
     border-bottom: 3px solid transparent;
     padding: 0.5em 0.75em;
@@ -1190,5 +2091,10 @@ function switchLogType(type) {
   .sidebar-item.active { border-bottom-color: var(--accent, #5a8a5a); border-left-color: transparent; }
   .admin-content { padding: 0.75em 0 0 0; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .errors-table,
+  .scheduled-table,
+  .library-files-table {
+    min-width: 34rem;
+  }
 }
 </style>

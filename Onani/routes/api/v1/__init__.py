@@ -19,6 +19,7 @@ from .collections import *
 from .comments import *
 from .importer import *
 from .index import *
+from .libraries import *
 from .news import *
 from .posts import *
 from .profile import *

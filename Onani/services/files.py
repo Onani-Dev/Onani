@@ -10,12 +10,82 @@ from typing import Tuple
 
 import ffmpeg
 from Onani.models import User
-from PIL import Image
+from PIL import Image, ImageOps
 
 from Onani import db
 
 
 _VIDEO_EXTENSIONS = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
+_NAMED_THUMB_SIZES = {
+    "xsmall": 50,
+    "small": 150,
+    "large": 350,
+    "xlarge": 500,
+}
+
+
+def parse_thumbnail_size(size: str | int | None, default: int = 150) -> int:
+    """Normalize thumbnail size from named presets or numeric query values."""
+    if size is None:
+        return default
+
+    if isinstance(size, int):
+        return max(16, min(2048, size))
+
+    size_raw = str(size).strip().lower()
+    if not size_raw:
+        return default
+
+    if size_raw in _NAMED_THUMB_SIZES:
+        return _NAMED_THUMB_SIZES[size_raw]
+
+    with contextlib.suppress(ValueError):
+        return max(16, min(2048, int(size_raw)))
+
+    return default
+
+
+def cached_thumbnail_path(cache_root: str, variant: str, size_key: str, source_filename: str) -> str:
+    """Return path for a cached derived image using sharded layout."""
+    stem = os.path.splitext(source_filename)[0]
+    cache_name = f"{stem}.jpg"
+    shard = cache_name[:2]
+    return os.path.join(cache_root, ".thumbs", variant, size_key, shard, cache_name)
+
+
+def build_cached_image_variant(
+    source_path: str,
+    cache_root: str,
+    source_filename: str,
+    variant: str,
+    max_width: int,
+    max_height: int,
+    quality: int,
+) -> str:
+    """Generate and cache a resized JPEG derivative image on disk.
+
+    Reuses an existing cached file when it is newer than the source.
+    """
+    size_key = f"{max_width}x{max_height}"
+    cache_path = cached_thumbnail_path(cache_root, variant, size_key, source_filename)
+    source_mtime = os.path.getmtime(source_path)
+
+    if os.path.isfile(cache_path) and os.path.getmtime(cache_path) >= source_mtime:
+        return cache_path
+
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    tmp_path = f"{cache_path}.tmp-{os.getpid()}"
+
+    with Image.open(source_path) as img:
+        img = ImageOps.exif_transpose(img)
+        img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+        img.save(tmp_path, format="JPEG", quality=quality, optimize=True)
+
+    os.replace(tmp_path, cache_path)
+    os.chmod(cache_path, 0o644)
+    return cache_path
 
 
 def shard_path(images_dir: str, filename: str) -> str:

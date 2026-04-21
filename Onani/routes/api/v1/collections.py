@@ -3,7 +3,7 @@
 from flask import abort, current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
-from Onani.models import Collection, CollectionStatus, Post, UserRoles
+from Onani.models import Collection, Post, UserRoles
 from Onani.models.schemas.collection import CollectionSchema
 from Onani.models.schemas.post import PostSchema
 
@@ -68,7 +68,6 @@ class Collections(Resource):
             title=args["title"].strip(),
             description=args["description"],
             creator=current_user.id,
-            status=CollectionStatus.ACCEPTED,
         )
         db.session.add(collection)
         db.session.commit()

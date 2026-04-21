@@ -17,8 +17,15 @@ from . import api, db, limiter
 class Profile(Resource):
     decorators = [login_required]
 
+    @staticmethod
+    def _payload(user):
+        """Return profile payload for the current user, including private email."""
+        data = UserSchema().dump(user)
+        data["email"] = user.email
+        return data
+
     def get(self):
-        return UserSchema().dump(current_user)
+        return self._payload(current_user)
 
     def put(self):
         parser = reqparse.RequestParser()
@@ -47,6 +54,9 @@ class Profile(Resource):
         )
         parser.add_argument(
             "profile_picture", location="json", type=str, default=None, required=False
+        )
+        parser.add_argument(
+            "remove_profile_picture", location="json", type=bool, default=False, required=False
         )
         parser.add_argument(
             "profile_colour", location="json", type=str, default=None, required=False
@@ -98,9 +108,19 @@ class Profile(Resource):
             except Exception as e:
                 return {"message": f"Avatar upload failed: {e}"}, 400
 
+        if args["remove_profile_picture"]:
+            import os
+
+            avatars_dir = current_app.config.get("AVATARS_DIR", "/avatars")
+            if current_user.settings.avatar:
+                old_path = os.path.join(avatars_dir, os.path.basename(current_user.settings.avatar))
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            current_user.settings.avatar = None
+
         db.session.commit()
 
-        return UserSchema().dump(current_user)
+        return self._payload(current_user)
 
     def patch(self):
         return self.put()

@@ -11,9 +11,15 @@ from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.controllers import permissions_required
 from Onani.services.posts import create_comment, set_tags, upload_post
+from Onani.services.deepdanbooru import (
+    DeepDanbooruUnavailableError,
+    get_deepdanbooru_status,
+    suggest_tags_for_bytes,
+    suggest_tags_for_post,
+)
 from Onani.services.queries import query_posts
 from Onani.models import Post as _Post
-from Onani.models import PostRating, PostSchema, PostStatus, UserPermissions
+from Onani.models import PostRating, PostSchema, UserPermissions
 from Onani.models import Tag, TagSchema
 from Onani.models.post._post import post_upvotes, post_downvotes, post_waters
 from sqlalchemy import func
@@ -57,7 +63,7 @@ class Posts(Resource):
                 per_page=args["per_page"], page=args["page"], error_out=False
             )
         else:
-            posts = _Post.query.order_by(_Post.id.desc()).paginate(
+            posts = _Post.query.filter(_Post.hidden.is_(False)).order_by(_Post.id.desc()).paginate(
                 per_page=args["per_page"], page=args["page"], error_out=False
             )
         return {
@@ -244,11 +250,7 @@ class Post(Resource):
         if not (can_hard_delete or is_uploader):
             abort(403)
 
-        if can_hard_delete:
-            db.session.delete(post)
-        else:
-            post.status = PostStatus.REMOVED
-
+        db.session.delete(post)
         db.session.commit()
         return "", 204
 
@@ -295,6 +297,62 @@ class PostUpload(Resource):
             abort(400, description=str(e))
 
         return PostSchema().dump(post), 201
+
+
+class PostAutoTagsStatus(Resource):
+    def get(self):
+        return get_deepdanbooru_status(current_app.config)
+
+
+class PostAutoTags(Resource):
+    decorators = [login_required, limiter.limit("10/minute")]
+
+    def post(self):
+        has_file_upload = bool(request.files and request.files.get("file"))
+        payload = request.get_json(silent=True) or {}
+
+        threshold_raw = request.form.get("threshold") if has_file_upload else payload.get("threshold")
+        threshold = float(threshold_raw) if threshold_raw is not None else None
+
+        try:
+            if has_file_upload:
+                file_storage = request.files["file"]
+                if not file_storage.filename:
+                    abort(400, description="No file provided.")
+                suggestions = suggest_tags_for_bytes(file_storage.read(), current_app.config, threshold=threshold)
+            else:
+                # If the client intended multipart but omitted the file, surface a clearer message.
+                content_type = (request.content_type or "").lower()
+                if "multipart/form-data" in content_type:
+                    abort(400, description="No file provided.")
+
+                post_id = payload.get("post_id")
+                if post_id is None:
+                    abort(400, description="Provide either multipart file or JSON post_id.")
+
+                try:
+                    post_id = int(post_id)
+                except (TypeError, ValueError):
+                    abort(400, description="post_id must be an integer.")
+
+                post = _Post.query.filter_by(id=post_id).first_or_404()
+                if not current_user.can_edit_post(post):
+                    abort(403)
+
+                suggestions = suggest_tags_for_post(post, current_app.config, threshold=threshold)
+        except DeepDanbooruUnavailableError as exc:
+            abort(503, description=str(exc))
+        except ValueError as exc:
+            abort(400, description=str(exc))
+
+        if not current_user.has_permissions(UserPermissions.CREATE_TAGS):
+            suggestions = [item for item in suggestions if item["exists"]]
+
+        return {
+            "available": True,
+            "threshold": threshold if threshold is not None else current_app.config["DEEPDANBOORU_THRESHOLD"],
+            "data": suggestions,
+        }
 
 
 class PostWater(Resource):
@@ -417,4 +475,6 @@ api.add_resource(PostWater, "/posts/water")
 api.add_resource(PostFavourite, "/posts/favourite")
 api.add_resource(PostFavourites, "/posts/favourites")
 api.add_resource(PostUpload, "/posts/upload")
+api.add_resource(PostAutoTagsStatus, "/posts/auto-tags/status")
+api.add_resource(PostAutoTags, "/posts/auto-tags")
 api.add_resource(Post, "/post")

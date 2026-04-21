@@ -265,7 +265,7 @@ def create_post(
         image_file.seek(0)
         f.write(image_file.read())
 
-    # For videos, generate a JPEG thumbnail so nginx image_filter can serve it
+    # For videos, generate a JPEG thumbnail used by Flask thumbnail/sample routes
     if file_type in _VIDEO_FORMATS:
         stem = filename.rsplit(".", 1)[0]
         thumb_name = f"{stem}.jpg"

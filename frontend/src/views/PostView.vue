@@ -251,6 +251,35 @@
               </div>
             </div>
 
+            <div v-if="canEdit && metaEditMode" class="ai-tagging-panel">
+              <div class="ai-tagging-header">
+                <span class="tag-group-label">AI Suggestions</span>
+                <div class="ai-tagging-actions">
+                  <button class="btn-sm" :disabled="!deepdanbooruStatus.available || deepdanbooruLoading" @click="fetchDeepDanbooruSuggestions">
+                    {{ deepdanbooruLoading ? 'Analyzing…' : 'Suggest tags' }}
+                  </button>
+                  <button v-if="availableAiSuggestions.length > 1" class="btn-sm" @click="addAllAiSuggestions">Add all</button>
+                </div>
+              </div>
+              <p v-if="deepdanbooruError" class="text-error">{{ deepdanbooruError }}</p>
+              <p v-else-if="!deepdanbooruStatus.loaded" class="text-muted">Checking DeepDanbooru availability…</p>
+              <p v-else-if="!deepdanbooruStatus.available" class="text-muted">{{ deepdanbooruStatus.reason }}</p>
+              <p v-else-if="!availableAiSuggestions.length && deepdanbooruSuggestions.length" class="text-muted">All suggested tags are already present.</p>
+              <p v-else-if="!availableAiSuggestions.length" class="text-muted">Generate tag suggestions from this post’s media.</p>
+              <div v-if="availableAiSuggestions.length" class="ai-suggestion-list">
+                <button
+                  v-for="suggestion in availableAiSuggestions"
+                  :key="suggestion.tag"
+                  class="ai-suggestion-chip"
+                  :class="`tag-${suggestion.type}`"
+                  @click="addAiSuggestion(suggestion)"
+                >
+                  <span>{{ suggestion.name }}</span>
+                  <small>{{ formatScore(suggestion.score) }}</small>
+                </button>
+              </div>
+            </div>
+
             <!-- Tags grouped by type -->
             <div v-for="(tags, type) in sortedTags" :key="type" class="tag-group">
               <div class="tag-group-label">{{ capitalize(type) }}</div>
@@ -427,6 +456,10 @@ const deleting = ref(false)
 const tagQuery = ref('')
 const tagSuggestions = ref([])
 let tagSearchTimer = null
+const deepdanbooruStatus = ref({ loaded: false, available: false, reason: '', threshold: 0.5 })
+const deepdanbooruLoading = ref(false)
+const deepdanbooruSuggestions = ref([])
+const deepdanbooruError = ref('')
 
 // ── Collection picker ──
 const userCollections = ref([])
@@ -461,6 +494,11 @@ const sortedTags = computed(() => {
 const artistTags    = computed(() => post.value?.tags.filter(t => t.type === 'artist')    ?? [])
 const characterTags = computed(() => post.value?.tags.filter(t => t.type === 'character') ?? [])
 const copyrightTags = computed(() => post.value?.tags.filter(t => t.type === 'copyright') ?? [])
+const availableAiSuggestions = computed(() => {
+  if (!post.value?.tags) return deepdanbooruSuggestions.value
+  const existing = new Set(post.value.tags.map(tagToStr))
+  return deepdanbooruSuggestions.value.filter(item => !existing.has(item.tag))
+})
 
 const sourceHostname = computed(() => {
   try { return new URL(post.value?.source || '').hostname } catch { return post.value?.source || '' }
@@ -493,6 +531,7 @@ onMounted(async () => {
       userCollections.value = data.data ?? []
     } catch { /* non-fatal */ }
   }
+  fetchDeepDanbooruStatus()
 })
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
@@ -543,33 +582,86 @@ async function deletePost() {
   }
 }
 
+async function fetchDeepDanbooruStatus() {
+  try {
+    const { data } = await api.get('/posts/auto-tags/status')
+    deepdanbooruStatus.value = {
+      loaded: true,
+      available: !!data.available,
+      reason: data.reason || '',
+      threshold: data.threshold ?? 0.5,
+    }
+  } catch {
+    deepdanbooruStatus.value = {
+      loaded: true,
+      available: false,
+      reason: 'Could not check DeepDanbooru availability.',
+      threshold: 0.5,
+    }
+  }
+}
+
 // ── Tag helpers ──
 function tagToStr(t) { return t.type !== 'general' ? `${t.type}:${t.name}` : t.name }
 function tagsToStr(tags) { return tags.map(tagToStr).join(' ') }
 
+async function updatePostTags(nextTags) {
+  const oldStr = tagsToStr(post.value.tags)
+  const newStr = nextTags.join(' ')
+  const { data } = await api.put('/post', { id: Number(props.id), tags: newStr, old_tags: oldStr })
+  post.value = data
+  return data
+}
+
 async function addTag(suggestion) {
-  if (post.value.tags.find(t => t.name === suggestion.name)) {
+  const rawTag = suggestion.tag || tagToStr(suggestion)
+  if (post.value.tags.some(t => tagToStr(t) === rawTag)) {
     tagQuery.value = ''
     tagSuggestions.value = []
     return
   }
-  const oldStr = tagsToStr(post.value.tags)
-  const newStr = tagsToStr([...post.value.tags, suggestion])
   tagQuery.value = ''
   tagSuggestions.value = []
   try {
-    const { data } = await api.put('/post', { id: Number(props.id), tags: newStr, old_tags: oldStr })
-    post.value = data
+    await updatePostTags([...post.value.tags.map(tagToStr), rawTag])
   } catch (err) { console.error('Add tag failed:', err) }
 }
 
 async function removeTag(tag) {
-  const oldStr = tagsToStr(post.value.tags)
-  const newStr = tagsToStr(post.value.tags.filter(t => t.name !== tag.name))
   try {
-    const { data } = await api.put('/post', { id: Number(props.id), tags: newStr, old_tags: oldStr })
-    post.value = data
+    await updatePostTags(post.value.tags.filter(t => tagToStr(t) !== tagToStr(tag)).map(tagToStr))
   } catch (err) { console.error('Remove tag failed:', err) }
+}
+
+async function fetchDeepDanbooruSuggestions() {
+  deepdanbooruLoading.value = true
+  deepdanbooruError.value = ''
+  try {
+    const { data } = await api.post('/posts/auto-tags', { post_id: Number(props.id) })
+    deepdanbooruSuggestions.value = data.data ?? []
+  } catch (err) {
+    deepdanbooruSuggestions.value = []
+    deepdanbooruError.value = err.response?.data?.message || 'Could not generate AI tags.'
+  } finally {
+    deepdanbooruLoading.value = false
+  }
+}
+
+function addAiSuggestion(suggestion) {
+  addTag(suggestion)
+}
+
+async function addAllAiSuggestions() {
+  if (!availableAiSuggestions.value.length) return
+  try {
+    const merged = new Set([
+      ...post.value.tags.map(tagToStr),
+      ...availableAiSuggestions.value.map(item => item.tag),
+    ])
+    await updatePostTags([...merged])
+  } catch (err) {
+    deepdanbooruError.value = err.response?.data?.message || 'Could not add AI tags.'
+  }
 }
 
 function onTagSearch() {
@@ -660,6 +752,10 @@ function formatFilesize(bytes) {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / 1048576).toFixed(2)} MB`
+}
+
+function formatScore(score) {
+  return Number(score).toFixed(2)
 }
 
 function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
@@ -984,6 +1080,44 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   flex-shrink: 0;
 }
 
+.ai-tagging-panel {
+  display: grid;
+  gap: 0.55em;
+}
+
+.ai-tagging-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75em;
+}
+
+.ai-tagging-actions {
+  display: flex;
+  gap: 0.45em;
+  flex-wrap: wrap;
+}
+
+.ai-suggestion-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+}
+
+.ai-suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  padding: 0.32em 0.58em;
+  font-size: 0.8rem;
+}
+
+.ai-suggestion-chip small {
+  color: var(--text-muted);
+}
+
 /* ── Tag groups ── */
 .tag-group { display: flex; flex-direction: column; gap: 0.3em; }
 .tag-group-label {
@@ -1093,6 +1227,7 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   .post-info-panel { width: 100%; min-width: 0; max-width: 100%; }
   .post-image { max-height: 65vh; }
   .comments-section { max-width: 100%; }
+  .ai-tagging-header { align-items: flex-start; flex-direction: column; }
 }
 
 /* ── Collection picker ── */

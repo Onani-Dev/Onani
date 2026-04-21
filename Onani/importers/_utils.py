@@ -3,6 +3,7 @@
 import http.cookiejar
 import logging
 from typing import Optional
+from urllib.parse import urlparse
 
 import requests
 from curl_cffi import requests as cffi_requests
@@ -108,6 +109,20 @@ def _kemono_alt_urls(url: str) -> list[str]:
     ]
 
 
+def _friendly_http_403_error(url: str) -> str | None:
+    """Return a user-facing 403 explanation for known hosts, if available."""
+    host = (urlparse(url).hostname or "").lower()
+
+    if "redgifs.com" in host:
+        return (
+            "RedGIFs rejected the media request (HTTP 403). "
+            "The source may require an authenticated session or the media may be temporarily blocked. "
+            "Try importing with fresh Reddit/RedGIFs cookies from your profile settings and retry."
+        )
+
+    return None
+
+
 def _fetch(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requests.Response:
     """GET *url*, with fallbacks for Danbooru sample URLs and kemono CDN nodes."""
     try:
@@ -132,6 +147,10 @@ def _fetch(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requ
         if sample_url:
             log.debug("403 on original, retrying with sample: %s", sample_url)
             r = session.get(sample_url, headers=headers, timeout=60)
+        if r.status_code == 403:
+            friendly = _friendly_http_403_error(url)
+            if friendly:
+                raise ValueError(friendly)
     r.raise_for_status()
     return r
 
@@ -156,7 +175,19 @@ def download_file(url: str, cookies_path: str = None, referer: str = None) -> by
     return data
 
 
-def save_imported_post(post: ImportedPost, importer_id: int, cookies_path: str = None) -> Post:
+def _download_referer(file_url: str, fallback_referer: str | None) -> str | None:
+    """Choose a download referer that avoids common CDN anti-hotlink 403s."""
+    host = (urlparse(file_url).hostname or "").lower()
+
+    # RedGifs CDN commonly rejects cross-site Referer values (e.g. reddit.com).
+    # Use a RedGifs site referer to allow embedded media downloads.
+    if "redgifs.com" in host:
+        return "https://www.redgifs.com/"
+
+    return fallback_referer
+
+
+def save_imported_post(post: ImportedPost, importer_id: int, cookies_path: str = None, is_community_import: bool = False) -> Post:
     from PIL import UnidentifiedImageError
     from .gallery_dl_importer import is_supported, get_post as _gdl_resolve
 
@@ -166,16 +197,22 @@ def save_imported_post(post: ImportedPost, importer_id: int, cookies_path: str =
     # returns embedded cross-site URLs verbatim rather than following them
     # through the target site's extractor.
     file_url = post.file_url
+    referer_for_download = post.imported_url
     if is_supported(file_url):
         resolved = _gdl_resolve(file_url)
         if resolved and resolved.file_url:
             file_url = resolved.file_url
+            referer_for_download = resolved.imported_url or referer_for_download
             # Absorb any extra tags the target-site extractor found
             for tag in resolved.tags:
                 if tag not in post.tags:
                     post.tags.append(tag)
 
-    file_data = download_file(file_url, cookies_path=cookies_path, referer=post.imported_url)
+    file_data = download_file(
+        file_url,
+        cookies_path=cookies_path,
+        referer=_download_referer(file_url, referer_for_download),
+    )
 
     # Detect video format — first by URL extension, then by magic bytes
     video_fmt = None
@@ -227,7 +264,7 @@ def save_imported_post(post: ImportedPost, importer_id: int, cookies_path: str =
     user = User.query.filter_by(id=importer_id).first()
     can_create_tags = True
 
-    return create_post(
+    post_obj = create_post(
         post.sources[0],
         post.description,
         user,
@@ -248,3 +285,15 @@ def save_imported_post(post: ImportedPost, importer_id: int, cookies_path: str =
         post_min_tags=current_app.config["POST_MIN_TAGS"],
         imported_from=post.imported_url,
     )
+
+    # If this is NOT from a community site (Reddit, RedGifs, etc.),
+    # remove user_id from artist tags so they don't get credited to the importer.
+    # Community imports are special: the user IS the artist/content creator.
+    if not is_community_import:
+        from Onani.models import TagType
+        for tag in post_obj.tags:
+            if tag.type == TagType.ARTIST and tag.user_id == importer_id:
+                tag.user_id = None
+        db.session.commit()
+
+    return post_obj

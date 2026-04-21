@@ -6,5 +6,7 @@
 
 from .. import db
 from .database import database_test, delete_user_posts
+from .deepdanbooru import deepdanbooru_tag_all_posts
 from .importer import import_post
+from .library import scan_library
 from .video import test

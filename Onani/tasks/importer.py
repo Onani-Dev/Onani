@@ -12,6 +12,19 @@ from celery import shared_task
 from . import db
 
 
+def _safe_update_state(task, state: str, meta: dict) -> None:
+    """Best-effort task progress updates.
+
+    Celery backends can intermittently fail (e.g. transient DB/libpq errors).
+    Progress reporting should not abort a long-running import task.
+    """
+    try:
+        task.update_state(state=state, meta=meta)
+    except Exception:
+        # Keep import processing alive even if progress persistence fails.
+        pass
+
+
 def _dispatch_next_queued(domain: str) -> None:
     """Dispatch the oldest QUEUED ImportJob for *domain*, if any.
 
@@ -48,12 +61,17 @@ def _dispatch_next_queued(domain: str) -> None:
             pass
 
 
-@shared_task(bind=True)
+@shared_task(
+    bind=True,
+    soft_time_limit=900,   # 15 min — raises SoftTimeLimitExceeded, allowing cleanup
+    time_limit=960,        # 16 min — hard kill if soft limit is ignored
+)
 def import_post(self, post_url: str, importer_id: int, cookies_content: str = None):
     import datetime
+    from celery.exceptions import SoftTimeLimitExceeded
     from Onani.importers import get_all_posts, save_imported_post, ImportedPostSchema
     from Onani.importers.gallery_dl_importer import is_supported, GalleryDLTimeoutError, GalleryDLAbortError
-    from Onani.models import Collection, CollectionStatus
+    from Onani.models import Collection
 
     # Discard any stale session/connection from a previous task or failed request.
     # db.session.remove() returns the connection to the pool and ensures the next
@@ -62,7 +80,7 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
 
     logs = []
     logs.append(f"Fetching metadata from {post_url}...")
-    self.update_state(state="PROGRESS", meta={
+    _safe_update_state(self, state="PROGRESS", meta={
         "current": 0, "total": 0, "logs": logs, "url": post_url,
     })
 
@@ -79,6 +97,13 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
             cookies_path = None
 
     result = None
+    # Determine if this is a community-site import (Reddit, RedGifs, etc.)
+    # where the artist/author is the actual content creator
+    from urllib.parse import urlparse
+    parsed = urlparse(post_url)
+    domain = parsed.hostname or ""
+    is_community = any(x in domain for x in ["reddit", "redgifs", "twitter", "x.com", "instagram", "pixiv"])
+
     try:
         try:
             imported_posts = get_all_posts(post_url, cookies_path=cookies_path)
@@ -87,6 +112,10 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
             return result
         except GalleryDLAbortError as e:
             result = {"error": str(e), "logs": logs + [f"Error: {e}"], "url": post_url}
+            return result
+        except SoftTimeLimitExceeded:
+            msg = f"Import timed out for {post_url} (Celery soft time limit)."
+            result = {"error": msg, "logs": logs + [f"Error: {msg}"], "url": post_url}
             return result
         except Exception as e:
             result = {"error": f"Failed to fetch: {e}", "logs": [f"Error: {e}"], "url": post_url}
@@ -111,7 +140,7 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
 
         for i, imported_post in enumerate(imported_posts):
             try:
-                post = save_imported_post(imported_post, importer_id, cookies_path=cookies_path)
+                post = save_imported_post(imported_post, importer_id, cookies_path=cookies_path, is_community_import=is_community)
                 result = ImportedPostSchema().dump(imported_post)
                 result["post_id"] = post.id
                 result["thumbnail_url"] = post.thumbnail(size="large")
@@ -129,7 +158,7 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                 results.append({"error": str(e), "file_url": imported_post.file_url})
                 logs.append(f"[{i+1}/{total}] Skipped: {e}")
 
-            self.update_state(state="PROGRESS", meta={
+            _safe_update_state(self, state="PROGRESS", meta={
                 "current": i + 1,
                 "total": total,
                 "logs": logs,
@@ -154,7 +183,6 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
                         title=collection_name,
                         description=f"Imported from {post_url}",
                         creator=importer_id,
-                        status=CollectionStatus.ACCEPTED,
                     )
                     db.session.add(collection)
                     try:

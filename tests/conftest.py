@@ -147,7 +147,6 @@ def make_post(db, app, make_user, make_tag):
     """Factory fixture to create Post instances (without actual files)."""
     from Onani.models import Post
     from Onani.models.post.rating import PostRating
-    from Onani.models.post.status import PostStatus
 
     _post_counter = [0]
 
@@ -161,7 +160,6 @@ def make_post(db, app, make_user, make_tag):
         filesize=100000,
         file_type="png",
         rating=PostRating.GENERAL,
-        status=PostStatus.APPROVED,
         source="https://example.com",
         tags=None,
     ):
@@ -185,7 +183,6 @@ def make_post(db, app, make_user, make_tag):
             filesize=filesize,
             file_type=file_type,
             rating=rating,
-            status=status,
             source=source,
             original_filename="original.png",
         )

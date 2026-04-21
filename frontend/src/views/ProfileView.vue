@@ -1,154 +1,187 @@
 <template>
-  <div class="profile-page">
-    <!-- User header -->
-    <div class="profile-header">
-      <label class="avatar-wrapper" title="Change avatar">
-        <img v-if="avatarPreview || auth.user?.settings?.avatar" :src="avatarPreview || auth.user.settings.avatar" class="avatar" />
-        <div v-else class="avatar avatar-placeholder">{{ initial }}</div>
-        <div class="avatar-overlay">Change</div>
-        <input type="file" ref="avatarInput" accept="image/*" class="avatar-file-input" @change="onAvatarChange" />
-      </label>
-      <div class="header-info">
-        <h1>{{ auth.user?.nickname || auth.user?.username }}</h1>
-        <p class="text-muted">{{ auth.user?.username }}</p>
+  <div class="profile-page page-container">
+    <div class="profile-layout">
+      <nav class="profile-tabs" aria-label="Profile sections">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          type="button"
+          class="tab-item"
+          :class="{ active: activeTab === tab.id }"
+          @click="activeTab = tab.id"
+        >
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span class="tab-label">{{ tab.label }}</span>
+        </button>
+      </nav>
+
+      <div class="profile-content">
+        <div class="profile-header">
+          <button type="button" class="avatar-wrapper" title="Edit avatar" @click="avatarControlsOpen = !avatarControlsOpen">
+            <img v-if="avatarPreview || auth.user?.settings?.avatar" :src="avatarPreview || auth.user.settings.avatar" class="avatar" />
+            <div v-else class="avatar avatar-placeholder">{{ initial }}</div>
+            <div class="avatar-overlay">Edit</div>
+          </button>
+          <input type="file" ref="avatarInput" accept="image/*" class="avatar-file-input" @change="onAvatarChange" />
+          <div class="header-info">
+            <h1>{{ auth.user?.nickname || auth.user?.username }}</h1>
+            <p class="text-muted">{{ auth.user?.username }}</p>
+            <p class="text-muted" v-if="auth.user?.created_at">Joined {{ formatDateShort(auth.user.created_at) }}</p>
+            <div v-if="avatarControlsOpen" class="avatar-action-row">
+              <button type="button" class="btn-secondary btn-sm" @click="triggerAvatarUpload">Upload Avatar</button>
+              <button type="button" class="btn-secondary btn-sm" @click="revertAvatar" :disabled="!avatarPreview">Discard</button>
+              <button type="button" class="btn-danger btn-sm" @click="removeAvatar" :disabled="saving || (!auth.user?.settings?.avatar && !avatarPreview)">Remove</button>
+              <button type="button" class="btn-secondary btn-sm" @click="avatarControlsOpen = false">Done</button>
+              <span v-if="avatarPreview" class="avatar-pending text-muted">New avatar selected, save to apply.</span>
+            </div>
+          </div>
+        </div>
+
+        <form @submit.prevent="saveProfile" class="profile-sections">
+          <!-- General -->
+          <section v-show="activeTab === 'general'" class="section-card">
+            <h2>General</h2>
+            <div class="field">
+              <label for="nickname">Nickname</label>
+              <input id="nickname" v-model="nickname" placeholder="Display name" />
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" v-model="email" type="email" placeholder="you@example.com" />
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn-secondary btn-sm" @click="revertGeneral">Revert</button>
+            </div>
+          </section>
+
+          <!-- Appearance -->
+          <section v-show="activeTab === 'appearance'" class="section-card">
+            <h2>Appearance</h2>
+            <div class="field colour-field">
+              <label for="colour">Site Colour</label>
+              <div class="colour-row">
+                <input id="colour" v-model="profileColour" type="color" class="colour-picker" @input="applySiteColour" />
+                <span class="colour-hex">{{ profileColour }}</span>
+              </div>
+              <div class="btn-row">
+                <button type="button" class="btn-secondary btn-sm" @click="resetSiteColour">Reset to default</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Content -->
+          <section v-show="activeTab === 'content'" class="section-card">
+            <h2>Content</h2>
+            <div class="field field-toggle">
+              <label for="sfwmode">SFW Mode</label>
+              <input id="sfwmode" v-model="sfwMode" type="checkbox" class="toggle-checkbox" />
+              <p class="field-hint">Blur explicit and questionable images until you click to reveal them.</p>
+            </div>
+          </section>
+
+          <!-- Security -->
+          <section v-show="activeTab === 'security'" class="section-card">
+            <h2>Security</h2>
+            <div class="field">
+              <label for="curpw">Current Password</label>
+              <input id="curpw" v-model="currentPassword" type="password" autocomplete="current-password" />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="newpw">New Password</label>
+                <input id="newpw" v-model="newPassword" type="password" autocomplete="new-password" />
+              </div>
+              <div class="field">
+                <label for="confirmpw">Confirm New Password</label>
+                <input id="confirmpw" v-model="confirmPassword" type="password" autocomplete="new-password" :class="{ 'input-mismatch': confirmPassword && confirmPassword !== newPassword }" />
+              </div>
+            </div>
+            <p v-if="confirmPassword && confirmPassword !== newPassword" class="text-error" style="font-size:0.8rem;margin-top:-0.5rem">Passwords do not match.</p>
+
+            <div class="otp-section">
+              <div class="otp-status-row">
+                <span class="dot" :class="otpEnabled ? 'dot-active' : 'dot-inactive'"></span>
+                <span>Two-Factor Authentication</span>
+                <span class="otp-badge" :class="otpEnabled ? 'badge-on' : 'badge-off'">
+                  {{ otpEnabled ? 'Enabled' : 'Disabled' }}
+                </span>
+              </div>
+
+              <template v-if="!otpEnabled">
+                <template v-if="!otpSetupVisible">
+                  <button type="button" class="btn-secondary btn-sm" @click="startOtpSetup" :disabled="otpLoading">
+                    {{ otpLoading ? 'Loading...' : 'Set up 2FA' }}
+                  </button>
+                </template>
+                <template v-else>
+                  <div class="otp-setup-box">
+                    <p class="text-muted">Scan this code with your authenticator app, then enter the 6-digit code to confirm.</p>
+                    <img v-if="otpQrCode" :src="otpQrCode" class="qr-code" alt="OTP QR code" />
+                    <button type="button" class="btn-link" @click="showSecret = !showSecret">
+                      {{ showSecret ? 'Hide secret key' : "Can't scan? Show secret key" }}
+                    </button>
+                    <div v-if="showSecret" class="otp-secret-box">
+                      <code class="otp-secret">{{ otpSecret }}</code>
+                    </div>
+                    <div class="field otp-verify-field">
+                      <label for="otpcode">Verification Code</label>
+                      <input id="otpcode" v-model="otpCode" type="number" placeholder="000000" maxlength="6" />
+                      <div class="otp-verify-row">
+                        <button type="button" @click="verifyOtp" :disabled="otpLoading">
+                          {{ otpLoading ? 'Verifying...' : 'Verify & Enable' }}
+                        </button>
+                        <button type="button" class="btn-secondary" @click="otpSetupVisible = false">Cancel</button>
+                      </div>
+                    </div>
+                    <p v-if="otpError" class="text-error">{{ otpError }}</p>
+                  </div>
+                </template>
+              </template>
+
+              <template v-else>
+                <div class="field otp-verify-field">
+                  <label for="disable-otp-password">Current Password (required to disable)</label>
+                  <input id="disable-otp-password" v-model="otpDisablePassword" type="password" autocomplete="current-password" />
+                  <button type="button" class="btn-danger btn-sm" @click="disableOtp" :disabled="otpLoading || !otpDisablePassword">
+                    {{ otpLoading ? 'Disabling...' : 'Disable 2FA' }}
+                  </button>
+                </div>
+              </template>
+            </div>
+          </section>
+
+          <!-- Import Cookies -->
+          <section v-show="activeTab === 'cookies'" class="section-card">
+            <h2>Import Cookies</h2>
+            <p class="text-muted">Upload a Netscape-format cookies.txt for gallery-dl. Stored encrypted with your password.</p>
+            <div class="cookie-status-row" v-if="hasCookies">
+              <span class="dot dot-active"></span>
+              <span>Cookies file stored</span>
+            </div>
+            <div class="field">
+              <label for="cookiepw">Password (required to encrypt)</label>
+              <input id="cookiepw" v-model="cookiePassword" type="password" autocomplete="current-password" />
+            </div>
+            <div class="field">
+              <input type="file" ref="cookieFileInput" accept=".txt,.cookies" />
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn-secondary" @click="uploadCookies" :disabled="cookieUploading">{{ cookieUploading ? 'Uploading...' : 'Upload Cookies' }}</button>
+              <button type="button" v-if="hasCookies" @click="deleteCookies" class="btn-danger">Remove Cookies</button>
+            </div>
+            <p v-if="cookieError" class="text-error">{{ cookieError }}</p>
+            <p v-if="cookieSuccess" class="text-success">{{ cookieSuccess }}</p>
+          </section>
+
+          <div class="save-bar">
+            <p v-if="error" class="text-error">{{ error }}</p>
+            <p v-if="success" class="text-success">Profile saved.</p>
+            <span v-if="hasUnsavedChanges" class="text-muted">Unsaved changes</span>
+            <button type="submit" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
+          </div>
+        </form>
       </div>
     </div>
-
-    <form @submit.prevent="saveProfile" class="profile-sections">
-      <!-- General -->
-      <section class="section-card">
-        <h2>General</h2>
-        <div class="field">
-          <label for="nickname">Nickname</label>
-          <input id="nickname" v-model="nickname" placeholder="Display name" />
-        </div>
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" v-model="email" type="email" placeholder="you@example.com" />
-        </div>
-      </section>
-
-      <!-- Appearance -->
-      <section class="section-card">
-        <h2>Appearance</h2>
-        <div class="field colour-field">
-          <label for="colour">Site Colour</label>
-          <div class="colour-row">
-            <input id="colour" v-model="profileColour" type="color" class="colour-picker" @input="applySiteColour" />
-            <span class="colour-hex">{{ profileColour }}</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Content -->
-      <section class="section-card">
-        <h2>Content</h2>
-        <div class="field field-toggle">
-          <label for="sfwmode">SFW Mode</label>
-          <input id="sfwmode" v-model="sfwMode" type="checkbox" class="toggle-checkbox" />
-          <p class="field-hint">Blur explicit and questionable images until you click to reveal them.</p>
-        </div>
-      </section>
-
-      <!-- Security -->
-      <section class="section-card">
-        <h2>Security</h2>
-        <div class="field">
-          <label for="curpw">Current Password</label>
-          <input id="curpw" v-model="currentPassword" type="password" autocomplete="current-password" />
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="newpw">New Password</label>
-            <input id="newpw" v-model="newPassword" type="password" autocomplete="new-password" />
-          </div>
-          <div class="field">
-            <label for="confirmpw">Confirm New Password</label>
-            <input id="confirmpw" v-model="confirmPassword" type="password" autocomplete="new-password" :class="{ 'input-mismatch': confirmPassword && confirmPassword !== newPassword }" />
-          </div>
-        </div>
-        <p v-if="confirmPassword && confirmPassword !== newPassword" class="text-error" style="font-size:0.8rem;margin-top:-0.5rem">Passwords do not match.</p>
-
-        <div class="otp-section">
-          <div class="otp-status-row">
-            <span class="dot" :class="otpEnabled ? 'dot-active' : 'dot-inactive'"></span>
-            <span>Two-Factor Authentication</span>
-            <span class="otp-badge" :class="otpEnabled ? 'badge-on' : 'badge-off'">
-              {{ otpEnabled ? 'Enabled' : 'Disabled' }}
-            </span>
-          </div>
-
-          <!-- Setup flow (shown when not enabled) -->
-          <template v-if="!otpEnabled">
-            <template v-if="!otpSetupVisible">
-              <button type="button" class="btn-secondary btn-sm" @click="startOtpSetup" :disabled="otpLoading">
-                {{ otpLoading ? 'Loading...' : 'Set up 2FA' }}
-              </button>
-            </template>
-            <template v-else>
-              <div class="otp-setup-box">
-                <p class="text-muted">Scan this code with your authenticator app, then enter the 6-digit code to confirm.</p>
-                <img v-if="otpQrCode" :src="otpQrCode" class="qr-code" alt="OTP QR code" />
-                <button type="button" class="btn-link" @click="showSecret = !showSecret">
-                  {{ showSecret ? 'Hide secret key' : "Can't scan? Show secret key" }}
-                </button>
-                <div v-if="showSecret" class="otp-secret-box">
-                  <code class="otp-secret">{{ otpSecret }}</code>
-                </div>
-                <div class="field otp-verify-field">
-                  <label for="otpcode">Verification Code</label>
-                  <input id="otpcode" v-model="otpCode" type="number" placeholder="000000" maxlength="6" />
-                  <div class="otp-verify-row">
-                    <button type="button" @click="verifyOtp" :disabled="otpLoading">
-                      {{ otpLoading ? 'Verifying...' : 'Verify & Enable' }}
-                    </button>
-                    <button type="button" class="btn-secondary" @click="otpSetupVisible = false">Cancel</button>
-                  </div>
-                </div>
-                <p v-if="otpError" class="text-error">{{ otpError }}</p>
-              </div>
-            </template>
-          </template>
-
-          <!-- Disable flow -->
-          <template v-else>
-            <button type="button" class="btn-danger btn-sm" @click="disableOtp" :disabled="otpLoading">
-              {{ otpLoading ? 'Disabling...' : 'Disable 2FA' }}
-            </button>
-          </template>
-        </div>
-      </section>
-
-      <!-- Import Cookies -->
-      <section class="section-card">
-        <h2>Import Cookies</h2>
-        <p class="text-muted">Upload a Netscape-format cookies.txt for gallery-dl. Stored encrypted with your password.</p>
-        <div class="cookie-status-row" v-if="hasCookies">
-          <span class="dot dot-active"></span>
-          <span>Cookies file stored</span>
-        </div>
-        <div class="field">
-          <label for="cookiepw">Password (required to encrypt)</label>
-          <input id="cookiepw" v-model="cookiePassword" type="password" autocomplete="current-password" />
-        </div>
-        <div class="field">
-          <input type="file" ref="cookieFileInput" accept=".txt,.cookies" />
-        </div>
-        <div class="btn-row">
-          <button type="button" class="btn-secondary" @click="uploadCookies" :disabled="cookieUploading">{{ cookieUploading ? 'Uploading...' : 'Upload Cookies' }}</button>
-          <button type="button" v-if="hasCookies" @click="deleteCookies" class="btn-danger">Remove Cookies</button>
-        </div>
-        <p v-if="cookieError" class="text-error">{{ cookieError }}</p>
-        <p v-if="cookieSuccess" class="text-success">{{ cookieSuccess }}</p>
-      </section>
-
-      <!-- Save -->
-      <div class="save-bar">
-        <p v-if="error" class="text-error">{{ error }}</p>
-        <p v-if="success" class="text-success">Profile saved.</p>
-        <button type="submit" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
-      </div>
-    </form>
   </div>
 </template>
 
@@ -158,6 +191,15 @@ import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
+
+const activeTab = ref('general')
+const tabs = [
+  { id: 'general', label: 'General', icon: '👤' },
+  { id: 'appearance', label: 'Appearance', icon: '🎨' },
+  { id: 'content', label: 'Content', icon: '🖼️' },
+  { id: 'security', label: 'Security', icon: '🔐' },
+  { id: 'cookies', label: 'Cookies', icon: '🍪' },
+]
 
 const initial = computed(() => {
   const name = auth.user?.nickname || auth.user?.username || '?'
@@ -174,11 +216,13 @@ const confirmPassword = ref('')
 const saving = ref(false)
 const error = ref('')
 const success = ref(false)
+const removeProfilePicture = ref(false)
 
 // Avatar
 const avatarPreview = ref(null)
 const avatarInput = ref(null)
 const avatarBase64 = ref(null)
+const avatarControlsOpen = ref(false)
 
 // OTP — fetched from server on mount, not relying on stale auth.user
 const otpEnabled = ref(false)
@@ -189,6 +233,7 @@ const showSecret = ref(false)
 const otpCode = ref('')
 const otpLoading = ref(false)
 const otpError = ref('')
+const otpDisablePassword = ref('')
 
 // Cookies
 const hasCookies = ref(false)
@@ -198,17 +243,56 @@ const cookieError = ref('')
 const cookieSuccess = ref('')
 const cookieFileInput = ref(null)
 
+const originalProfile = ref({
+  nickname: '',
+  email: '',
+  profile_colour: '#3391ff',
+  sfw_mode: false,
+})
+
+const hasUnsavedChanges = computed(() => {
+  return (
+    nickname.value !== originalProfile.value.nickname ||
+    email.value !== originalProfile.value.email ||
+    profileColour.value !== originalProfile.value.profile_colour ||
+    sfwMode.value !== originalProfile.value.sfw_mode ||
+    !!avatarBase64.value ||
+    removeProfilePicture.value ||
+    !!newPassword.value
+  )
+})
+
 onMounted(() => {
-  if (auth.user) {
-    nickname.value = auth.user.nickname || ''
-    email.value = auth.user.email || ''
-    profileColour.value = auth.user.settings?.profile_colour || '#3391ff'
-    sfwMode.value = auth.user.settings?.sfw_mode ?? false
+  bootstrapProfile()
+})
+
+async function bootstrapProfile() {
+  try {
+    const { data } = await api.get('/profile')
+    auth.user = data
+    nickname.value = data.nickname || ''
+    email.value = data.email || ''
+    profileColour.value = data.settings?.profile_colour || '#3391ff'
+    sfwMode.value = data.settings?.sfw_mode ?? false
+    originalProfile.value = {
+      nickname: nickname.value,
+      email: email.value,
+      profile_colour: profileColour.value,
+      sfw_mode: sfwMode.value,
+    }
+  } catch {
+    if (auth.user) {
+      nickname.value = auth.user.nickname || ''
+      email.value = auth.user.email || ''
+      profileColour.value = auth.user.settings?.profile_colour || '#3391ff'
+      sfwMode.value = auth.user.settings?.sfw_mode ?? false
+    }
+  } finally {
     applySiteColour()
     loadCookieStatus()
     loadOtpStatus()
   }
-})
+}
 
 async function loadOtpStatus() {
   try {
@@ -231,8 +315,26 @@ function onAvatarChange(e) {
   reader.onload = (ev) => {
     avatarBase64.value = ev.target.result
     avatarPreview.value = ev.target.result
+    removeProfilePicture.value = false
+    avatarControlsOpen.value = true
   }
   reader.readAsDataURL(file)
+}
+
+function triggerAvatarUpload() {
+  avatarInput.value?.click()
+}
+
+function revertAvatar() {
+  avatarBase64.value = null
+  avatarPreview.value = null
+  removeProfilePicture.value = false
+  if (avatarInput.value) avatarInput.value.value = ''
+}
+
+function revertGeneral() {
+  nickname.value = originalProfile.value.nickname
+  email.value = originalProfile.value.email
 }
 
 async function saveProfile() {
@@ -258,6 +360,7 @@ async function saveProfile() {
     payload.current_password = currentPassword.value
   }
   if (avatarBase64.value) payload.profile_picture = avatarBase64.value
+  if (removeProfilePicture.value) payload.remove_profile_picture = true
 
   try {
     const { data } = await api.put('/profile', payload)
@@ -266,9 +369,37 @@ async function saveProfile() {
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
-    avatarBase64.value = null
+    revertAvatar()
+    originalProfile.value = {
+      nickname: data.nickname || '',
+      email: data.email || '',
+      profile_colour: data.settings?.profile_colour || '#3391ff',
+      sfw_mode: data.settings?.sfw_mode ?? false,
+    }
   } catch (err) {
     error.value = err.response?.data?.message || 'Save failed.'
+  } finally {
+    saving.value = false
+  }
+}
+
+function resetSiteColour() {
+  profileColour.value = '#3391ff'
+  applySiteColour()
+}
+
+async function removeAvatar() {
+  error.value = ''
+  success.value = false
+  saving.value = true
+  try {
+    const { data } = await api.put('/profile', { remove_profile_picture: true })
+    auth.user = data
+    revertAvatar()
+    removeProfilePicture.value = false
+    success.value = true
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Avatar remove failed.'
   } finally {
     saving.value = false
   }
@@ -315,11 +446,21 @@ async function verifyOtp() {
 
 async function disableOtp() {
   otpLoading.value = true
+  otpError.value = ''
   try {
-    await api.delete('/profile/otp')
+    await api.delete('/profile/otp', { data: { password: otpDisablePassword.value } })
     otpEnabled.value = false
-  } catch { /* ignore */ }
+    otpDisablePassword.value = ''
+  } catch (err) {
+    otpError.value = err.response?.data?.message || 'Disable 2FA failed.'
+  }
   finally { otpLoading.value = false }
+}
+
+function formatDateShort(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleDateString()
 }
 
 async function uploadCookies() {
@@ -361,9 +502,59 @@ async function deleteCookies() {
 
 <style scoped>
 .profile-page {
-  max-width: 640px;
+  width: min(50vw, 58rem);
   margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
 }
+
+.profile-layout {
+  display: flex;
+  gap: 0;
+  min-height: 60vh;
+}
+
+.profile-tabs {
+  display: flex;
+  flex-direction: column;
+  width: 11em;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-overlay);
+}
+
+.profile-content {
+  flex: 1;
+  min-width: 0;
+  padding: 1.5rem;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.65em 0.9em;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+
+.tab-item:hover {
+  background: var(--item-hover);
+}
+
+.tab-item.active {
+  background: var(--item-hover);
+  border-left-color: var(--accent, #5a8a5a);
+  font-weight: 600;
+}
+
+.tab-icon { flex-shrink: 0; }
 
 /* ── Header ──────────────────────────────────────────── */
 .profile-header {
@@ -379,6 +570,9 @@ async function deleteCookies() {
   cursor: pointer;
   width: 72px;
   height: 72px;
+  border: none;
+  background: none;
+  padding: 0;
 }
 
 .avatar {
@@ -424,11 +618,23 @@ async function deleteCookies() {
 .header-info h1 { margin: 0; line-height: 1.2; }
 .header-info .text-muted { font-size: 0.9rem; margin: 0; }
 
+.avatar-action-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.avatar-pending {
+  font-size: 0.78rem;
+}
+
 /* ── Section cards ───────────────────────────────────── */
 .profile-sections {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .section-card {
@@ -649,10 +855,40 @@ async function deleteCookies() {
 
 /* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 500px) {
+  .profile-page { padding: 0; }
+  .profile-layout { flex-direction: column; }
+  .profile-tabs {
+    flex-direction: row;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-item {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    flex-direction: column;
+    gap: 0.15em;
+    font-size: 0.75rem;
+    padding: 0.55em 0.75em;
+  }
+  .tab-item.active {
+    border-bottom-color: var(--accent, #5a8a5a);
+    border-left-color: transparent;
+  }
+  .profile-sections { padding-left: 0; padding-top: 0.75rem; }
+  .profile-content { padding: 0.75rem 0 0 0; }
   .field-row { grid-template-columns: 1fr; }
   .profile-header { gap: 1rem; }
+  .avatar-action-row { margin-top: 0.45rem; }
   .avatar, .avatar-wrapper { width: 56px; height: 56px; }
   .otp-verify-row { flex-wrap: wrap; }
+}
+
+@media (max-width: 1200px) {
+  .profile-page {
+    width: min(92vw, 58rem);
+  }
 }
 
 /* ── Toggle field (SFW mode etc.) ────────────────────── */

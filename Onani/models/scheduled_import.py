@@ -30,7 +30,7 @@ class ScheduledImport(db.Model):
 
     last_run_at: datetime.datetime = db.Column(db.DateTime(timezone=True), nullable=True)
 
-    # 'DISPATCHED', 'FAILED', or None
+    # 'DISPATCHED', 'QUEUED', 'FAILED', or None
     last_run_status: str = db.Column(db.String(20), nullable=True)
 
     last_error: str = db.Column(db.Text, nullable=True)

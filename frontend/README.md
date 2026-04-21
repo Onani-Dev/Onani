@@ -63,7 +63,11 @@ npm run preview    # preview the production build locally
 ```
 
 In Docker, the `frontend` service runs `npm run build` and copies `dist/`
-into a shared volume that nginx serves at `/`.
+for deployment artifacts. In production, you can either:
+
+- Serve the built assets via Flask's SPA catch-all setup, or
+- Serve them from your external reverse proxy/static host while proxying
+  `/api` to Gunicorn.
 
 ## API Client (`src/api/client.js`)
 

@@ -26,19 +26,20 @@ def remove_expired_bans():
 def run_scheduled_imports():
     import datetime
     from Onani.models.scheduled_import import ScheduledImport
-    from Onani.tasks.importer import import_post
+    from Onani.services import enqueue_import_job
 
     due = ScheduledImport.query.filter_by(enabled=True).all()
     for task in due:
         if not task.is_due():
             continue
-        task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
-        task.last_run_status = "DISPATCHED"
-        task.last_error = None
         try:
+            _, queued = enqueue_import_job(task.url, task.creator_id or 1, task.cookies)
+            task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
+            task.last_run_status = "QUEUED" if queued else "DISPATCHED"
+            task.last_error = None
             db.session.commit()
-            import_post.delay(task.url, task.creator_id or 1, task.cookies)
         except Exception as exc:
+            task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
             task.last_run_status = "FAILED"
             task.last_error = str(exc)
             db.session.commit()

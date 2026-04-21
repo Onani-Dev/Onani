@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """Tests for the REST API v1 endpoints."""
 import json
+import os
+from types import SimpleNamespace
+
 import pytest
+from PIL import Image
 
 
 class TestAPIIndex:
@@ -10,6 +14,79 @@ class TestAPIIndex:
         assert resp.status_code == 200
         data = json.loads(resp.data)
         assert "version" in data
+
+
+class TestMediaRoutes:
+    def test_image_thumbnail_generated_by_flask(self, client, make_post, app):
+        with app.app_context():
+            post = make_post(sha256_hash="abcdef1234567890", filename="abcdef1234567890.png")
+            filename = post.filename
+
+        src = os.path.join(app.config["IMAGES_DIR"], "ab", filename)
+        os.makedirs(os.path.dirname(src), exist_ok=True)
+        Image.new("RGB", (1600, 900), color=(120, 60, 40)).save(src, format="PNG")
+
+        resp = client.get(f"/images/thumbnail/ab/{filename}?size=small")
+        assert resp.status_code == 200
+        assert resp.content_type.startswith("image/")
+
+        cached = os.path.join(
+            app.config["IMAGES_DIR"],
+            ".thumbs",
+            "images",
+            "150x150",
+            "ab",
+            "abcdef1234567890.jpg",
+        )
+        assert os.path.isfile(cached)
+
+    def test_avatar_thumbnail_generated_by_flask(self, client, make_user, app):
+        with app.app_context():
+            user = make_user(username="avatar_user")
+            user.settings.avatar = "/avatars/avatar001.png"
+            from Onani import db
+            db.session.commit()
+
+        src = os.path.join(app.config["AVATARS_DIR"], "avatar001.png")
+        os.makedirs(os.path.dirname(src), exist_ok=True)
+        Image.new("RGB", (600, 600), color=(20, 100, 180)).save(src, format="PNG")
+
+        resp = client.get("/avatars/thumbnail/avatar001.png?size=150")
+        assert resp.status_code == 200
+        assert resp.content_type.startswith("image/")
+
+        cached = os.path.join(
+            app.config["AVATARS_DIR"],
+            ".thumbs",
+            "avatars",
+            "150x150",
+            "av",
+            "avatar001.jpg",
+        )
+        assert os.path.isfile(cached)
+
+    def test_sample_route_generated_by_flask(self, client, make_post, app):
+        with app.app_context():
+            post = make_post(sha256_hash="bcfed01234567890", filename="bcfed01234567890.png")
+            filename = post.filename
+
+        src = os.path.join(app.config["IMAGES_DIR"], "bc", filename)
+        os.makedirs(os.path.dirname(src), exist_ok=True)
+        Image.new("RGB", (2400, 1400), color=(200, 40, 40)).save(src, format="PNG")
+
+        resp = client.get(f"/sample/bc/{filename}")
+        assert resp.status_code == 200
+        assert resp.content_type.startswith("image/")
+
+        cached = os.path.join(
+            app.config["IMAGES_DIR"],
+            ".thumbs",
+            "sample",
+            "800x2000",
+            "bc",
+            "bcfed01234567890.jpg",
+        )
+        assert os.path.isfile(cached)
 
 
 class TestPostsAPI:
@@ -80,6 +157,116 @@ class TestPostsAPI:
         assert resp.status_code == 200
         data = json.loads(resp.data)
         assert len(data["data"]) <= 2
+
+    def test_deepdanbooru_status_reports_disabled(self, client, app, monkeypatch):
+        monkeypatch.setitem(app.config, "DEEPDANBOORU_ENABLED", False)
+
+        resp = client.get("/api/v1/posts/auto-tags/status")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["available"] is False
+        assert data["enabled"] is False
+
+    def test_deepdanbooru_status_reports_missing_tensorflow_io(self, client, app, monkeypatch):
+        import Onani.services.deepdanbooru as dd_module
+
+        monkeypatch.setitem(app.config, "DEEPDANBOORU_ENABLED", True)
+        monkeypatch.setitem(app.config, "DEEPDANBOORU_PROJECT_PATH", "/tmp")
+
+        def fake_find_spec(name):
+            if name == "tensorflow_io":
+                return None
+            return object()
+
+        monkeypatch.setattr(dd_module.importlib.util, "find_spec", fake_find_spec)
+        monkeypatch.setattr(dd_module.os.path, "isdir", lambda _path: True)
+        monkeypatch.setattr(dd_module.os.path, "isfile", lambda _path: True)
+
+        resp = client.get("/api/v1/posts/auto-tags/status")
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["available"] is False
+        assert data["reason"] == "Python package 'tensorflow-io' is not installed."
+
+    def test_deepdanbooru_suggests_tags_for_post(self, admin_client, make_post, app, monkeypatch):
+        import Onani.routes.api.v1.posts as posts_module
+
+        client, _user = admin_client
+        with app.app_context():
+            post = make_post(sha256_hash="ddposthash1")
+            post_id = post.id
+
+        monkeypatch.setattr(
+            posts_module,
+            "suggest_tags_for_post",
+            lambda post, config, threshold=None: [
+                {"name": "1girl", "tag": "1girl", "type": "general", "score": 0.97, "exists": True},
+                {"name": "smile", "tag": "smile", "type": "general", "score": 0.83, "exists": True},
+            ],
+        )
+
+        resp = client.post(
+            "/api/v1/posts/auto-tags",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert [item["tag"] for item in data["data"]] == ["1girl", "smile"]
+
+    def test_deepdanbooru_filters_new_tags_for_regular_users(self, logged_in_client, make_post, app, monkeypatch):
+        import Onani.routes.api.v1.posts as posts_module
+        from Onani.models import User
+
+        client, user = logged_in_client
+        with app.app_context():
+            uploader = User.query.filter_by(id=user.id).first()
+            post = make_post(uploader=uploader, sha256_hash="ddposthash2")
+            post_id = post.id
+
+        monkeypatch.setattr(
+            posts_module,
+            "suggest_tags_for_post",
+            lambda post, config, threshold=None: [
+                {"name": "existing_tag", "tag": "existing_tag", "type": "general", "score": 0.91, "exists": True},
+                {"name": "new_tag", "tag": "new_tag", "type": "general", "score": 0.88, "exists": False},
+            ],
+        )
+
+        resp = client.post(
+            "/api/v1/posts/auto-tags",
+            data=json.dumps({"post_id": post_id}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert [item["tag"] for item in data["data"]] == ["existing_tag"]
+
+    def test_deepdanbooru_missing_payload_returns_clear_error(self, admin_client):
+        client, _user = admin_client
+
+        resp = client.post(
+            "/api/v1/posts/auto-tags",
+            data=json.dumps({}),
+            content_type="application/json",
+        )
+
+        assert resp.status_code == 400
+        data = json.loads(resp.data)
+        assert data["message"] == "Provide either multipart file or JSON post_id."
+
+    def test_deepdanbooru_multipart_without_file_returns_clear_error(self, admin_client):
+        client, _user = admin_client
+
+        resp = client.post(
+            "/api/v1/posts/auto-tags",
+            data={"threshold": "0.7"},
+            content_type="multipart/form-data",
+        )
+
+        assert resp.status_code == 400
+        data = json.loads(resp.data)
+        assert data["message"] == "No file provided."
 
 
 class TestVoteAPI:
@@ -467,6 +654,7 @@ class TestProfileAPI:
         assert resp.status_code == 200
         data = json.loads(resp.data)
         assert "username" in data
+        assert "email" in data
 
     def test_update_nickname(self, logged_in_client, app):
         client, user = logged_in_client
@@ -500,6 +688,36 @@ class TestProfileAPI:
             content_type="application/json",
         )
         assert resp.status_code == 200
+
+    def test_remove_profile_picture_flag(self, logged_in_client, app):
+        client, user = logged_in_client
+        with app.app_context():
+            user.settings.avatar = "/avatars/test-avatar.png"
+            from Onani import db as _db
+            _db.session.commit()
+
+        resp = client.put(
+            "/api/v1/profile",
+            data=json.dumps({"remove_profile_picture": True}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["settings"]["avatar"] is None
+
+    def test_disable_otp_requires_password(self, logged_in_client, app):
+        client, user = logged_in_client
+        with app.app_context():
+            user.otp_enabled = True
+            from Onani import db as _db
+            _db.session.commit()
+
+        resp = client.delete(
+            "/api/v1/profile/otp",
+            data=json.dumps({"password": "wrong-password"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 403
 
 
 class TestCollectionsAPI:
@@ -578,12 +796,11 @@ class TestCollectionsAPI:
         client, user = logged_in_client
         with app.app_context():
             from Onani import db as _db
-            from Onani.models import Collection, CollectionStatus
+            from Onani.models import Collection
             other = make_user(username="other_coll_owner", password="pass")
             collection = Collection(
                 title="Other's Collection",
                 creator=other.id,
-                status=CollectionStatus.ACCEPTED,
             )
             _db.session.add(collection)
             _db.session.commit()
@@ -842,6 +1059,27 @@ class TestAdminAPI:
         data = json.loads(resp.data)
         assert data["available"] is True
         assert len(data["lines"]) <= 50
+
+    def test_deepdanbooru_task_dispatches(self, admin_client, monkeypatch):
+        client, _user = admin_client
+        monkeypatch.setattr(
+            "Onani.services.deepdanbooru.get_deepdanbooru_status",
+            lambda config: {"available": True, "reason": None},
+        )
+        monkeypatch.setattr(
+            "Onani.tasks.deepdanbooru.deepdanbooru_tag_all_posts.apply_async",
+            lambda: SimpleNamespace(id="dd-task-123"),
+        )
+
+        resp = client.post(
+            "/api/v1/admin/tasks",
+            data=json.dumps({"task": "deepdanbooru_tag_posts"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["task_id"] == "dd-task-123"
+        assert "queued" in data["message"].lower()
 
 
 class TestImportAPI:

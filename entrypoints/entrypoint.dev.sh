@@ -15,5 +15,5 @@ flask db upgrade
 crond
 flask crontab add
 
-# Run the gunicorn webserver
-gunicorn -b 0.0.0.0:5000 -w 20 --threads 100 run:app --reload
+# Run Flask's built-in dev server in debug mode
+flask run --host=0.0.0.0 --port=5000 --debug

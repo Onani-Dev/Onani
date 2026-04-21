@@ -34,10 +34,7 @@
     </form>
 
     <div v-if="posts.length" class="post-grid">
-      <router-link v-for="post in posts" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
-        <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
-        <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
-      </router-link>
+      <PostThumb v-for="post in posts" :key="post.id" :post="post" />
     </div>
     <p v-else-if="!loading">No posts found.</p>
     <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" @navigate="goToPage" @update:perPage="onPerPage" />
@@ -51,11 +48,10 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import Pagination from '@/components/Pagination.vue'
-import { useSfwMode } from '@/composables/useSfwMode'
+import PostThumb from '@/components/PostThumb.vue'
 
 const props = defineProps({ id: [String, Number] })
 const auth = useAuthStore()
-const { shouldBlur, reveal } = useSfwMode()
 const route = useRoute()
 const router = useRouter()
 

@@ -22,7 +22,7 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import ChoiceType, JSONType
 
 from ..tag import Tag, TagType
-from . import FileType, PostRating, PostStatus, db
+from . import FileType, PostRating, db
 
 if TYPE_CHECKING:
     from Onani.models.post.note import Note
@@ -66,13 +66,6 @@ class Post(db.Model):
     uploaded_at: datetime.datetime = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
-    )
-
-    # The status of the post. if it is deleted for any reason it will become PostStatus.DELETED
-    status: PostStatus = db.Column(
-        ChoiceType(PostStatus, impl=db.Integer()),
-        default=PostStatus.PENDING,
-        nullable=False,
     )
 
     # The explicitness rating of a post. will be manually set by uploader and can be changed by an admin or moderator.

@@ -97,11 +97,18 @@ class TestGalleryDlImporter:
 
             orig_timeout = gdl_mod._JOB_TIMEOUT
             gdl_mod._JOB_TIMEOUT = 0.05  # 50 ms — instant for tests
+            from flask import current_app
+            orig_cfg = current_app.config.get("GALLERY_DL_JOB_TIMEOUT")
+            current_app.config["GALLERY_DL_JOB_TIMEOUT"] = 0.05
             try:
                 with pytest.raises(GalleryDLTimeoutError):
                     gdl_mod.get_post("https://sizebooru.com/Details/12345")
             finally:
                 gdl_mod._JOB_TIMEOUT = orig_timeout
+                if orig_cfg is None:
+                    current_app.config.pop("GALLERY_DL_JOB_TIMEOUT", None)
+                else:
+                    current_app.config["GALLERY_DL_JOB_TIMEOUT"] = orig_cfg
                 barrier.set()
 
     @patch("gallery_dl.job.DataJob")
@@ -413,3 +420,43 @@ class TestGetPostGalleryDlFallback:
             result = get_post("https://totally-unknown.example.com/post/99")
             mock_gdl_get_post.assert_not_called()
             assert result is None
+
+
+class TestDownloadRefererSelection:
+    def test_redgifs_media_uses_redgifs_referer(self, app):
+        with app.app_context():
+            from Onani.importers._utils import _download_referer
+
+            referer = _download_referer(
+                "https://thumbs2.redgifs.com/SomeClip-mobile.mp4",
+                "https://www.reddit.com/r/test/comments/abc/",
+            )
+            assert referer == "https://www.redgifs.com/"
+
+    def test_non_redgifs_media_keeps_fallback_referer(self, app):
+        with app.app_context():
+            from Onani.importers._utils import _download_referer
+
+            referer = _download_referer(
+                "https://i.redd.it/abc123.jpg",
+                "https://www.reddit.com/r/test/comments/abc/",
+            )
+            assert referer == "https://www.reddit.com/r/test/comments/abc/"
+
+
+class TestFriendlyHttpErrors:
+    def test_redgifs_403_has_friendly_message(self, app):
+        with app.app_context():
+            from Onani.importers._utils import _friendly_http_403_error
+
+            msg = _friendly_http_403_error("https://thumbs2.redgifs.com/SomeClip-mobile.mp4")
+            assert msg is not None
+            assert "RedGIFs" in msg
+            assert "HTTP 403" in msg
+
+    def test_unknown_403_host_has_no_override(self, app):
+        with app.app_context():
+            from Onani.importers._utils import _friendly_http_403_error
+
+            msg = _friendly_http_403_error("https://example.com/file.jpg")
+            assert msg is None

@@ -31,10 +31,7 @@
     <!-- Posts grid -->
     <div v-if="posts.length" class="post-grid">
       <div v-for="post in posts" :key="post.id" class="post-thumb-wrap">
-        <router-link :to="`/posts/${post.id}`" class="post-thumb">
-          <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
-          <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
-        </router-link>
+        <PostThumb :post="post" />
         <button v-if="canManage && editMode" class="remove-btn" @click="removePost(post.id)" title="Remove from collection">✕</button>
       </div>
     </div>
@@ -58,10 +55,7 @@
       </div>
       <div v-if="searchResults.length" class="search-grid">
         <div v-for="post in searchResults" :key="post.id" class="post-thumb-wrap">
-          <router-link :to="`/posts/${post.id}`" target="_blank" class="post-thumb">
-            <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
-            <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
-          </router-link>
+          <PostThumb :post="post" target="_blank" />
           <button
             class="add-btn"
             @click="addPost(post.id)"
@@ -80,12 +74,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
-import { useSfwMode } from '@/composables/useSfwMode'
 import Pagination from '@/components/Pagination.vue'
+import PostThumb from '@/components/PostThumb.vue'
 
 const props = defineProps({ id: [String, Number] })
 const auth = useAuthStore()
-const { shouldBlur, reveal } = useSfwMode()
 const router = useRouter()
 
 const collection = ref(null)

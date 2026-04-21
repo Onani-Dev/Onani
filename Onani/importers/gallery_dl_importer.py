@@ -18,6 +18,7 @@ import io
 import logging
 from functools import lru_cache
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from gallery_dl import config as gdl_config
 from gallery_dl import extractor as gdl_extractor
@@ -214,65 +215,73 @@ def _extract_rating(kwdict: dict) -> PostRating:
 # ---------------------------------------------------------------------------
 
 # Wall-clock limit for a single gallery-dl DataJob (metadata fetches included).
-# Large accounts (Reddit, Twitter, etc.) can have hundreds of posts spread across
-# many paginated API requests, so allow up to 10 minutes.
-_JOB_TIMEOUT = 600  # seconds
+# Kept as a module-level fallback; the live value comes from current_app.config
+# (GALLERY_DL_JOB_TIMEOUT) so it can be tuned via environment variable.
+_JOB_TIMEOUT = 600  # seconds — default only, overridden at runtime
 
 
 def _run_job(url: str, cookies_path: str = None) -> Optional[gdl_job.DataJob]:
     """Run a gallery-dl DataJob and return it, or None on failure.
 
-    ``metadata`` is enabled globally so any extractor that supports the option
-    (sizebooru, kemono, etc.) will scrape extended fields (tags, artist, source
-    date, …) rather than returning bare filenames.
-
-    The job runs in a daemon thread and is abandoned after ``_JOB_TIMEOUT``
-    seconds to prevent a stalled HTTP connection from hanging the Celery task.
+    All tunables (timeouts, retries, rate-limit waits) are read from the Flask
+    app config so they can be adjusted via environment variables without
+    touching source code.
     """
     from flask import current_app
 
-    config_file: str | None = current_app.config.get("GALLERY_DL_CONFIG_FILE")
+    cfg = current_app.config
+    config_file: str | None = cfg.get("GALLERY_DL_CONFIG_FILE")
+    job_timeout: int   = cfg.get("GALLERY_DL_JOB_TIMEOUT",  _JOB_TIMEOUT)
+    http_timeout: float = cfg.get("GALLERY_DL_HTTP_TIMEOUT", 20)
+    retries: int       = cfg.get("GALLERY_DL_RETRIES",       2)
+    wait_min: float    = cfg.get("GALLERY_DL_WAIT_MIN",      0.5)
+    wait_max: float    = cfg.get("GALLERY_DL_WAIT_MAX",      3)
+
+    max_posts: int   = cfg.get("GALLERY_DL_MAX_POSTS",    200)
+    max_posts_search: int = cfg.get("GALLERY_DL_MAX_POSTS_SEARCH", 50)
+
     _init_gdl_config(config_file)
 
     # Enable extended metadata for every extractor that supports the option.
-    gdl_config.set(("extractor",), "metadata", True)
+    gdl_config.set(("extractor",), "metadata",  True)
+    gdl_config.set(("extractor",), "timeout",   http_timeout)
+    gdl_config.set(("extractor",), "retries",   retries)
+    gdl_config.set(("extractor",), "wait-min",  wait_min)
+    gdl_config.set(("extractor",), "wait-max",  wait_max)
 
-    # Reduce per-request timeout and retry count so a dead server fails fast.
-    gdl_config.set(("extractor",), "timeout", 20)
-    gdl_config.set(("extractor",), "retries", 2)
+    # Cap the number of items fetched from highly paginated URLs (search/list)
+    # more aggressively than single-post/profile pages.
+    parsed = urlparse(url)
+    is_search_like = (
+        "/search" in parsed.path.lower()
+        or "search" in parsed.path.lower()
+        or "q=" in (parsed.query or "")
+        or "tags=" in (parsed.query or "")
+    )
+    effective_max_posts = max_posts_search if is_search_like else max_posts
 
-    # Cap rate-limit sleep.  Reddit paginates 25 posts per page and a user with
-    # hundreds of posts needs many API calls; capping each wait at 3 s keeps the
-    # total run time reasonable while still respecting soft throttling signals.
-    gdl_config.set(("extractor",), "wait-min", 0.5)
-    gdl_config.set(("extractor",), "wait-max", 3)
-
-    # Inject cookies file into gallery-dl config if provided.
-    # Must be set at ("extractor",) scope — extractors read cookies via
-    # config.interpolate(("extractor", category, subcategory), "cookies"),
-    # which walks up to ("extractor",) but NOT to the root () scope.
-    if cookies_path:
-        gdl_config.set(("extractor",), "cookies", cookies_path)
+    if effective_max_posts > 0:
+        gdl_config.set(("extractor",), "image-range", f"1-{effective_max_posts}")
     else:
-        # Clear any leftover cookies from a previous task in this worker
-        # (gdl_config state is global and persists across tasks).
-        gdl_config.set(("extractor",), "cookies", None)
+        gdl_config.set(("extractor",), "image-range", None)
+
+    # Inject cookies file if provided, or clear any leftover from a previous task
+    # (gdl_config state is global and persists across Celery tasks in the same worker).
+    gdl_config.set(("extractor",), "cookies", cookies_path or None)
 
     djob = gdl_job.DataJob(url, file=io.StringIO())
 
     # Do NOT use the context-manager form of ThreadPoolExecutor here.
     # Its __exit__ calls shutdown(wait=True), which would block until the
     # gallery-dl thread finishes — completely defeating the timeout.
-    # Instead, call shutdown(wait=False) ourselves so the task returns
-    # immediately and the background thread is left to finish on its own.
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     try:
         future = executor.submit(djob.run)
         try:
-            future.result(timeout=_JOB_TIMEOUT)
+            future.result(timeout=job_timeout)
         except concurrent.futures.TimeoutError:
             hint = _credential_hint(url)
-            msg = f"Timed out after {_JOB_TIMEOUT}s fetching {url}."
+            msg = f"Timed out after {job_timeout}s fetching {url}."
             if hint:
                 msg += " " + hint
             log.warning(msg)
@@ -281,7 +290,6 @@ def _run_job(url: str, cookies_path: str = None) -> Optional[gdl_job.DataJob]:
             log.exception("gallery-dl DataJob failed for %s", url)
             return None
     finally:
-        # wait=False: release the executor without blocking on the thread.
         executor.shutdown(wait=False)
 
     # DataJob.run() never re-raises exceptions — they're stored in djob.exception.

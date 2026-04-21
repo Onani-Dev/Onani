@@ -1,0 +1,176 @@
+# onani.toml — Application configuration file
+#
+# Copy this file to onani.toml and set ONANI_CONFIG=/path/to/onani.toml
+# to use it. All settings are optional; built-in defaults are shown.
+#
+# Precedence (highest to lowest): env vars > this file > built-in defaults
+#
+# Security note: never commit a file containing real secrets to version control.
+
+# ---------------------------------------------------------------------------
+# [flask]
+# ---------------------------------------------------------------------------
+[flask]
+
+# Required — a long random string used to sign session cookies.
+# Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
+# Can also be set via the FLASK_SECRET_KEY env var (which takes precedence).
+secret_key = "change-me-in-production"
+
+# ---------------------------------------------------------------------------
+# [database]
+# ---------------------------------------------------------------------------
+[database]
+
+# Full SQLAlchemy database URL.  Takes precedence over 'password' below.
+# Can also be set via the DATABASE_URL env var.
+# url = "postgresql://onani_db:yourpassword@postgres:5432/onani_db"
+
+# Alternatively, set just the password and let the app build the standard URL.
+# Can also be set via the DB_PASSWORD env var.
+# password = "yourpassword"
+
+# How often (seconds) SQLAlchemy recycles idle connections.
+pool_recycle = 3600
+
+# Log every SQL statement issued by SQLAlchemy (very verbose — dev only).
+echo = false
+
+# ---------------------------------------------------------------------------
+# [storage]
+# ---------------------------------------------------------------------------
+[storage]
+
+# Filesystem paths where the app stores uploaded images and avatars.
+# These are the paths INSIDE the container — they must match the mount point.
+# The defaults (/images, /avatars) align with the docker-compose volume mounts.
+images_dir = "/images"
+avatars_dir = "/avatars"
+
+# To store data at a specific HOST path instead of a Docker named volume,
+# set these environment variables (not in TOML — they are docker-compose vars):
+#   IMAGES_HOST_DIR=/srv/onani/images
+#   AVATARS_HOST_DIR=/srv/onani/avatars
+#   DATABASE_HOST_DIR=/srv/onani/db
+
+# Maximum allowed upload size in megabytes.
+max_upload_mb = 50
+
+# ---------------------------------------------------------------------------
+# [cookies]
+# ---------------------------------------------------------------------------
+[cookies]
+
+# Restrict session cookies to HTTPS connections only.
+# Set to false when running locally without TLS.
+secure = true
+
+# Prevent JavaScript from reading the session cookie.
+httponly = true
+
+# SameSite attribute for the session cookie ("strict", "lax", or "none").
+samesite = "strict"
+
+# Scheme used when building absolute URLs (e.g. for redirects behind a proxy).
+preferred_scheme = "https"
+
+# ---------------------------------------------------------------------------
+# [content]
+# ---------------------------------------------------------------------------
+[content]
+
+# Minimum number of tags that must be attached to a post before it can be
+# submitted.
+post_min_tags = 10
+
+# Maximum character length for a single tag name.
+tag_char_limit = 64
+
+# ---------------------------------------------------------------------------
+# [pagination]
+# ---------------------------------------------------------------------------
+[pagination]
+
+posts              = 30
+user_posts         = 50
+users              = 30
+news               = 30
+collections        = 80
+tags               = 30
+comments           = 30
+autocomplete_limit = 10
+max_per_page       = 100
+
+# ---------------------------------------------------------------------------
+# [celery]
+# ---------------------------------------------------------------------------
+[celery]
+
+# Redis URLs used by the Celery task queue.
+broker_url     = "redis://redis:6379/1"
+result_backend = "redis://redis:6379/1"
+
+# ---------------------------------------------------------------------------
+# [rate_limit]
+# ---------------------------------------------------------------------------
+[rate_limit]
+
+# Disable rate limiting entirely (useful for development / behind a reverse
+# proxy that already rate-limits at the edge).
+enabled = true
+
+# Redis (or memory://) URL used to persist rate-limit counters.
+storage_uri = "redis://redis:6379/0"
+
+# ---------------------------------------------------------------------------
+# [gallery_dl]
+# ---------------------------------------------------------------------------
+[gallery_dl]
+
+# Optional: path to a gallery-dl config.json that supplies per-site
+# credentials and cookies.
+# See https://github.com/mikf/gallery-dl#configuration
+# config_file = "/etc/onani/gallery-dl.json"
+
+# How long (seconds) to let a single import job run before it is killed.
+# Large accounts with hundreds of posts may need several minutes.
+job_timeout = 600
+
+# Per-request HTTP timeout (seconds) passed to gallery-dl extractors.
+http_timeout = 20.0
+
+# Number of times gallery-dl retries a failed HTTP request.
+retries = 2
+
+# Minimum / maximum sleep between gallery-dl requests (seconds).
+# Raise these if sites start throttling or returning 429 errors.
+wait_min = 0.5
+wait_max = 3.0
+
+# ---------------------------------------------------------------------------
+# [deepdanbooru]
+# ---------------------------------------------------------------------------
+[deepdanbooru]
+
+# Enable AI tag estimation via DeepDanbooru.
+enabled = false
+
+# Preferred setup: point at a trained project directory containing project.json,
+# tags.txt, and an exported model file.
+# project_path = "/models/deepdanbooru"
+
+# Alternative setup: provide model and tags paths directly.
+# model_path = "/models/deepdanbooru/model-resnet_custom_v2.keras"
+# tags_path = "/models/deepdanbooru/tags.txt"
+
+# Minimum score required before a tag is suggested.
+threshold = 0.5
+
+# Load the model without compiling by default for faster inference startup.
+compile_model = false
+
+# Leave disabled unless the container has access to a supported GPU runtime.
+allow_gpu = false
+
+# Maximum number of suggested tags returned by the API.
+max_tags = 24

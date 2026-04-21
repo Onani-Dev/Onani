@@ -1,10 +1,9 @@
 # Usage:
-#   podman-compose -f docker-compose.yml --profile prod up -d --build   (production)
-#   podman-compose -f docker-compose.yml --profile dev  up -d --build   (development)
+#   podman-compose -f docker-compose.yml --profile prod up -d --build   (production app mode)
+#   podman-compose -f docker-compose.yml --profile dev  up -d --build   (development mode)
 #   ./build.sh dev   or   ./build.sh prod
 #
 # Flask:    http://localhost:5000
-# Nginx:    http://localhost:8080
 # Vite SPA: http://localhost:5173/
 
 x-env: &env
@@ -18,6 +17,8 @@ x-dev-env: &dev-env
   TESTING: "True"
   DB_PASSWORD: ${DB_PASSWORD:-onani_db}
   DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin}
+  DEEPDANBOORU_ENABLED: "true"
+  DEEPDANBOORU_PROJECT_PATH: /models/deepdanbooru
 
 x-prod-env: &prod-env
   <<: *env
@@ -41,8 +42,8 @@ services:
     environment: *prod-env
     depends_on: *db-deps
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./migrations:/onani/migrations
       - logs:/logs
 
@@ -58,14 +59,15 @@ services:
     environment: *dev-env
     depends_on: *db-deps
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./logs:/logs
       - ./:/onani
+      - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
 
-  # ── Nginx ───────────────────────────────────────────────
+  # ── Optional in-repo proxy (not required) ───────────────
   nginx:
-    profiles: ["prod"]
+    profiles: ["proxy"]
     build:
       context: .
       dockerfile: ./nginx/dockerfile
@@ -76,13 +78,13 @@ services:
       - flask
       - frontend
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - logs:/logs
       - frontend_dist:/frontend/dist
 
   nginx-dev:
-    profiles: ["dev"]
+    profiles: ["proxy"]
     build:
       context: .
       dockerfile: ./nginx/dockerfile
@@ -92,15 +94,15 @@ services:
     depends_on:
       - flask-dev
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./logs:/logs
       - ./Onani/static:/static
       - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/nginx.conf:ro
 
   # ── Frontend ────────────────────────────────────────────
   frontend:
-    profiles: ["prod"]
+    profiles: ["frontend-build"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -128,8 +130,8 @@ services:
     environment: *prod-env
     depends_on: *db-deps
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./migrations:/onani/migrations
       - logs:/logs
 
@@ -144,10 +146,11 @@ services:
       C_FORCE_ROOT: "yes"
     depends_on: *db-deps
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./logs:/logs
       - ./:/onani
+      - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
 
   # ── Shared infrastructure ──────────────────────────────
   postgres:
@@ -156,7 +159,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - database:/var/lib/postgresql/data/
+      - ${DATABASE_HOST_DIR:-database}:/var/lib/postgresql/data/
     environment:
       PGUSER: onani_db
       POSTGRES_USER: onani_db

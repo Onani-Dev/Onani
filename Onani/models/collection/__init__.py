@@ -6,6 +6,4 @@
 
 from .. import db
 
-from .status import CollectionStatus
-
 from .collection_ import Collection

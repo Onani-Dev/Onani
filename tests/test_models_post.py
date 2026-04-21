@@ -47,7 +47,6 @@ class TestPostModel:
     def test_post_is_imported(self, app, db, make_user):
         from Onani.models import Post
         from Onani.models.post.rating import PostRating
-        from Onani.models.post.status import PostStatus
 
         user = make_user(username="importeruser")
         post = Post(
@@ -59,7 +58,6 @@ class TestPostModel:
             filesize=50000,
             file_type="png",
             rating=PostRating.GENERAL,
-            status=PostStatus.APPROVED,
             original_filename="original.png",
             imported_from="https://danbooru.donmai.us/posts/12345",
         )
@@ -70,7 +68,6 @@ class TestPostModel:
     def test_post_source_html_escaped(self, app, db, make_user):
         from Onani.models import Post
         from Onani.models.post.rating import PostRating
-        from Onani.models.post.status import PostStatus
 
         user = make_user(username="srcescuser")
         post = Post(
@@ -82,7 +79,6 @@ class TestPostModel:
             filesize=1000,
             file_type="png",
             rating=PostRating.GENERAL,
-            status=PostStatus.APPROVED,
             original_filename="orig.png",
             source="<script>alert(1)</script>",
         )
@@ -93,7 +89,6 @@ class TestPostModel:
     def test_post_duplicate_sha256_rejected(self, app, db, make_post):
         from Onani.models import Post, User, UserSettings
         from Onani.models.post.rating import PostRating
-        from Onani.models.post.status import PostStatus
 
         make_post(sha256_hash="duphash1")
         user = User(username="dupuploader")
@@ -112,7 +107,6 @@ class TestPostModel:
                 filesize=1000,
                 file_type="png",
                 rating=PostRating.GENERAL,
-                status=PostStatus.APPROVED,
                 original_filename="orig.png",
             )
             db.session.add(p2)

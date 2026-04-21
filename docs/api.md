@@ -5,7 +5,7 @@ All REST API endpoints are served under the `/api/v1/` prefix.
 ## Base URL
 
 ```
-http://localhost:8080/api/v1      # production (nginx)
+http://localhost:5000/api/v1      # production (gunicorn behind your reverse proxy)
 http://localhost:5000/api/v1      # development (Flask direct)
 ```
 

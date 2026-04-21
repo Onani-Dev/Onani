@@ -1,6 +1,11 @@
 <template>
   <div class="page-container posts-content">
-    <h1>Posts</h1>
+    <div class="posts-header">
+      <h1>Posts</h1>
+      <button class="wall-toggle" :title="wallMode ? 'Switch to grid' : 'Switch to wall'" @click="wallMode = !wallMode">
+        {{ wallMode ? '\u229e Grid' : '\u25a6 Wall' }}
+      </button>
+    </div>
     <form class="search-bar" @submit.prevent="search">
       <div class="tag-input-wrap" ref="wrapRef">
         <div class="tag-tokens">
@@ -36,14 +41,12 @@
       </div>
       <button type="submit">Search</button>
     </form>
-    <div v-if="posts.length" class="post-grid">
-      <router-link v-for="post in posts" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
-        <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
-        <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
-      </router-link>
+    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" :total-pages="totalPages" @navigate="goToPage" @update:perPage="onPerPage" />
+    <div v-if="posts.length" :class="wallMode ? 'post-wall' : 'post-grid'">
+      <PostThumb v-for="post in posts" :key="post.id" :post="post" />
     </div>
     <p v-else-if="!loading" class="no-results">No posts found.</p>
-    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" @navigate="goToPage" @update:perPage="onPerPage" />
+    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" :total-pages="totalPages" @navigate="goToPage" @update:perPage="onPerPage" />
   </div>
 </template>
 
@@ -52,11 +55,10 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/client'
 import Pagination from '@/components/Pagination.vue'
-import { useSfwMode } from '@/composables/useSfwMode'
+import PostThumb from '@/components/PostThumb.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { shouldBlur, reveal } = useSfwMode()
 
 const posts = ref([])
 const loading = ref(true)
@@ -64,6 +66,9 @@ const page = ref(Number(route.query.page) || 1)
 const perPage = ref(Number(route.query.per_page) || 30)
 const nextPage = ref(null)
 const prevPage = ref(null)
+const total = ref(0)
+const wallMode = ref(false)
+const totalPages = computed(() => total.value && perPage.value ? Math.ceil(total.value / perPage.value) : null)
 
 // ── Tag input state ──
 // tokens = already-committed tags (e.g. ["dress", "-male"])
@@ -151,6 +156,7 @@ async function fetchPosts() {
     posts.value = data.data
     nextPage.value = data.next_page
     prevPage.value = data.prev_page
+    total.value = data.total ?? 0
   } finally {
     loading.value = false
   }
@@ -195,6 +201,22 @@ onMounted(fetchPosts)
   min-height: 50vh;
 }
 .posts-content h1 { margin: 0.5em; }
+.posts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0.5em;
+}
+.posts-header h1 { margin: 0.3em 0; }
+.wall-toggle {
+  padding: 0.35em 0.9em;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid var(--border, #444);
+  background: var(--bg-raised);
+  border-radius: 4px;
+  white-space: nowrap;
+}
 .no-results { padding: 1em; color: var(--text-muted); }
 
 /* Search bar */
@@ -286,5 +308,37 @@ onMounted(fetchPosts)
 .ac-count { font-size: 0.78em; color: var(--text-muted); margin-left: 0.5em; }
 
 
+/* Wall layout */
+.post-wall {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  margin-bottom: 1em;
+}
+.post-wall :deep(.post-thumb) {
+  width: auto;
+  height: auto;
+  min-width: 80px;
+  min-height: 80px;
+  padding: 0;
+  margin: 0;
+  transition: none;
+  border-radius: 0;
+}
+.post-wall :deep(.post-thumb:hover) {
+  transform: none;
+}
+.post-wall :deep(.post-thumb img) {
+  max-height: 200px;
+  max-width: 300px;
+  min-width: unset;
+  min-height: unset;
+  object-fit: cover;
+  border-radius: 0;
+  filter: none;
+  display: block;
+}
 </style>
 

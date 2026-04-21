@@ -3,7 +3,7 @@
 import datetime
 import os
 
-from flask import abort
+from flask import abort, request
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 
@@ -19,6 +19,7 @@ from Onani.models import (
     UserRoles,
     UserSchema,
 )
+from Onani.services import enqueue_import_job
 
 from . import api, db
 
@@ -73,7 +74,7 @@ class AdminRunTask(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             "task", location="json", type=str, required=True,
-            choices=["remove_expired_bans", "backfill_video_thumbnails", "recount_tags", "migrate_images", "clear_import_queue", "restart_celery"],
+            choices=["remove_expired_bans", "backfill_video_thumbnails", "recount_tags", "migrate_images", "clear_import_queue", "restart_celery", "deepdanbooru_tag_posts"],
         )
         args = parser.parse_args()
         task_name = args["task"]
@@ -175,6 +176,22 @@ class AdminRunTask(Resource):
                 tag.recount_posts()
             db.session.commit()
             return {"message": f"Recounted {len(tags)} tags."}
+
+        if task_name == "deepdanbooru_tag_posts":
+            from flask import current_app as _app
+
+            from Onani.services.deepdanbooru import get_deepdanbooru_status
+            from Onani.tasks.deepdanbooru import deepdanbooru_tag_all_posts
+
+            status = get_deepdanbooru_status(_app.config)
+            if not status["available"]:
+                return {"message": status["reason"] or "DeepDanbooru is unavailable."}, 400
+
+            result = deepdanbooru_tag_all_posts.apply_async()
+            return {
+                "message": "DeepDanbooru batch tagging queued.",
+                "task_id": result.id,
+            }
 
         return {"message": "Unknown task."}, 400
 
@@ -435,9 +452,11 @@ class AdminScheduledImports(Resource):
         parser.add_argument("label",            location="json", type=str, default=None)
         parser.add_argument("interval_minutes", location="json", type=int, default=None)
         parser.add_argument("enabled",          location="json", type=bool, default=None)
-        # Pass cookies=null to clear, omit the key to leave unchanged.
-        # reqparse treats missing keys as None by default, so use store_missing=False here.
+        # Cookies are handled via raw JSON payload below so we can distinguish
+        # between omitted and explicit null/empty values.
+        parser.add_argument("cookies",          location="json", type=str, default=None)
         args = parser.parse_args()
+        payload = request.get_json(silent=True) or {}
 
         task = ScheduledImport.query.filter_by(id=args["id"]).first_or_404()
 
@@ -453,9 +472,9 @@ class AdminScheduledImports(Resource):
             task.enabled = args["enabled"]
 
         # cookies: explicit empty string clears it; non-empty string sets it
-        raw_cookies = args["cookies"]
-        if raw_cookies is not None:
-            task.cookies = raw_cookies.strip() or None
+        if "cookies" in payload:
+            raw_cookies = args["cookies"]
+            task.cookies = raw_cookies.strip() if raw_cookies else None
 
         db.session.commit()
         return self._serialize(task)
@@ -479,14 +498,19 @@ class AdminScheduledImportRun(Resource):
         args = parser.parse_args()
 
         task = ScheduledImport.query.filter_by(id=args["id"]).first_or_404()
-        task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
-        task.last_run_status = "DISPATCHED"
-        task.last_error = None
-        db.session.commit()
-
-        from Onani.tasks.importer import import_post
-        celery_task = import_post.delay(task.url, task.creator_id or 1, task.cookies)
-        return {"message": "Task dispatched.", "task_id": celery_task.id}
+        try:
+            task_id, queued = enqueue_import_job(task.url, task.creator_id or 1, task.cookies)
+            task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
+            task.last_run_status = "QUEUED" if queued else "DISPATCHED"
+            task.last_error = None
+            db.session.commit()
+            return {"message": "Task queued." if queued else "Task dispatched.", "task_id": task_id, "queued": queued}
+        except Exception as exc:
+            task.last_run_at = datetime.datetime.now(datetime.timezone.utc)
+            task.last_run_status = "FAILED"
+            task.last_error = str(exc)
+            db.session.commit()
+            return {"message": "Failed to dispatch scheduled import."}, 500
 
 
 api.add_resource(AdminStats, "/admin/stats")

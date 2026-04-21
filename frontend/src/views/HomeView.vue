@@ -44,10 +44,7 @@
         <router-link to="/posts">View All →</router-link>
       </div>
       <div class="post-group-grid">
-        <router-link v-for="post in data.recent" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
-          <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
-          <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
-        </router-link>
+        <PostThumb v-for="post in data.recent" :key="post.id" :post="post" />
         <p v-if="!loading && !data.recent.length" class="empty-msg">No posts yet.</p>
       </div>
     </div>
@@ -59,10 +56,7 @@
         <router-link to="/posts">View All →</router-link>
       </div>
       <div class="post-group-grid">
-        <router-link v-for="post in data.popular" :key="post.id" :to="`/posts/${post.id}`" class="post-thumb">
-          <img :src="post.thumbnail_url" :alt="`Post #${post.id}`" loading="lazy" :class="{ 'sfw-blurred': shouldBlur(post) }" />
-          <div v-if="shouldBlur(post)" class="sfw-overlay" @click.stop="reveal(post.id)">Show</div>
-        </router-link>
+        <PostThumb v-for="post in data.popular" :key="post.id" :post="post" />
         <p v-if="!loading && !data.popular.length" class="empty-msg">No posts yet.</p>
       </div>
     </div>
@@ -74,6 +68,7 @@
 import { ref, onMounted } from 'vue'
 import api from '@/api/client'
 import { useSfwMode } from '@/composables/useSfwMode'
+import PostThumb from '@/components/PostThumb.vue'
 
 const { shouldBlur, reveal } = useSfwMode()
 

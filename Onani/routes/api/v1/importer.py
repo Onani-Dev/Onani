@@ -4,8 +4,6 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-07-27 14:48:20
 import datetime
-import uuid
-from urllib.parse import urlparse
 
 from celery.result import AsyncResult
 from flask import abort, session
@@ -13,6 +11,7 @@ from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from Onani.controllers.crypto import decrypt_cookies
 from Onani.models import ImportJob, UserRoles
+from Onani.services import enqueue_import_job
 from Onani.tasks import import_post
 
 from . import api, db
@@ -41,62 +40,8 @@ class Importer(Resource):
                 except Exception:
                     pass  # wrong key / corrupt — import without cookies
 
-        # Extract the extractor domain so we can queue concurrent imports
-        # from the same site rather than running them all in parallel.
-        domain = urlparse(args["url"]).hostname or ""
-
-        # Generate the task ID upfront so we can commit the ImportJob record
-        # BEFORE dispatching.  This ensures the record exists even if the task
-        # completes before this request finishes (unlikely, but avoids a race).
-        task_id = str(uuid.uuid4())
-
-        # Check whether there is already an active (PENDING/PROGRESS/QUEUED)
-        # import job for this domain created in the last 12 hours.  If so,
-        # mark the new job QUEUED instead of dispatching it immediately.
-        # Stale PENDING rows older than 12 h are ignored to avoid a dead job
-        # permanently blocking all future imports from that domain.
-        from datetime import timedelta
-        cutoff = datetime.datetime.now(datetime.timezone.utc) - timedelta(hours=12)
-        active = (
-            ImportJob.query
-            .filter(
-                ImportJob.domain == domain,
-                ImportJob.status.in_(["PENDING", "QUEUED"]),
-                ImportJob.created_at > cutoff,
-            )
-            .first()
-        ) if domain else None
-
-        if active:
-            # Another import for this domain is already running/queued.
-            # Park the new job and store cookies so it can be dispatched later.
-            job = ImportJob(
-                task_id=task_id,
-                url=args["url"],
-                domain=domain or None,
-                user_id=current_user.id,
-                status="QUEUED",
-                queue_meta={"cookies_content": cookies_content} if cookies_content else None,
-            )
-            db.session.add(job)
-            db.session.commit()
-        else:
-            job = ImportJob(
-                task_id=task_id,
-                url=args["url"],
-                domain=domain or None,
-                user_id=current_user.id,
-                status="PENDING",
-            )
-            db.session.add(job)
-            db.session.commit()
-
-            import_post.apply_async(
-                args=[args["url"], current_user.id, cookies_content],
-                task_id=task_id,
-            )
-
-        return {"id": task_id, "queued": active is not None}
+        task_id, queued = enqueue_import_job(args["url"], current_user.id, cookies_content)
+        return {"id": task_id, "queued": queued}
 
     def get(self):
         parser = reqparse.RequestParser()

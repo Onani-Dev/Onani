@@ -10,12 +10,18 @@
     font-family: "Lato", sans-serif;
     scrollbar-color: var(--header-bg) var(--bg);
     scrollbar-width: thin;
-    border-radius: 1em;
+    border-radius: var(--radius-md);
     list-style-position: inside;
 }
 
 /* ── Colour tokens ────────────────────────────────────── */
 :root {
+    /* Radius scale */
+    --radius-xs: 0.2rem;
+    --radius-sm: 0.35rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+
     /* Surfaces */
     --bg: #000000;
     --bg-raised: #202324;
@@ -146,7 +152,7 @@ code,
 pre {
     font-family: 'Consolas', 'Cascadia Code', 'Fira Code', monospace;
     background: var(--bg-overlay);
-    border-radius: 0.4em;
+    border-radius: var(--radius-sm);
 }
 
 code {
@@ -167,7 +173,7 @@ textarea {
     color: var(--text);
     background-color: var(--bg-overlay);
     border: none;
-    border-radius: 0.4em;
+    border-radius: var(--radius-sm);
     padding: 0.5rem 0.75rem;
     text-align: left;
     text-decoration: none;
@@ -206,7 +212,7 @@ button,
     font: inherit;
     cursor: pointer;
     border: none;
-    border-radius: 0.4em;
+    border-radius: var(--radius-sm);
     padding: 0.5rem 1rem;
     font-weight: 500;
     transition: background 0.15s, color 0.15s;
@@ -246,7 +252,7 @@ button:disabled {
 .tag {
     display: inline-block;
     padding: 0.15em 0.5em;
-    border-radius: 0.4em;
+    border-radius: var(--radius-sm);
     font-size: 0.85rem;
     font-weight: 500;
 }
@@ -314,6 +320,7 @@ button:disabled {
 .card {
     background: var(--bg-raised);
     border: none;
+    border-radius: var(--radius-lg);
     padding: 1.25rem;
 }
 
@@ -325,7 +332,7 @@ table {
     table-layout: fixed;
     overflow-wrap: break-word;
     border: 2px solid var(--border);
-    border-radius: 1em;
+    border-radius: var(--radius-lg);
     overflow: hidden;
 }
 
@@ -353,6 +360,8 @@ tr:nth-child(odd) {
 /* ── Page container ────────────────────────────────────── */
 .page-container {
     background-color: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     padding: 1.5em;
     width: 75%;
     margin-left: auto;
@@ -372,7 +381,7 @@ footer {
     align-content: center;
     align-items: center;
     background-color: var(--bg-overlay);
-    border-radius: 15px 15px 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -395,16 +404,40 @@ footer a {
 
 .post-thumb {
     display: grid;
-    height: 10em;
+    height: 150px;
     justify-content: center;
     margin: 0 auto;
     padding: 10px;
     position: relative;
     overflow: hidden;
     transition: transform 0.2s cubic-bezier(.11, 1.48, .14, 1.35);
-    width: 10em;
+    width: 150px;
     text-decoration: none;
     user-select: none;
+}
+
+.thumb-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.thumb-loader::after {
+    content: '';
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    animation: thumb-spin 0.8s linear infinite;
+}
+
+@keyframes thumb-spin {
+    to { transform: rotate(360deg); }
 }
 
 .post-thumb:hover {
@@ -412,17 +445,20 @@ footer a {
 }
 
 .post-thumb img {
+    position: relative;
+    z-index: 1;
     align-self: center;
     border-radius: 0.3em;
     display: flex;
     filter: drop-shadow(0 0 0.90rem black);
     margin: auto;
-    max-height: 10em;
-    max-width: 10em;
+    max-height: 150px;
+    max-width: 150px;
     min-height: 5em;
     min-width: 5em;
     object-fit: scale-down;
     user-select: none;
+    color: transparent;
     animation: fadein 200ms ease-in-out;
 }
 
@@ -433,8 +469,8 @@ footer a {
     }
 
     .post-thumb {
-        height: 5em;
-        width: 5em;
+        height: 75px;
+        width: 75px;
         transition: none;
     }
 
@@ -443,8 +479,8 @@ footer a {
     }
 
     .post-thumb img {
-        max-height: 5em;
-        max-width: 5em;
+        max-height: 75px;
+        max-width: 75px;
         min-width: 2.5em;
         min-height: 2.5em;
     }
@@ -456,8 +492,8 @@ footer a {
     }
 
     .post-thumb {
-        height: 8em;
-        width: 8em;
+        height: 120px;
+        width: 120px;
         transition: none;
     }
 
@@ -466,8 +502,8 @@ footer a {
     }
 
     .post-thumb img {
-        max-height: 8em;
-        max-width: 8em;
+        max-height: 120px;
+        max-width: 120px;
         min-width: 4em;
         min-height: 4em;
     }

@@ -5,9 +5,8 @@
 # @Last Modified time: 2022-05-31 08:08:33
 import datetime
 from sqlalchemy.orm.query import Query
-from sqlalchemy_utils import ChoiceType
 
-from . import CollectionStatus, db
+from . import db
 
 collection_posts = db.Table(
     "collection_posts",
@@ -36,12 +35,6 @@ class Collection(db.Model):
         secondary=collection_posts,
         backref="collection_posts",
         lazy="dynamic",
-    )
-
-    status: CollectionStatus = db.Column(
-        ChoiceType(CollectionStatus, impl=db.Integer()),
-        default=CollectionStatus.PENDING,
-        nullable=False,
     )
 
     created_at: datetime.datetime = db.Column(
