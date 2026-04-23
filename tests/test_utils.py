@@ -97,6 +97,21 @@ class TestMaintenanceSqlSanitizer:
         assert "SET lock_timeout = 0;" in sanitized
         assert "CREATE TABLE example" in sanitized
 
+    def test_sanitize_postgres_restore_sql_removes_legacy_cleanup_statements(self):
+        from onani.services.maintenance import _sanitize_postgres_restore_sql
+
+        raw = (
+            b"ALTER TABLE ONLY public.comments DROP CONSTRAINT comments_pkey;\n"
+            b"DROP TABLE public.comments;\n"
+            b"CREATE TABLE public.comments(id integer);\n"
+        )
+
+        sanitized = _sanitize_postgres_restore_sql(raw).decode("utf-8")
+
+        assert "DROP CONSTRAINT comments_pkey" not in sanitized
+        assert "DROP TABLE public.comments" not in sanitized
+        assert "CREATE TABLE public.comments" in sanitized
+
     def test_sanitize_postgres_restore_sql_is_noop_without_unsupported_settings(self):
         from onani.services.maintenance import _sanitize_postgres_restore_sql
 
@@ -109,6 +124,7 @@ class TestMaintenanceSqlSanitizer:
         from onani.services import maintenance
 
         monkeypatch.setattr(maintenance, "_try_terminate_postgres_connections", lambda _db: None)
+        monkeypatch.setattr(maintenance, "_reset_postgres_public_schema", lambda: None)
         monkeypatch.setattr(maintenance.time, "sleep", lambda _seconds: None)
 
         fake_engine = Mock()
@@ -144,6 +160,7 @@ class TestMaintenanceSqlSanitizer:
         from onani.services import maintenance
 
         monkeypatch.setattr(maintenance, "_try_terminate_postgres_connections", lambda _db: None)
+        monkeypatch.setattr(maintenance, "_reset_postgres_public_schema", lambda: None)
         monkeypatch.setattr(maintenance.time, "sleep", lambda _seconds: None)
 
         fake_engine = Mock()

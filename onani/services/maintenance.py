@@ -21,6 +21,20 @@ _UNSUPPORTED_POSTGRES_RESTORE_SETTINGS = {
     "transaction_timeout",
 }
 
+_POSTGRES_RESTORE_DROP_PREFIXES = (
+    "ALTER TABLE ONLY ",
+    "ALTER TABLE ",
+    "DROP TABLE ",
+    "DROP SEQUENCE ",
+    "DROP INDEX ",
+    "DROP VIEW ",
+    "DROP MATERIALIZED VIEW ",
+    "DROP FUNCTION ",
+    "DROP TYPE ",
+    "DROP EXTENSION ",
+    "DROP SCHEMA ",
+)
+
 _POSTGRES_RESTORE_DEADLOCK_RETRIES = 3
 
 
@@ -118,8 +132,6 @@ def create_database_backup() -> tuple[bytes, str, str]:
     if dialect == "postgresql":
         cmd, env = _postgres_cli_base("pg_dump")
         cmd.extend([
-            "--clean",
-            "--if-exists",
             "--no-owner",
             "--no-privileges",
             "--format=plain",
@@ -188,14 +200,21 @@ def _postgres_cli_base(program: str) -> tuple[list[str], dict]:
 
 
 def _sanitize_postgres_restore_sql(backup_bytes: bytes) -> bytes:
-    """Drop SET directives that older PostgreSQL versions do not recognize."""
+    """Drop directives that break restores across PostgreSQL versions and states."""
     script = backup_bytes.decode("utf-8", errors="replace")
     setting_pattern = re.compile(r"^\s*SET\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=", re.IGNORECASE)
+    cleanup_pattern = re.compile(
+        r"^\s*(ALTER\s+TABLE(?:\s+ONLY)?\s+.+\s+DROP\s+CONSTRAINT|"
+        r"DROP\s+(?:TABLE|SEQUENCE|INDEX|VIEW|MATERIALIZED\s+VIEW|FUNCTION|TYPE|EXTENSION|SCHEMA))\b",
+        re.IGNORECASE,
+    )
 
     filtered_lines = []
     for line in script.splitlines(keepends=True):
         match = setting_pattern.match(line)
         if match and match.group(1).lower() in _UNSUPPORTED_POSTGRES_RESTORE_SETTINGS:
+            continue
+        if cleanup_pattern.match(line):
             continue
         filtered_lines.append(line)
 
@@ -215,6 +234,7 @@ def _restore_postgres_backup(restore_bytes: bytes) -> str:
     last_error = ""
     for attempt in range(1, _POSTGRES_RESTORE_DEADLOCK_RETRIES + 1):
         _try_terminate_postgres_connections(db_name)
+        _reset_postgres_public_schema()
         proc = subprocess.run(cmd, env=env, input=restore_bytes, capture_output=True, check=False)
         if proc.returncode == 0:
             return "PostgreSQL database restored from backup."
@@ -244,3 +264,12 @@ def _try_terminate_postgres_connections(db_name: str) -> None:
     except Exception:
         # Not all deployments grant permission to terminate backends.
         pass
+
+
+def _reset_postgres_public_schema() -> None:
+    """Recreate the public schema so restore runs against an empty target."""
+    with db.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+        conn.execute(text("CREATE SCHEMA public"))
+        conn.execute(text("GRANT ALL ON SCHEMA public TO PUBLIC"))
+        conn.execute(text("GRANT ALL ON SCHEMA public TO CURRENT_USER"))

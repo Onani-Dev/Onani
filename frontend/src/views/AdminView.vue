@@ -413,6 +413,13 @@
             </div>
             <div class="database-restore-form">
               <label class="database-restore-field">
+                <span>Restore action</span>
+                <select v-model="restoreAction" class="admin-inline-select">
+                  <option value="" disabled>Select an action</option>
+                  <option value="replace_database">Replace database with uploaded backup</option>
+                </select>
+              </label>
+              <label class="database-restore-field">
                 <span>Backup file</span>
                 <input type="file" accept=".sql,text/sql,application/sql" @change="onRestoreFileChange" />
               </label>
@@ -420,7 +427,7 @@
                 <span>Type RESTORE to confirm</span>
                 <input v-model="restoreConfirm" class="admin-inline-input" placeholder="RESTORE" />
               </label>
-              <button class="danger" @click="restoreDatabaseBackup" :disabled="restoreBusy || backupBusy || !selectedRestoreFile">
+              <button class="danger" @click="restoreDatabaseBackup" :disabled="restoreBusy || backupBusy || restoreAction !== 'replace_database' || !selectedRestoreFile || restoreConfirm !== 'RESTORE'">
                 {{ restoreBusy ? 'Restoring...' : 'Restore Backup' }}
               </button>
             </div>
@@ -794,6 +801,7 @@ const backupBusy = ref(false)
 const backupMessage = ref('')
 const backupError = ref(false)
 const restoreBusy = ref(false)
+const restoreAction = ref('')
 const selectedRestoreFile = ref(null)
 const restoreConfirm = ref('')
 const deepdanbooruStatus = ref({ loaded: false, available: false, reason: '' })
@@ -1690,9 +1698,25 @@ async function downloadDatabaseBackup() {
 }
 
 async function restoreDatabaseBackup() {
+  if (restoreAction.value !== 'replace_database') {
+    backupMessage.value = 'Select a restore action first.'
+    backupError.value = true
+    return
+  }
+
   if (!selectedRestoreFile.value) {
     backupMessage.value = 'Choose a backup file first.'
     backupError.value = true
+    return
+  }
+
+  if (restoreConfirm.value !== 'RESTORE') {
+    backupMessage.value = 'Type RESTORE to confirm database restore.'
+    backupError.value = true
+    return
+  }
+
+  if (!window.confirm('Restore this backup and replace the current database? This cannot be undone.')) {
     return
   }
 
@@ -1706,6 +1730,7 @@ async function restoreDatabaseBackup() {
 
     const { data } = await api.post('/admin/database/restore', formData)
     backupMessage.value = `${data.message} Refresh recommended if you restored older data.`
+    restoreAction.value = ''
     selectedRestoreFile.value = null
     restoreConfirm.value = ''
     taskRuns.value.unshift({ name: 'database_restore', at: new Date().toISOString(), message: backupMessage.value, error: false })
