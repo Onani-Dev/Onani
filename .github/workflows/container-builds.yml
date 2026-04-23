@@ -20,15 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image_name: flask
+          - image_name: app
             context: .
-            file: Dockerfile
+            file: Dockerfile.aio
           - image_name: celery
             context: .
             file: celery/dockerfile
-          - image_name: frontend
-            context: frontend
-            file: frontend/Dockerfile
 
     steps:
       - name: Checkout

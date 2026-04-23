@@ -1,16 +1,10 @@
+# Single compose file for both dev and prod
 # Usage:
-#   podman-compose -f docker-compose.yml --profile prod up -d --build   (production app mode)
-#   podman-compose -f docker-compose.yml --profile dev  up -d --build   (development mode)
-#   ./build.sh dev   or   ./build.sh prod
-#
-# Flask:    http://localhost:5000
-# Vite SPA: http://localhost:5173/
+#   podman-compose --profile dev up -d --build       (dev: local builds, hot reload)
+#   podman-compose --profile prod up -d              (prod: GHCR pre-built images)
 
-x-env: &env
+x-env: &dev-env
   FLASK_APP: run
-
-x-dev-env: &dev-env
-  <<: *env
   FLASK_ENV: development
   FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev}
   FLASK_SQLALCHEMY_ECHO: "True"
@@ -20,8 +14,8 @@ x-dev-env: &dev-env
   DEEPDANBOORU_ENABLED: "true"
   DEEPDANBOORU_PROJECT_PATH: /models/deepdanbooru
 
-x-prod-env: &prod-env
-  <<: *env
+x-env-prod: &prod-env
+  FLASK_APP: run
   FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
   DB_PASSWORD: ${DB_PASSWORD}
 
@@ -32,20 +26,9 @@ x-db-deps: &db-deps
     condition: service_healthy
 
 services:
-  # ── Flask ───────────────────────────────────────────────
-  flask:
-    profiles: [ "prod" ]
-    build: .
-    restart: unless-stopped
-    expose:
-      - 5000
-    environment: *prod-env
-    depends_on: *db-deps
-    volumes:
-      - ${IMAGES_HOST_DIR:-images}:/images
-      - ${AVATARS_HOST_DIR:-avatars}:/avatars
-      - ./migrations:/onani/migrations
-      - logs:/logs
+  # ──────────────────────────────────────────────────────────
+  # DEVELOPMENT: local builds with hot reload
+  # ──────────────────────────────────────────────────────────
 
   flask-dev:
     profiles: [ "dev" ]
@@ -65,50 +48,6 @@ services:
       - ./:/onani
       - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
 
-  # ── Optional in-repo proxy (not required) ───────────────
-  nginx:
-    profiles: [ "proxy" ]
-    build:
-      context: .
-      dockerfile: ./nginx/dockerfile
-    restart: unless-stopped
-    ports:
-      - 8080:80
-    depends_on:
-      - flask
-      - frontend
-    volumes:
-      - ${IMAGES_HOST_DIR:-images}:/images
-      - ${AVATARS_HOST_DIR:-avatars}:/avatars
-      - logs:/logs
-      - frontend_dist:/frontend/dist
-
-  nginx-dev:
-    profiles: [ "proxy" ]
-    build:
-      context: .
-      dockerfile: ./nginx/dockerfile
-    restart: unless-stopped
-    ports:
-      - 8080:80
-    depends_on:
-      - flask-dev
-    volumes:
-      - ${IMAGES_HOST_DIR:-images}:/images
-      - ${AVATARS_HOST_DIR:-avatars}:/avatars
-      - ./logs:/logs
-      - ./frontend/public/static:/static
-      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/nginx.conf:ro
-
-  # ── Frontend ────────────────────────────────────────────
-  frontend:
-    profiles: [ "frontend-build" ]
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - frontend_dist:/app/dist
-
   frontend-dev:
     profiles: [ "dev" ]
     image: node:22-alpine
@@ -119,21 +58,6 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
-
-  # ── Celery ──────────────────────────────────────────────
-  celery:
-    profiles: [ "prod" ]
-    build:
-      context: .
-      dockerfile: ./celery/dockerfile
-    restart: unless-stopped
-    environment: *prod-env
-    depends_on: *db-deps
-    volumes:
-      - ${IMAGES_HOST_DIR:-images}:/images
-      - ${AVATARS_HOST_DIR:-avatars}:/avatars
-      - ./migrations:/onani/migrations
-      - logs:/logs
 
   celery-dev:
     profiles: [ "dev" ]
@@ -152,7 +76,38 @@ services:
       - ./:/onani
       - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
 
-  # ── Shared infrastructure ──────────────────────────────
+  # ──────────────────────────────────────────────────────────
+  # PRODUCTION: pre-built images from GHCR
+  # ──────────────────────────────────────────────────────────
+
+  app:
+    profiles: [ "prod" ]
+    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-app:${VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - ${PORT:-80}:80
+    environment: *prod-env
+    depends_on: *db-deps
+    volumes:
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - ./migrations:/onani/migrations
+
+  celery:
+    profiles: [ "prod" ]
+    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-celery:${VERSION:-latest}
+    restart: unless-stopped
+    environment: *prod-env
+    depends_on: *db-deps
+    volumes:
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - ./migrations:/onani/migrations
+
+  # ──────────────────────────────────────────────────────────
+  # SHARED: Postgres + Redis (both dev and prod)
+  # ──────────────────────────────────────────────────────────
+
   postgres:
     image: postgres:14-alpine
     restart: unless-stopped
@@ -174,8 +129,6 @@ services:
   redis:
     image: redis:7.0.0-alpine
     restart: unless-stopped
-    ports:
-      - 6379:6379
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
       interval: 1s
@@ -187,5 +140,4 @@ volumes:
   images:
   avatars:
   logs:
-  frontend_dist:
   frontend_node_modules:
