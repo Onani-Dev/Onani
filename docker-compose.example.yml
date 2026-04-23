@@ -63,7 +63,7 @@ services:
     volumes:
       - database:/var/lib/postgresql/data/
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: [ "CMD-SHELL", "pg_isready" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -72,7 +72,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
       interval: 1s
       timeout: 3s
       retries: 5
