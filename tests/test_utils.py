@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for the utils module."""
 import pytest
+from unittest.mock import Mock
 
 
 class TestUtils:
@@ -103,3 +104,68 @@ class TestMaintenanceSqlSanitizer:
         sanitized = _sanitize_postgres_restore_sql(raw)
 
         assert sanitized == raw
+
+    def test_restore_postgres_backup_retries_on_deadlock(self, monkeypatch):
+        from onani.services import maintenance
+
+        monkeypatch.setattr(maintenance, "_try_terminate_postgres_connections", lambda _db: None)
+        monkeypatch.setattr(maintenance.time, "sleep", lambda _seconds: None)
+
+        fake_engine = Mock()
+        fake_engine.url.database = "onani_db"
+        fake_db = Mock()
+        fake_db.engine = fake_engine
+        monkeypatch.setattr(maintenance, "db", fake_db)
+
+        fake_cmd = ["psql"]
+        fake_env = {"PGPASSWORD": "x"}
+        monkeypatch.setattr(maintenance, "_postgres_cli_base", lambda _program: (fake_cmd, fake_env))
+
+        calls = {"n": 0}
+
+        class Proc:
+            def __init__(self, returncode, stderr):
+                self.returncode = returncode
+                self.stderr = stderr
+
+        def fake_run(*_args, **_kwargs):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return Proc(1, b"ERROR: deadlock detected")
+            return Proc(0, b"")
+
+        monkeypatch.setattr(maintenance.subprocess, "run", fake_run)
+
+        result = maintenance._restore_postgres_backup(b"SELECT 1;")
+        assert result == "PostgreSQL database restored from backup."
+        assert calls["n"] == 2
+
+    def test_restore_postgres_backup_raises_after_deadlock_retries(self, monkeypatch):
+        from onani.services import maintenance
+
+        monkeypatch.setattr(maintenance, "_try_terminate_postgres_connections", lambda _db: None)
+        monkeypatch.setattr(maintenance.time, "sleep", lambda _seconds: None)
+
+        fake_engine = Mock()
+        fake_engine.url.database = "onani_db"
+        fake_db = Mock()
+        fake_db.engine = fake_engine
+        monkeypatch.setattr(maintenance, "db", fake_db)
+
+        fake_cmd = ["psql"]
+        fake_env = {"PGPASSWORD": "x"}
+        monkeypatch.setattr(maintenance, "_postgres_cli_base", lambda _program: (fake_cmd, fake_env))
+
+        class Proc:
+            def __init__(self, returncode, stderr):
+                self.returncode = returncode
+                self.stderr = stderr
+
+        monkeypatch.setattr(
+            maintenance.subprocess,
+            "run",
+            lambda *_args, **_kwargs: Proc(1, b"ERROR: deadlock detected"),
+        )
+
+        with pytest.raises(maintenance.MaintenanceError, match="deadlock detected"):
+            maintenance._restore_postgres_backup(b"SELECT 1;")

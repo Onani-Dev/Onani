@@ -5,6 +5,7 @@ import re
 import shutil
 import sqlite3
 import subprocess
+import time
 
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
@@ -19,6 +20,8 @@ class MaintenanceError(RuntimeError):
 _UNSUPPORTED_POSTGRES_RESTORE_SETTINGS = {
     "transaction_timeout",
 }
+
+_POSTGRES_RESTORE_DEADLOCK_RETRIES = 3
 
 
 def optimize_database() -> str:
@@ -158,18 +161,7 @@ def restore_database_backup(backup_bytes: bytes) -> str:
 
     if dialect == "postgresql":
         restore_bytes = _sanitize_postgres_restore_sql(backup_bytes)
-        cmd, env = _postgres_cli_base("psql")
-        cmd.extend([
-            "-v",
-            "ON_ERROR_STOP=1",
-            "-d",
-            db.engine.url.database,
-        ])
-        proc = subprocess.run(cmd, env=env, input=restore_bytes, capture_output=True, check=False)
-        if proc.returncode != 0:
-            stderr = proc.stderr.decode("utf-8", errors="replace").strip()
-            raise MaintenanceError(stderr or "psql restore failed.")
-        return "PostgreSQL database restored from backup."
+        return _restore_postgres_backup(restore_bytes)
 
     raise MaintenanceError(f"Restore is not implemented for '{dialect}'.")
 
@@ -208,3 +200,47 @@ def _sanitize_postgres_restore_sql(backup_bytes: bytes) -> bytes:
         filtered_lines.append(line)
 
     return "".join(filtered_lines).encode("utf-8")
+
+
+def _restore_postgres_backup(restore_bytes: bytes) -> str:
+    db_name = db.engine.url.database
+    cmd, env = _postgres_cli_base("psql")
+    cmd.extend([
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        db_name,
+    ])
+
+    last_error = ""
+    for attempt in range(1, _POSTGRES_RESTORE_DEADLOCK_RETRIES + 1):
+        _try_terminate_postgres_connections(db_name)
+        proc = subprocess.run(cmd, env=env, input=restore_bytes, capture_output=True, check=False)
+        if proc.returncode == 0:
+            return "PostgreSQL database restored from backup."
+
+        stderr = proc.stderr.decode("utf-8", errors="replace").strip()
+        last_error = stderr or "psql restore failed."
+        if "deadlock detected" not in last_error.lower() or attempt >= _POSTGRES_RESTORE_DEADLOCK_RETRIES:
+            break
+
+        time.sleep(0.5 * attempt)
+
+    raise MaintenanceError(last_error)
+
+
+def _try_terminate_postgres_connections(db_name: str) -> None:
+    """Best-effort kill of competing sessions to reduce restore lock contention."""
+    try:
+        with db.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            conn.execute(text(
+                """
+                SELECT pg_terminate_backend(pid)
+                FROM pg_stat_activity
+                WHERE datname = :db_name
+                  AND pid <> pg_backend_pid()
+                """
+            ), {"db_name": db_name})
+    except Exception:
+        # Not all deployments grant permission to terminate backends.
+        pass
