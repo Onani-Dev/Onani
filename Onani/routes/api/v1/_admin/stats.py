@@ -6,12 +6,17 @@ import os
 from flask import abort, request
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
+from sqlalchemy import func, or_
 
 from Onani.controllers import permissions_required, role_required
 from Onani.models import (
+    Ban,
     Collection,
     Error,
+    ImportJob,
     Post,
+    PostComment,
+    PostRating,
     ScheduledImport,
     Tag,
     User,
@@ -28,12 +33,66 @@ class AdminStats(Resource):
     decorators = [login_required, role_required(UserRoles.MODERATOR)]
 
     def get(self):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        since_24h = now - datetime.timedelta(hours=24)
+
+        rating_counts = {
+            "general": Post.query.filter(Post.rating == PostRating.GENERAL).count(),
+            "questionable": Post.query.filter(Post.rating == PostRating.QUESTIONABLE).count(),
+            "sensitive": Post.query.filter(Post.rating == PostRating.SENSITIVE).count(),
+            "explicit": Post.query.filter(Post.rating == PostRating.EXPLICIT).count(),
+        }
+
+        import_status_rows = (
+            db.session.query(ImportJob.status, func.count(ImportJob.id))
+            .group_by(ImportJob.status)
+            .all()
+        )
+        import_status_counts = {status or "UNKNOWN": count for status, count in import_status_rows}
+        import_terminal_states = {"SUCCESS", "FAILURE", "REVOKED", "ERROR"}
+
+        active_bans = Ban.query.filter(
+            or_(
+                Ban.expires.is_(None),
+                Ban.expires > now,
+            )
+        ).count()
+
         return {
             "posts": Post.query.count(),
+            "posts_hidden": Post.query.filter_by(hidden=True).count(),
+            "posts_imported": Post.query.filter(Post.imported_from.isnot(None)).count(),
+            "posts_with_source": Post.query.filter(Post.source.isnot(None)).count(),
+            "posts_tag_request": Post.query.filter(Post.tags.any(Tag.name == "tag_request")).count(),
+            "posts_last_24h": Post.query.filter(Post.uploaded_at >= since_24h).count(),
+            "ratings": rating_counts,
             "users": User.query.count(),
+            "users_deleted": User.query.filter_by(is_deleted=True).count(),
+            "users_banned_active": active_bans,
+            "users_last_24h": User.query.filter(User.created_at >= since_24h).count(),
             "tags": Tag.query.count(),
             "collections": Collection.query.count(),
+            "comments": PostComment.query.count(),
+            "comments_last_24h": PostComment.query.filter(PostComment.created_at >= since_24h).count(),
             "errors": Error.query.count(),
+            "imports": {
+                "total": ImportJob.query.count(),
+                "active": sum(
+                    count
+                    for status, count in import_status_counts.items()
+                    if status not in import_terminal_states
+                ),
+                "queued": import_status_counts.get("QUEUED", 0),
+                "success": import_status_counts.get("SUCCESS", 0),
+                "failed": import_status_counts.get("FAILURE", 0)
+                + import_status_counts.get("ERROR", 0),
+                "revoked": import_status_counts.get("REVOKED", 0),
+            },
+            "scheduled_imports": {
+                "total": ScheduledImport.query.count(),
+                "enabled": ScheduledImport.query.filter_by(enabled=True).count(),
+                "disabled": ScheduledImport.query.filter_by(enabled=False).count(),
+            },
         }
 
 
@@ -74,7 +133,17 @@ class AdminRunTask(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             "task", location="json", type=str, required=True,
-            choices=["remove_expired_bans", "backfill_video_thumbnails", "recount_tags", "migrate_images", "clear_import_queue", "restart_celery", "deepdanbooru_tag_posts"],
+            choices=[
+                "remove_expired_bans",
+                "backfill_video_thumbnails",
+                "generate_all_thumbnails",
+                "recount_tags",
+                "migrate_images",
+                "clear_import_queue",
+                "restart_celery",
+                "deepdanbooru_tag_posts",
+                "deepdanbooru_tag_all_posts",
+            ],
         )
         args = parser.parse_args()
         task_name = args["task"]
@@ -169,6 +238,14 @@ class AdminRunTask(Resource):
                     failed += 1
             return {"message": f"Backfill complete — generated:{ok} skipped:{skipped} failed:{failed}"}
 
+        if task_name == "generate_all_thumbnails":
+            from Onani.tasks.thumbnails import generate_all_thumbnails as _gen_thumbs
+            result = _gen_thumbs.apply_async()
+            return {
+                "message": "Thumbnail generation queued.",
+                "task_id": result.id,
+            }
+
         if task_name == "recount_tags":
             from Onani.models import Tag
             tags = Tag.query.all()
@@ -177,19 +254,28 @@ class AdminRunTask(Resource):
             db.session.commit()
             return {"message": f"Recounted {len(tags)} tags."}
 
-        if task_name == "deepdanbooru_tag_posts":
+        if task_name in ("deepdanbooru_tag_posts", "deepdanbooru_tag_all_posts"):
             from flask import current_app as _app
 
             from Onani.services.deepdanbooru import get_deepdanbooru_status
-            from Onani.tasks.deepdanbooru import deepdanbooru_tag_all_posts
+            from Onani.tasks.deepdanbooru import (
+                deepdanbooru_tag_all_posts,
+                deepdanbooru_tag_tag_request_posts,
+            )
 
             status = get_deepdanbooru_status(_app.config)
             if not status["available"]:
                 return {"message": status["reason"] or "DeepDanbooru is unavailable."}, 400
 
-            result = deepdanbooru_tag_all_posts.apply_async()
+            if task_name == "deepdanbooru_tag_all_posts":
+                result = deepdanbooru_tag_all_posts.apply_async()
+                queued_message = "DeepDanbooru all-post tagging queued."
+            else:
+                result = deepdanbooru_tag_tag_request_posts.apply_async()
+                queued_message = "DeepDanbooru tag-request tagging queued."
+
             return {
-                "message": "DeepDanbooru batch tagging queued.",
+                "message": queued_message,
                 "task_id": result.id,
             }
 

@@ -15,7 +15,7 @@ COPY requirements.txt /
 RUN pip3 install -r /requirements.txt
 
 # Copy static folder
-COPY ./Onani/static /static
+COPY ./frontend/public/static /static
 
 # Copy working dir to root of virtual drive
 COPY . /onani

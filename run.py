@@ -7,9 +7,9 @@ import click
 import string
 import random
 
-from Onani import db, init_app
-from Onani.services import create_default_tags
-from Onani.models import UserPermissions, UserRoles, User
+from onani import db, init_app
+from onani.services import create_default_tags
+from onani.models import UserPermissions, UserRoles, User
 
 app = init_app()
 

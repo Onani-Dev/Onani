@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Pytest configuration and shared fixtures for the Onani test suite.
+Pytest configuration and shared fixtures for the onani test suite.
 Uses an in-memory SQLite database so no external services are needed.
 """
 import os
@@ -21,7 +21,7 @@ os.environ["RATELIMIT_STORAGE_URI"] = "memory://"
 @pytest.fixture(scope="session")
 def app():
     """Create an application instance configured for testing."""
-    from Onani import db as _db, init_app
+    from onani import db as _db, init_app
 
     application = init_app()
     application.config.update(
@@ -51,7 +51,7 @@ def app():
 @pytest.fixture(scope="function")
 def db(app):
     """Provide a clean database session per test with automatic rollback."""
-    from Onani import db as _db
+    from onani import db as _db
 
     with app.app_context():
         connection = _db.engine.connect()
@@ -97,7 +97,7 @@ def _clear_login_state(app):
 @pytest.fixture
 def make_user(db, app):
     """Factory fixture to create User instances."""
-    from Onani.models import User, UserRoles, UserPermissions, UserSettings
+    from onani.models import User, UserRoles, UserPermissions, UserSettings
 
     created = []
 
@@ -127,8 +127,8 @@ def make_user(db, app):
 @pytest.fixture
 def make_tag(db, app):
     """Factory fixture to create Tag instances."""
-    from Onani.models import Tag
-    from Onani.models.tag.type import TagType
+    from onani.models import Tag
+    from onani.models.tag.type import TagType
 
     def _make(name="test_tag", tag_type=TagType.GENERAL):
         existing = Tag.query.filter_by(name=name).first()
@@ -145,8 +145,8 @@ def make_tag(db, app):
 @pytest.fixture
 def make_post(db, app, make_user, make_tag):
     """Factory fixture to create Post instances (without actual files)."""
-    from Onani.models import Post
-    from Onani.models.post.rating import PostRating
+    from onani.models import Post
+    from onani.models.post.rating import PostRating
 
     _post_counter = [0]
 
@@ -209,7 +209,7 @@ def logged_in_client(client, make_user, app):
 @pytest.fixture
 def admin_client(client, make_user, app):
     """A test client with a logged-in admin user."""
-    from Onani.models import UserRoles, UserPermissions
+    from onani.models import UserRoles, UserPermissions
     user = make_user(
         username="adminuser",
         password="adminpassword",

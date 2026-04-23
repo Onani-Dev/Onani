@@ -21,8 +21,8 @@ def test_run_now_creates_import_job(admin_client, app, db, monkeypatch):
     client, admin = admin_client
 
     with app.app_context():
-        from Onani.models import ScheduledImport, ImportJob
-        from Onani.tasks import import_post
+        from onani.models import ScheduledImport, ImportJob
+        from onani.tasks import import_post
 
         task = ScheduledImport(
             label="Daily test",
@@ -71,9 +71,9 @@ def test_run_now_creates_import_job(admin_client, app, db, monkeypatch):
 
 def test_cron_queues_when_same_domain_job_exists(app, db, make_user, monkeypatch):
     with app.app_context():
-        from Onani.cron.tasks import run_scheduled_imports
-        from Onani.models import ImportJob, ScheduledImport
-        from Onani.tasks import import_post
+        from onani.cron.tasks import run_scheduled_imports
+        from onani.models import ImportJob, ScheduledImport
+        from onani.tasks import import_post
 
         user = make_user(username="scheduledadmin")
 

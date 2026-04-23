@@ -280,7 +280,7 @@ class Post(db.Model):
         shard = self.filename[:2]
         if ext in _VIDEO_EXTS:
             stem = self.filename.rsplit(".", 1)[0]
-            return f"/images/thumbnail/{shard}/{stem}.jpg?size={size}"
+            return f"/videos/thumbnail/{shard}/{stem}.jpg?size={size}"
         return f"/images/thumbnail/{shard}/{self.filename}?size={size}"
 
     @property

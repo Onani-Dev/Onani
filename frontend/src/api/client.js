@@ -26,3 +26,17 @@ api.interceptors.request.use(async (config) => {
 
 export default api
 export { ensureCsrf }
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const status = error.response?.status
+        if (status === 429) {
+            // Lazily import the router to avoid circular deps (client ← router ← auth ← client)
+            import('@/router').then(({ default: router }) => {
+                router.push({ name: 'rateLimit' })
+            })
+        }
+        return Promise.reject(error)
+    }
+)

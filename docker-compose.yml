@@ -97,7 +97,7 @@ services:
       - ${IMAGES_HOST_DIR:-images}:/images
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./logs:/logs
-      - ./Onani/static:/static
+      - ./frontend/public/static:/static
       - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/nginx.conf:ro
 
   # ── Frontend ────────────────────────────────────────────

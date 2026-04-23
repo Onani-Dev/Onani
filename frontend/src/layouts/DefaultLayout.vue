@@ -55,7 +55,7 @@
       <router-view />
     </main>
     <footer>
-      <a href="#">Onani</a>
+      <a :href="releaseUrl" target="_blank" rel="noreferrer">{{ footerLabel }}</a>
     </footer>
   </div>
 </template>
@@ -68,6 +68,8 @@ import { useRouter } from 'vue-router'
 const auth = useAuthStore()
 const router = useRouter()
 const menuOpen = ref(false)
+const footerLabel = `Onani (${__APP_VERSION__})`
+const releaseUrl = __APP_RELEASE_URL__
 
 function applyColour(hex) {
   const s = document.documentElement.style
@@ -237,9 +239,13 @@ footer {
   width: 100%;
 }
 footer a {
-  margin: 1em;
-  color: var(--text-muted);
+  margin: 0.85em 1em;
+  color: color-mix(in srgb, var(--text-muted) 88%, var(--bg) 12%);
   text-decoration: none;
+  font-size: 0.9rem;
+}
+footer a:hover {
+  color: var(--text);
 }
 
 /* ── Burger button ───────────────────────────────── */

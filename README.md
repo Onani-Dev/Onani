@@ -2,6 +2,19 @@
 
 A booru-style imageboard built with **Flask** (API) and **Vue 3** (SPA frontend).
 
+## Releases
+
+Releases are tag-driven via GitHub Actions.
+
+- Beta releases use tags like `v1.0.0-beta.1`
+- Stable releases use tags like `v1.0.0`
+- Pushing either tag creates a GitHub Release automatically
+- Beta tags are published as GitHub prereleases
+- Tagged releases also publish production container images to GHCR
+
+Current frontend version metadata lives in `frontend/package.json`, and the SPA
+footer links to the matching GitHub release page for that version.
+
 ## Architecture
 
 ```
@@ -129,11 +142,12 @@ Once healthy:
 
 | URL | What |
 | --- | ---- |
-| http://localhost:5000/ | Flask app endpoint (SPA catch-all + API mount) |
-| http://localhost:5000/api/v1/ | REST API (Gunicorn direct) |
+| http://flask:5000/ (container network) | Flask app endpoint (SPA catch-all + API mount) |
+| http://flask:5000/api/v1/ (container network) | REST API (Gunicorn direct) |
 
-Expose port 5000 only to your reverse proxy layer. Terminate TLS and set
-forwarded headers at the external proxy.
+In `prod` profile, `flask` is **not published to the host** by default
+(`expose` only). Your reverse proxy should connect to it on the container/
+private network. Terminate TLS and set forwarded headers at the external proxy.
 
 Example proxy behavior:
 
@@ -220,14 +234,14 @@ instead of using `root` + `try_files`.
 Seed default tags:
 
 ```bash
-docker exec -it onani_flask flask tags --filename meta.json
-docker exec -it onani_flask flask tags --filename explicit.json
+podman-compose -f docker-compose.yml --profile prod exec flask flask tags --filename meta.json
+podman-compose -f docker-compose.yml --profile prod exec flask flask tags --filename explicit.json
 ```
 
 Create an admin user:
 
 ```bash
-docker exec -it onani_flask flask add-owner --id <USER_ID>
+podman-compose -f docker-compose.yml --profile prod exec flask flask add-owner --id <USER_ID>
 ```
 
 ### 2b. Docker — development
@@ -304,7 +318,12 @@ gunicorn -b 0.0.0.0:5000 -w 10 --threads 100 run:app
 
 ## CLI Commands
 
-Run via `flask <command>` (or `docker exec -it onani_flask flask <command>`):
+Run via `flask <command>` or through compose:
+
+- Prod stack: `podman-compose -f docker-compose.yml --profile prod exec flask flask <command>`
+- Dev stack: `podman-compose -f docker-compose.yml --profile dev exec flask-dev flask <command>`
+
+Common commands:
 
 | Command                          | Description                     |
 | -------------------------------- | ------------------------------- |

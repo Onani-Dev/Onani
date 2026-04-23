@@ -1,6 +1,6 @@
 FROM nginx:1.20-alpine
 
-COPY ./Onani/static /static
+COPY ./frontend/public/static /static
 RUN chown nginx:nginx /static/*
 
 RUN rm /etc/nginx/conf.d/default.conf

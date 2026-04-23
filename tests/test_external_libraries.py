@@ -74,11 +74,11 @@ class TestLibraryAPI:
         assert resp.status_code == 400
 
     def test_get_library(self, admin_client, app):
-        from Onani.models import ExternalLibrary
+        from onani.models import ExternalLibrary
         client, admin = admin_client
         with app.app_context():
             lib = ExternalLibrary(name="GetMe", path="/tmp/getme", owner_id=admin.id)
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.add(lib)
             _db.session.commit()
             lib_id = lib.id
@@ -95,11 +95,11 @@ class TestLibraryAPI:
         assert resp.status_code == 404
 
     def test_update_library(self, admin_client, app):
-        from Onani.models import ExternalLibrary
+        from onani.models import ExternalLibrary
         client, admin = admin_client
         with app.app_context():
             lib = ExternalLibrary(name="OldName", path="/tmp/upd", owner_id=admin.id)
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.add(lib)
             _db.session.commit()
             lib_id = lib.id
@@ -115,11 +115,11 @@ class TestLibraryAPI:
         assert data["enabled"] is False
 
     def test_delete_library(self, admin_client, app):
-        from Onani.models import ExternalLibrary
+        from onani.models import ExternalLibrary
         client, admin = admin_client
         with app.app_context():
             lib = ExternalLibrary(name="ToDelete", path="/tmp/del", owner_id=admin.id)
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.add(lib)
             _db.session.commit()
             lib_id = lib.id
@@ -132,8 +132,8 @@ class TestLibraryAPI:
 
     def test_delete_cascades_files(self, admin_client, app):
         """Deleting a library also removes its ExternalLibraryFile rows."""
-        from Onani.models import ExternalLibrary, ExternalLibraryFile
-        from Onani import db as _db
+        from onani.models import ExternalLibrary, ExternalLibraryFile
+        from onani import db as _db
         import datetime
         client, admin = admin_client
         with app.app_context():
@@ -165,8 +165,8 @@ class TestLibraryScan:
     """Triggering and polling scans."""
 
     def test_scan_requires_admin(self, logged_in_client, app):
-        from Onani.models import ExternalLibrary
-        from Onani import db as _db
+        from onani.models import ExternalLibrary
+        from onani import db as _db
         client, user = logged_in_client
         with app.app_context():
             lib = ExternalLibrary(name="ScanPerm", path="/tmp/sp", owner_id=None)
@@ -178,8 +178,8 @@ class TestLibraryScan:
         assert resp.status_code == 403
 
     def test_scan_disabled_library_rejected(self, admin_client, app):
-        from Onani.models import ExternalLibrary
-        from Onani import db as _db
+        from onani.models import ExternalLibrary
+        from onani import db as _db
         client, admin = admin_client
         with app.app_context():
             lib = ExternalLibrary(name="DisabledLib", path="/tmp/dl", enabled=False, owner_id=admin.id)
@@ -192,8 +192,8 @@ class TestLibraryScan:
 
     def test_scan_triggers_task(self, admin_client, app):
         """POST /scan returns 202 and a task_id."""
-        from Onani.models import ExternalLibrary
-        from Onani import db as _db
+        from onani.models import ExternalLibrary
+        from onani import db as _db
         from unittest.mock import patch
         client, admin = admin_client
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -204,7 +204,7 @@ class TestLibraryScan:
                 lib_id = lib.id
 
             # Patch apply_async to avoid actually running the task in this test.
-            with patch("Onani.routes.api.v1.libraries.scan_library.apply_async") as mock_async:
+            with patch("onani.routes.api.v1.libraries.scan_library.apply_async") as mock_async:
                 mock_async.return_value = None
                 resp = client.post(f"/api/v1/libraries/{lib_id}/scan")
 
@@ -213,8 +213,8 @@ class TestLibraryScan:
             assert "task_id" in data
 
     def test_get_scan_status_idle(self, admin_client, app):
-        from Onani.models import ExternalLibrary
-        from Onani import db as _db
+        from onani.models import ExternalLibrary
+        from onani import db as _db
         client, admin = admin_client
         with app.app_context():
             lib = ExternalLibrary(name="IdleLib", path="/tmp/idle", owner_id=admin.id)
@@ -237,8 +237,8 @@ class TestLibraryFileList:
         assert resp.status_code in (401, 403)
 
     def test_files_returns_paginated(self, admin_client, app):
-        from Onani.models import ExternalLibrary, ExternalLibraryFile
-        from Onani import db as _db
+        from onani.models import ExternalLibrary, ExternalLibraryFile
+        from onani import db as _db
         client, admin = admin_client
         import datetime
         with app.app_context():
@@ -264,8 +264,8 @@ class TestLibraryFileList:
         assert len(data["data"]) == 3
 
     def test_files_filter_by_status(self, admin_client, app):
-        from Onani.models import ExternalLibrary, ExternalLibraryFile
-        from Onani import db as _db
+        from onani.models import ExternalLibrary, ExternalLibraryFile
+        from onani import db as _db
         client, admin = admin_client
         import datetime
         with app.app_context():
@@ -295,9 +295,9 @@ class TestScanTask:
     """Unit-level tests for the scan_library Celery task (runs eagerly)."""
 
     def test_scan_nonexistent_path(self, app, make_user):
-        from Onani.models import ExternalLibrary
-        from Onani import db as _db
-        from Onani.tasks.library import scan_library
+        from onani.models import ExternalLibrary
+        from onani import db as _db
+        from onani.tasks.library import scan_library
 
         with app.app_context():
             user = make_user(username="scanuser1", password="testpassword")
@@ -313,9 +313,9 @@ class TestScanTask:
             assert lib.last_scan_status == "FAILED"
 
     def test_scan_empty_directory(self, app, make_user):
-        from Onani.models import ExternalLibrary, ExternalLibraryFile
-        from Onani import db as _db
-        from Onani.tasks.library import scan_library
+        from onani.models import ExternalLibrary, ExternalLibraryFile
+        from onani import db as _db
+        from onani.tasks.library import scan_library
 
         with app.app_context():
             user = make_user(username="scanuser2", password="testpassword")
@@ -334,9 +334,9 @@ class TestScanTask:
 
     def test_scan_imports_image(self, app, make_user):
         """Scan should import a valid PNG file and create a Post."""
-        from Onani.models import ExternalLibrary, ExternalLibraryFile, Post
-        from Onani import db as _db
-        from Onani.tasks.library import scan_library
+        from onani.models import ExternalLibrary, ExternalLibraryFile, Post
+        from onani import db as _db
+        from onani.tasks.library import scan_library
 
         with app.app_context():
             user = make_user(username="scanuser3", password="testpassword")
@@ -378,9 +378,9 @@ class TestScanTask:
 
     def test_scan_skips_duplicate_hash(self, app, make_user):
         """A second scan of the same directory should produce 0 new imports (all duplicates)."""
-        from Onani.models import ExternalLibrary, ExternalLibraryFile
-        from Onani import db as _db
-        from Onani.tasks.library import scan_library
+        from onani.models import ExternalLibrary, ExternalLibraryFile
+        from onani import db as _db
+        from onani.tasks.library import scan_library
 
         with app.app_context():
             user = make_user(username="scanuser4", password="testpassword")
@@ -433,9 +433,9 @@ class TestScanTask:
 
     def test_scan_marks_missing_files(self, app, make_user):
         """Files tracked from a previous scan that disappear on disk are marked MISSING."""
-        from Onani.models import ExternalLibrary, ExternalLibraryFile
-        from Onani import db as _db
-        from Onani.tasks.library import scan_library
+        from onani.models import ExternalLibrary, ExternalLibraryFile
+        from onani import db as _db
+        from onani.tasks.library import scan_library
         import datetime
 
         with app.app_context():

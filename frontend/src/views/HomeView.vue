@@ -1,29 +1,24 @@
 <template>
-  <div class="home">
-
-    <!-- Top row: Random post + Explore tags side by side -->
-    <div class="home-top-row">
-
-      <!-- Random post -->
-      <div v-if="data.random" class="index-post-group home-top-random">
-        <div class="post-group-header">
-          <h2>Random Post</h2>
+  <div class="home page-container">
+    <section class="home-top-row">
+      <article v-if="data.random" class="home-panel random-panel">
+        <header class="panel-header">
+          <h2>Random Spotlight</h2>
           <router-link :to="`/posts/${data.random.id}`">#{{ data.random.id }} →</router-link>
-        </div>
+        </header>
         <div class="spotlight-tile">
           <router-link :to="`/posts/${data.random.id}`" class="spotlight-link">
             <img :src="data.random.thumbnail_url" class="spotlight-img" :alt="`Post #${data.random.id}`" :class="{ 'sfw-blurred': shouldBlur(data.random) }" />
           </router-link>
           <div v-if="shouldBlur(data.random)" class="sfw-overlay spotlight-sfw-overlay" @click.stop="reveal(data.random.id)">Click to reveal</div>
         </div>
-      </div>
+      </article>
 
-      <!-- Explore tags -->
-      <div v-if="data.tags?.length" class="index-post-group home-top-tags">
-        <div class="post-group-header">
+      <article v-if="data.tags?.length" class="home-panel tags-panel">
+        <header class="panel-header">
           <h2>Explore Tags</h2>
           <router-link to="/tags">Browse All →</router-link>
-        </div>
+        </header>
         <div class="tag-cloud">
           <router-link
             v-for="tag in data.tags"
@@ -33,34 +28,30 @@
             :class="`tag-${tag.type}`"
           >{{ tag.name }} <span class="tag-count">{{ tag.post_count }}</span></router-link>
         </div>
-      </div>
+      </article>
+    </section>
 
-    </div>
-
-    <!-- Recent posts -->
-    <div class="index-post-group">
-      <div class="post-group-header">
+    <section class="home-panel">
+      <header class="panel-header">
         <h2>Recent Posts</h2>
         <router-link to="/posts">View All →</router-link>
-      </div>
+      </header>
       <div class="post-group-grid">
         <PostThumb v-for="post in data.recent" :key="post.id" :post="post" />
         <p v-if="!loading && !data.recent.length" class="empty-msg">No posts yet.</p>
       </div>
-    </div>
+    </section>
 
-    <!-- Popular posts -->
-    <div class="index-post-group">
-      <div class="post-group-header">
+    <section class="home-panel">
+      <header class="panel-header">
         <h2>Popular Posts</h2>
         <router-link to="/posts">View All →</router-link>
-      </div>
+      </header>
       <div class="post-group-grid">
         <PostThumb v-for="post in data.popular" :key="post.id" :post="post" />
         <p v-if="!loading && !data.popular.length" class="empty-msg">No posts yet.</p>
       </div>
-    </div>
-
+    </section>
   </div>
 </template>
 
@@ -86,35 +77,36 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Top row: random post + tags side by side */
-.home-top-row {
+.home {
   display: grid;
-  grid-template-columns: auto 1fr;
   gap: 1em;
-  margin-bottom: 1em;
-  align-items: start;
-}
-.home-top-random {
-  width: fit-content;
-  min-width: 12em;
-  max-width: 32em;
-  margin-bottom: 0;
-}
-.home-top-tags {
-  min-width: 0;
-  margin-bottom: 0;
 }
 
-/* Spotlight tile */
+.home-top-row {
+  display: grid;
+  grid-template-columns: minmax(16em, 1fr) 1.35fr;
+  gap: 1em;
+  align-items: start;
+}
+
+.home-panel {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  padding: 0.8em;
+  border-radius: 0;
+}
+
 .spotlight-tile {
-  background-color: var(--bg-overlay);
-  padding: 0.75em;
-  border-radius: 0 0 15px 15px;
+  margin-top: 0.65em;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  padding: 0.65em;
   display: flex;
   justify-content: center;
-  height: calc(100% - 2.6em); /* fill below header */
+  min-height: 13em;
   position: relative;
   overflow: hidden;
+  border-radius: 0;
 }
 .spotlight-link { display: block; line-height: 0; }
 .spotlight-img {
@@ -126,36 +118,38 @@ onMounted(async () => {
   display: block;
 }
 
-/* Shared group */
-.index-post-group { margin-bottom: 1em; }
-.post-group-header {
-  padding: 10px;
-  background-color: var(--header-bg);
-  border-radius: 15px 15px 0 0;
+.panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-.post-group-header a { color: var(--text-muted); }
-.empty-msg { padding: 1em; color: var(--text-muted); }
-.post-group-grid {
-  background-color: var(--bg-overlay);
-  padding: 10px 10px 1.5em 10px;
-  min-height: 10em;
-  border-radius: 0 0 15px 15px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11em, 1fr));
+  gap: 0.6em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5em;
+  border-radius: 0;
 }
 
-/* Tag cloud */
+.panel-header h2 {
+  font-size: 1.05rem;
+}
+
+.panel-header a { color: var(--text-muted); }
+
+.empty-msg { padding: 1em; color: var(--text-muted); }
+.post-group-grid {
+  padding: 0.8em 0.15em 0.3em;
+  min-height: 10em;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5em, 1fr));
+  border-radius: 0;
+}
+
 .tag-cloud {
-  background-color: var(--bg-overlay);
-  padding: 1em;
-  border-radius: 0 0 15px 15px;
+  padding: 0.8em 0 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5em;
   align-content: flex-start;
+  border-radius: 0;
 }
 .tag-pill {
   display: inline-flex;
@@ -175,7 +169,6 @@ onMounted(async () => {
 
 @media (max-width: 689px) {
   .home-top-row { grid-template-columns: 1fr; }
-  .home-top-random { width: 100%; max-width: 100%; }
   .post-group-grid { grid-template-columns: repeat(auto-fill, minmax(6em, 1fr)); }
 }
 @media (min-width: 690px) and (max-width: 1110px) {

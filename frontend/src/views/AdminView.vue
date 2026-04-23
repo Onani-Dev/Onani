@@ -32,6 +32,8 @@
             </span>
             <span class="status-badge status-pending">{{ stats.posts }} posts indexed</span>
             <span class="status-badge status-pending">{{ stats.users }} users</span>
+            <span class="status-badge status-pending">{{ stats.imports?.active || 0 }} active imports</span>
+            <span class="status-badge status-pending">{{ stats.users_banned_active || 0 }} active bans</span>
           </div>
           <div v-if="stats" class="stats-grid">
             <div class="stat-card">
@@ -53,6 +55,114 @@
             <div class="stat-card">
               <span class="stat-value">{{ stats.errors }}</span>
               <span class="stat-label">Errors</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">{{ stats.comments || 0 }}</span>
+              <span class="stat-label">Comments</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">{{ stats.posts_last_24h || 0 }}</span>
+              <span class="stat-label">Posts (24h)</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">{{ stats.users_last_24h || 0 }}</span>
+              <span class="stat-label">Users (24h)</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">{{ stats.comments_last_24h || 0 }}</span>
+              <span class="stat-label">Comments (24h)</span>
+            </div>
+          </div>
+
+          <div v-if="stats" class="stats-subsection">
+            <h3>Post Health</h3>
+            <div class="stats-mini-grid">
+              <div class="stats-mini-card">
+                <strong>{{ stats.posts_hidden || 0 }}</strong>
+                <span>Hidden</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.posts_imported || 0 }}</strong>
+                <span>Imported</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.posts_with_source || 0 }}</strong>
+                <span>With Source</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.posts_tag_request || 0 }}</strong>
+                <span>Tag Request</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="stats" class="stats-subsection">
+            <h3>Ratings</h3>
+            <div class="stats-mini-grid">
+              <div class="stats-mini-card">
+                <strong>{{ stats.ratings?.general || 0 }}</strong>
+                <span>General</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.ratings?.questionable || 0 }}</strong>
+                <span>Questionable</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.ratings?.sensitive || 0 }}</strong>
+                <span>Sensitive</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.ratings?.explicit || 0 }}</strong>
+                <span>Explicit</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="stats" class="stats-subsection">
+            <h3>Import Pipeline</h3>
+            <div class="stats-mini-grid">
+              <div class="stats-mini-card">
+                <strong>{{ stats.imports?.total || 0 }}</strong>
+                <span>Total Jobs</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.imports?.active || 0 }}</strong>
+                <span>Active</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.imports?.queued || 0 }}</strong>
+                <span>Queued</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.imports?.success || 0 }}</strong>
+                <span>Success</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.imports?.failed || 0 }}</strong>
+                <span>Failed</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.imports?.revoked || 0 }}</strong>
+                <span>Stopped</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="stats" class="stats-subsection">
+            <h3>Scheduled Imports</h3>
+            <div class="stats-mini-grid">
+              <div class="stats-mini-card">
+                <strong>{{ stats.scheduled_imports?.total || 0 }}</strong>
+                <span>Total</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.scheduled_imports?.enabled || 0 }}</strong>
+                <span>Enabled</span>
+              </div>
+              <div class="stats-mini-card">
+                <strong>{{ stats.scheduled_imports?.disabled || 0 }}</strong>
+                <span>Disabled</span>
+              </div>
             </div>
           </div>
           <p v-else class="text-muted">Loading stats...</p>
@@ -198,6 +308,15 @@
             </div>
             <div class="task-item">
               <div>
+                <strong>Generate All Thumbnails</strong>
+                <p class="text-muted">Pre-generate cached image and sample thumbnails for all posts.</p>
+              </div>
+              <button @click="runTask('generate_all_thumbnails')" :disabled="!!runningTask">
+                {{ runningTask === 'generate_all_thumbnails' ? 'Queueing...' : 'Run' }}
+              </button>
+            </div>
+            <div class="task-item">
+              <div>
                 <strong>Recount Tag Post Counts</strong>
                 <p class="text-muted">Recalculate post_count for every tag from scratch.</p>
               </div>
@@ -236,6 +355,16 @@
               <div>
                 <strong>DeepDanbooru Tag All Posts</strong>
                 <p class="text-muted">Run AI tag estimation across every post and append missing suggestions.</p>
+                <p v-if="deepdanbooruStatus.loaded && !deepdanbooruStatus.available" class="text-muted">{{ deepdanbooruStatus.reason }}</p>
+              </div>
+              <button @click="runTask('deepdanbooru_tag_all_posts')" :disabled="!!runningTask || !deepdanbooruStatus.available">
+                {{ runningTask === 'deepdanbooru_tag_all_posts' ? 'Queueing...' : 'Run' }}
+              </button>
+            </div>
+            <div class="task-item">
+              <div>
+                <strong>DeepDanbooru Tag Tag-Request Posts</strong>
+                <p class="text-muted">Run AI tag estimation for posts tagged with tag_request and append missing suggestions.</p>
                 <p v-if="deepdanbooruStatus.loaded && !deepdanbooruStatus.available" class="text-muted">{{ deepdanbooruStatus.reason }}</p>
               </div>
               <button @click="runTask('deepdanbooru_tag_posts')" :disabled="!!runningTask || !deepdanbooruStatus.available">
@@ -1434,8 +1563,11 @@ async function runTask(name) {
   taskError.value = false
   try {
     const { data } = await api.post('/admin/tasks', { task: name })
-    taskMessage.value = data.message
-    taskRuns.value.unshift({ name, at: new Date().toISOString(), message: data.message, error: false })
+    const msg = data.task_id
+      ? `${data.message} (task ${data.task_id})`
+      : data.message
+    taskMessage.value = msg
+    taskRuns.value.unshift({ name, at: new Date().toISOString(), message: msg, error: false })
   } catch (err) {
     taskMessage.value = err.response?.data?.message || 'Task failed.'
     taskError.value = true
@@ -1932,6 +2064,41 @@ function switchLogType(type) {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.stats-subsection {
+  margin-top: 1em;
+}
+
+.stats-subsection h3 {
+  margin: 0 0 0.55em 0;
+  font-size: 0.9rem;
+}
+
+.stats-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5em, 1fr));
+  gap: 0.6em;
+}
+
+.stats-mini-card {
+  background-color: var(--bg-overlay);
+  border-radius: 6px;
+  padding: 0.7em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+
+.stats-mini-card strong {
+  font-size: 1.1rem;
+}
+
+.stats-mini-card span {
+  color: var(--text-muted);
+  font-size: 0.77rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* ── Errors ───────────────────────────────────────────────── */

@@ -44,7 +44,7 @@ class TestMediaRoutes:
         with app.app_context():
             user = make_user(username="avatar_user")
             user.settings.avatar = "/avatars/avatar001.png"
-            from Onani import db
+            from onani import db
             db.session.commit()
 
         src = os.path.join(app.config["AVATARS_DIR"], "avatar001.png")
@@ -64,6 +64,50 @@ class TestMediaRoutes:
             "avatar001.jpg",
         )
         assert os.path.isfile(cached)
+
+    def test_video_thumbnail_route_uses_videos_cache(self, client, make_post, app):
+        with app.app_context():
+            post = make_post(sha256_hash="cdef012345678901", filename="cdef012345678901.jpg")
+            filename = post.filename
+
+        src = os.path.join(app.config["IMAGES_DIR"], "cd", filename)
+        os.makedirs(os.path.dirname(src), exist_ok=True)
+        Image.new("RGB", (640, 480), color=(80, 120, 160)).save(src, format="JPEG")
+
+        resp = client.get(f"/videos/thumbnail/cd/{filename}?size=small")
+        assert resp.status_code == 200
+        assert resp.content_type.startswith("image/")
+
+        cached = os.path.join(
+            app.config["IMAGES_DIR"],
+            ".thumbs",
+            "videos",
+            "150x150",
+            "cd",
+            "cdef012345678901.jpg",
+        )
+        assert os.path.isfile(cached)
+
+    def test_image_thumbnail_does_not_write_to_videos_cache(self, client, make_post, app):
+        with app.app_context():
+            post = make_post(sha256_hash="defa123456789012", filename="defa123456789012.png")
+            filename = post.filename
+
+        src = os.path.join(app.config["IMAGES_DIR"], "de", filename)
+        os.makedirs(os.path.dirname(src), exist_ok=True)
+        Image.new("RGB", (800, 600), color=(200, 100, 50)).save(src, format="PNG")
+
+        client.get(f"/images/thumbnail/de/{filename}?size=small")
+
+        videos_cached = os.path.join(
+            app.config["IMAGES_DIR"],
+            ".thumbs",
+            "videos",
+            "150x150",
+            "de",
+            "defa123456789012.jpg",
+        )
+        assert not os.path.isfile(videos_cached)
 
     def test_sample_route_generated_by_flask(self, client, make_post, app):
         with app.app_context():
@@ -168,7 +212,7 @@ class TestPostsAPI:
         assert data["enabled"] is False
 
     def test_deepdanbooru_status_reports_missing_tensorflow_io(self, client, app, monkeypatch):
-        import Onani.services.deepdanbooru as dd_module
+        import onani.services.deepdanbooru as dd_module
 
         monkeypatch.setitem(app.config, "DEEPDANBOORU_ENABLED", True)
         monkeypatch.setitem(app.config, "DEEPDANBOORU_PROJECT_PATH", "/tmp")
@@ -189,7 +233,7 @@ class TestPostsAPI:
         assert data["reason"] == "Python package 'tensorflow-io' is not installed."
 
     def test_deepdanbooru_suggests_tags_for_post(self, admin_client, make_post, app, monkeypatch):
-        import Onani.routes.api.v1.posts as posts_module
+        import onani.routes.api.v1.posts as posts_module
 
         client, _user = admin_client
         with app.app_context():
@@ -198,11 +242,15 @@ class TestPostsAPI:
 
         monkeypatch.setattr(
             posts_module,
-            "suggest_tags_for_post",
-            lambda post, config, threshold=None: [
-                {"name": "1girl", "tag": "1girl", "type": "general", "score": 0.97, "exists": True},
-                {"name": "smile", "tag": "smile", "type": "general", "score": 0.83, "exists": True},
-            ],
+            "suggest_labels_for_post",
+            lambda post, config, threshold=None: {
+                "tags": [
+                    {"name": "1girl", "tag": "1girl", "type": "general", "score": 0.97, "exists": True},
+                    {"name": "smile", "tag": "smile", "type": "general", "score": 0.83, "exists": True},
+                ],
+                "rating": "q",
+                "rating_score": 0.991,
+            },
         )
 
         resp = client.post(
@@ -213,10 +261,12 @@ class TestPostsAPI:
         assert resp.status_code == 200
         data = json.loads(resp.data)
         assert [item["tag"] for item in data["data"]] == ["1girl", "smile"]
+        assert data["rating"] == "q"
+        assert data["rating_score"] == 0.991
 
     def test_deepdanbooru_filters_new_tags_for_regular_users(self, logged_in_client, make_post, app, monkeypatch):
-        import Onani.routes.api.v1.posts as posts_module
-        from Onani.models import User
+        import onani.routes.api.v1.posts as posts_module
+        from onani.models import User
 
         client, user = logged_in_client
         with app.app_context():
@@ -226,11 +276,15 @@ class TestPostsAPI:
 
         monkeypatch.setattr(
             posts_module,
-            "suggest_tags_for_post",
-            lambda post, config, threshold=None: [
-                {"name": "existing_tag", "tag": "existing_tag", "type": "general", "score": 0.91, "exists": True},
-                {"name": "new_tag", "tag": "new_tag", "type": "general", "score": 0.88, "exists": False},
-            ],
+            "suggest_labels_for_post",
+            lambda post, config, threshold=None: {
+                "tags": [
+                    {"name": "existing_tag", "tag": "existing_tag", "type": "general", "score": 0.91, "exists": True},
+                    {"name": "new_tag", "tag": "new_tag", "type": "general", "score": 0.88, "exists": False},
+                ],
+                "rating": "e",
+                "rating_score": 0.9,
+            },
         )
 
         resp = client.post(
@@ -241,6 +295,7 @@ class TestPostsAPI:
         assert resp.status_code == 200
         data = json.loads(resp.data)
         assert [item["tag"] for item in data["data"]] == ["existing_tag"]
+        assert data["rating"] == "e"
 
     def test_deepdanbooru_missing_payload_returns_clear_error(self, admin_client):
         client, _user = admin_client
@@ -565,7 +620,7 @@ class TestCommentsAPI:
 
     def test_delete_comment_requires_permission(self, logged_in_client, make_post, make_user, app):
         """Regular user should not be able to delete comments."""
-        from Onani.models import PostComment
+        from onani.models import PostComment
 
         client, user = logged_in_client
         with app.app_context():
@@ -575,7 +630,7 @@ class TestCommentsAPI:
             comment.author = commenter
             comment.post = post
             comment.content = "I wrote this"
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.add(comment)
             _db.session.commit()
             comment_id = comment.id
@@ -589,7 +644,7 @@ class TestCommentsAPI:
 
     def test_delete_comment_as_moderator(self, admin_client, make_post, make_user, app):
         """Admin/mod should be able to delete comments."""
-        from Onani.models import PostComment
+        from onani.models import PostComment
 
         client, admin = admin_client
         with app.app_context():
@@ -599,7 +654,7 @@ class TestCommentsAPI:
             comment.author = commenter
             comment.post = post
             comment.content = "Delete me"
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.add(comment)
             _db.session.commit()
             comment_id = comment.id
@@ -611,6 +666,85 @@ class TestCommentsAPI:
         )
         assert resp.status_code == 200
 
+    def test_create_reply_comment_success(self, logged_in_client, make_post, make_user, app):
+        from onani.models import PostComment
+        from onani import db as _db
+
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="comreplyhash1")
+            commenter = make_user(username="replyparentuser1")
+            parent = PostComment(author=commenter, post=post, content="Parent")
+            _db.session.add(parent)
+            _db.session.commit()
+            post_id = post.id
+            parent_id = parent.id
+
+        resp = client.post(
+            "/api/v1/comments",
+            data=json.dumps({"post_id": post_id, "parent_id": parent_id, "content": "Child reply"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["parent_id"] == parent_id
+        assert data["content"] == "Child reply"
+
+    def test_create_reply_comment_wrong_parent_post(self, logged_in_client, make_post, make_user, app):
+        from onani.models import PostComment
+        from onani import db as _db
+
+        client, user = logged_in_client
+        with app.app_context():
+            parent_post = make_post(sha256_hash="comreplyhash2")
+            target_post = make_post(sha256_hash="comreplyhash3")
+            commenter = make_user(username="replyparentuser2")
+            parent = PostComment(author=commenter, post=parent_post, content="Parent")
+            _db.session.add(parent)
+            _db.session.commit()
+            target_post_id = target_post.id
+            parent_id = parent.id
+
+        resp = client.post(
+            "/api/v1/comments",
+            data=json.dumps({"post_id": target_post_id, "parent_id": parent_id, "content": "Invalid reply"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+
+    def test_comment_upvote_toggle(self, logged_in_client, make_post, make_user, app):
+        from onani.models import PostComment
+        from onani import db as _db
+
+        client, user = logged_in_client
+        with app.app_context():
+            post = make_post(sha256_hash="comvotehash1")
+            commenter = make_user(username="commentvoterauthor")
+            comment = PostComment(author=commenter, post=post, content="Vote me")
+            _db.session.add(comment)
+            _db.session.commit()
+            comment_id = comment.id
+
+        first = client.post(
+            "/api/v1/comments/upvote",
+            data=json.dumps({"comment_id": comment_id}),
+            content_type="application/json",
+        )
+        assert first.status_code == 200
+        first_data = json.loads(first.data)
+        assert first_data["upvote_count"] == 1
+        assert first_data["has_upvoted"] is True
+
+        second = client.post(
+            "/api/v1/comments/upvote",
+            data=json.dumps({"comment_id": comment_id}),
+            content_type="application/json",
+        )
+        assert second.status_code == 200
+        second_data = json.loads(second.data)
+        assert second_data["upvote_count"] == 0
+        assert second_data["has_upvoted"] is False
+
 
 class TestNewsAPI:
     def test_get_news_empty(self, client):
@@ -620,13 +754,13 @@ class TestNewsAPI:
         assert "data" in data
 
     def test_get_news_with_articles(self, client, app):
-        from Onani.models import NewsPost, NewsType, User, UserSettings
+        from onani.models import NewsPost, NewsType, User, UserSettings
 
         with app.app_context():
             user = User(username="newsauthor")
             user.set_password("pass")
             user.settings = UserSettings()
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.add(user)
             _db.session.commit()
 
@@ -693,7 +827,7 @@ class TestProfileAPI:
         client, user = logged_in_client
         with app.app_context():
             user.settings.avatar = "/avatars/test-avatar.png"
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.commit()
 
         resp = client.put(
@@ -709,7 +843,7 @@ class TestProfileAPI:
         client, user = logged_in_client
         with app.app_context():
             user.otp_enabled = True
-            from Onani import db as _db
+            from onani import db as _db
             _db.session.commit()
 
         resp = client.delete(
@@ -795,8 +929,8 @@ class TestCollectionsAPI:
         """A regular user cannot delete another user's collection."""
         client, user = logged_in_client
         with app.app_context():
-            from Onani import db as _db
-            from Onani.models import Collection
+            from onani import db as _db
+            from onani.models import Collection
             other = make_user(username="other_coll_owner", password="pass")
             collection = Collection(
                 title="Other's Collection",
@@ -938,7 +1072,7 @@ class TestAdminUserEditAPI:
         )
         assert resp.status_code == 200
         with app.app_context():
-            from Onani.models import User
+            from onani.models import User
             u = User.query.get(target_id)
             assert u.check_password("newpassword123")
 
@@ -985,7 +1119,7 @@ class TestAdminUserEditAPI:
 
     def test_put_cannot_edit_equal_role(self, admin_client, make_user, app):
         """An admin cannot edit another user with an equal or higher role."""
-        from Onani.models import UserRoles, UserPermissions
+        from onani.models import UserRoles, UserPermissions
         with app.app_context():
             peer = make_user(
                 username="peereditor",
@@ -1030,8 +1164,36 @@ class TestAdminAPI:
         resp = client.get("/api/v1/admin/stats")
         assert resp.status_code == 200
         data = json.loads(resp.data)
-        for key in ("posts", "users", "tags", "collections", "errors"):
+        for key in (
+            "posts",
+            "posts_hidden",
+            "posts_imported",
+            "posts_with_source",
+            "posts_tag_request",
+            "posts_last_24h",
+            "users",
+            "users_deleted",
+            "users_banned_active",
+            "users_last_24h",
+            "tags",
+            "collections",
+            "comments",
+            "comments_last_24h",
+            "errors",
+            "ratings",
+            "imports",
+            "scheduled_imports",
+        ):
             assert key in data
+
+        for key in ("general", "questionable", "sensitive", "explicit"):
+            assert key in data["ratings"]
+
+        for key in ("total", "active", "queued", "success", "failed", "revoked"):
+            assert key in data["imports"]
+
+        for key in ("total", "enabled", "disabled"):
+            assert key in data["scheduled_imports"]
 
     def test_celery_logs_requires_auth(self, client):
         resp = client.get("/api/v1/admin/celery-logs")
@@ -1039,7 +1201,7 @@ class TestAdminAPI:
 
     def test_celery_logs_as_admin_no_file(self, admin_client, tmp_path, monkeypatch):
         """When the log file does not exist the endpoint returns available=False."""
-        import Onani.routes.api.v1._admin.stats as stats_module
+        import onani.routes.api.v1._admin.stats as stats_module
         monkeypatch.setattr(stats_module.AdminCeleryLogs, "LOG_PATH", str(tmp_path / "missing.log"))
         client, user = admin_client
         resp = client.get("/api/v1/admin/celery-logs?lines=50")
@@ -1049,7 +1211,7 @@ class TestAdminAPI:
 
     def test_celery_logs_returns_lines(self, admin_client, tmp_path, monkeypatch):
         """When the log file exists the endpoint returns the last N lines."""
-        import Onani.routes.api.v1._admin.stats as stats_module
+        import onani.routes.api.v1._admin.stats as stats_module
         log_file = tmp_path / "celery.log"
         log_file.write_text("\n".join(f"line {i}" for i in range(200)))
         monkeypatch.setattr(stats_module.AdminCeleryLogs, "LOG_PATH", str(log_file))
@@ -1063,11 +1225,11 @@ class TestAdminAPI:
     def test_deepdanbooru_task_dispatches(self, admin_client, monkeypatch):
         client, _user = admin_client
         monkeypatch.setattr(
-            "Onani.services.deepdanbooru.get_deepdanbooru_status",
+            "onani.services.deepdanbooru.get_deepdanbooru_status",
             lambda config: {"available": True, "reason": None},
         )
         monkeypatch.setattr(
-            "Onani.tasks.deepdanbooru.deepdanbooru_tag_all_posts.apply_async",
+            "onani.tasks.deepdanbooru.deepdanbooru_tag_tag_request_posts.apply_async",
             lambda: SimpleNamespace(id="dd-task-123"),
         )
 
@@ -1079,6 +1241,68 @@ class TestAdminAPI:
         assert resp.status_code == 200
         data = json.loads(resp.data)
         assert data["task_id"] == "dd-task-123"
+        assert "queued" in data["message"].lower()
+
+    def test_deepdanbooru_all_posts_task_dispatches(self, admin_client, monkeypatch):
+        client, _user = admin_client
+        monkeypatch.setattr(
+            "onani.services.deepdanbooru.get_deepdanbooru_status",
+            lambda config: {"available": True, "reason": None},
+        )
+        monkeypatch.setattr(
+            "onani.tasks.deepdanbooru.deepdanbooru_tag_all_posts.apply_async",
+            lambda: SimpleNamespace(id="dd-all-task-123"),
+        )
+
+        resp = client.post(
+            "/api/v1/admin/tasks",
+            data=json.dumps({"task": "deepdanbooru_tag_all_posts"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["task_id"] == "dd-all-task-123"
+        assert "queued" in data["message"].lower()
+
+    def test_deepdanbooru_task_updates_post_rating(self, app, make_post, make_tag, monkeypatch):
+        from onani.models import Post, PostRating
+        from onani.tasks.deepdanbooru import deepdanbooru_tag_all_posts
+
+        with app.app_context():
+            tag_request = make_tag(name="tag_request")
+            post = make_post(sha256_hash="ddratingtaskhash", rating=PostRating.GENERAL, tags=[tag_request])
+            post_id = post.id
+
+            monkeypatch.setattr(
+                "onani.services.deepdanbooru.suggest_labels_for_post",
+                lambda _post, _config: {
+                    "tags": [],
+                    "rating": "e",
+                    "rating_score": 0.98,
+                },
+            )
+
+            result = deepdanbooru_tag_all_posts.run()
+            updated = Post.query.filter_by(id=post_id).first()
+
+            assert updated.rating == PostRating.EXPLICIT
+            assert result["updated_ratings"] >= 1
+
+    def test_generate_all_thumbnails_task_runs(self, admin_client, monkeypatch):
+        client, _user = admin_client
+        monkeypatch.setattr(
+            "onani.tasks.thumbnails.generate_all_thumbnails.apply_async",
+            lambda: SimpleNamespace(id="thumb-task-123"),
+        )
+
+        resp = client.post(
+            "/api/v1/admin/tasks",
+            data=json.dumps({"task": "generate_all_thumbnails"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["task_id"] == "thumb-task-123"
         assert "queued" in data["message"].lower()
 
 

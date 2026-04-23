@@ -4,10 +4,10 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-05-18 08:23:10
 
-from Onani import init_app
+from onani import init_app
 
-from Onani.tasks import *
+from onani.tasks import *
 
 app = init_app()
 
-from Onani import celery
+from onani import celery

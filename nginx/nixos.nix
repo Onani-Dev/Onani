@@ -116,18 +116,6 @@ in
             alias = "${cfg.staticPath}/humans.txt";
             extraConfig = "access_log off;";
           };
-          "= /site.webmanifest" = {
-            alias = "${cfg.staticPath}/site.webmanifest";
-            extraConfig = "access_log off;";
-          };
-          "= /manifest.json" = {
-            alias = "${cfg.staticPath}/manifest.json";
-            extraConfig = "access_log off;";
-          };
-          "= /pwabuilder-sw.js" = {
-            alias = "${cfg.staticPath}/pwabuilder-sw.js";
-            extraConfig = "access_log off;";
-          };
 
           # ── Static assets ──────────────────────────────
           "/images/" = {

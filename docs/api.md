@@ -683,7 +683,7 @@ Run a background administrative task. Requires **admin** role.
 
 | Field  | Type   | Required | Choices                                                           |
 | ------ | ------ | -------- | ----------------------------------------------------------------- |
-| `task` | string | Yes      | `remove_expired_bans` · `backfill_video_thumbnails` · `recount_tags` |
+| `task` | string | Yes      | `remove_expired_bans` · `backfill_video_thumbnails` · `generate_all_thumbnails` · `recount_tags` · `migrate_images` · `clear_import_queue` · `restart_celery` · `deepdanbooru_tag_posts` · `deepdanbooru_tag_all_posts` |
 
 **Response (200):** `{ "message": "Task queued." }`
 

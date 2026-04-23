@@ -72,6 +72,32 @@ def image_thumbnail(shard: str, filename: str):
     return send_file(cached, conditional=True)
 
 
+@spa_bp.route("/videos/thumbnail/<shard>/<filename>")
+def video_thumbnail(shard: str, filename: str):
+    shard = _safe_path_part(shard)
+    filename = _safe_path_part(filename)
+    if not filename.startswith(shard):
+        abort(404)
+
+    images_dir = current_app.config.get("IMAGES_DIR", "/images")
+    # Video thumbnails are stored as extracted JPEG frames using the video's stem
+    source_path = shard_path(images_dir, filename)
+    if not os.path.isfile(source_path):
+        abort(404)
+
+    size_px = parse_thumbnail_size(request.args.get("size"), default=150)
+    cached = build_cached_image_variant(
+        source_path=source_path,
+        cache_root=images_dir,
+        source_filename=filename,
+        variant="videos",
+        max_width=size_px,
+        max_height=size_px,
+        quality=50,
+    )
+    return send_file(cached, conditional=True)
+
+
 @spa_bp.route("/avatars/thumbnail/<filename>")
 def avatar_thumbnail(filename: str):
     filename = _safe_path_part(filename)

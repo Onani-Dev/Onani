@@ -264,6 +264,15 @@
               <p v-if="deepdanbooruError" class="text-error">{{ deepdanbooruError }}</p>
               <p v-else-if="!deepdanbooruStatus.loaded" class="text-muted">Checking DeepDanbooru availability…</p>
               <p v-else-if="!deepdanbooruStatus.available" class="text-muted">{{ deepdanbooruStatus.reason }}</p>
+              <label v-if="deepdanbooruStatus.available" class="text-muted deepdanbooru-autoapply">
+                <input v-model="deepdanbooruAutoApplyRating" type="checkbox" />
+                Auto-apply suggested rating on analyze
+              </label>
+              <p v-if="deepdanbooruSuggestedRating" class="text-muted">
+                Suggested rating: <strong>{{ ratingLabel(deepdanbooruSuggestedRating) }}</strong>
+                <span v-if="deepdanbooruSuggestedRatingScore !== null">({{ formatScore(deepdanbooruSuggestedRatingScore) }})</span>
+                <button class="btn-sm" :disabled="editRating === deepdanbooruSuggestedRating" @click="applySuggestedRatingToEdit">Use</button>
+              </p>
               <p v-else-if="!availableAiSuggestions.length && deepdanbooruSuggestions.length" class="text-muted">All suggested tags are already present.</p>
               <p v-else-if="!availableAiSuggestions.length" class="text-muted">Generate tag suggestions from this post’s media.</p>
               <div v-if="availableAiSuggestions.length" class="ai-suggestion-list">
@@ -316,12 +325,62 @@
       <section class="comments-section">
         <h2>Comments</h2>
         <div v-if="auth.isAuthenticated" class="comment-compose">
-          <textarea v-model="newComment" placeholder="Add a comment…" rows="2"></textarea>
+          <textarea
+            v-model="newComment"
+            placeholder="Add a comment…"
+            rows="2"
+            @keydown="onCommentKeydown"
+          ></textarea>
           <button @click="addComment">Post</button>
         </div>
         <div class="comment-list">
-          <div v-for="c in comments" :key="c.id" class="comment-item">
-            <strong>{{ c.author?.username }}</strong>: {{ c.content }}
+          <div v-for="c in topLevelComments" :key="c.id" class="comment-thread">
+            <div class="comment-item">
+              <div class="comment-avatar">{{ commentInitial(c) }}</div>
+              <div class="comment-content">
+                <div class="comment-meta">
+                  <strong class="comment-author">{{ c.author?.username || 'Unknown' }}</strong>
+                  <span v-if="c.created_at" class="comment-time">{{ formatCommentDate(c.created_at) }}</span>
+                </div>
+                <p class="comment-body">{{ c.content }}</p>
+                <div class="comment-actions">
+                  <button class="comment-action" :class="{ active: c.has_upvoted }" @click="toggleCommentUpvote(c)">
+                    ▲ {{ c.upvote_count || 0 }}
+                  </button>
+                  <button v-if="auth.isAuthenticated" class="comment-action" @click="toggleReplyBox(c.id)">
+                    {{ activeReplyCommentId === c.id ? 'Cancel' : 'Reply' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="activeReplyCommentId === c.id && auth.isAuthenticated" class="reply-compose">
+              <textarea
+                v-model="replyDrafts[c.id]"
+                rows="2"
+                placeholder="Write a reply…"
+                @keydown="onReplyKeydown($event, c.id)"
+              ></textarea>
+              <button @click="addReply(c.id)">Reply</button>
+            </div>
+
+            <div v-if="repliesByParent[c.id]?.length" class="reply-list">
+              <div v-for="reply in repliesByParent[c.id]" :key="reply.id" class="comment-item comment-item-reply">
+                <div class="comment-avatar">{{ commentInitial(reply) }}</div>
+                <div class="comment-content">
+                  <div class="comment-meta">
+                    <strong class="comment-author">{{ reply.author?.username || 'Unknown' }}</strong>
+                    <span v-if="reply.created_at" class="comment-time">{{ formatCommentDate(reply.created_at) }}</span>
+                  </div>
+                  <p class="comment-body">{{ reply.content }}</p>
+                  <div class="comment-actions">
+                    <button class="comment-action" :class="{ active: reply.has_upvoted }" @click="toggleCommentUpvote(reply)">
+                      ▲ {{ reply.upvote_count || 0 }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <p v-if="!comments.length" class="text-muted">No comments yet.</p>
         </div>
@@ -459,6 +518,9 @@ let tagSearchTimer = null
 const deepdanbooruStatus = ref({ loaded: false, available: false, reason: '', threshold: 0.5 })
 const deepdanbooruLoading = ref(false)
 const deepdanbooruSuggestions = ref([])
+const deepdanbooruSuggestedRating = ref('')
+const deepdanbooruSuggestedRatingScore = ref(null)
+const deepdanbooruAutoApplyRating = ref(false)
 const deepdanbooruError = ref('')
 
 // ── Collection picker ──
@@ -468,6 +530,8 @@ const addingToCollection = ref(false)
 
 // ── Comments ──
 const newComment = ref('')
+const replyDrafts = ref({})
+const activeReplyCommentId = ref(null)
 
 // ── Computed ──
 const canEdit = computed(() =>
@@ -498,6 +562,20 @@ const availableAiSuggestions = computed(() => {
   if (!post.value?.tags) return deepdanbooruSuggestions.value
   const existing = new Set(post.value.tags.map(tagToStr))
   return deepdanbooruSuggestions.value.filter(item => !existing.has(item.tag))
+})
+
+const topLevelComments = computed(() => {
+  return comments.value.filter(c => !c.parent_id)
+})
+
+const repliesByParent = computed(() => {
+  const grouped = {}
+  for (const comment of comments.value) {
+    if (!comment.parent_id) continue
+    if (!grouped[comment.parent_id]) grouped[comment.parent_id] = []
+    grouped[comment.parent_id].push(comment)
+  }
+  return grouped
 })
 
 const sourceHostname = computed(() => {
@@ -639,12 +717,24 @@ async function fetchDeepDanbooruSuggestions() {
   try {
     const { data } = await api.post('/posts/auto-tags', { post_id: Number(props.id) })
     deepdanbooruSuggestions.value = data.data ?? []
+    deepdanbooruSuggestedRating.value = data.rating || ''
+    deepdanbooruSuggestedRatingScore.value = typeof data.rating_score === 'number' ? data.rating_score : null
+    if (deepdanbooruAutoApplyRating.value && deepdanbooruSuggestedRating.value) {
+      editRating.value = deepdanbooruSuggestedRating.value
+    }
   } catch (err) {
     deepdanbooruSuggestions.value = []
+    deepdanbooruSuggestedRating.value = ''
+    deepdanbooruSuggestedRatingScore.value = null
     deepdanbooruError.value = err.response?.data?.message || 'Could not generate AI tags.'
   } finally {
     deepdanbooruLoading.value = false
   }
+}
+
+function applySuggestedRatingToEdit() {
+  if (!deepdanbooruSuggestedRating.value) return
+  editRating.value = deepdanbooruSuggestedRating.value
 }
 
 function addAiSuggestion(suggestion) {
@@ -721,6 +811,45 @@ async function addComment() {
   newComment.value = ''
 }
 
+async function addReply(parentId) {
+  const draft = (replyDrafts.value[parentId] || '').trim()
+  if (!draft) return
+
+  const { data } = await api.post('/comments', {
+    post_id: Number(props.id),
+    parent_id: Number(parentId),
+    content: draft,
+  })
+  comments.value.unshift(data)
+  replyDrafts.value[parentId] = ''
+  activeReplyCommentId.value = null
+}
+
+function onCommentKeydown(event) {
+  // Enter submits, Shift+Enter inserts a newline.
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    addComment()
+  }
+}
+
+function onReplyKeydown(event, parentId) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    addReply(parentId)
+  }
+}
+
+function toggleReplyBox(commentId) {
+  activeReplyCommentId.value = activeReplyCommentId.value === commentId ? null : commentId
+}
+
+async function toggleCommentUpvote(comment) {
+  const { data } = await api.post('/comments/upvote', { comment_id: comment.id })
+  comment.upvote_count = data.upvote_count
+  comment.has_upvoted = data.has_upvoted
+}
+
 // ── Collection ──
 async function addToCollection(collectionId) {
   addingToCollection.value = true
@@ -758,6 +887,22 @@ function formatScore(score) {
   return Number(score).toFixed(2)
 }
 
+function formatCommentDate(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function commentInitial(comment) {
+  const username = comment?.author?.username || '?'
+  return username.charAt(0).toUpperCase()
+}
+
 function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
 </script>
 
@@ -787,6 +932,7 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   align-items: center;
   gap: 0.6em;
 }
+
 .post-image-wrapper {
   position: relative;
   line-height: 0;
@@ -1098,6 +1244,12 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   flex-wrap: wrap;
 }
 
+.deepdanbooru-autoapply {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
 .ai-suggestion-list {
   display: flex;
   flex-wrap: wrap;
@@ -1158,19 +1310,119 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   margin-left: auto;
   margin-right: auto;
   background: var(--bg-overlay);
+  border: 1px solid var(--border);
   padding: 1.5em;
   max-width: 820px;
 }
 .comments-section h2 { margin-bottom: 1em; }
 .comment-compose {
-  display: flex;
-  gap: 0.5em;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6em;
   margin-bottom: 1em;
   align-items: flex-start;
 }
-.comment-compose textarea { flex: 1; resize: vertical; min-height: 2.5em; }
-.comment-list { display: flex; flex-direction: column; gap: 0.5em; }
-.comment-item { padding: 0.3em 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.comment-compose textarea {
+  resize: vertical;
+  min-height: 2.8em;
+}
+.comment-compose button {
+  height: 100%;
+  min-height: 2.8em;
+  padding: 0.35em 1em;
+}
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+.comment-thread {
+  display: grid;
+  gap: 0.45em;
+}
+.comment-item {
+  display: grid;
+  grid-template-columns: 2.1em 1fr;
+  gap: 0.65em;
+  align-items: start;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  padding: 0.6em;
+  font-size: 0.9rem;
+}
+.comment-item-reply {
+  margin-left: 2.45em;
+  background: var(--bg-overlay);
+}
+.comment-avatar {
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: var(--header-bg);
+  color: var(--text);
+}
+.comment-content {
+  min-width: 0;
+}
+.comment-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+  flex-wrap: wrap;
+}
+.comment-author {
+  font-size: 0.9rem;
+}
+.comment-time {
+  color: var(--text-dim);
+  font-size: 0.74rem;
+}
+.comment-body {
+  margin: 0.22em 0 0;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.comment-actions {
+  margin-top: 0.45em;
+  display: flex;
+  gap: 0.35em;
+  flex-wrap: wrap;
+}
+.comment-action {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  padding: 0.2em 0.55em;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.comment-action.active {
+  color: #8fdf8f;
+  border-color: #4d8f4d;
+}
+.reply-compose {
+  margin-left: 2.45em;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.45em;
+}
+.reply-compose textarea {
+  min-height: 2.4em;
+  resize: vertical;
+}
+.reply-compose button {
+  min-height: 2.4em;
+  padding: 0.3em 0.9em;
+}
+.reply-list {
+  display: grid;
+  gap: 0.4em;
+}
 
 /* ── Fullscreen overlay ── */
 .fullscreen-overlay {
@@ -1227,6 +1479,16 @@ function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
   .post-info-panel { width: 100%; min-width: 0; max-width: 100%; }
   .post-image { max-height: 65vh; }
   .comments-section { max-width: 100%; }
+  .comment-compose {
+    grid-template-columns: 1fr;
+  }
+  .reply-compose {
+    margin-left: 0;
+    grid-template-columns: 1fr;
+  }
+  .comment-item-reply {
+    margin-left: 0.85em;
+  }
   .ai-tagging-header { align-items: flex-start; flex-direction: column; }
 }
 

@@ -7,42 +7,42 @@ from unittest.mock import MagicMock, patch
 class TestIsSupported:
     def test_known_site_danbooru(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://danbooru.donmai.us/posts/12345")
 
     def test_known_site_gelbooru(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://gelbooru.com/index.php?page=post&s=view&id=1")
 
     def test_known_site_rule34(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://rule34.xxx/index.php?page=post&s=view&id=1")
 
     def test_known_site_sizebooru_post(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://sizebooru.com/Details/12345")
 
     def test_known_site_sizebooru_gallery(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://sizebooru.com/Galleries/List/1039")
 
     def test_known_site_sizebooru_tags(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://sizebooru.com/Search/giantess")
 
     def test_unsupported_site_returns_false(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert not is_supported("https://unknown-site.example.com/post/123")
 
     def test_invalid_url_returns_false(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert not is_supported("not-a-url-at-all")
 
 
@@ -52,13 +52,13 @@ class TestGalleryDlImporter:
     def test_is_supported_known_site(self, app):
         """gallery-dl should recognise well-known sites like pixiv."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert is_supported("https://www.pixiv.net/en/artworks/12345")
 
     def test_is_unsupported_site_returns_false(self, app):
         """Completely unknown domains should not be matched."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import is_supported
+            from onani.importers.gallery_dl_importer import is_supported
             assert not is_supported("https://unknown-site-xyz.example.com/post/1")
 
     @patch("gallery_dl.job.DataJob")
@@ -66,7 +66,7 @@ class TestGalleryDlImporter:
         """_run_job sets gallery-dl metadata=True globally for all extractors."""
         with app.app_context():
             from gallery_dl import config as gdl_config
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://sizebooru.com/Picture/12345"]
@@ -83,8 +83,8 @@ class TestGalleryDlImporter:
         """get_post raises GalleryDLTimeoutError when the DataJob exceeds _JOB_TIMEOUT."""
         import threading
         with app.app_context():
-            from Onani.importers import gallery_dl_importer as gdl_mod
-            from Onani.importers.gallery_dl_importer import GalleryDLTimeoutError
+            from onani.importers import gallery_dl_importer as gdl_mod
+            from onani.importers.gallery_dl_importer import GalleryDLTimeoutError
 
             barrier = threading.Event()
 
@@ -115,8 +115,8 @@ class TestGalleryDlImporter:
     def test_get_post_returns_imported_post(self, mock_datajob_cls, app):
         """get_post maps gallery-dl data correctly to an ImportedPost."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
-            from Onani.models import PostRating
+            from onani.importers.gallery_dl_importer import get_post
+            from onani.models import PostRating
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.example.com/image.jpg"]
@@ -136,7 +136,7 @@ class TestGalleryDlImporter:
     def test_get_post_no_urls_returns_none(self, mock_datajob_cls, app):
         """get_post returns None when gallery-dl finds no file URLs."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = []
@@ -151,8 +151,8 @@ class TestGalleryDlImporter:
     def test_get_post_maps_explicit_rating(self, mock_datajob_cls, app):
         """'explicit' and 'e' gallery-dl rating strings map to PostRating.EXPLICIT."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
-            from Onani.models import PostRating
+            from onani.importers.gallery_dl_importer import get_post
+            from onani.models import PostRating
 
             for rating_str in ("e", "explicit"):
                 mock_job = MagicMock()
@@ -169,7 +169,7 @@ class TestGalleryDlImporter:
     def test_get_post_maps_artist_tags(self, mock_datajob_cls, app):
         """Artist names from kwdict are prefixed with 'artist:' in the tag list."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.example.com/image.jpg"]
@@ -185,7 +185,7 @@ class TestGalleryDlImporter:
     def test_get_post_maps_character_and_copyright_tags(self, mock_datajob_cls, app):
         """Character and copyright fields are prefixed correctly."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.example.com/image.jpg"]
@@ -208,7 +208,7 @@ class TestGalleryDlImporter:
     def test_get_post_includes_external_source(self, mock_datajob_cls, app):
         """A 'source' field in post metadata is prepended to sources list."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.example.com/image.jpg"]
@@ -225,7 +225,7 @@ class TestGalleryDlImporter:
     def test_get_post_exception_returns_none(self, mock_datajob_cls, app):
         """A gallery-dl exception is caught and None is returned."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.run.side_effect = Exception("network error")
@@ -238,7 +238,7 @@ class TestGalleryDlImporter:
     def test_get_post_string_tags_split_correctly(self, mock_datajob_cls, app):
         """Space-separated string tags are split into individual entries."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.example.com/image.jpg"]
@@ -256,7 +256,7 @@ class TestGalleryDlImporter:
     def test_get_post_userName_becomes_artist_tag(self, mock_datajob_cls, app):
         """userName field (RedGifs / community sites) is tagged as artist:."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.example.com/video.mp4"]
@@ -272,7 +272,7 @@ class TestGalleryDlImporter:
     def test_get_post_category_not_used_as_collection(self, mock_datajob_cls, app):
         """'category' (site name) must NOT become the collection name."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.example.com/video.mp4"]
@@ -290,7 +290,7 @@ class TestGalleryDlImporter:
     def test_get_post_redgifs_niche_becomes_collection(self, mock_datajob_cls, app):
         """RedGifs post with a niche uses the niche as the collection name."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://cdn.redgifs.com/video.mp4"]
@@ -306,7 +306,7 @@ class TestGalleryDlImporter:
     def test_get_post_subreddit_becomes_collection(self, mock_datajob_cls, app):
         """subreddit key maps to the collection name."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_post
+            from onani.importers.gallery_dl_importer import get_post
 
             mock_job = MagicMock()
             mock_job.data_urls = ["https://i.redd.it/abc.jpg"]
@@ -322,7 +322,7 @@ class TestGalleryDlImporter:
     def test_get_all_posts_returns_multiple(self, mock_datajob_cls, app):
         """get_all_posts returns one ImportedPost per file URL."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import get_all_posts
+            from onani.importers.gallery_dl_importer import get_all_posts
 
             mock_job = MagicMock()
             mock_job.data_urls = [
@@ -344,33 +344,33 @@ class TestExtractCollectionName:
 
     def test_community_key_subreddit(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            from onani.importers.gallery_dl_importer import _extract_collection_name
             meta = {"subreddit": "cats", "category": "reddit"}
             assert _extract_collection_name(meta, "https://reddit.com/...", False) == "cats"
 
     def test_community_key_userName(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            from onani.importers.gallery_dl_importer import _extract_collection_name
             # RedGifs with no niches → None (userName is ignored for redgifs)
             meta = {"userName": "artist_xyz", "category": "redgifs"}
             assert _extract_collection_name(meta, "https://redgifs.com/...", False) is None
 
     def test_redgifs_niche_used_as_collection(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            from onani.importers.gallery_dl_importer import _extract_collection_name
             meta = {"userName": "artist_xyz", "category": "redgifs", "niches": ["Amateur", "MILF"]}
             assert _extract_collection_name(meta, "https://redgifs.com/...", False) == "Amateur"
 
     def test_category_not_matched(self, app):
         """'category' is intentionally excluded from _COMMUNITY_KEYS."""
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            from onani.importers.gallery_dl_importer import _extract_collection_name
             meta = {"category": "redgifs"}
             assert _extract_collection_name(meta, "https://redgifs.com/...", False) is None
 
     def test_gallery_key_only_for_multi(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            from onani.importers.gallery_dl_importer import _extract_collection_name
             meta = {"album": "My Album"}
             # single=False → gallery keys ignored
             assert _extract_collection_name(meta, "https://example.com/...", False) is None
@@ -379,22 +379,22 @@ class TestExtractCollectionName:
 
     def test_empty_meta_returns_none_for_single(self, app):
         with app.app_context():
-            from Onani.importers.gallery_dl_importer import _extract_collection_name
+            from onani.importers.gallery_dl_importer import _extract_collection_name
             assert _extract_collection_name({}, "https://example.com/", False) is None
 
 
 class TestGetPostGalleryDlFallback:
     """Tests that _utils.get_post falls back to gallery-dl for unsupported sites."""
 
-    @patch("Onani.importers.gallery_dl_importer.get_post")
-    @patch("Onani.importers.gallery_dl_importer.is_supported")
+    @patch("onani.importers.gallery_dl_importer.get_post")
+    @patch("onani.importers.gallery_dl_importer.is_supported")
     def test_falls_back_to_gallery_dl_for_unrecognised_url(
         self, mock_is_supported, mock_gdl_get_post, app
     ):
         """URLs with no specific importer are tried against gallery-dl."""
         with app.app_context():
-            from Onani.importers._utils import get_post
-            from Onani.models import PostRating
+            from onani.importers._utils import get_post
+            from onani.models import PostRating
 
             mock_is_supported.return_value = True
             fake_post = MagicMock()
@@ -406,14 +406,14 @@ class TestGetPostGalleryDlFallback:
             mock_gdl_get_post.assert_called_once()
             assert result is fake_post
 
-    @patch("Onani.importers.gallery_dl_importer.get_post")
-    @patch("Onani.importers.gallery_dl_importer.is_supported")
+    @patch("onani.importers.gallery_dl_importer.get_post")
+    @patch("onani.importers.gallery_dl_importer.is_supported")
     def test_returns_none_when_gallery_dl_does_not_support_url(
         self, mock_is_supported, mock_gdl_get_post, app
     ):
         """None is returned when gallery-dl doesn't match."""
         with app.app_context():
-            from Onani.importers._utils import get_post
+            from onani.importers._utils import get_post
 
             mock_is_supported.return_value = False
 
@@ -425,7 +425,7 @@ class TestGetPostGalleryDlFallback:
 class TestDownloadRefererSelection:
     def test_redgifs_media_uses_redgifs_referer(self, app):
         with app.app_context():
-            from Onani.importers._utils import _download_referer
+            from onani.importers._utils import _download_referer
 
             referer = _download_referer(
                 "https://thumbs2.redgifs.com/SomeClip-mobile.mp4",
@@ -435,7 +435,7 @@ class TestDownloadRefererSelection:
 
     def test_non_redgifs_media_keeps_fallback_referer(self, app):
         with app.app_context():
-            from Onani.importers._utils import _download_referer
+            from onani.importers._utils import _download_referer
 
             referer = _download_referer(
                 "https://i.redd.it/abc123.jpg",
@@ -447,7 +447,7 @@ class TestDownloadRefererSelection:
 class TestFriendlyHttpErrors:
     def test_redgifs_403_has_friendly_message(self, app):
         with app.app_context():
-            from Onani.importers._utils import _friendly_http_403_error
+            from onani.importers._utils import _friendly_http_403_error
 
             msg = _friendly_http_403_error("https://thumbs2.redgifs.com/SomeClip-mobile.mp4")
             assert msg is not None
@@ -456,7 +456,7 @@ class TestFriendlyHttpErrors:
 
     def test_unknown_403_host_has_no_override(self, app):
         with app.app_context():
-            from Onani.importers._utils import _friendly_http_403_error
+            from onani.importers._utils import _friendly_http_403_error
 
             msg = _friendly_http_403_error("https://example.com/file.jpg")
             assert msg is None

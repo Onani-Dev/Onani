@@ -44,11 +44,13 @@ class GalleryDLAbortError(Exception):
 # include specific guidance in the error message.
 _CRED_REQUIRED_HINTS: dict[str, str] = {
     "reddit.com": (
-        "Reddit blocked the request (no credentials). "
-        "Upload a cookies file exported from a logged-in Reddit browser session, "
-        "or add OAuth credentials (\"client-id\", \"client-secret\", \"refresh-token\") "
-        "under extractor.reddit in your gallery-dl config. "
-        "Note: accounts with many posts may also time out — this is normal for large profiles."
+        "Reddit blocked the request. "
+        "For NSFW/age-gated subreddits, upload a cookies file exported from a "
+        "logged-in Reddit browser session (the import will automatically use the "
+        "www.reddit.com REST API with your session cookies). "
+        "Alternatively, add OAuth credentials (\"client-id\", \"client-secret\", "
+        "\"refresh-token\") under extractor.reddit in your gallery-dl config. "
+        "Note: large profiles may also time out — this is normal."
     ),
     "pixiv.net": (
         "Pixiv requires a refresh-token. "
@@ -268,6 +270,16 @@ def _run_job(url: str, cookies_path: str = None) -> Optional[gdl_job.DataJob]:
     # Inject cookies file if provided, or clear any leftover from a previous task
     # (gdl_config state is global and persists across Celery tasks in the same worker).
     gdl_config.set(("extractor",), "cookies", cookies_path or None)
+
+    # Reddit defaults to OAuth mode (`api = "oauth"`) which uses an anonymous
+    # public token — browser session cookies are present in the request but
+    # don't grant age-gated / NSFW access to the anonymous OAuth app.
+    # Switch to the plain REST mode (`api ≠ "oauth"`) when cookies are
+    # available so that requests go to www.reddit.com with the user's session
+    # cookies for authentication.  Reset to OAuth when no cookies are supplied
+    # so public (non-NSFW) Reddit content still works without credentials.
+    gdl_config.set(("extractor", "reddit"), "api",
+                   "other" if cookies_path else "oauth")
 
     djob = gdl_job.DataJob(url, file=io.StringIO())
 

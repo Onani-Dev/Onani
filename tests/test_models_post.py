@@ -13,7 +13,7 @@ class TestPostModel:
         assert post.title == f"#{post.id}"
 
     def test_post_title_with_character_tag(self, app, db, make_post, make_tag):
-        from Onani.models.tag.type import TagType
+        from onani.models.tag.type import TagType
 
         # "test_character" -> humanized -> "test character" -> capitalize() -> "Test character"
         char_tag = make_tag("test_character", TagType.CHARACTER)
@@ -21,7 +21,7 @@ class TestPostModel:
         assert "Test character" in post.title
 
     def test_post_title_with_artist_tag(self, app, db, make_post, make_tag):
-        from Onani.models.tag.type import TagType
+        from onani.models.tag.type import TagType
 
         artist_tag = make_tag("some_artist", TagType.ARTIST)
         post = make_post(sha256_hash="titlehash3", tags=[artist_tag])
@@ -36,7 +36,7 @@ class TestPostModel:
         assert "tag_two" in ts
 
     def test_post_is_safe(self, app, db, make_post):
-        from Onani.models.post.rating import PostRating
+        from onani.models.post.rating import PostRating
 
         safe_post = make_post(sha256_hash="safehash1", rating=PostRating.GENERAL)
         assert safe_post.is_safe is True
@@ -45,8 +45,8 @@ class TestPostModel:
         assert explicit_post.is_safe is False
 
     def test_post_is_imported(self, app, db, make_user):
-        from Onani.models import Post
-        from Onani.models.post.rating import PostRating
+        from onani.models import Post
+        from onani.models.post.rating import PostRating
 
         user = make_user(username="importeruser")
         post = Post(
@@ -66,8 +66,8 @@ class TestPostModel:
         assert post.is_imported is True
 
     def test_post_source_html_escaped(self, app, db, make_user):
-        from Onani.models import Post
-        from Onani.models.post.rating import PostRating
+        from onani.models import Post
+        from onani.models.post.rating import PostRating
 
         user = make_user(username="srcescuser")
         post = Post(
@@ -87,8 +87,8 @@ class TestPostModel:
         assert "<script>" not in post.source
 
     def test_post_duplicate_sha256_rejected(self, app, db, make_post):
-        from Onani.models import Post, User, UserSettings
-        from Onani.models.post.rating import PostRating
+        from onani.models import Post, User, UserSettings
+        from onani.models.post.rating import PostRating
 
         make_post(sha256_hash="duphash1")
         user = User(username="dupuploader")
@@ -112,7 +112,7 @@ class TestPostModel:
             db.session.add(p2)
 
     def test_post_sorted_tags_by_type(self, app, db, make_post, make_tag):
-        from Onani.models.tag.type import TagType
+        from onani.models.tag.type import TagType
 
         artist = make_tag("painter", TagType.ARTIST)
         char = make_tag("hero", TagType.CHARACTER)
@@ -134,7 +134,7 @@ class TestTagModel:
         assert tag.text_format == "blue_hair"
 
     def test_tag_text_format_typed(self, app, db, make_tag):
-        from Onani.models.tag.type import TagType
+        from onani.models.tag.type import TagType
 
         tag = make_tag("picasso", TagType.ARTIST)
         assert tag.text_format == "artist:picasso"
@@ -144,7 +144,7 @@ class TestTagModel:
         assert tag.is_alias is False
 
     def test_tag_is_alias_true(self, app, db, make_tag):
-        from Onani.models import Tag
+        from onani.models import Tag
 
         original = make_tag("original_tag")
         alias = Tag(name="alias_tag", alias_of=original.id)
@@ -163,7 +163,7 @@ class TestTagModel:
 
 class TestPostComment:
     def test_create_comment(self, app, db, make_user, make_post):
-        from Onani.models import PostComment
+        from onani.models import PostComment
 
         user = make_user(username="commenter")
         post = make_post(sha256_hash="commenthash1")
@@ -177,7 +177,7 @@ class TestPostComment:
         assert comment.content == "Great post!"
 
     def test_comment_too_long(self, app, db, make_user, make_post):
-        from Onani.models import PostComment
+        from onani.models import PostComment
 
         user = make_user(username="longcommenter")
         post = make_post(sha256_hash="commenthash2")
@@ -188,7 +188,7 @@ class TestPostComment:
             comment.content = "x" * 2001
 
     def test_comment_collapses_newlines(self, app, db, make_user, make_post):
-        from Onani.models import PostComment
+        from onani.models import PostComment
 
         user = make_user(username="newlinecommenter")
         post = make_post(sha256_hash="commenthash3")
@@ -201,7 +201,7 @@ class TestPostComment:
         assert "\n\n\n\n" not in comment.content
 
     def test_comment_html_escaped(self, app, db, make_user, make_post):
-        from Onani.models import PostComment
+        from onani.models import PostComment
 
         user = make_user(username="htmlcommenter")
         post = make_post(sha256_hash="commenthash4")
@@ -217,7 +217,7 @@ class TestPostComment:
 class TestBanModel:
     def test_ban_has_expired_false(self, app, db, make_user):
         import datetime
-        from Onani.models import Ban
+        from onani.models import Ban
 
         user = make_user(username="notexpireduser")
         future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
@@ -228,7 +228,7 @@ class TestBanModel:
 
     def test_ban_has_expired_true(self, app, db, make_user):
         import datetime
-        from Onani.models import Ban
+        from onani.models import Ban
 
         user = make_user(username="expiredbanuser")
         past = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
@@ -238,7 +238,7 @@ class TestBanModel:
         assert ban.has_expired is True
 
     def test_ban_no_expiry_never_expires(self, app, db, make_user):
-        from Onani.models import Ban
+        from onani.models import Ban
 
         user = make_user(username="permabanuser")
         ban = Ban(user=user.id, expires=None, reason="Permanent ban")

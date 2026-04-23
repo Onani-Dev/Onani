@@ -5,7 +5,7 @@ import pytest
 
 class TestUserValidation:
     def test_create_user_success(self, app, db):
-        from Onani.models import User, UserSettings
+        from onani.models import User, UserSettings
 
         with app.app_context():
             user = User(username="validuser")
@@ -17,7 +17,7 @@ class TestUserValidation:
             assert user.username == "validuser"
 
     def test_username_too_short(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -25,7 +25,7 @@ class TestUserValidation:
                 user.username = "ab"
 
     def test_username_too_long(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -33,7 +33,7 @@ class TestUserValidation:
                 user.username = "a" * 33
 
     def test_username_invalid_char(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -41,7 +41,7 @@ class TestUserValidation:
                 user.username = "user name"  # space is not in ascii_letters+digits+punctuation; will actually pass since space is in string.punctuation... let me check
 
     def test_username_html_escaped(self, app, db):
-        from Onani.models import User, UserSettings
+        from onani.models import User, UserSettings
 
         with app.app_context():
             # < and > are in string.punctuation so they are valid chars but should be escaped
@@ -53,7 +53,7 @@ class TestUserValidation:
             assert "&lt;" in user.username or "user" in user.username
 
     def test_email_invalid(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -61,7 +61,7 @@ class TestUserValidation:
                 user.email = "notanemail"
 
     def test_email_valid(self, app, db):
-        from Onani.models import User, UserSettings
+        from onani.models import User, UserSettings
 
         with app.app_context():
             user = User(username="emailuser")
@@ -73,7 +73,7 @@ class TestUserValidation:
             assert user.email == "test@example.com"
 
     def test_password_too_short(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -81,7 +81,7 @@ class TestUserValidation:
                 user.set_password("abc")
 
     def test_password_too_long(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -89,7 +89,7 @@ class TestUserValidation:
                 user.set_password("a" * 51)
 
     def test_password_hashed_correctly(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -99,7 +99,7 @@ class TestUserValidation:
             assert user.check_password("wrongpassword") is False
 
     def test_nickname_optional(self, app, db):
-        from Onani.models import User, UserSettings
+        from onani.models import User, UserSettings
 
         with app.app_context():
             user = User(username="nonickuser")
@@ -110,7 +110,7 @@ class TestUserValidation:
             assert user.nickname is None
 
     def test_nickname_too_short(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User()
@@ -120,7 +120,7 @@ class TestUserValidation:
 
 class TestUserPermissions:
     def test_default_permissions(self, app, db):
-        from Onani.models import User, UserPermissions
+        from onani.models import User, UserPermissions
 
         with app.app_context():
             user = User(username="permuser")
@@ -130,7 +130,7 @@ class TestUserPermissions:
             assert not user.has_permissions(UserPermissions.DELETE_POSTS)
 
     def test_admin_permissions(self, app, db):
-        from Onani.models import User, UserPermissions, UserRoles
+        from onani.models import User, UserPermissions, UserRoles
 
         with app.app_context():
             user = User(username="adminpermuser", role=UserRoles.ADMIN,
@@ -141,7 +141,7 @@ class TestUserPermissions:
             assert user.has_permissions(UserPermissions.VIEW_LOGS)
 
     def test_permission_list_check(self, app, db):
-        from Onani.models import User, UserPermissions
+        from onani.models import User, UserPermissions
 
         with app.app_context():
             user = User(username="listpermuser")
@@ -156,7 +156,7 @@ class TestUserPermissions:
             )
 
     def test_has_role(self, app, db):
-        from Onani.models import User, UserRoles
+        from onani.models import User, UserRoles
 
         with app.app_context():
             user = User(username="roleuser", role=UserRoles.MODERATOR)
@@ -168,7 +168,7 @@ class TestUserPermissions:
 
 class TestUserOTP:
     def test_otp_token_generated(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User(username="otpuser")
@@ -179,7 +179,7 @@ class TestUserOTP:
     def test_check_otp_valid(self, app, db):
         import pyotp
 
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User(username="otpvalid")
@@ -189,7 +189,7 @@ class TestUserOTP:
             assert user.check_otp(current_code) is True
 
     def test_check_otp_invalid(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User(username="otpinvalid")
@@ -197,14 +197,14 @@ class TestUserOTP:
             assert user.check_otp("000000") is False
 
     def test_otp_uri(self, app, db):
-        from Onani.models import User
+        from onani.models import User
 
         with app.app_context():
             user = User(username="otpuri")
             user.set_password("pass")
             uri = user.otp_uri
             assert "otpauth://totp/" in uri
-            assert "Onani" in uri
+            assert "onani" in uri
 
 
 class TestUserIsActive:
@@ -223,7 +223,7 @@ class TestUserIsActive:
     def test_banned_user_inactive(self, app, db, make_user):
         import datetime
 
-        from Onani.models import Ban
+        from onani.models import Ban
 
         with app.app_context():
             user = make_user(username="banneduser")
@@ -237,7 +237,7 @@ class TestUserIsActive:
     def test_expired_ban_auto_cleared(self, app, db, make_user):
         import datetime
 
-        from Onani.models import Ban
+        from onani.models import Ban
 
         with app.app_context():
             user = make_user(username="expiredbanneduser")

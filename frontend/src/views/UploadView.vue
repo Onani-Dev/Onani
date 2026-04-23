@@ -129,6 +129,20 @@
             <p v-else-if="!deepdanbooruStatus.available" class="text-muted">{{ deepdanbooruStatus.reason }}</p>
             <p v-else-if="isVideo" class="text-muted">AI tagging is available for image uploads. Tag videos after posting once a thumbnail exists.</p>
             <p v-else-if="!file" class="text-muted">Choose an image to generate suggestions.</p>
+            <label v-if="deepdanbooruStatus.available && !isVideo && file" class="text-muted deepdanbooru-autoapply">
+              <input v-model="deepdanbooruAutoApplyRating" type="checkbox" />
+              Auto-apply suggested rating on analyze
+            </label>
+            <p v-if="deepdanbooruSuggestedRating" class="text-muted">
+              Suggested rating: <strong>{{ ratingLabel(deepdanbooruSuggestedRating) }}</strong>
+              <span v-if="deepdanbooruSuggestedRatingScore !== null">({{ formatScore(deepdanbooruSuggestedRatingScore) }})</span>
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                :disabled="rating === normalizedSuggestedRating"
+                @click="applySuggestedRating"
+              >Use</button>
+            </p>
             <div v-if="remainingDeepDanbooruSuggestions.length" class="deepdanbooru-suggestions">
               <button
                 v-for="suggestion in remainingDeepDanbooruSuggestions"
@@ -219,6 +233,9 @@ const error = ref('')
 const deepdanbooruStatus = ref({ loaded: false, available: false, reason: '', threshold: 0.5 })
 const deepdanbooruLoading = ref(false)
 const deepdanbooruSuggestions = ref([])
+const deepdanbooruSuggestedRating = ref('')
+const deepdanbooruSuggestedRatingScore = ref(null)
+const deepdanbooruAutoApplyRating = ref(false)
 const deepdanbooruError = ref('')
 
 const isVideo = computed(() => !!file.value?.type?.startsWith('video/'))
@@ -260,6 +277,7 @@ const sourceLooksValid = computed(() => {
 const remainingDeepDanbooruSuggestions = computed(() => {
   return deepdanbooruSuggestions.value.filter(item => !tags.value.includes(item.tag))
 })
+const normalizedSuggestedRating = computed(() => normalizeSuggestedRating(deepdanbooruSuggestedRating.value))
 
 onMounted(() => {
   loadDraft()
@@ -360,12 +378,31 @@ async function suggestTagsWithDeepDanbooru() {
     form.append('file', file.value)
     const { data } = await api.post('/posts/auto-tags', form)
     deepdanbooruSuggestions.value = data.data || []
+    deepdanbooruSuggestedRating.value = data.rating || ''
+    deepdanbooruSuggestedRatingScore.value = typeof data.rating_score === 'number' ? data.rating_score : null
+    if (deepdanbooruAutoApplyRating.value && normalizedSuggestedRating.value) {
+      rating.value = normalizedSuggestedRating.value
+    }
   } catch (err) {
     deepdanbooruError.value = err.response?.data?.message || 'Could not generate AI tags.'
     deepdanbooruSuggestions.value = []
+    deepdanbooruSuggestedRating.value = ''
+    deepdanbooruSuggestedRatingScore.value = null
   } finally {
     deepdanbooruLoading.value = false
   }
+}
+
+function normalizeSuggestedRating(value) {
+  if (value === 'g') return 's'
+  if (value === 'q' || value === 's' || value === 'e') return value
+  return ''
+}
+
+function applySuggestedRating() {
+  const nextRating = normalizedSuggestedRating.value
+  if (!nextRating) return
+  rating.value = nextRating
 }
 
 function addDeepDanbooruSuggestion(suggestion) {
@@ -469,6 +506,8 @@ function clearFile() {
   previewUrl.value = ''
   file.value = null
   deepdanbooruSuggestions.value = []
+  deepdanbooruSuggestedRating.value = ''
+  deepdanbooruSuggestedRatingScore.value = null
   deepdanbooruError.value = ''
   if (fileInput.value) fileInput.value.value = ''
 }
@@ -487,6 +526,10 @@ function formatBytes(bytes) {
 
 function formatScore(score) {
   return Number(score).toFixed(2)
+}
+
+function ratingLabel(r) {
+  return { g: 'General', q: 'Questionable', s: 'Sensitive', e: 'Explicit' }[r] ?? String(r || '').toUpperCase()
 }
 
 function persistDraft() {
@@ -527,6 +570,8 @@ function resetForm() {
   description.value = ''
   error.value = ''
   deepdanbooruSuggestions.value = []
+  deepdanbooruSuggestedRating.value = ''
+  deepdanbooruSuggestedRatingScore.value = null
   deepdanbooruError.value = ''
   clearDraft()
 }
@@ -720,6 +765,13 @@ async function handleUpload() {
 
 .deepdanbooru-field {
   padding-top: 0.2rem;
+}
+
+.deepdanbooru-autoapply {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .tag-input-wrap {

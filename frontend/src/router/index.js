@@ -29,6 +29,9 @@ const routes = [
         ],
     },
     { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue') },
+    { path: '/403', name: 'forbidden', component: () => import('@/views/ForbiddenView.vue') },
+    { path: '/429', name: 'rateLimit', component: () => import('@/views/RateLimitView.vue') },
+    { path: '/418', name: 'teapot', component: () => import('@/views/TeapotView.vue') },
     { path: '/:pathMatch(.*)*', name: 'notFound', component: () => import('@/views/NotFoundView.vue') },
 ]
 
