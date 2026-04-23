@@ -4,11 +4,14 @@
 
 :80 {
 	# Serve Vue SPA from /frontend/dist
-	root /frontend/dist
+	root * /frontend/dist
 	
 	# API proxy
 	reverse_proxy /api/* localhost:8000
 	
 	# SPA catch-all: serve index.html for unknown routes
 	try_files {path} /index.html
+
+	# Actually serve static files after try_files rewrite.
+	file_server
 }
