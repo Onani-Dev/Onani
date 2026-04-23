@@ -42,9 +42,5 @@ xmltodict>=0.13.0
 Zenora>=0.0.3
 qrcode>=7.4.2
 pyotp==2.8.0
-# Optional - AI tag suggestions via DeepDanbooru (requires TensorFlow)
-deepdanbooru>=1.0.4
-tensorflow-cpu>=2.0.0
-tensorflow-io>=0.34.0
 # Dev only - flask-debugtoolbar is loaded conditionally in debug mode
 flask-debugtoolbar==0.13
