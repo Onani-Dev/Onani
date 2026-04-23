@@ -152,4 +152,12 @@ else
   perl -0777 -i -pe "s/(\"version\"\s*:\s*\")[^\"]+(\${2})/\${1}${new_version}\${2}/" "${pkg_lock}"
 fi
 
+example_compose="${ROOT_DIR}/docker-compose.example.yml"
+if [[ -f "${example_compose}" ]]; then
+  perl -0777 -i -pe "s/(image:\s*\S+-app:)[^\s]+/\${1}${new_version}/g" "${example_compose}"
+  perl -0777 -i -pe "s/(image:\s*\S+-celery:)[^\s]+/\${1}${new_version}/g" "${example_compose}"
+  perl -0777 -i -pe "s/(image:\s*\S+-app-ml:)[^\s]+/\${1}${new_version}/g" "${example_compose}"
+  perl -0777 -i -pe "s/(image:\s*\S+-celery-ml:)[^\s]+/\${1}${new_version}/g" "${example_compose}"
+fi
+
 echo "Synced version: ${new_version} (pyproject: ${pep440_version})"

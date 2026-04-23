@@ -1,27 +1,11 @@
 version: "3.9"
 
-# Minimal production example for Onani.
-# This file pulls pre-built images from GHCR (it does not build local images).
-#
-# Usage:
-#   cp .env.example .env  # or create .env manually
-#   podman-compose -f docker-compose.example.yml up -d
-#
-# Required .env values:
-#   FLASK_SECRET_KEY=change-me
-#   DB_PASSWORD=change-me
-#
-# Optional:
-#   VERSION=latest
-#   PORT=80
-#   REGISTRY=ghcr.io/onani-dev/onani
-
 services:
   app:
-    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-app:${VERSION:-latest}
+    image: ghcr.io/onani-dev/onani-app:1.0.0-beta.14
     restart: unless-stopped
     ports:
-      - "${PORT:-80}:80"
+      - "8080:80"
     environment:
       FLASK_APP: run
       FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
@@ -32,12 +16,12 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ./images:/images
+      - ./avatars:/avatars
       - ./migrations:/onani/migrations
 
   celery:
-    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-celery:${VERSION:-latest}
+    image: ghcr.io/onani-dev/onani-celery:1.0.0-beta.14
     restart: unless-stopped
     environment:
       FLASK_APP: run
@@ -49,8 +33,8 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - images:/images
-      - avatars:/avatars
+      - ./images:/images
+      - ./avatars:/avatars
       - ./migrations:/onani/migrations
 
   postgres:
@@ -61,9 +45,9 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: onani_db
     volumes:
-      - database:/var/lib/postgresql/data/
+      - ./database:/var/lib/postgresql/data/
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: [ "CMD-SHELL", "pg_isready -U onani_db -d onani_db -h 127.0.0.1 -p 5432" ]
       interval: 5s
       timeout: 5s
       retries: 10
