@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   app:
-    image: ghcr.io/onani-dev/onani-app:1.0.0-beta.17
+    image: ghcr.io/onani-dev/onani-app:1.0.0-beta.18
     restart: unless-stopped
     ports:
       - "8080:80"
@@ -21,7 +21,7 @@ services:
       - ./migrations:/onani/migrations
 
   celery:
-    image: ghcr.io/onani-dev/onani-celery:1.0.0-beta.17
+    image: ghcr.io/onani-dev/onani-celery:1.0.0-beta.18
     restart: unless-stopped
     environment:
       FLASK_APP: run
