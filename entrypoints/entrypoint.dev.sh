@@ -22,7 +22,13 @@ if [ "$FRESH_DB" = "1" ]; then
 fi
 
 # Start cron and add the jobs
-crond
+if command -v crond >/dev/null 2>&1; then
+	crond
+elif command -v cron >/dev/null 2>&1; then
+	cron
+else
+	echo "WARNING: no cron daemon found (expected 'crond' or 'cron'); scheduled tasks will not run." >&2
+fi
 flask crontab add
 
 # Run Flask's built-in dev server in debug mode

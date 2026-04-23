@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED 1
 
 # Install build deps, FFmpeg, and PostgreSQL client tools for admin backup/restore
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libffi-dev ffmpeg postgresql-client \
+    gcc libffi-dev ffmpeg postgresql-client cron \
     && rm -rf /var/lib/apt/lists/*
 
 # Install requirements (optional ML extras controlled by build arg)

@@ -16,7 +16,13 @@ if [ "$FRESH_DB" = "1" ]; then
 	flask tags --filename explicit.json
 fi
 
-crond
+if command -v crond >/dev/null 2>&1; then
+	crond
+elif command -v cron >/dev/null 2>&1; then
+	cron
+else
+	echo "WARNING: no cron daemon found (expected 'crond' or 'cron'); scheduled tasks will not run." >&2
+fi
 flask crontab add
 
 # Start Caddy in background

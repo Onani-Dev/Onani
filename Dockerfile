@@ -27,10 +27,10 @@ ENV PYTHONUNBUFFERED=1
 # Install system deps (handles both Alpine and Debian in one block)
 RUN if command -v apk >/dev/null 2>&1; then \
         apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev \
-        && apk add libffi-dev ffmpeg postgresql-client; \
+        && apk add libffi-dev ffmpeg postgresql-client dcron; \
     else \
         apt-get update && apt-get install -y --no-install-recommends \
-            gcc libffi-dev ffmpeg postgresql-client \
+            gcc libffi-dev ffmpeg postgresql-client cron \
         && rm -rf /var/lib/apt/lists/*; \
     fi
 

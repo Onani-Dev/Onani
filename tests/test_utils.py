@@ -76,3 +76,30 @@ class TestUtils:
         from onani.controllers.utils import startswith_min
         # Start string "ar" (len 2) is less than min_len 3 -> False
         assert startswith_min("artist:foo", "ar", min_len=3) is False
+
+
+class TestMaintenanceSqlSanitizer:
+    def test_sanitize_postgres_restore_sql_removes_transaction_timeout(self):
+        from onani.services.maintenance import _sanitize_postgres_restore_sql
+
+        raw = (
+            b"SET statement_timeout = 0;\n"
+            b"SET transaction_timeout = 0;\n"
+            b"SET lock_timeout = 0;\n"
+            b"CREATE TABLE example(id integer);\n"
+        )
+
+        sanitized = _sanitize_postgres_restore_sql(raw).decode("utf-8")
+
+        assert "SET transaction_timeout = 0;" not in sanitized
+        assert "SET statement_timeout = 0;" in sanitized
+        assert "SET lock_timeout = 0;" in sanitized
+        assert "CREATE TABLE example" in sanitized
+
+    def test_sanitize_postgres_restore_sql_is_noop_without_unsupported_settings(self):
+        from onani.services.maintenance import _sanitize_postgres_restore_sql
+
+        raw = b"SET statement_timeout = 0;\nSELECT 1;\n"
+        sanitized = _sanitize_postgres_restore_sql(raw)
+
+        assert sanitized == raw

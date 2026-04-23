@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -13,6 +14,11 @@ from onani import db
 
 class MaintenanceError(RuntimeError):
     """Raised when an admin maintenance operation cannot be completed."""
+
+
+_UNSUPPORTED_POSTGRES_RESTORE_SETTINGS = {
+    "transaction_timeout",
+}
 
 
 def optimize_database() -> str:
@@ -151,6 +157,7 @@ def restore_database_backup(backup_bytes: bytes) -> str:
         return "SQLite database restored from backup."
 
     if dialect == "postgresql":
+        restore_bytes = _sanitize_postgres_restore_sql(backup_bytes)
         cmd, env = _postgres_cli_base("psql")
         cmd.extend([
             "-v",
@@ -158,7 +165,7 @@ def restore_database_backup(backup_bytes: bytes) -> str:
             "-d",
             db.engine.url.database,
         ])
-        proc = subprocess.run(cmd, env=env, input=backup_bytes, capture_output=True, check=False)
+        proc = subprocess.run(cmd, env=env, input=restore_bytes, capture_output=True, check=False)
         if proc.returncode != 0:
             stderr = proc.stderr.decode("utf-8", errors="replace").strip()
             raise MaintenanceError(stderr or "psql restore failed.")
@@ -186,3 +193,18 @@ def _postgres_cli_base(program: str) -> tuple[list[str], dict]:
         url.username,
     ]
     return cmd, env
+
+
+def _sanitize_postgres_restore_sql(backup_bytes: bytes) -> bytes:
+    """Drop SET directives that older PostgreSQL versions do not recognize."""
+    script = backup_bytes.decode("utf-8", errors="replace")
+    setting_pattern = re.compile(r"^\s*SET\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=", re.IGNORECASE)
+
+    filtered_lines = []
+    for line in script.splitlines(keepends=True):
+        match = setting_pattern.match(line)
+        if match and match.group(1).lower() in _UNSUPPORTED_POSTGRES_RESTORE_SETTINGS:
+            continue
+        filtered_lines.append(line)
+
+    return "".join(filtered_lines).encode("utf-8")
