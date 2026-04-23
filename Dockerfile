@@ -1,3 +1,7 @@
+# Global ARG must be declared before any FROM to be usable in FROM line interpolation.
+# Use slim (glibc/Debian) when INSTALL_ML=true because tensorflow has no musl/Alpine wheels.
+ARG INSTALL_ML=false
+
 # Build frontend first
 FROM node:22-alpine AS frontend-build
 WORKDIR /app
@@ -9,13 +13,12 @@ RUN npm run build
 # Pull Caddy binary from official image
 FROM caddy:2-alpine AS caddy
 
-# All-in-one image: Gunicorn + Caddy reverse proxy
-# Use slim (glibc/Debian) when INSTALL_ML=true because tensorflow has no musl/Alpine wheels.
-ARG INSTALL_ML=false
+# Base image variants — selected via INSTALL_ML build arg
 FROM python:3.10-slim AS app-base-true
 FROM python:3.10-alpine AS app-base-false
 FROM app-base-${INSTALL_ML}
 
+# Re-declare after FROM so it is available in the build stage
 ARG INSTALL_ML=false
 
 ENV PYTHONDONTWRITEBYTECODE=1

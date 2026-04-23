@@ -1,18 +1,25 @@
 # Container Image
-FROM python:3.10-alpine
+# Use slim (glibc/Debian) when INSTALL_ML=true because tensorflow has no musl/Alpine wheels.
+ARG INSTALL_ML=false
+FROM python:3.10-slim AS base-true
+FROM python:3.10-alpine AS base-false
+FROM base-${INSTALL_ML}
 
 ARG INSTALL_ML=false
 
 # Environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install the shit required to install pip requirements
-RUN apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev \
-    && apk add libffi-dev
-
-# FFmpeg for transcoding videos
-RUN apk add --no-cache ffmpeg
+# Install system deps (handles both Alpine and Debian)
+RUN if command -v apk >/dev/null 2>&1; then \
+        apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev \
+        && apk add libffi-dev ffmpeg; \
+    else \
+        apt-get update && apt-get install -y --no-install-recommends \
+            gcc libffi-dev ffmpeg \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
 
 # Install requirements (optional ML extras controlled by build arg)
 COPY requirements.txt requirements-ml.txt /
