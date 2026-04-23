@@ -5,13 +5,16 @@
 :80 {
 	# Serve Vue SPA from /frontend/dist
 	root * /frontend/dist
-	
-	# API proxy
-	reverse_proxy /api/* localhost:8000
-	
-	# SPA catch-all: serve index.html for unknown routes
-	try_files {path} /index.html
 
-	# Actually serve static files after try_files rewrite.
-	file_server
+	# Route API traffic to Flask before SPA rewrite logic.
+	@api path /api*
+	handle @api {
+		reverse_proxy localhost:8000
+	}
+
+	# SPA catch-all: serve index.html for unknown routes.
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
