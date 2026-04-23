@@ -63,7 +63,14 @@ npm run preview    # preview the production build locally
 ```
 
 In Docker, the `frontend` service runs `npm run build` and copies `dist/`
-for deployment artifacts. In production, you can either:
+for deployment artifacts. In the current repo setup:
+
+- Dev profile (`podman-compose --profile dev`) runs a dedicated `frontend-dev`
+  service with `npm run dev` for HMR on port `5173`.
+- Prod profile (`podman-compose --profile prod`) serves the built frontend from
+  the all-in-one `app` image (`Dockerfile.aio`) via Caddy.
+
+In production, you can either:
 
 - Serve the built assets via Flask's SPA catch-all setup, or
 - Serve them from your external reverse proxy/static host while proxying

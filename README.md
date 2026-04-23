@@ -103,13 +103,41 @@ Sync version files only:
 ./scripts/sync-version.sh --bump-beta
 ```
 
+Other bump modes:
+
+```bash
+./scripts/sync-version.sh --bump-patch
+./scripts/sync-version.sh --bump-minor
+./scripts/sync-version.sh --bump-major
+```
+
+Set an explicit version:
+
+```bash
+./scripts/sync-version.sh --set 1.1.0-beta.1
+```
+
 Create commit + tag + push:
 
 ```bash
 ./scripts/release.sh --bump-beta
 ```
 
+For stable releases you can use semantic bumps, for example:
+
+```bash
+./scripts/release.sh --bump-patch
+```
+
+Create commit + tag without pushing:
+
+```bash
+./scripts/release.sh --bump-beta --no-push
+```
+
 Releases are tag-driven. Pushing a `v*` tag creates a GitHub Release and publishes container images (`app`, `celery`) to GHCR. Tags matching `*-beta.*` are marked as prereleases.
+
+Container image publishing runs on tag pushes (and manual dispatch), not on regular branch pushes.
 
 ## License
 

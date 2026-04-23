@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
 usage() {
-  echo "Usage: $0 [--set <version> | --bump-beta] [--no-push]"
+  echo "Usage: $0 [--set <version> | --bump-beta | --bump-patch | --bump-minor | --bump-major] [--no-push]"
   exit 1
 }
 
@@ -21,6 +21,15 @@ while [[ $# -gt 0 ]]; do
       ;;
     --bump-beta)
       sync_args+=("--bump-beta")
+      ;;
+    --bump-patch)
+      sync_args+=("--bump-patch")
+      ;;
+    --bump-minor)
+      sync_args+=("--bump-minor")
+      ;;
+    --bump-major)
+      sync_args+=("--bump-major")
       ;;
     --no-push)
       push_changes="no"
