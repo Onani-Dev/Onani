@@ -14,11 +14,11 @@ version: "3.9"
 # Optional:
 #   VERSION=latest
 #   PORT=80
-#   REGISTRY=ghcr.io/kapsikkum/onani
+#   REGISTRY=ghcr.io/onani-dev/onani
 
 services:
   app:
-    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-app:${VERSION:-latest}
+    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-app:${VERSION:-latest}
     restart: unless-stopped
     ports:
       - "${PORT:-80}:80"
@@ -37,7 +37,7 @@ services:
       - ./migrations:/onani/migrations
 
   celery:
-    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-celery:${VERSION:-latest}
+    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-celery:${VERSION:-latest}
     restart: unless-stopped
     environment:
       FLASK_APP: run

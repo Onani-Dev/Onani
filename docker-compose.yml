@@ -82,7 +82,7 @@ services:
 
   app:
     profiles: [ "prod" ]
-    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-app:${VERSION:-latest}
+    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-app:${VERSION:-latest}
     restart: unless-stopped
     ports:
       - ${PORT:-80}:80
@@ -95,7 +95,7 @@ services:
 
   celery:
     profiles: [ "prod" ]
-    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-celery:${VERSION:-latest}
+    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-celery:${VERSION:-latest}
     restart: unless-stopped
     environment: *prod-env
     depends_on: *db-deps

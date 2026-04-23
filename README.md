@@ -30,7 +30,7 @@ For production, you only need these two variables. Optional host-path variables:
 | `AVATARS_HOST_DIR` | `./avatars` | User avatars |
 | `DATABASE_HOST_DIR` | `./database` | PostgreSQL data |
 | `VERSION` | `latest` | Image tag (e.g. `v1.0.0`, `sha-abcd1234`) |
-| `REGISTRY` | `ghcr.io/kapsikkum/onani` | Override GHCR registry |
+| `REGISTRY` | `ghcr.io/onani-dev/onani` | Override GHCR registry |
 | `PORT` | `80` | HTTP port (prod only) |
 
 ### 2. Start services
@@ -52,7 +52,7 @@ podman-compose --profile dev up -d --build
 podman-compose --profile prod up -d
 ```
 
-Pulls pre-built images `ghcr.io/kapsikkum/onani-app` and `ghcr.io/kapsikkum/onani-celery` (tagged `latest`, or override with `VERSION=v1.0.0`).
+Pulls pre-built images `ghcr.io/onani-dev/onani-app` and `ghcr.io/onani-dev/onani-celery` (tagged `latest`, or override with `VERSION=v1.0.0`).
 
 | URL | Service |
 |-----|---------|
