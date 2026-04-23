@@ -35,7 +35,7 @@ services:
     hostname: flask
     build:
       context: .
-      dockerfile: dockerfile.dev
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     ports:
       - 5000:5000
@@ -63,7 +63,7 @@ services:
     profiles: [ "dev" ]
     build:
       context: .
-      dockerfile: ./celery/dockerfile.dev
+      dockerfile: ./celery/Dockerfile.dev
     restart: unless-stopped
     environment:
       <<: *dev-env

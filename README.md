@@ -95,7 +95,21 @@ Tests use an in-memory SQLite database and mock Redis — no running containers 
 
 ## Releases
 
-Releases are tag-driven. Pushing a `v*` tag creates a GitHub Release and publishes container images (`flask`, `celery`, `frontend`) to GHCR. Tags matching `*-beta.*` are marked as prereleases.
+Version source of truth is the `VERSION` file.
+
+Sync version files only:
+
+```bash
+./scripts/sync-version.sh --bump-beta
+```
+
+Create commit + tag + push:
+
+```bash
+./scripts/release.sh --bump-beta
+```
+
+Releases are tag-driven. Pushing a `v*` tag creates a GitHub Release and publishes container images (`app`, `celery`) to GHCR. Tags matching `*-beta.*` are marked as prereleases.
 
 ## License
 
