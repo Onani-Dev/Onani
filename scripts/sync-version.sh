@@ -148,9 +148,8 @@ else
   pkg_json="${ROOT_DIR}/frontend/package.json"
   pkg_lock="${ROOT_DIR}/frontend/package-lock.json"
 
-  perl -0777 -i -pe "s/(\"name\"\s*:\s*\"frontend\"\s*,\s*\n\s*\"version\"\s*:\s*\")[^\"]+(\")/\${1}${new_version}\${2}/" "${pkg_json}"
-  perl -0777 -i -pe "s/(\"name\"\s*:\s*\"frontend\"\s*,\s*\n\s*\"version\"\s*:\s*\")[^\"]+(\")/\${1}${new_version}\${2}/" "${pkg_lock}"
-  perl -0777 -i -pe "s/(\"\"\s*:\s*\{\s*\n\s*\"name\"\s*:\s*\"frontend\"\s*,\s*\n\s*\"version\"\s*:\s*\")[^\"]+(\")/\${1}${new_version}\${2}/" "${pkg_lock}"
+  perl -0777 -i -pe "s/(\"version\"\s*:\s*\")[^\"]+(\${2})/\${1}${new_version}\${2}/" "${pkg_json}"
+  perl -0777 -i -pe "s/(\"version\"\s*:\s*\")[^\"]+(\${2})/\${1}${new_version}\${2}/" "${pkg_lock}"
 fi
 
 echo "Synced version: ${new_version} (pyproject: ${pep440_version})"

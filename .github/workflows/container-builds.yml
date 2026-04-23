@@ -21,12 +21,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Standard images — no ML deps
           - image_name: app
             context: .
-            file: Dockerfile.aio
+            file: Dockerfile
+            install_ml: "false"
           - image_name: celery
             context: .
             file: celery/dockerfile
+            install_ml: "false"
+          # ML-enabled images — includes deepdanbooru + tensorflow
+          - image_name: app-ml
+            context: .
+            file: Dockerfile
+            install_ml: "true"
+          - image_name: celery-ml
+            context: .
+            file: celery/dockerfile
+            install_ml: "true"
 
     steps:
       - name: Checkout
@@ -68,6 +80,7 @@ jobs:
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.file }}
+          build-args: INSTALL_ML=${{ matrix.install_ml }}
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

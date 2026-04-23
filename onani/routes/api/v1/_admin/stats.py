@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Admin dashboard API endpoints — stats, task management, error logs."""
 import datetime
+import io
 import os
 
-from flask import abort, request
+from flask import abort, request, send_file
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from sqlalchemy import func, or_
@@ -24,7 +25,15 @@ from onani.models import (
     UserRoles,
     UserSchema,
 )
-from onani.services import enqueue_import_job
+from onani.services import (
+    MaintenanceError,
+    clear_thumbnail_cache,
+    create_database_backup,
+    enqueue_import_job,
+    optimize_database,
+    restore_database_backup,
+    scan_post_storage,
+)
 
 from . import api, db
 
@@ -139,6 +148,9 @@ class AdminRunTask(Resource):
                 "generate_all_thumbnails",
                 "recount_tags",
                 "migrate_images",
+                "optimize_database",
+                "clear_thumbnail_cache",
+                "scan_post_storage",
                 "clear_import_queue",
                 "restart_celery",
                 "deepdanbooru_tag_posts",
@@ -183,6 +195,13 @@ class AdminRunTask(Resource):
             from onani.cron.tasks import remove_expired_bans
             remove_expired_bans()
             return {"message": "Task 'remove_expired_bans' completed."}
+
+        if task_name == "optimize_database":
+            try:
+                message = optimize_database()
+            except MaintenanceError as exc:
+                return {"message": str(exc)}, 400
+            return {"message": message}
 
         if task_name == "migrate_images":
             import shutil
@@ -246,6 +265,32 @@ class AdminRunTask(Resource):
                 "task_id": result.id,
             }
 
+        if task_name == "clear_thumbnail_cache":
+            from flask import current_app as _app
+
+            stats = clear_thumbnail_cache(
+                images_dir=_app.config["IMAGES_DIR"],
+                avatars_dir=_app.config["AVATARS_DIR"],
+            )
+            return {
+                "message": (
+                    "Thumbnail cache cleared. "
+                    f"Deleted {stats['deleted_files']} file(s) across {stats['deleted_dirs']} directorie(s)."
+                )
+            }
+
+        if task_name == "scan_post_storage":
+            from flask import current_app as _app
+
+            stats = scan_post_storage(images_dir=_app.config["IMAGES_DIR"])
+            return {
+                "message": (
+                    f"Scanned {stats['scanned']} post(s) — "
+                    f"missing_originals:{stats['missing_originals']} "
+                    f"missing_video_thumbnails:{stats['missing_video_thumbnails']}"
+                )
+            }
+
         if task_name == "recount_tags":
             from onani.models import Tag
             tags = Tag.query.all()
@@ -280,6 +325,48 @@ class AdminRunTask(Resource):
             }
 
         return {"message": "Unknown task."}, 400
+
+
+class AdminDatabaseBackup(Resource):
+    decorators = [login_required, role_required(UserRoles.ADMIN)]
+
+    def get(self):
+        try:
+            backup_bytes, filename, mimetype = create_database_backup()
+        except MaintenanceError as exc:
+            return {"message": str(exc)}, 400
+
+        return send_file(
+            io.BytesIO(backup_bytes),
+            as_attachment=True,
+            download_name=filename,
+            mimetype=mimetype,
+            max_age=0,
+        )
+
+
+class AdminDatabaseRestore(Resource):
+    decorators = [login_required, role_required(UserRoles.ADMIN)]
+
+    def post(self):
+        confirm = (request.form.get("confirm") or "").strip().upper()
+        if confirm != "RESTORE":
+            return {"message": "Confirmation text must be RESTORE."}, 400
+
+        upload = request.files.get("file")
+        if upload is None or not upload.filename:
+            return {"message": "Backup file is required."}, 400
+
+        backup_bytes = upload.read()
+        if not backup_bytes:
+            return {"message": "Backup file is empty."}, 400
+
+        try:
+            message = restore_database_backup(backup_bytes)
+        except MaintenanceError as exc:
+            return {"message": str(exc)}, 400
+
+        return {"message": message}
 
 
 class AdminUsers(Resource):
@@ -602,6 +689,8 @@ class AdminScheduledImportRun(Resource):
 api.add_resource(AdminStats, "/admin/stats")
 api.add_resource(AdminErrors, "/admin/errors")
 api.add_resource(AdminRunTask, "/admin/tasks")
+api.add_resource(AdminDatabaseBackup, "/admin/database/backup")
+api.add_resource(AdminDatabaseRestore, "/admin/database/restore")
 api.add_resource(AdminUsers, "/admin/users")
 api.add_resource(AdminImports, "/admin/imports")
 api.add_resource(AdminCeleryLogs, "/admin/celery-logs")

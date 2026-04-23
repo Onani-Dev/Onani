@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the REST API v1 endpoints."""
+import io
 import json
 import os
 from types import SimpleNamespace
@@ -1304,6 +1305,106 @@ class TestAdminAPI:
         data = json.loads(resp.data)
         assert data["task_id"] == "thumb-task-123"
         assert "queued" in data["message"].lower()
+
+    def test_optimize_database_task_runs(self, admin_client):
+        client, _user = admin_client
+
+        resp = client.post(
+            "/api/v1/admin/tasks",
+            data=json.dumps({"task": "optimize_database"}),
+            content_type="application/json",
+        )
+
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert "completed" in data["message"].lower()
+
+    def test_clear_thumbnail_cache_task_removes_generated_files(self, admin_client, app):
+        client, _user = admin_client
+
+        image_thumb = os.path.join(app.config["IMAGES_DIR"], ".thumbs", "images", "150x150", "ab")
+        avatar_thumb = os.path.join(app.config["AVATARS_DIR"], ".thumbs", "avatars", "150x150", "av")
+        os.makedirs(image_thumb, exist_ok=True)
+        os.makedirs(avatar_thumb, exist_ok=True)
+        with open(os.path.join(image_thumb, "abcdef.jpg"), "wb") as handle:
+            handle.write(b"x")
+        with open(os.path.join(avatar_thumb, "avatar.jpg"), "wb") as handle:
+            handle.write(b"x")
+
+        resp = client.post(
+            "/api/v1/admin/tasks",
+            data=json.dumps({"task": "clear_thumbnail_cache"}),
+            content_type="application/json",
+        )
+
+        assert resp.status_code == 200
+        assert not os.path.exists(os.path.join(app.config["IMAGES_DIR"], ".thumbs"))
+        assert not os.path.exists(os.path.join(app.config["AVATARS_DIR"], ".thumbs"))
+
+    def test_scan_post_storage_reports_missing_originals(self, admin_client, make_post, app):
+        client, _user = admin_client
+        with app.app_context():
+            make_post(sha256_hash="missingposthash1", filename="missingposthash1.png")
+
+        resp = client.post(
+            "/api/v1/admin/tasks",
+            data=json.dumps({"task": "scan_post_storage"}),
+            content_type="application/json",
+        )
+
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert "missing_originals:1" in data["message"]
+
+    def test_admin_database_backup_downloads_sql(self, admin_client, make_user):
+        client, _user = admin_client
+        make_user(username="backup_target")
+
+        resp = client.get("/api/v1/admin/database/backup")
+
+        assert resp.status_code == 200
+        assert "attachment;" in resp.headers.get("Content-Disposition", "")
+        payload = resp.data.decode("utf-8")
+        assert "CREATE TABLE" in payload
+        assert "backup_target" in payload
+
+    def test_admin_database_restore_requires_confirmation(self, admin_client):
+        client, _user = admin_client
+
+        resp = client.post(
+            "/api/v1/admin/database/restore",
+            data={"confirm": "nope", "file": (io.BytesIO(b"select 1;"), "backup.sql")},
+            content_type="multipart/form-data",
+        )
+
+        assert resp.status_code == 400
+        data = json.loads(resp.data)
+        assert "RESTORE" in data["message"]
+
+    def test_admin_database_restore_replaces_data(self, admin_client, make_user, app):
+        from onani.models import User
+
+        client, _user = admin_client
+        with app.app_context():
+            make_user(username="restored_user")
+
+        backup_resp = client.get("/api/v1/admin/database/backup")
+        backup_bytes = backup_resp.data
+
+        with app.app_context():
+            make_user(username="temporary_user")
+            assert User.query.filter_by(username="temporary_user").first() is not None
+
+        restore_resp = client.post(
+            "/api/v1/admin/database/restore",
+            data={"confirm": "RESTORE", "file": (io.BytesIO(backup_bytes), "backup.sql")},
+            content_type="multipart/form-data",
+        )
+
+        assert restore_resp.status_code == 200
+        with app.app_context():
+            assert User.query.filter_by(username="restored_user").first() is not None
+            assert User.query.filter_by(username="temporary_user").first() is None
 
 
 class TestImportAPI:

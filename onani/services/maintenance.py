@@ -1,0 +1,188 @@
+# -*- coding: utf-8 -*-
+import datetime
+import os
+import shutil
+import sqlite3
+import subprocess
+
+from sqlalchemy import text
+from sqlalchemy.engine import make_url
+
+from onani import db
+
+
+class MaintenanceError(RuntimeError):
+    """Raised when an admin maintenance operation cannot be completed."""
+
+
+def optimize_database() -> str:
+    """Run the database engine's cheapest built-in maintenance command."""
+    engine = db.engine
+    dialect = engine.url.get_backend_name()
+
+    if dialect == "sqlite":
+        raw = engine.raw_connection()
+        try:
+            raw.isolation_level = None
+            cursor = raw.cursor()
+            cursor.execute("VACUUM")
+            cursor.execute("ANALYZE")
+            cursor.close()
+        finally:
+            raw.close()
+        return "SQLite VACUUM and ANALYZE completed."
+
+    if dialect == "postgresql":
+        with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            conn.execute(text("VACUUM ANALYZE"))
+        return "PostgreSQL VACUUM ANALYZE completed."
+
+    raise MaintenanceError(f"Database maintenance is not implemented for '{dialect}'.")
+
+
+def clear_thumbnail_cache(images_dir: str, avatars_dir: str) -> dict:
+    """Delete generated thumbnail caches under the image and avatar roots."""
+    deleted_dirs = 0
+    deleted_files = 0
+
+    for root in (images_dir, avatars_dir):
+        thumbs_dir = os.path.join(root, ".thumbs")
+        if not os.path.isdir(thumbs_dir):
+            continue
+        for _, dirnames, filenames in os.walk(thumbs_dir):
+            deleted_files += len(filenames)
+            deleted_dirs += len(dirnames)
+        shutil.rmtree(thumbs_dir)
+        deleted_dirs += 1
+
+    return {
+        "deleted_dirs": deleted_dirs,
+        "deleted_files": deleted_files,
+    }
+
+
+def scan_post_storage(images_dir: str) -> dict:
+    """Scan stored post files and report missing originals / video thumbnails."""
+    from onani.models import Post
+    from onani.services.files import shard_path
+
+    video_exts = {"mp4", "webm", "mov", "avi", "mkv", "m4v"}
+    scanned = 0
+    missing_originals = 0
+    missing_video_thumbnails = 0
+
+    for post in Post.query.order_by(Post.id.asc()).all():
+        scanned += 1
+        source_path = shard_path(images_dir, post.filename)
+        if not os.path.isfile(source_path):
+            missing_originals += 1
+            continue
+
+        if (post.file_type or "").lower() in video_exts:
+            thumb_name = f"{post.filename.rsplit('.', 1)[0]}.jpg"
+            thumb_path = shard_path(images_dir, thumb_name)
+            if not os.path.isfile(thumb_path):
+                missing_video_thumbnails += 1
+
+    return {
+        "scanned": scanned,
+        "missing_originals": missing_originals,
+        "missing_video_thumbnails": missing_video_thumbnails,
+    }
+
+
+def create_database_backup() -> tuple[bytes, str, str]:
+    """Return a database backup as bytes, plus filename and mimetype."""
+    engine = db.engine
+    dialect = engine.url.get_backend_name()
+    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+    if dialect == "sqlite":
+        raw = engine.raw_connection()
+        try:
+            script = "\n".join(raw.connection.iterdump()) + "\n"
+        finally:
+            raw.close()
+        filename = f"onani-backup-{timestamp}.sql"
+        return script.encode("utf-8"), filename, "application/sql"
+
+    if dialect == "postgresql":
+        cmd, env = _postgres_cli_base("pg_dump")
+        cmd.extend([
+            "--clean",
+            "--if-exists",
+            "--no-owner",
+            "--no-privileges",
+            "--format=plain",
+            "--encoding=UTF8",
+            db.engine.url.database,
+        ])
+        proc = subprocess.run(cmd, env=env, capture_output=True, check=False)
+        if proc.returncode != 0:
+            stderr = proc.stderr.decode("utf-8", errors="replace").strip()
+            raise MaintenanceError(stderr or "pg_dump failed.")
+        filename = f"onani-backup-{timestamp}.sql"
+        return proc.stdout, filename, "application/sql"
+
+    raise MaintenanceError(f"Backups are not implemented for '{dialect}'.")
+
+
+def restore_database_backup(backup_bytes: bytes) -> str:
+    """Restore the configured database from a plain SQL backup."""
+    engine = db.engine
+    dialect = engine.url.get_backend_name()
+    db.session.remove()
+
+    if dialect == "sqlite":
+        script = backup_bytes.decode("utf-8")
+        db.drop_all()
+        raw = engine.raw_connection()
+        try:
+            raw.isolation_level = None
+            cursor = raw.cursor()
+            cursor.execute("PRAGMA foreign_keys = OFF")
+            cursor.executescript(script)
+            cursor.execute("PRAGMA foreign_keys = ON")
+            cursor.close()
+        except sqlite3.Error as exc:
+            raise MaintenanceError(str(exc)) from exc
+        finally:
+            raw.close()
+        return "SQLite database restored from backup."
+
+    if dialect == "postgresql":
+        cmd, env = _postgres_cli_base("psql")
+        cmd.extend([
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-d",
+            db.engine.url.database,
+        ])
+        proc = subprocess.run(cmd, env=env, input=backup_bytes, capture_output=True, check=False)
+        if proc.returncode != 0:
+            stderr = proc.stderr.decode("utf-8", errors="replace").strip()
+            raise MaintenanceError(stderr or "psql restore failed.")
+        return "PostgreSQL database restored from backup."
+
+    raise MaintenanceError(f"Restore is not implemented for '{dialect}'.")
+
+
+def _postgres_cli_base(program: str) -> tuple[list[str], dict]:
+    url = make_url(str(db.engine.url))
+    if not url.host or not url.database or not url.username:
+        raise MaintenanceError("PostgreSQL backups require host, database, and username in DATABASE_URL.")
+
+    env = os.environ.copy()
+    if url.password:
+        env["PGPASSWORD"] = url.password
+
+    cmd = [
+        program,
+        "--host",
+        url.host,
+        "--port",
+        str(url.port or 5432),
+        "--username",
+        url.username,
+    ]
+    return cmd, env

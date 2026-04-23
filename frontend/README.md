@@ -68,7 +68,7 @@ for deployment artifacts. In the current repo setup:
 - Dev profile (`podman-compose --profile dev`) runs a dedicated `frontend-dev`
   service with `npm run dev` for HMR on port `5173`.
 - Prod profile (`podman-compose --profile prod`) serves the built frontend from
-  the all-in-one `app` image (`Dockerfile.aio`) via Caddy.
+  the all-in-one `app` image (`Dockerfile`) via Caddy.
 
 In production, you can either:
 

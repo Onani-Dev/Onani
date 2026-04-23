@@ -687,6 +687,28 @@ Run a background administrative task. Requires **admin** role.
 
 **Response (200):** `{ "message": "Task queued." }`
 
+**DeepDanbooru prerequisites** (for `deepdanbooru_tag_posts` and `deepdanbooru_tag_all_posts`):
+
+- Install ML dependencies in the Flask/Celery runtime: `pip install -r requirements-ml.txt`
+- Enable and configure DeepDanbooru (`DEEPDANBOORU_ENABLED=true` plus model path settings)
+- Provide model weights (Onani does not ship weights)
+
+Recommended weight sources:
+
+- DeepDanbooru project/resources: https://github.com/KichangKim/DeepDanbooru
+- Hugging Face model search: https://huggingface.co/models?search=deepdanbooru
+
+Expected files for project-path mode (`DEEPDANBOORU_PROJECT_PATH`):
+
+- `project.json`
+- `tags.txt`
+- model file exported by that package (for example `.keras` / `.h5` / SavedModel)
+
+If you use separate files instead of project-path mode, set both:
+
+- `DEEPDANBOORU_MODEL_PATH`
+- `DEEPDANBOORU_TAGS_PATH`
+
 ---
 
 ### GET /admin/users

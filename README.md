@@ -17,7 +17,7 @@ A booru-style imageboard built with **Flask** (API) and **Vue 3** (SPA).
 ### 1. Generate environment
 
 ```bash
-python generate_env.py
+./generate_env.sh
 ```
 
 Generates `.env` with `FLASK_SECRET_KEY` and `DB_PASSWORD`. 
@@ -35,10 +35,18 @@ For production, you only need these two variables. Optional host-path variables:
 
 ### 2. Start services
 
-**Development** (Flask debug + Vite hot reload, local builds):
+Choose one profile set depending on whether you want ML dependencies baked into containers.
+
+**Development (no ML)** (Flask debug + Vite hot reload, local builds):
 
 ```bash
 podman-compose --profile dev up -d --build
+```
+
+**Development (ML-enabled)** (includes `requirements-ml.txt` in Flask/Celery images):
+
+```bash
+podman-compose --profile dev-ml up -d --build
 ```
 
 | URL | Service |
@@ -46,7 +54,7 @@ podman-compose --profile dev up -d --build
 | http://localhost:5173 | Vue SPA (Vite) |
 | http://localhost:5000 | Flask API |
 
-**Production** (all-in-one: Gunicorn + Caddy, pre-built from GHCR):
+**Production (no ML)** (all-in-one: Gunicorn + Caddy, pre-built from GHCR):
 
 ```bash
 podman-compose --profile prod up -d
@@ -57,6 +65,12 @@ Pulls pre-built images `ghcr.io/onani-dev/onani-app` and `ghcr.io/onani-dev/onan
 | URL | Service |
 |-----|---------|
 | http://localhost | App (Caddy → Gunicorn + Vue SPA) |
+
+**Production (ML-enabled)** (pre-built ML GHCR images: `app-ml`, `celery-ml`):
+
+```bash
+podman-compose --profile prod-ml up -d
+```
 
 Override port: `PORT=8080 podman-compose --profile prod up -d`
 
@@ -84,6 +98,78 @@ flask add-owner --id <USER_ID>
 | `db upgrade` | Apply pending migrations |
 
 Via compose: `podman-compose ... exec flask flask <command>`
+
+## Optional: DeepDanbooru Setup
+
+If admin DeepDanbooru tasks show:
+
+`Python package 'deepdanbooru' is not installed.`
+
+install the ML dependencies from `requirements-ml.txt`.
+
+### Local (nix + venv)
+
+```bash
+nix develop --command .venv/bin/pip install -r requirements-ml.txt
+```
+
+If you run Flask directly from your shell/venv, this is enough.
+
+### Dev container (`flask-dev` / `celery-dev`)
+
+Quick install into running containers:
+
+```bash
+podman-compose --profile dev exec flask-dev pip install -r /onani/requirements-ml.txt
+podman-compose --profile dev exec celery-dev pip install -r /onani/requirements-ml.txt
+```
+
+This works immediately, but is not persistent across image rebuilds.
+
+Persistent install for future rebuilds:
+
+1. Add `-r requirements-ml.txt` to `requirements.txt` (or copy those packages into `requirements.txt`).
+2. Rebuild dev images:
+
+```bash
+podman-compose --profile dev up -d --build
+```
+
+### Enable and configure DeepDanbooru
+
+Set configuration (either env vars or `onani.toml`):
+
+- `DEEPDANBOORU_ENABLED=true`
+- `DEEPDANBOORU_PROJECT_PATH=/models/deepdanbooru`
+
+In dev compose, the default bind mount is:
+
+- `${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro`
+
+So place your model files in `./models/deepdanbooru` by default.
+
+### Where to get DeepDanbooru weights
+
+Onani does not ship DeepDanbooru weights. You need either:
+
+- A trained DeepDanbooru project you created yourself, or
+- A compatible pre-trained model package from a community source.
+
+Common places to find compatible weights:
+
+- DeepDanbooru project/resources: https://github.com/KichangKim/DeepDanbooru
+- Hugging Face model search: https://huggingface.co/models?search=deepdanbooru
+
+For `DEEPDANBOORU_PROJECT_PATH`, the directory should contain:
+
+- `project.json`
+- `tags.txt`
+- A model file (for example `.keras`, `.h5`, or SavedModel exported by your package)
+
+If your package only provides separate model and tags files, configure:
+
+- `DEEPDANBOORU_MODEL_PATH=/models/deepdanbooru/<model-file>`
+- `DEEPDANBOORU_TAGS_PATH=/models/deepdanbooru/tags.txt`
 
 ## Testing
 

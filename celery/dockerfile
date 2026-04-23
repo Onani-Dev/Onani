@@ -1,6 +1,8 @@
 # Container Image
 FROM python:3.10-alpine
 
+ARG INSTALL_ML=false
+
 # Environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -12,9 +14,10 @@ RUN apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev \
 # FFmpeg for transcoding videos
 RUN apk add --no-cache ffmpeg
 
-# Install requirements
-COPY requirements.txt /
-RUN pip3 install -r /requirements.txt
+# Install requirements (optional ML extras controlled by build arg)
+COPY requirements.txt requirements-ml.txt /
+RUN pip3 install -r /requirements.txt \
+    && if [ "$INSTALL_ML" = "true" ]; then pip3 install -r /requirements-ml.txt; fi
 
 # Copy static folder
 COPY ./frontend/public/static /static

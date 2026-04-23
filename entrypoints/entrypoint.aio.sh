@@ -2,11 +2,19 @@
 set -e
 
 # Initialize Alembic only on first boot; production volumes already contain migrations.
+FRESH_DB=0
 if [ ! -f /onani/migrations/alembic.ini ]; then
 	flask db init
+	FRESH_DB=1
 fi
 flask init-db
 flask db upgrade
+
+# Seed default tags on first boot.
+if [ "$FRESH_DB" = "1" ]; then
+	flask tags --filename meta.json
+	flask tags --filename explicit.json
+fi
 
 crond
 flask crontab add

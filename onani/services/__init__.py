@@ -8,6 +8,14 @@ from .imports import enqueue_import_job
 from .queries import query_posts
 from .news import create_news
 from .default import create_default_tags
+from .maintenance import (
+	MaintenanceError,
+	clear_thumbnail_cache,
+	create_database_backup,
+	optimize_database,
+	restore_database_backup,
+	scan_post_storage,
+)
 from .deepdanbooru import (
 	DeepDanbooruUnavailableError,
 	apply_suggested_tags_to_post,

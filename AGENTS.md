@@ -22,7 +22,6 @@ podman-compose -f docker-compose.yml --profile prod up -d --build
 - Flask API: http://localhost:5000
 - Vite SPA: http://localhost:5173
 - Source code is volume-mounted, so changes hot-reload without rebuilding.
-- In-repo nginx is optional (`proxy` profile) and not required for normal prod/dev modes.
 - **Celery does not auto-reload.** After any change to `Onani/tasks/`, `celery_worker.py`, or anything imported by the worker, restart it manually:
   ```sh
   podman restart onani_celery-dev_1
@@ -191,7 +190,6 @@ Celery async tasks (remember: **restart the celery container after editing**):
 
 - Original media files are stored on disk using sharded paths (`<root>/<first-two-chars>/<filename>`).
 - Thumbnails and sample images are generated/served by Flask routes and cached on disk.
-- nginx image_filter is not required for thumbnail generation.
 
 ### `Onani/cron/`
 

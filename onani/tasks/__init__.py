@@ -10,4 +10,3 @@ from .deepdanbooru import deepdanbooru_tag_all_posts
 from .importer import import_post
 from .library import scan_library
 from .thumbnails import generate_all_thumbnails
-from .video import test

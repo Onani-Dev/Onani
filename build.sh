@@ -52,5 +52,5 @@ if test -f ./.env
 then
     start_docker "$@"
 else
-    echo "Environment file does not exist. Please run 'python generate_env.py' to create it."
+    echo "Environment file does not exist. Please run './generate_env.sh' to create it."
 fi

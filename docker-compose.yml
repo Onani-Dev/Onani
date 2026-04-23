@@ -1,7 +1,9 @@
 # Single compose file for both dev and prod
 # Usage:
 #   podman-compose --profile dev up -d --build       (dev: local builds, hot reload)
+#   podman-compose --profile dev-ml up -d --build    (dev + DeepDanbooru deps)
 #   podman-compose --profile prod up -d              (prod: GHCR pre-built images)
+#   podman-compose --profile prod-ml up -d           (prod: GHCR ML-enabled images)
 
 x-env: &dev-env
   FLASK_APP: run
@@ -11,6 +13,12 @@ x-env: &dev-env
   TESTING: "True"
   DB_PASSWORD: ${DB_PASSWORD:-onani_db}
   DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin}
+
+x-env-ml: &dev-env-ml
+  DEEPDANBOORU_ENABLED: "true"
+  DEEPDANBOORU_PROJECT_PATH: /models/deepdanbooru
+
+x-env-prod-ml: &prod-env-ml
   DEEPDANBOORU_ENABLED: "true"
   DEEPDANBOORU_PROJECT_PATH: /models/deepdanbooru
 
@@ -36,6 +44,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+      args:
+        INSTALL_ML: "false"
     restart: unless-stopped
     ports:
       - 5000:5000
@@ -46,10 +56,30 @@ services:
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./logs:/logs
       - ./:/onani
+
+  flask-dev-ml:
+    profiles: [ "dev-ml" ]
+    hostname: flask
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        INSTALL_ML: "true"
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    environment:
+      <<: [*dev-env, *dev-env-ml]
+    depends_on: *db-deps
+    volumes:
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - ./logs:/logs
+      - ./:/onani
       - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
 
   frontend-dev:
-    profiles: [ "dev" ]
+    profiles: [ "dev", "dev-ml" ]
     image: node:22-alpine
     working_dir: /app
     command: sh -c "npm install && npm run dev"
@@ -63,10 +93,30 @@ services:
     profiles: [ "dev" ]
     build:
       context: .
-      dockerfile: ./celery/Dockerfile.dev
+      dockerfile: ./celery/dockerfile.dev
+      args:
+        INSTALL_ML: "false"
     restart: unless-stopped
     environment:
       <<: *dev-env
+      C_FORCE_ROOT: "yes"
+    depends_on: *db-deps
+    volumes:
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - ./logs:/logs
+      - ./:/onani
+
+  celery-dev-ml:
+    profiles: [ "dev-ml" ]
+    build:
+      context: .
+      dockerfile: ./celery/dockerfile.dev
+      args:
+        INSTALL_ML: "true"
+    restart: unless-stopped
+    environment:
+      <<: [*dev-env, *dev-env-ml]
       C_FORCE_ROOT: "yes"
     depends_on: *db-deps
     volumes:
@@ -103,6 +153,35 @@ services:
       - ${IMAGES_HOST_DIR:-images}:/images
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./migrations:/onani/migrations
+
+  app-ml:
+    profiles: [ "prod-ml" ]
+    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-app-ml:${VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - ${PORT:-80}:80
+    environment:
+      <<: [*prod-env, *prod-env-ml]
+    depends_on: *db-deps
+    volumes:
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - ./migrations:/onani/migrations
+      - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
+
+  celery-ml:
+    profiles: [ "prod-ml" ]
+    image: ${REGISTRY:-ghcr.io/onani-dev/onani}-celery-ml:${VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      <<: [*prod-env, *prod-env-ml]
+    depends_on: *db-deps
+    volumes:
+      - ${IMAGES_HOST_DIR:-images}:/images
+      - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - ./migrations:/onani/migrations
+      - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
+      - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
 
   # ──────────────────────────────────────────────────────────
   # SHARED: Postgres + Redis (both dev and prod)

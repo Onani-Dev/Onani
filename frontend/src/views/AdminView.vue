@@ -317,6 +317,15 @@
             </div>
             <div class="task-item">
               <div>
+                <strong>Optimize Database</strong>
+                <p class="text-muted">Run the database engine's maintenance pass to reclaim space and refresh statistics.</p>
+              </div>
+              <button @click="runTask('optimize_database')" :disabled="!!runningTask">
+                {{ runningTask === 'optimize_database' ? 'Running...' : 'Run' }}
+              </button>
+            </div>
+            <div class="task-item">
+              <div>
                 <strong>Recount Tag Post Counts</strong>
                 <p class="text-muted">Recalculate post_count for every tag from scratch.</p>
               </div>
@@ -331,6 +340,24 @@
               </div>
               <button @click="runTask('migrate_images')" :disabled="!!runningTask">
                 {{ runningTask === 'migrate_images' ? 'Running...' : 'Run' }}
+              </button>
+            </div>
+            <div class="task-item">
+              <div>
+                <strong>Clear Thumbnail Cache</strong>
+                <p class="text-muted">Delete generated image and avatar thumbnail caches so they can be rebuilt cleanly.</p>
+              </div>
+              <button @click="runTask('clear_thumbnail_cache')" :disabled="!!runningTask">
+                {{ runningTask === 'clear_thumbnail_cache' ? 'Running...' : 'Run' }}
+              </button>
+            </div>
+            <div class="task-item">
+              <div>
+                <strong>Scan Post Storage</strong>
+                <p class="text-muted">Check the image store for missing originals and missing video preview JPEGs.</p>
+              </div>
+              <button @click="runTask('scan_post_storage')" :disabled="!!runningTask">
+                {{ runningTask === 'scan_post_storage' ? 'Running...' : 'Run' }}
               </button>
             </div>
             <div class="task-item">
@@ -371,6 +398,33 @@
                 {{ runningTask === 'deepdanbooru_tag_posts' ? 'Queueing...' : 'Run' }}
               </button>
             </div>
+          </div>
+
+          <div class="task-run-history database-tools">
+            <h3>Database Backup / Restore</h3>
+            <div class="database-tools-row">
+              <div>
+                <strong>Download Backup</strong>
+                <p class="text-muted">Exports the current database as a plain SQL backup.</p>
+              </div>
+              <button @click="downloadDatabaseBackup" :disabled="backupBusy || restoreBusy">
+                {{ backupBusy ? 'Preparing...' : 'Download' }}
+              </button>
+            </div>
+            <div class="database-restore-form">
+              <label class="database-restore-field">
+                <span>Backup file</span>
+                <input type="file" accept=".sql,text/sql,application/sql" @change="onRestoreFileChange" />
+              </label>
+              <label class="database-restore-field">
+                <span>Type RESTORE to confirm</span>
+                <input v-model="restoreConfirm" class="admin-inline-input" placeholder="RESTORE" />
+              </label>
+              <button class="danger" @click="restoreDatabaseBackup" :disabled="restoreBusy || backupBusy || !selectedRestoreFile">
+                {{ restoreBusy ? 'Restoring...' : 'Restore Backup' }}
+              </button>
+            </div>
+            <p v-if="backupMessage" :class="backupError ? 'text-error' : 'text-success'">{{ backupMessage }}</p>
           </div>
           <p v-if="taskMessage" :class="taskError ? 'text-error' : 'text-success'">{{ taskMessage }}</p>
           <div v-if="taskRuns.length" class="task-run-history">
@@ -736,6 +790,12 @@ const expandedErrors = ref(new Set())
 const runningTask = ref(null)
 const taskMessage = ref('')
 const taskError = ref(false)
+const backupBusy = ref(false)
+const backupMessage = ref('')
+const backupError = ref(false)
+const restoreBusy = ref(false)
+const selectedRestoreFile = ref(null)
+const restoreConfirm = ref('')
 const deepdanbooruStatus = ref({ loaded: false, available: false, reason: '' })
 const importJobs = reactive([])
 const users = ref([])
@@ -1578,6 +1638,89 @@ async function runTask(name) {
   }
 }
 
+function onRestoreFileChange(event) {
+  selectedRestoreFile.value = event.target.files?.[0] || null
+}
+
+async function extractApiErrorMessage(err, fallback) {
+  const directMessage = err.response?.data?.message
+  if (directMessage) return directMessage
+
+  const blob = err.response?.data
+  if (blob instanceof Blob) {
+    try {
+      const text = await blob.text()
+      const parsed = JSON.parse(text)
+      if (parsed?.message) return parsed.message
+    } catch {
+      // Ignore parse failures and fall back to the generic message.
+    }
+  }
+
+  return fallback
+}
+
+async function downloadDatabaseBackup() {
+  backupBusy.value = true
+  backupMessage.value = ''
+  backupError.value = false
+  try {
+    const response = await api.get('/admin/database/backup', { responseType: 'blob' })
+    const contentDisposition = response.headers['content-disposition'] || ''
+    const match = contentDisposition.match(/filename="?([^";]+)"?/) 
+    const filename = match?.[1] || 'onani-backup.sql'
+    const blobUrl = window.URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(blobUrl)
+    backupMessage.value = `Backup downloaded as ${filename}.`
+    taskRuns.value.unshift({ name: 'database_backup', at: new Date().toISOString(), message: backupMessage.value, error: false })
+  } catch (err) {
+    backupMessage.value = await extractApiErrorMessage(err, 'Backup failed.')
+    backupError.value = true
+    taskRuns.value.unshift({ name: 'database_backup', at: new Date().toISOString(), message: backupMessage.value, error: true })
+  } finally {
+    if (taskRuns.value.length > 12) taskRuns.value = taskRuns.value.slice(0, 12)
+    backupBusy.value = false
+  }
+}
+
+async function restoreDatabaseBackup() {
+  if (!selectedRestoreFile.value) {
+    backupMessage.value = 'Choose a backup file first.'
+    backupError.value = true
+    return
+  }
+
+  restoreBusy.value = true
+  backupMessage.value = ''
+  backupError.value = false
+  try {
+    const formData = new FormData()
+    formData.append('confirm', restoreConfirm.value)
+    formData.append('file', selectedRestoreFile.value)
+
+    const { data } = await api.post('/admin/database/restore', formData)
+    backupMessage.value = `${data.message} Refresh recommended if you restored older data.`
+    selectedRestoreFile.value = null
+    restoreConfirm.value = ''
+    taskRuns.value.unshift({ name: 'database_restore', at: new Date().toISOString(), message: backupMessage.value, error: false })
+    await fetchStats()
+    await fetchUsers()
+  } catch (err) {
+    backupMessage.value = await extractApiErrorMessage(err, 'Restore failed.')
+    backupError.value = true
+    taskRuns.value.unshift({ name: 'database_restore', at: new Date().toISOString(), message: backupMessage.value, error: true })
+  } finally {
+    if (taskRuns.value.length > 12) taskRuns.value = taskRuns.value.slice(0, 12)
+    restoreBusy.value = false
+  }
+}
+
 async function toggleScheduledEnabled(task) {
   try {
     await api.put('/admin/scheduled-imports', {
@@ -2207,6 +2350,37 @@ function switchLogType(type) {
   border-top: 1px solid var(--border);
 }
 .task-run-row:first-of-type { border-top: none; }
+.database-tools { margin-top: 1em; }
+.database-tools-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+}
+.database-restore-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.75em;
+  margin-top: 1em;
+  align-items: end;
+}
+.database-restore-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  font-size: 0.85rem;
+}
+.database-restore-field span {
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .database-tools-row,
+  .database-restore-form {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+}
 
 /* ── Badges ───────────────────────────────────────────────── */
 .status-badge {
