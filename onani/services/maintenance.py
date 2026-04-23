@@ -7,6 +7,8 @@ import sqlite3
 import subprocess
 import time
 
+from alembic.config import Config as AlembicConfig
+from alembic.script import ScriptDirectory
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
 
@@ -237,6 +239,7 @@ def _restore_postgres_backup(restore_bytes: bytes) -> str:
         _reset_postgres_public_schema()
         proc = subprocess.run(cmd, env=env, input=restore_bytes, capture_output=True, check=False)
         if proc.returncode == 0:
+            _stamp_alembic_to_local_heads()
             return "PostgreSQL database restored from backup."
 
         stderr = proc.stderr.decode("utf-8", errors="replace").strip()
@@ -273,3 +276,38 @@ def _reset_postgres_public_schema() -> None:
         conn.execute(text("CREATE SCHEMA public"))
         conn.execute(text("GRANT ALL ON SCHEMA public TO PUBLIC"))
         conn.execute(text("GRANT ALL ON SCHEMA public TO CURRENT_USER"))
+
+
+def _stamp_alembic_to_local_heads() -> None:
+    """Force alembic_version in the restored DB to this codebase's known heads."""
+    heads = _discover_local_alembic_heads()
+    if not heads:
+        return
+
+    with db.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(text(
+            """
+            CREATE TABLE IF NOT EXISTS alembic_version (
+                version_num VARCHAR(32) NOT NULL
+            )
+            """
+        ))
+        conn.execute(text("DELETE FROM alembic_version"))
+        for head in heads:
+            conn.execute(text("INSERT INTO alembic_version (version_num) VALUES (:version_num)"), {
+                "version_num": head,
+            })
+
+
+def _discover_local_alembic_heads() -> list[str]:
+    candidates = [
+        os.path.join(os.getcwd(), "migrations", "alembic.ini"),
+        "/onani/migrations/alembic.ini",
+    ]
+    alembic_ini = next((path for path in candidates if os.path.isfile(path)), None)
+    if not alembic_ini:
+        return []
+
+    cfg = AlembicConfig(alembic_ini)
+    script = ScriptDirectory.from_config(cfg)
+    return [head for head in script.get_heads() if head]

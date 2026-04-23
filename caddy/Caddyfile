@@ -6,9 +6,9 @@
 	# Serve Vue SPA from /frontend/dist
 	root * /frontend/dist
 
-	# Route API traffic to Flask before SPA rewrite logic.
-	@api path /api*
-	handle @api {
+	# Route API and media traffic to Flask before SPA rewrite logic.
+	@backend path /api* /images* /avatars* /videos* /static*
+	handle @backend {
 		reverse_proxy localhost:8000
 	}
 

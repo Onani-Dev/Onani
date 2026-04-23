@@ -125,6 +125,7 @@ class TestMaintenanceSqlSanitizer:
 
         monkeypatch.setattr(maintenance, "_try_terminate_postgres_connections", lambda _db: None)
         monkeypatch.setattr(maintenance, "_reset_postgres_public_schema", lambda: None)
+        monkeypatch.setattr(maintenance, "_stamp_alembic_to_local_heads", lambda: None)
         monkeypatch.setattr(maintenance.time, "sleep", lambda _seconds: None)
 
         fake_engine = Mock()
@@ -161,6 +162,7 @@ class TestMaintenanceSqlSanitizer:
 
         monkeypatch.setattr(maintenance, "_try_terminate_postgres_connections", lambda _db: None)
         monkeypatch.setattr(maintenance, "_reset_postgres_public_schema", lambda: None)
+        monkeypatch.setattr(maintenance, "_stamp_alembic_to_local_heads", lambda: None)
         monkeypatch.setattr(maintenance.time, "sleep", lambda _seconds: None)
 
         fake_engine = Mock()
