@@ -1,0 +1,83 @@
+version: "3.9"
+
+# Minimal production example for Onani.
+# This file pulls pre-built images from GHCR (it does not build local images).
+#
+# Usage:
+#   cp .env.example .env  # or create .env manually
+#   podman-compose -f docker-compose.example.yml up -d
+#
+# Required .env values:
+#   FLASK_SECRET_KEY=change-me
+#   DB_PASSWORD=change-me
+#
+# Optional:
+#   VERSION=latest
+#   PORT=80
+#   REGISTRY=ghcr.io/kapsikkum/onani
+
+services:
+  app:
+    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-app:${VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - "${PORT:-80}:80"
+    environment:
+      FLASK_APP: run
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - images:/images
+      - avatars:/avatars
+      - ./migrations:/onani/migrations
+
+  celery:
+    image: ${REGISTRY:-ghcr.io/kapsikkum/onani}-celery:${VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      FLASK_APP: run
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - images:/images
+      - avatars:/avatars
+      - ./migrations:/onani/migrations
+
+  postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: onani_db
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: onani_db
+    volumes:
+      - database:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  database:
+  images:
+  avatars:
