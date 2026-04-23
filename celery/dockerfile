@@ -22,6 +22,8 @@ COPY ./frontend/public/static /static
 # Copy working dir to root of virtual drive
 COPY . /onani
 
+RUN chmod +x /onani/celery/entrypoint.sh
+
 # Set workdir
 WORKDIR /onani
 

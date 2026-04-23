@@ -32,6 +32,8 @@ RUN pip3 install -r /requirements.txt
 COPY ./frontend/public/static /static
 COPY . /onani
 
+RUN chmod +x /onani/entrypoints/entrypoint.aio.sh
+
 WORKDIR /onani
 
 EXPOSE 80

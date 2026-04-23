@@ -1,7 +1,10 @@
 #!/bin/sh
 set -e
 
-flask db init
+# Initialize Alembic only on first boot; production volumes already contain migrations.
+if [ ! -f /onani/migrations/alembic.ini ]; then
+	flask db init
+fi
 flask init-db
 flask db upgrade
 
