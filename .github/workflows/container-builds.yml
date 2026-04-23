@@ -29,9 +29,6 @@ jobs:
           - image_name: frontend
             context: frontend
             file: frontend/Dockerfile
-          - image_name: nginx
-            context: nginx
-            file: nginx/dockerfile
 
     steps:
       - name: Checkout
