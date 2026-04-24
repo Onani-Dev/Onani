@@ -3,6 +3,7 @@
 import os
 
 from flask import Blueprint, abort, current_app, request, send_file, send_from_directory
+from onani.models import ExternalLibrary, Post
 
 from onani.services.files import (
     build_cached_image_variant,
@@ -23,6 +24,58 @@ def _safe_path_part(value: str) -> str:
     return value
 
 
+def _is_enabled(value) -> bool:
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "t", "yes", "on"}
+    return bool(value)
+
+
+def _resolve_external_path(library_name: str, relative_path: str) -> str:
+    if not relative_path or relative_path.startswith("/"):
+        abort(404)
+
+    library = ExternalLibrary.query.filter_by(name=library_name).first()
+    if library is None or not _is_enabled(library.enabled):
+        abort(404)
+
+    rel_norm = os.path.normpath(relative_path).lstrip("/\\")
+    if rel_norm.startswith("..") or rel_norm in ("", "."):
+        abort(404)
+
+    root = os.path.normpath(library.path)
+    resolved = os.path.normpath(os.path.join(root, rel_norm))
+    if resolved != root and not resolved.startswith(root + os.sep):
+        abort(404)
+
+    if not os.path.isfile(resolved):
+        abort(404)
+    return resolved
+
+
+def _resolve_post_source_path(filename: str) -> str | None:
+    images_dir = current_app.config.get("IMAGES_DIR", "/images")
+    local_path = shard_path(images_dir, filename)
+    if os.path.isfile(local_path):
+        return local_path
+
+    post = Post.query.filter_by(filename=filename, is_external=True).first()
+    if post is None or not post.library_file:
+        return None
+
+    library = post.library_file.library
+    if library is None or not _is_enabled(library.enabled):
+        return None
+
+    candidate = post.library_file.file_path
+    return candidate if candidate and os.path.isfile(candidate) else None
+
+
+@spa_bp.route("/external/<library_name>/<path:relative_path>")
+def external_file(library_name: str, relative_path: str):
+    path = _resolve_external_path(library_name, relative_path)
+    return send_file(path, conditional=True)
+
+
 @spa_bp.route("/images/<shard>/<filename>")
 def image_file(shard: str, filename: str):
     shard = _safe_path_part(shard)
@@ -30,9 +83,8 @@ def image_file(shard: str, filename: str):
     if not filename.startswith(shard):
         abort(404)
 
-    images_dir = current_app.config.get("IMAGES_DIR", "/images")
-    path = shard_path(images_dir, filename)
-    if not os.path.isfile(path):
+    path = _resolve_post_source_path(filename)
+    if not path:
         abort(404)
     return send_file(path, conditional=True)
 
@@ -55,8 +107,8 @@ def image_thumbnail(shard: str, filename: str):
         abort(404)
 
     images_dir = current_app.config.get("IMAGES_DIR", "/images")
-    source_path = shard_path(images_dir, filename)
-    if not os.path.isfile(source_path):
+    source_path = _resolve_post_source_path(filename)
+    if not source_path:
         abort(404)
 
     size_px = parse_thumbnail_size(request.args.get("size"), default=150)
@@ -129,14 +181,14 @@ def sample_image(shard: str, filename: str):
     images_dir = current_app.config.get("IMAGES_DIR", "/images")
     ext = os.path.splitext(filename)[1].lstrip(".").lower()
     source_name = filename
-    source_path = shard_path(images_dir, source_name)
+    source_path = _resolve_post_source_path(source_name)
 
     if ext in _VIDEO_EXTS:
         stem = filename.rsplit(".", 1)[0]
         source_name = f"{stem}.jpg"
-        source_path = shard_path(images_dir, source_name)
+        source_path = _resolve_post_source_path(source_name)
 
-    if not os.path.isfile(source_path):
+    if not source_path:
         abort(404)
 
     cached = build_cached_image_variant(

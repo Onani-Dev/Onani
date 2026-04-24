@@ -15,10 +15,16 @@ from flask_restful import Resource, reqparse
 
 from onani.controllers.permissions import permissions_required
 from onani.controllers.role import role_required
-from onani.models import ExternalLibrary, ExternalLibraryFile, UserPermissions, UserRoles
+from onani.models import ExternalLibrary, ExternalLibraryFile, Post, UserPermissions, UserRoles
 from onani.tasks import scan_library
 
 from . import api, db
+
+
+def _as_bool(value) -> bool:
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "t", "yes", "on"}
+    return bool(value)
 
 
 def _library_dict(lib: ExternalLibrary) -> dict:
@@ -27,6 +33,7 @@ def _library_dict(lib: ExternalLibrary) -> dict:
         "name": lib.name,
         "path": lib.path,
         "enabled": lib.enabled,
+        "recursive": lib.recursive,
         "default_rating": lib.default_rating,
         "default_tags": lib.default_tags or "",
         "owner_id": lib.owner_id,
@@ -57,6 +64,7 @@ class LibraryList(Resource):
         parser.add_argument("name", location="json", type=str, required=True)
         parser.add_argument("path", location="json", type=str, required=True)
         parser.add_argument("enabled", location="json", type=bool, default=True)
+        parser.add_argument("recursive", location="json", type=bool, default=True)
         parser.add_argument("default_rating", location="json", type=str, default="q")
         parser.add_argument("default_tags", location="json", type=str, default="")
         args = parser.parse_args()
@@ -79,6 +87,7 @@ class LibraryList(Resource):
             name=args["name"].strip(),
             path=path,
             enabled=args["enabled"],
+            recursive=args["recursive"],
             default_rating=args["default_rating"],
             default_tags=args["default_tags"].strip() or None,
             owner_id=current_user.id,
@@ -106,6 +115,7 @@ class LibraryDetail(Resource):
         parser.add_argument("name", location="json", type=str)
         parser.add_argument("path", location="json", type=str)
         parser.add_argument("enabled", location="json", type=bool)
+        parser.add_argument("recursive", location="json", type=bool)
         parser.add_argument("default_rating", location="json", type=str)
         parser.add_argument("default_tags", location="json", type=str)
         args = parser.parse_args()
@@ -120,7 +130,21 @@ class LibraryDetail(Resource):
                 abort(400, description="path must be an absolute filesystem path.")
             lib.path = path
         if args["enabled"] is not None:
+            was_enabled = _as_bool(lib.enabled)
             lib.enabled = args["enabled"]
+            # Hide imported posts from this location when the library is disabled.
+            if was_enabled and not _as_bool(lib.enabled):
+                post_ids = (
+                    db.session.query(ExternalLibraryFile.post_id)
+                    .filter(ExternalLibraryFile.library_id == library_id)
+                    .filter(ExternalLibraryFile.post_id.isnot(None))
+                )
+                Post.query.filter(Post.id.in_(post_ids)).update(
+                    {Post.hidden: True},
+                    synchronize_session=False,
+                )
+        if args["recursive"] is not None:
+            lib.recursive = args["recursive"]
         if args["default_rating"] is not None:
             valid_ratings = {"g", "q", "e"}
             if args["default_rating"] not in valid_ratings:

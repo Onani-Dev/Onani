@@ -131,9 +131,6 @@ dmypy.json
 # Nix
 result
 
-# Alembic migrations
-/migrations
-
 # Config
 onani.toml
 

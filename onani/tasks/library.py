@@ -8,8 +8,8 @@ imports any new ones as posts.  Progress is stored on the ExternalLibrary row
 
 import datetime
 import hashlib
-import io
 import os
+from urllib.parse import quote
 
 from celery import shared_task
 
@@ -29,15 +29,31 @@ def _sha256_file(path: str) -> str:
     return h.hexdigest()
 
 
-def _scan_directory(root: str) -> list[str]:
+def _scan_directory(root: str, recursive: bool = True) -> list[str]:
     """Return sorted list of absolute paths for all supported media files under *root*."""
     results = []
-    for dirpath, _dirnames, filenames in os.walk(root):
-        for fname in filenames:
-            ext = fname.rsplit(".", 1)[-1].lower() if "." in fname else ""
+    if recursive:
+        for dirpath, _dirnames, filenames in os.walk(root):
+            for fname in filenames:
+                ext = fname.rsplit(".", 1)[-1].lower() if "." in fname else ""
+                if ext in SUPPORTED_EXTS:
+                    results.append(os.path.join(dirpath, fname))
+    else:
+        for entry in os.scandir(root):
+            if not entry.is_file():
+                continue
+            ext = entry.name.rsplit(".", 1)[-1].lower() if "." in entry.name else ""
             if ext in SUPPORTED_EXTS:
-                results.append(os.path.join(dirpath, fname))
+                results.append(entry.path)
     return sorted(results)
+
+
+def _external_url(library_name: str, library_root: str, file_path: str) -> str:
+    rel_path = os.path.relpath(file_path, library_root)
+    rel_path = rel_path.replace(os.sep, "/")
+    safe_rel = "/".join(quote(part, safe="") for part in rel_path.split("/") if part and part != ".")
+    safe_library = quote(library_name, safe="")
+    return f"/external/{safe_library}/{safe_rel}"
 
 
 @shared_task(
@@ -88,7 +104,7 @@ def scan_library(self, library_id: int):
     # Phase 1: discover all files on disk
     # -----------------------------------------------------------------------
     try:
-        disk_paths = set(_scan_directory(library.path))
+        disk_paths = set(_scan_directory(library.path, recursive=bool(getattr(library, "recursive", True))))
     except SoftTimeLimitExceeded:
         library.last_scan_status = "FAILED"
         library.last_scan_at = datetime.datetime.now(datetime.timezone.utc)
@@ -251,7 +267,9 @@ def scan_library(self, library_id: int):
                 can_create_tags=True,
                 tag_char_limit=current_app.config["TAG_CHAR_LIMIT"],
                 post_min_tags=current_app.config["POST_MIN_TAGS"],
-                imported_from=path,
+                imported_from=_external_url(library.name, library.path, path),
+                is_external=True,
+                persist_file=False,
             )
 
             file_rec.status = "IMPORTED"

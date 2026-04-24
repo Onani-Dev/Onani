@@ -209,6 +209,8 @@ def create_post(
     tag_char_limit: int,
     post_min_tags: int,
     imported_from: str = None,
+    is_external: bool = False,
+    persist_file: bool = True,
 ) -> Post:
     """Persist a new post (image + metadata) to the database and filesystem.
 
@@ -243,6 +245,7 @@ def create_post(
     post.type = FileType.VIDEO if file_type in _VIDEO_FORMATS else FileType.IMAGE
     post.original_filename = original_filename
     post.imported_from = imported_from
+    post.is_external = is_external
 
     # Add to session and flush to get a DB-assigned primary key BEFORE creating
     # any post_tags associations. Without this, SQLAlchemy's autoflush fires
@@ -260,17 +263,18 @@ def create_post(
 
     set_tags(post, tags, set(), can_create_tags, tag_char_limit, post_min_tags)
 
-    filepath = ensure_shard_dir(images_dir, filename)
-    with open(filepath, "wb") as f:
-        image_file.seek(0)
-        f.write(image_file.read())
+    if persist_file:
+        filepath = ensure_shard_dir(images_dir, filename)
+        with open(filepath, "wb") as f:
+            image_file.seek(0)
+            f.write(image_file.read())
 
-    # For videos, generate a JPEG thumbnail used by Flask thumbnail/sample routes
-    if file_type in _VIDEO_FORMATS:
-        stem = filename.rsplit(".", 1)[0]
-        thumb_name = f"{stem}.jpg"
-        thumb_path = ensure_shard_dir(images_dir, thumb_name)
-        create_video_thumbnail(filepath, thumb_path)
+        # For videos, generate a JPEG thumbnail used by Flask thumbnail/sample routes
+        if file_type in _VIDEO_FORMATS:
+            stem = filename.rsplit(".", 1)[0]
+            thumb_name = f"{stem}.jpg"
+            thumb_path = ensure_shard_dir(images_dir, thumb_name)
+            create_video_thumbnail(filepath, thumb_path)
 
     uploader.post_count = uploader.posts.with_entities(func.count()).scalar()
     db.session.commit()

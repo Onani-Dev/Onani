@@ -139,6 +139,15 @@ class Post(db.Model):
 
     hidden: bool = db.Column(db.Boolean, default=False)
 
+    # True when this post's original media is served from an external library.
+    is_external: bool = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        index=True,
+    )
+
     @validates("description")
     def validate_description(self, key, description):
         if description is None:
@@ -290,6 +299,8 @@ class Post(db.Model):
 
     @property
     def file_url(self) -> str:
+        if self.is_external and self.imported_from and self.imported_from.startswith("/external/"):
+            return self.imported_from
         shard = self.filename[:2]
         return f"/images/{shard}/{self.filename}"
 

@@ -25,6 +25,10 @@ class ExternalLibrary(db.Model):
         db.Boolean, nullable=False, default=True, server_default="true"
     )
 
+    recursive: bool = db.Column(
+        db.Boolean, nullable=False, default=True, server_default="true"
+    )
+
     # Default explicitness rating applied to imported posts if not otherwise
     # determined.  One of "g" / "q" / "e" (PostRating values).
     default_rating: str = db.Column(

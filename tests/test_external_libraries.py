@@ -44,16 +44,63 @@ class TestLibraryAPI:
         with tempfile.TemporaryDirectory() as tmpdir:
             resp = client.post(
                 "/api/v1/libraries",
-                json={"name": "My Library", "path": tmpdir, "default_rating": "g", "default_tags": "foo bar"},
+                json={"name": "My Library", "path": tmpdir, "recursive": False, "default_rating": "g", "default_tags": "foo bar"},
                 content_type="application/json",
             )
             assert resp.status_code == 201
             data = json.loads(resp.data)
             assert data["name"] == "My Library"
             assert data["path"] == tmpdir
+            assert data["recursive"] is False
             assert data["default_rating"] == "g"
             assert data["default_tags"] == "foo bar"
             assert data["owner_id"] == admin.id
+
+    def test_disable_library_hides_linked_posts(self, admin_client, app, db):
+        from onani.models import ExternalLibrary, ExternalLibraryFile, Post
+        import datetime
+
+        client, admin = admin_client
+        with app.app_context():
+            lib = ExternalLibrary(name="HideLib", path="/tmp/hidelib", owner_id=admin.id)
+            db.session.add(lib)
+            db.session.flush()
+
+            post = Post(
+                uploader_id=admin.id,
+                filename="hidelib-post.png",
+                sha256_hash="hidelibsha256",
+                md5_hash="hidelibmd5",
+                width=1,
+                height=1,
+                filesize=64,
+                file_type="png",
+                original_filename="hidelib-post.png",
+            )
+            db.session.add(post)
+            db.session.flush()
+
+            rec = ExternalLibraryFile(
+                library_id=lib.id,
+                file_path="/tmp/hidelib/a.png",
+                status="IMPORTED",
+                post_id=post.id,
+                first_seen_at=datetime.datetime.utcnow(),
+                last_seen_at=datetime.datetime.utcnow(),
+            )
+            db.session.add(rec)
+            db.session.commit()
+
+            resp = client.put(
+                f"/api/v1/libraries/{lib.id}",
+                json={"enabled": False},
+                content_type="application/json",
+            )
+            assert resp.status_code == 200
+
+            db.session.expire_all()
+            post_fresh = Post.query.get(post.id)
+            assert post_fresh.hidden is True
 
     def test_create_library_relative_path_rejected(self, admin_client, app):
         client, admin = admin_client
@@ -375,6 +422,60 @@ class TestScanTask:
                 assert filerec is not None
                 assert filerec.status == "IMPORTED"
                 assert filerec.post_id is not None
+
+                post = Post.query.get(filerec.post_id)
+                assert post is not None
+                assert post.is_external is True
+                assert post.imported_from.startswith("/external/ImageDir/")
+                assert tmpdir not in post.imported_from
+
+                media_path = os.path.join(app.config["IMAGES_DIR"], post.filename[:2], post.filename)
+                assert not os.path.exists(media_path)
+
+    def test_external_route_serves_file_and_hides_when_disabled(self, app, make_user, client):
+        from onani.models import ExternalLibrary
+        from onani import db as _db
+        from onani.tasks.library import scan_library
+        import uuid
+
+        with app.app_context():
+            user = make_user(username="scanuser_external_route", password="testpassword")
+            with tempfile.TemporaryDirectory() as tmpdir:
+                import struct, zlib
+
+                def _png_1x1():
+                    sig = b'\x89PNG\r\n\x1a\n'
+                    ihdr_data = struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0)
+                    ihdr_crc = zlib.crc32(b'IHDR' + ihdr_data) & 0xffffffff
+                    ihdr = struct.pack('>I', 13) + b'IHDR' + ihdr_data + struct.pack('>I', ihdr_crc)
+                    idat_raw = zlib.compress(b'\x00\xff\xff\x00')
+                    idat_crc = zlib.crc32(b'IDAT' + idat_raw) & 0xffffffff
+                    idat = struct.pack('>I', len(idat_raw)) + b'IDAT' + idat_raw + struct.pack('>I', idat_crc)
+                    iend_crc = zlib.crc32(b'IEND') & 0xffffffff
+                    iend = struct.pack('>I', 0) + b'IEND' + struct.pack('>I', iend_crc)
+                    return sig + ihdr + idat + iend
+
+                img_path = os.path.join(tmpdir, "a.png")
+                with open(img_path, "wb") as fh:
+                    fh.write(_png_1x1())
+
+                lib_name = f"RouteLib-{uuid.uuid4().hex[:8]}"
+                lib = ExternalLibrary(name=lib_name, path=tmpdir, owner_id=user.id)
+                _db.session.add(lib)
+                _db.session.commit()
+
+                result = scan_library(lib.id)
+                assert result["imported"] == 1
+
+                ok = client.get(f"/external/{lib_name}/a.png")
+                assert ok.status_code == 200
+
+                lib = ExternalLibrary.query.get(lib.id)
+                lib.enabled = False
+                _db.session.commit()
+
+                hidden = client.get(f"/external/{lib_name}/a.png")
+                assert hidden.status_code == 404
 
     def test_scan_skips_duplicate_hash(self, app, make_user):
         """A second scan of the same directory should produce 0 new imports (all duplicates)."""

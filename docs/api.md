@@ -616,6 +616,53 @@ Poll the status of an import task.
 
 ---
 
+## External Libraries
+
+### GET /libraries
+
+List configured external libraries. Requires **moderator** role.
+
+### POST /libraries
+
+Create an external library. Requires `ADMINISTRATION` permission.
+
+**Request body** (JSON):
+
+| Field            | Type    | Required | Description |
+| ---------------- | ------- | -------- | ----------- |
+| `name`           | string  | Yes      | Display name used in external URLs |
+| `path`           | string  | Yes      | Absolute server path |
+| `enabled`        | boolean | No       | Enable/disable serving and scans (default `true`) |
+| `recursive`      | boolean | No       | Include nested directories when scanning (default `true`) |
+| `default_rating` | string  | No       | `g` / `q` / `e` |
+| `default_tags`   | string  | No       | Space-separated tags |
+
+### PUT /libraries/{id}
+
+Update a library. When `enabled` is set to `false`, imported posts linked to that library are hidden.
+
+### POST /libraries/{id}/scan
+
+Start a scan/import task for the library.
+
+### GET /libraries/{id}/scan
+
+Get current scan status and task metadata.
+
+### GET /libraries/{id}/files
+
+List tracked files for a library (paginated).
+
+---
+
+## Media Routes
+
+### GET /external/{library_name}/{relative_path}
+
+Serve external-library source files through Flask without exposing host filesystem paths. Returns `404` when the library is disabled.
+
+---
+
 ## Admin
 
 All admin endpoints require authentication. Role requirements are noted per endpoint.
@@ -765,6 +812,7 @@ Create a news article. Requires **admin** role.
   "rating": "s",
   "score": 3,
   "source": "https://example.com/post/1",
+  "is_external": false,
   "description": "",
   "created_at": "2024-01-01T00:00:00",
   "uploader": 7,
