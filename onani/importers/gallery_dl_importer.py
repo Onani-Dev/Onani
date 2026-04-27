@@ -170,14 +170,19 @@ def _extract_collection_name(meta: dict, url: str, multi: bool) -> Optional[str]
     Community keys (subreddit, board, …) are checked for every import.
     Gallery keys (album, pool, …) are only used when *multi* is True.
 
-    RedGifs special case: only use a niche as the collection name. A post
-    that belongs to no niche gets no collection, regardless of uploader.
+    RedGifs special case: derive the collection name from the URL path so
+    that user-profile and niche-page imports get the correct name regardless
+    of which niche tags the individual posts carry.
     """
-    # RedGifs: collection only if the post belongs to a niche
+    # RedGifs: collection name comes from the URL path, not from post metadata.
+    # /users/{name}  → use the username
+    # /niches/{name} → use the niche slug from the URL
+    # /search, /gifs, etc. → no collection
     if meta.get("category") == "redgifs":
-        niches = meta.get("niches") or []
-        if isinstance(niches, (list, tuple)) and niches:
-            return str(niches[0]).strip() or None
+        from urllib.parse import urlparse as _urlparse
+        _parts = [p for p in _urlparse(url).path.strip("/").split("/") if p]
+        if len(_parts) >= 2 and _parts[0] in ("users", "niches"):
+            return _parts[1]
         return None
 
     # Community first — applies to single posts too

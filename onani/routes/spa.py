@@ -34,7 +34,11 @@ def _resolve_external_path(library_name: str, relative_path: str) -> str:
     if not relative_path or relative_path.startswith("/"):
         abort(404)
 
-    library = ExternalLibrary.query.filter_by(name=library_name).first()
+    library = None
+    if library_name.isdigit():
+        library = ExternalLibrary.query.get(int(library_name))
+    if library is None:
+        library = ExternalLibrary.query.filter_by(name=library_name).first()
     if library is None or not _is_enabled(library.enabled):
         abort(404)
 

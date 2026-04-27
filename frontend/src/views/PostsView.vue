@@ -67,8 +67,10 @@ const perPage = ref(Number(route.query.per_page) || 30)
 const nextPage = ref(null)
 const prevPage = ref(null)
 const total = ref(0)
-const wallMode = ref(false)
+const wallMode = ref(localStorage.getItem('postsWallMode') === '1')
 const totalPages = computed(() => total.value && perPage.value ? Math.ceil(total.value / perPage.value) : null)
+
+watch(wallMode, v => localStorage.setItem('postsWallMode', v ? '1' : '0'))
 
 // ── Tag input state ──
 // tokens = already-committed tags (e.g. ["dress", "-male"])

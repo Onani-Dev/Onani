@@ -85,9 +85,10 @@
 
               <template v-if="post.source">
                 <span class="info-label">Source</span>
-                <a :href="post.source" target="_blank" rel="noopener noreferrer" class="source-link" :title="post.source">
+                <a v-if="sourceIsUrl" :href="post.source" target="_blank" rel="noopener noreferrer" class="source-link" :title="post.source">
                   {{ sourceHostname }}
                 </a>
+                <span v-else>{{ sourceHostname }}</span>
               </template>
 
               <template v-if="post.imported_from && post.imported_from !== post.source">
@@ -580,6 +581,14 @@ const repliesByParent = computed(() => {
 
 const sourceHostname = computed(() => {
   try { return new URL(post.value?.source || '').hostname } catch { return post.value?.source || '' }
+})
+const sourceIsUrl = computed(() => {
+  try {
+    const url = new URL(post.value?.source || '')
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
 })
 const importedHostname = computed(() => {
   try { return new URL(post.value?.imported_from || '').hostname } catch { return post.value?.imported_from || '' }

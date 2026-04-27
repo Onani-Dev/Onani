@@ -74,6 +74,7 @@ services:
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - /mnt/bignas/vault/XXX/gallery-dl:/mnt/bignas/vault/XXX/gallery-dl:ro
       - ./logs:/logs
       - ./:/onani
       - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
@@ -104,6 +105,7 @@ services:
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - /mnt/bignas/vault/XXX/gallery-dl:/mnt/bignas/vault/XXX/gallery-dl:ro
       - ./logs:/logs
       - ./:/onani
 
@@ -122,6 +124,7 @@ services:
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
+      - /mnt/bignas/vault/XXX/gallery-dl:/mnt/bignas/vault/XXX/gallery-dl:ro
       - ./logs:/logs
       - ./:/onani
       - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro

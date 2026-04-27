@@ -55,7 +55,11 @@ def _reconcile_stale_pending_jobs(domain: str, cutoff: datetime.datetime) -> Non
             task_state = import_post.AsyncResult(stale_job.task_id).state
             if task_state in ("SUCCESS", "FAILURE", "REVOKED"):
                 stale_job.status = task_state
-            elif task_state == "PENDING":
+            elif task_state in ("PENDING", "PROGRESS", "STARTED"):
+                # PENDING  → never dispatched / orphaned after worker restart
+                # PROGRESS / STARTED → killed mid-flight (e.g. SIGKILL from hard
+                #   time limit); the finally block never ran so the DB record was
+                #   never updated to a terminal state.
                 stale_job.status = "REVOKED"
                 stale_job.result = {
                     "error": "Task was orphaned after worker restart and has been revoked."

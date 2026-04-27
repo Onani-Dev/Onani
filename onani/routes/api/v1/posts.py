@@ -417,6 +417,7 @@ class PostFavourites(Resource):
             "page": args["page"],
             "next_page": args["page"] + 1 if paginated.has_next else None,
             "prev_page": args["page"] - 1 if paginated.has_prev else None,
+            "total": paginated.total,
         }
 
 

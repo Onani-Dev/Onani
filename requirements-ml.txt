@@ -1,3 +1,7 @@
 deepdanbooru>=1.0.4
-tensorflow-cpu>=2.0.0
+# GPU training (AMD ROCm) — requires Python 3.9-3.11 and tensorflow-rocm from AMD's repo.
+# Use scripts/setup_ml_env.sh to set up the .venv-ml environment automatically.
+# Fallback for environments without ROCm (CPU only, Python 3.13):
+tensorflow-cpu>=2.0.0; python_version >= "3.13"
+tensorflow-rocm; python_version < "3.13"
 tensorflow-io>=0.34.0; python_version < "3.13"

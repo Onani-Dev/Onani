@@ -52,6 +52,10 @@ export default defineConfig({
         target: 'http://flask:5000',
         changeOrigin: true,
       },
+      '/external': {
+        target: 'http://flask:5000',
+        changeOrigin: true,
+      },
     },
   },
 })

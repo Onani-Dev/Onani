@@ -20,12 +20,12 @@
         </tr>
       </tbody>
     </table>
-    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" @navigate="goToPage" @update:perPage="onPerPage" />
+    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" :total-pages="totalPages" @navigate="goToPage" @update:perPage="onPerPage" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/api/client'
 import Pagination from '@/components/Pagination.vue'
 
@@ -33,15 +33,18 @@ const tags = ref([])
 const page = ref(1)
 const nextPage = ref(null)
 const prevPage = ref(null)
+const total = ref(0)
 const sort = ref('post_count')
 const order = ref('desc')
 const perPage = ref(30)
+const totalPages = computed(() => total.value && perPage.value ? Math.ceil(total.value / perPage.value) : null)
 
 async function fetchTags() {
   const { data } = await api.get('/tags', { params: { page: page.value, per_page: perPage.value, sort: sort.value, order: order.value, min_posts: 1 } })
   tags.value = data.data
   nextPage.value = data.next_page
   prevPage.value = data.prev_page
+  total.value = data.total ?? 0
 }
 
 function onSortChange() {

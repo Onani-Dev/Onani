@@ -171,6 +171,60 @@ If your package only provides separate model and tags files, configure:
 - `DEEPDANBOORU_MODEL_PATH=/models/deepdanbooru/<model-file>`
 - `DEEPDANBOORU_TAGS_PATH=/models/deepdanbooru/tags.txt`
 
+## Build a DeepDanbooru Training Dataset (gallery-dl)
+
+The dataset pipeline is built to match DeepDanbooru's expected dataset structure:
+
+`scripts/deepdanbooru_pipeline.sh` supports two modes:
+
+1. `scrape` mode
+2. `train` mode
+
+### Scrape mode (all 3 sources)
+
+Sources:
+
+- Danbooru: `https://danbooru.donmai.us/posts?tags=status%3Aactive`
+- Realbooru: `https://realbooru.com/index.php?page=post&s=list&tags=+-gif+-webm`
+
+Run:
+
+```bash
+scripts/deepdanbooru_pipeline.sh --mode scrape --limit 0 --min-tags 1
+```
+
+Resulting dataset layout (exact DeepDanbooru format):
+
+```text
+dataset/deepdanbooru/dataset/
+├── images/
+│   ├── 00/
+│   │   └── 0000... .jpg
+│   ├── 01/
+│   └── ...
+└── dataset.sqlite
+```
+
+Notes:
+
+- Files are merged from all sources into a single dataset.
+- Only `jpg`/`jpeg`/`png` are retained for strict DeepDanbooru loader compatibility.
+- `tags.txt` for project training is written to `dataset/deepdanbooru/tags.txt` (outside dataset folder).
+
+### Train mode
+
+Run:
+
+```bash
+scripts/deepdanbooru_pipeline.sh --mode train
+```
+
+If `deepdanbooru` is missing:
+
+```bash
+pip install -r requirements-ml.txt
+```
+
 ## Testing
 
 ```bash
@@ -186,12 +240,13 @@ Version source of truth is the `VERSION` file.
 Sync version files only:
 
 ```bash
-./scripts/sync-version.sh --bump-beta
+./scripts/sync-version.sh
 ```
 
-Other bump modes:
+Version bump modes:
 
 ```bash
+./scripts/sync-version.sh --bump-beta
 ./scripts/sync-version.sh --bump-patch
 ./scripts/sync-version.sh --bump-minor
 ./scripts/sync-version.sh --bump-major
@@ -203,7 +258,7 @@ Set an explicit version:
 ./scripts/sync-version.sh --set 1.1.0-beta.1
 ```
 
-Create commit + tag + push:
+Bump version + commit + tag + push:
 
 ```bash
 ./scripts/release.sh --bump-beta
@@ -224,7 +279,3 @@ Create commit + tag without pushing:
 Releases are tag-driven. Pushing a `v*` tag creates a GitHub Release and publishes container images (`app`, `celery`) to GHCR. Tags matching `*-beta.*` are marked as prereleases.
 
 Container image publishing runs on tag pushes (and manual dispatch), not on regular branch pushes.
-
-## License
-
-Proprietary — Sanvia Digital LTD. See [LICENSE](LICENSE) for details.

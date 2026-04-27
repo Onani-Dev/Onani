@@ -9,30 +9,38 @@
       :page="page"
       :next-page="nextPage"
       :prev-page="prevPage"
+      :per-page="perPage"
+      :per-page-options="[20, 40, 50]"
+      :total-pages="totalPages"
       @navigate="goToPage"
+      @update:perPage="onPerPage"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/api/client'
 import Pagination from '@/components/Pagination.vue'
 import PostThumb from '@/components/PostThumb.vue'
 
 const posts = ref([])
 const page = ref(1)
+const perPage = ref(20)
 const nextPage = ref(null)
 const prevPage = ref(null)
+const total = ref(0)
 const loading = ref(true)
+const totalPages = computed(() => total.value && perPage.value ? Math.ceil(total.value / perPage.value) : null)
 
 async function fetchFavourites() {
   loading.value = true
   try {
-    const { data } = await api.get('/posts/favourites', { params: { page: page.value } })
+    const { data } = await api.get('/posts/favourites', { params: { page: page.value, per_page: perPage.value } })
     posts.value = data.data ?? []
     nextPage.value = data.next_page
     prevPage.value = data.prev_page
+    total.value = data.total ?? 0
   } finally {
     loading.value = false
   }
@@ -40,6 +48,12 @@ async function fetchFavourites() {
 
 function goToPage(p) {
   page.value = p
+  fetchFavourites()
+}
+
+function onPerPage(n) {
+  perPage.value = n
+  page.value = 1
   fetchFavourites()
 }
 

@@ -570,6 +570,27 @@
               {{ scanningAllLibraries ? 'Starting scans…' : 'Scan all enabled' }}
             </button>
             <button class="btn-sm" @click="fetchLibraries" :disabled="librariesLoading">↻</button>
+            <div class="live-refresh-wrap">
+              <button
+                class="btn-sm live-refresh-btn"
+                :class="{ active: libraryLiveInterval > 0 }"
+                @click="libraryLiveIntervalPickerOpen = !libraryLiveIntervalPickerOpen"
+                :title="libraryLiveInterval > 0 ? 'Live refresh: ' + LIBRARY_REFRESH_INTERVALS.find(o => o.value === libraryLiveInterval)?.label : 'Live refresh: Off'"
+              >
+                <span v-if="libraryLiveInterval > 0" class="live-dot"></span>
+                Live
+                <span class="live-chevron">▾</span>
+              </button>
+              <div v-if="libraryLiveIntervalPickerOpen" class="live-refresh-picker">
+                <button
+                  v-for="opt in LIBRARY_REFRESH_INTERVALS"
+                  :key="opt.value"
+                  class="live-refresh-option"
+                  :class="{ selected: libraryLiveInterval === opt.value }"
+                  @click="setLibraryLiveInterval(opt.value)"
+                >{{ opt.label }}</button>
+              </div>
+            </div>
           </div>
 
           <div v-if="libraryWizardVisible" class="library-wizard">
@@ -596,6 +617,10 @@
             <div v-if="libraryWizardStep === 2" class="wizard-body">
               <label class="wizard-label">Absolute Filesystem Path</label>
               <input v-model="libraryWizardForm.path" class="full-width" placeholder="/images/external/my-folder" />
+              <label class="wizard-inline-checkbox">
+                <input type="checkbox" v-model="libraryWizardForm.recursive" />
+                Scan subdirectories recursively
+              </label>
               <p class="text-muted">Path must be absolute and readable inside the Flask/Celery container.</p>
             </div>
 
@@ -620,6 +645,7 @@
               <div><strong>Name</strong><p>{{ libraryWizardForm.name || '—' }}</p></div>
               <div><strong>Path</strong><p>{{ libraryWizardForm.path || '—' }}</p></div>
               <div><strong>Enabled</strong><p>{{ libraryWizardForm.enabled ? 'Yes' : 'No' }}</p></div>
+              <div><strong>Recursive</strong><p>{{ libraryWizardForm.recursive ? 'Yes' : 'No' }}</p></div>
               <div><strong>Default Rating</strong><p>{{ libraryWizardForm.default_rating }}</p></div>
               <div><strong>Default Tags</strong><p>{{ libraryWizardForm.default_tags || '—' }}</p></div>
             </div>
@@ -695,7 +721,11 @@
               </div>
 
               <div v-if="selectedLibraryScan.meta?.logs?.length" class="import-logs">
-                <pre class="log-output log-box">{{ joinLines(selectedLibraryScan.meta.logs) }}</pre>
+                <pre
+                  ref="libraryScanLogEl"
+                  class="log-output log-box"
+                  @scroll.passive="onLibraryScanLogScroll"
+                >{{ joinLines(selectedLibraryScan.meta.logs) }}</pre>
               </div>
 
               <div class="library-files-toolbar">
@@ -864,6 +894,7 @@ const libraryWizardForm = reactive({
   name: '',
   path: '',
   enabled: true,
+  recursive: true,
   default_rating: 'q',
   default_tags: '',
   run_initial_scan: true,
@@ -876,6 +907,18 @@ const selectedLibraryFilesPages = ref(1)
 const selectedLibraryFilesStatus = ref('')
 const selectedLibraryScan = ref({ status: null, task_id: null, meta: null, result: null })
 const libraryScanPollers = {}
+const libraryScanLogEl = ref(null)
+const libraryScanAutoFollow = ref(true)
+
+const LIBRARY_REFRESH_INTERVALS = [
+  { label: 'Off', value: 0 },
+  { label: '5s',  value: 5000 },
+  { label: '10s', value: 10000 },
+  { label: '30s', value: 30000 },
+]
+const libraryLiveInterval = ref(0)
+const libraryLiveIntervalPickerOpen = ref(false)
+let libraryLiveTimer = null
 
 const newUser = reactive({ username: '', email: '', password: '', role: 'MEMBER' })
 const creatingUser = ref(false)
@@ -918,6 +961,24 @@ const logSearch = ref('')
 
 function roleName(val) { return ROLE_VALUES[val] || val }
 function joinLines(arr) { return arr.join('\n') }
+
+function isNearBottom(el, threshold = 24) {
+  if (!el) return true
+  return (el.scrollHeight - (el.scrollTop + el.clientHeight)) <= threshold
+}
+
+function onLibraryScanLogScroll() {
+  if (!libraryScanLogEl.value) return
+  libraryScanAutoFollow.value = isNearBottom(libraryScanLogEl.value)
+}
+
+function scrollLibraryScanLogToBottom(force = false) {
+  const el = libraryScanLogEl.value
+  if (!el) return
+  if (force || libraryScanAutoFollow.value) {
+    el.scrollTop = el.scrollHeight
+  }
+}
 
 function toggleError(id) {
   const s = new Set(expandedErrors.value)
@@ -1012,6 +1073,15 @@ function isLibraryScanActive(lib) {
   return status === 'SCANNING' || status === 'PROGRESS' || status === 'PENDING'
 }
 
+function setLibraryLiveInterval(ms) {
+  libraryLiveInterval.value = ms
+  libraryLiveIntervalPickerOpen.value = false
+  if (libraryLiveTimer) { clearInterval(libraryLiveTimer); libraryLiveTimer = null }
+  if (ms > 0) {
+    libraryLiveTimer = setInterval(() => fetchLibraries(), ms)
+  }
+}
+
 async function fetchLibraries() {
   librariesLoading.value = true
   try {
@@ -1043,6 +1113,7 @@ function resetLibraryWizard() {
     name: '',
     path: '',
     enabled: true,
+    recursive: true,
     default_rating: 'q',
     default_tags: '',
     run_initial_scan: true,
@@ -1064,6 +1135,7 @@ function openEditLibraryWizard(lib) {
     name: lib.name,
     path: lib.path,
     enabled: !!lib.enabled,
+    recursive: lib.recursive !== false,
     default_rating: lib.default_rating || 'q',
     default_tags: lib.default_tags || '',
     run_initial_scan: false,
@@ -1107,6 +1179,7 @@ async function saveLibraryWizard() {
     name: libraryWizardForm.name.trim(),
     path: libraryWizardForm.path.trim(),
     enabled: !!libraryWizardForm.enabled,
+    recursive: !!libraryWizardForm.recursive,
     default_rating: libraryWizardForm.default_rating,
     default_tags: libraryWizardForm.default_tags.trim(),
   }
@@ -1457,11 +1530,26 @@ watch(activeTab, (tab) => {
   }
 })
 
+watch(
+  () => selectedLibraryScan.value.meta?.logs?.length || 0,
+  async () => {
+    await nextTick()
+    scrollLibraryScanLogToBottom()
+  }
+)
+
+watch(selectedLibraryId, async () => {
+  libraryScanAutoFollow.value = true
+  await nextTick()
+  scrollLibraryScanLogToBottom(true)
+})
+
 onUnmounted(() => {
   Object.values(pollTimers).forEach(clearTimeout)
   Object.values(libraryScanPollers).forEach(clearTimeout)
   if (refreshTimer) clearInterval(refreshTimer)
   if (clockTimer) clearInterval(clockTimer)
+  if (libraryLiveTimer) clearInterval(libraryLiveTimer)
 })
 
 async function refreshImports() {
@@ -2434,6 +2522,65 @@ function switchLogType(type) {
 .btn-sm:hover { background: var(--item-hover); }
 .btn-sm.danger { color: #df8f8f; }
 .btn-sm.danger:hover { background: #5a2d2d; }
+
+/* ── Live-refresh toggle ──────────────────────────────────── */
+.live-refresh-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.live-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.live-refresh-btn.active {
+  color: #7ecf7e;
+  background: rgba(126, 207, 126, 0.12);
+}
+.live-refresh-btn.active:hover { background: rgba(126, 207, 126, 0.22); }
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7ecf7e;
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+.live-chevron { font-size: 0.7em; opacity: 0.7; }
+.live-refresh-picker {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--bg-overlay, #222);
+  border: 1px solid var(--border, #444);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+  z-index: 200;
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  overflow: hidden;
+}
+.live-refresh-option {
+  font: inherit;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 6px 14px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.live-refresh-option:hover { background: var(--item-hover); }
+.live-refresh-option.selected {
+  color: #7ecf7e;
+  font-weight: 600;
+}
 
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 689px) {

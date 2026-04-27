@@ -287,8 +287,24 @@ class TestGalleryDlImporter:
             assert result.collection_name is None
 
     @patch("gallery_dl.job.DataJob")
-    def test_get_post_redgifs_niche_becomes_collection(self, mock_datajob_cls, app):
-        """RedGifs post with a niche uses the niche as the collection name."""
+    def test_get_post_redgifs_user_url_becomes_collection(self, mock_datajob_cls, app):
+        """RedGifs /users/{name} URL uses the username as the collection name."""
+        with app.app_context():
+            from onani.importers.gallery_dl_importer import get_post
+
+            mock_job = MagicMock()
+            mock_job.data_urls = ["https://cdn.redgifs.com/video.mp4"]
+            mock_job.data_meta = [{"userName": "someone", "category": "redgifs", "niches": ["Amateur"]}]
+            mock_job.data_post = [{"tags": [], "userName": "someone", "category": "redgifs", "niches": ["Amateur"]}]
+            mock_datajob_cls.return_value = mock_job
+
+            result = get_post("https://redgifs.com/users/someone")
+            assert result is not None
+            assert result.collection_name == "someone"
+
+    @patch("gallery_dl.job.DataJob")
+    def test_get_post_redgifs_watch_url_no_collection(self, mock_datajob_cls, app):
+        """RedGifs /watch/{id} URL (single post) yields no collection name."""
         with app.app_context():
             from onani.importers.gallery_dl_importer import get_post
 
@@ -300,7 +316,7 @@ class TestGalleryDlImporter:
 
             result = get_post("https://redgifs.com/watch/xyz")
             assert result is not None
-            assert result.collection_name == "Amateur"
+            assert result.collection_name is None
 
     @patch("gallery_dl.job.DataJob")
     def test_get_post_subreddit_becomes_collection(self, mock_datajob_cls, app):
@@ -355,11 +371,18 @@ class TestExtractCollectionName:
             meta = {"userName": "artist_xyz", "category": "redgifs"}
             assert _extract_collection_name(meta, "https://redgifs.com/...", False) is None
 
-    def test_redgifs_niche_used_as_collection(self, app):
+    def test_redgifs_niche_url_used_as_collection(self, app):
         with app.app_context():
             from onani.importers.gallery_dl_importer import _extract_collection_name
             meta = {"userName": "artist_xyz", "category": "redgifs", "niches": ["Amateur", "MILF"]}
-            assert _extract_collection_name(meta, "https://redgifs.com/...", False) == "Amateur"
+            # Niche metadata is ignored; collection name comes from the URL path.
+            assert _extract_collection_name(meta, "https://redgifs.com/niches/amateur", False) == "amateur"
+
+    def test_redgifs_user_url_used_as_collection(self, app):
+        with app.app_context():
+            from onani.importers.gallery_dl_importer import _extract_collection_name
+            meta = {"userName": "artist_xyz", "category": "redgifs"}
+            assert _extract_collection_name(meta, "https://redgifs.com/users/artist_xyz", False) == "artist_xyz"
 
     def test_category_not_matched(self, app):
         """'category' is intentionally excluded from _COMMUNITY_KEYS."""

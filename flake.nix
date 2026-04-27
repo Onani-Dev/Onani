@@ -21,15 +21,10 @@
       {
         devShells.default = pkgs.mkShell {
           packages = [
-            # Python
             python
             python.pkgs.pip
             python.pkgs.virtualenv
-
-            # Node.js (frontend)
             pkgs.nodejs_22
-
-            # Native deps required by pip packages
             pkgs.gcc
             pkgs.libffi
             pkgs.openssl
@@ -37,18 +32,13 @@
             pkgs.libjpeg
             pkgs.libxml2
             pkgs.libxslt
-
-            # Runtime tools
             pkgs.ffmpeg
             pkgs.gallery-dl
-
-            # Database / cache clients (for local dev without Docker)
             pkgs.postgresql_14
             pkgs.redis
           ];
 
           shellHook = ''
-            # Activate or create a project-local virtualenv
             if [ ! -d .venv ]; then
               echo "Creating virtualenv in .venv ..."
               ${python}/bin/python -m venv .venv

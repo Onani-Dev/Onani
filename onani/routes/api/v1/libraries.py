@@ -159,6 +159,76 @@ class LibraryDetail(Resource):
     @permissions_required(UserPermissions.ADMINISTRATION)
     def delete(self, library_id: int):
         lib = ExternalLibrary.query.get_or_404(library_id)
+
+        # Collect post IDs that were imported exclusively by this library.
+        # We only delete posts that are external (no local copy) and are not
+        # referenced by any *other* library's file records.
+        post_ids_in_lib = (
+            db.session.query(ExternalLibraryFile.post_id)
+            .filter(
+                ExternalLibraryFile.library_id == library_id,
+                ExternalLibraryFile.post_id.isnot(None),
+            )
+            .subquery()
+        )
+        post_ids_in_other_libs = (
+            db.session.query(ExternalLibraryFile.post_id)
+            .filter(
+                ExternalLibraryFile.library_id != library_id,
+                ExternalLibraryFile.post_id.isnot(None),
+            )
+            .subquery()
+        )
+        # External posts linked only to this library — safe to delete.
+        posts_to_delete = (
+            db.session.query(Post.id)
+            .filter(
+                Post.id.in_(post_ids_in_lib),
+                Post.is_external.is_(True),
+                Post.id.notin_(post_ids_in_other_libs),
+            )
+            .subquery()
+        )
+
+        # Delete post_tags associations first (many-to-many, no cascade).
+        from onani.models.post._post import post_tags, post_upvotes, post_downvotes, post_waters
+        from onani.models.post.comment import PostComment, comment_upvotes
+        from onani.models.post.note import Note
+
+        for tbl in (post_tags, post_upvotes, post_downvotes, post_waters):
+            db.session.execute(
+                tbl.delete().where(tbl.c.post_id.in_(posts_to_delete))
+            )
+
+        # Delete comment upvotes then comments (comments.post_id has no ON DELETE CASCADE).
+        comment_ids = (
+            db.session.query(PostComment.id)
+            .filter(PostComment.post_id.in_(posts_to_delete))
+            .subquery()
+        )
+        db.session.execute(
+            comment_upvotes.delete().where(comment_upvotes.c.comment_id.in_(comment_ids))
+        )
+        PostComment.query.filter(PostComment.post_id.in_(posts_to_delete)).delete(
+            synchronize_session=False
+        )
+
+        # Delete notes (notes.post_id has no ON DELETE CASCADE).
+        Note.query.filter(Note.post_id.in_(posts_to_delete)).delete(
+            synchronize_session=False
+        )
+
+        # Delete the posts themselves.
+        Post.query.filter(Post.id.in_(posts_to_delete)).delete(
+            synchronize_session=False
+        )
+
+        # Bulk-delete all child file records in a single SQL statement so that
+        # large libraries (hundreds of thousands of files) don't require loading
+        # every row into the SQLAlchemy identity map.
+        ExternalLibraryFile.query.filter_by(library_id=library_id).delete(
+            synchronize_session=False
+        )
         db.session.delete(lib)
         db.session.commit()
         return {"message": "Library deleted."}

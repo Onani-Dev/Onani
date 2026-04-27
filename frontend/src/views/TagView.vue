@@ -37,7 +37,7 @@
       <PostThumb v-for="post in posts" :key="post.id" :post="post" />
     </div>
     <p v-else-if="!loading">No posts found.</p>
-    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" @navigate="goToPage" @update:perPage="onPerPage" />
+    <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" :total-pages="totalPages" @navigate="goToPage" @update:perPage="onPerPage" />
   </div>
   <p v-else>Loading...</p>
 </template>
@@ -62,6 +62,8 @@ const page = ref(Number(route.query.page) || 1)
 const perPage = ref(Number(route.query.per_page) || 30)
 const nextPage = ref(null)
 const prevPage = ref(null)
+const total = ref(0)
+const totalPages = computed(() => total.value && perPage.value ? Math.ceil(total.value / perPage.value) : null)
 const editMode = ref(false)
 const editName = ref('')
 const editType = ref('')
@@ -85,6 +87,7 @@ async function fetchPosts() {
     posts.value = data.data
     nextPage.value = data.next_page
     prevPage.value = data.prev_page
+    total.value = data.total ?? 0
   } finally {
     loading.value = false
   }

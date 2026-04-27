@@ -207,8 +207,63 @@ class TestLibraryAPI:
             _db.session.expire_all()
             assert ExternalLibraryFile.query.get(file_id) is None
 
+    def test_delete_removes_external_posts(self, admin_client, app):
+        """Deleting a library also hard-deletes the external posts it imported."""
+        from onani.models import ExternalLibrary, ExternalLibraryFile, Post
+        from onani.services.posts import create_post
+        from onani import db as _db
+        import io, datetime, hashlib
 
-class TestLibraryScan:
+        client, admin = admin_client
+        with app.app_context():
+            lib = ExternalLibrary(name="PostDeleteLib", path="/tmp/pdl", owner_id=admin.id)
+            _db.session.add(lib)
+            _db.session.commit()
+            lib_id = lib.id
+            admin_id = admin.id
+
+        with app.app_context():
+            from onani.models import User
+            _admin = User.query.get(admin_id)
+            img_bytes = (
+                b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01'
+                b'\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00'
+                b'\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18'
+                b'\xd8N\x00\x00\x00\x00IEND\xaeB`\x82'
+            )
+            sha = hashlib.sha256(img_bytes).hexdigest()
+            post = create_post(
+                source="", description="", uploader=_admin, rating="q",
+                image_file=io.BytesIO(img_bytes), filesize=len(img_bytes),
+                hash_sha256=sha, hash_md5=hashlib.md5(img_bytes).hexdigest(),
+                width=1, height=1, filename=f"{sha}.png", file_type="png",
+                original_filename="test.png", tags={"tagme"},
+                images_dir="/tmp/pdl_images", can_create_tags=True,
+                tag_char_limit=100, post_min_tags=0,
+                is_external=True, persist_file=False,
+            )
+            post_id = post.id
+            now = datetime.datetime.utcnow()
+            lf = ExternalLibraryFile(
+                library_id=lib_id,
+                file_path="/tmp/pdl/test.png",
+                status="IMPORTED",
+                post_id=post_id,
+                sha256_hash=sha,
+                first_seen_at=now,
+                last_seen_at=now,
+                imported_at=now,
+            )
+            _db.session.add(lf)
+            _db.session.commit()
+
+        resp = client.delete(f"/api/v1/libraries/{lib_id}")
+        assert resp.status_code == 200
+
+        with app.app_context():
+            assert Post.query.get(post_id) is None
+
+
     """Triggering and polling scans."""
 
     def test_scan_requires_admin(self, logged_in_client, app):
@@ -426,7 +481,8 @@ class TestScanTask:
                 post = Post.query.get(filerec.post_id)
                 assert post is not None
                 assert post.is_external is True
-                assert post.imported_from.startswith("/external/ImageDir/")
+                assert post.source == "External"
+                assert post.imported_from.startswith(f"/external/{lib_id}/")
                 assert tmpdir not in post.imported_from
 
                 media_path = os.path.join(app.config["IMAGES_DIR"], post.filename[:2], post.filename)

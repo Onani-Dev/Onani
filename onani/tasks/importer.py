@@ -61,11 +61,7 @@ def _dispatch_next_queued(domain: str) -> None:
             pass
 
 
-@shared_task(
-    bind=True,
-    soft_time_limit=900,   # 15 min — raises SoftTimeLimitExceeded, allowing cleanup
-    time_limit=960,        # 16 min — hard kill if soft limit is ignored
-)
+@shared_task(bind=True)
 def import_post(self, post_url: str, importer_id: int, cookies_content: str = None):
     import datetime
     from celery.exceptions import SoftTimeLimitExceeded
