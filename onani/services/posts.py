@@ -181,7 +181,11 @@ def set_tags(
         min_tags=post_min_tags,
         tag_count=post.tags.with_entities(func.count()).scalar() or len(tags),
     )
-    post.tags.extend(parse_tags(meta, can_create_tags=True, tag_char_limit=tag_char_limit))
+    # Filter out meta tags already on the post to prevent duplicate rows in
+    # the post_tags junction table (which has no UNIQUE constraint).
+    existing_names = {t.name for t in post.tags}
+    meta_to_add = [m for m in meta if m.split(":")[-1] not in existing_names]
+    post.tags.extend(parse_tags(meta_to_add, can_create_tags=True, tag_char_limit=tag_char_limit))
 
     current_tag_count = post.tags.with_entities(func.count()).scalar()
     if current_tag_count > post_min_tags:
