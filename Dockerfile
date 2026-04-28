@@ -47,6 +47,10 @@ RUN pip3 install -r /requirements.txt \
 COPY ./frontend/public/static /static
 COPY . /onani
 
+# Keep a pristine copy of the migration versions so the entrypoint can sync
+# them into a volume-mounted /onani/migrations/versions on startup.
+RUN cp -r /onani/migrations /onani/migrations_bundled
+
 RUN chmod +x /onani/entrypoints/entrypoint.sh
 
 WORKDIR /onani

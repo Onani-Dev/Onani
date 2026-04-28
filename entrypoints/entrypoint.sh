@@ -7,6 +7,14 @@ if [ ! -f /onani/migrations/alembic.ini ]; then
 	flask db init
 	FRESH_DB=1
 fi
+
+# Sync migration version files from the image into the (possibly volume-mounted)
+# migrations directory. Uses -n so existing files are never overwritten, and new
+# migrations bundled in a newer image are picked up automatically on first start.
+if [ -d /onani/migrations_bundled/versions ] && [ -d /onani/migrations/versions ]; then
+	cp -n /onani/migrations_bundled/versions/*.py /onani/migrations/versions/ 2>/dev/null || true
+fi
+
 flask init-db
 flask db upgrade
 
