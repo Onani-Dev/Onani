@@ -232,6 +232,26 @@ def suggest_tags_for_bytes(image_bytes: bytes, config, threshold: float | None =
 
 def _post_image_input(post, images_dir: str) -> str:
     ext = (post.file_type or "").lower()
+
+    # External posts are not copied into IMAGES_DIR; the original file lives
+    # at the library path recorded in ExternalLibraryFile.file_path.
+    if getattr(post, "is_external", False):
+        from onani.models import ExternalLibraryFile
+        file_rec = ExternalLibraryFile.query.filter_by(post_id=post.id).first()
+        if file_rec is None or not file_rec.file_path:
+            raise ValueError(f"Post #{post.id} has no ExternalLibraryFile record.")
+        if not os.path.isfile(file_rec.file_path):
+            raise ValueError(
+                f"Post #{post.id} external file is missing from disk: {file_rec.file_path}"
+            )
+        if ext in _VIDEO_FORMATS or getattr(post, "type", None) == FileType.VIDEO:
+            stem = post.filename.rsplit(".", 1)[0]
+            thumb_path = shard_path(images_dir, f"{stem}.jpg")
+            if not os.path.isfile(thumb_path):
+                raise ValueError(f"Post #{post.id} does not have a generated video thumbnail.")
+            return thumb_path
+        return file_rec.file_path
+
     if ext in _VIDEO_FORMATS or getattr(post, "type", None) == FileType.VIDEO:
         stem = post.filename.rsplit(".", 1)[0]
         thumb_path = shard_path(images_dir, f"{stem}.jpg")
