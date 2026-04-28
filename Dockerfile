@@ -42,13 +42,7 @@ COPY --from=frontend-build /app/dist /frontend/dist
 
 COPY requirements.txt requirements-ml.txt /
 RUN pip3 install -r /requirements.txt \
-    && if [ "$INSTALL_ML" = "true" ]; then \
-        pip3 install -r /requirements-ml.txt; \
-        # requirements-ml.txt installs tensorflow-rocm on Python<3.13, which
-        # requires libhsa-runtime64 (AMD ROCm) at import time.  Docker images
-        # run CPU-only, so force-replace it with the CPU-only wheel.
-        pip3 install --force-reinstall --no-deps tensorflow-cpu; \
-    fi
+    && if [ "$INSTALL_ML" = "true" ]; then pip3 install -r /requirements-ml.txt; fi
 
 COPY ./frontend/public/static /static
 COPY . /onani
