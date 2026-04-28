@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "onani"
-version = "1.0.0b21"
+version = "1.0.0b22"
 description = "Booru-style imageboard built with Flask and Vue"
 readme = "README.md"
 requires-python = ">=3.10"
