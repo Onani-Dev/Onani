@@ -119,6 +119,11 @@ def _load_runtime(config) -> dict:
 
         if not config.get("DEEPDANBOORU_ALLOW_GPU"):
             os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
+            # Disable AMD/ROCm GPU as well — libhsa-runtime64.so.1 is preloaded
+            # by TensorFlow's self-check at import time and will fail with an
+            # ImportError on hosts that don't have the ROCm stack installed.
+            os.environ.setdefault("ROCR_VISIBLE_DEVICES", "")
+            os.environ.setdefault("HIP_VISIBLE_DEVICES", "-1")
 
         try:
             dd = importlib.import_module("deepdanbooru")

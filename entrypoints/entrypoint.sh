@@ -1,6 +1,15 @@
 #!/bin/sh
 set -e
 
+# Disable GPU acceleration unless explicitly enabled.  Must be set before any
+# TensorFlow import; TF's self_check preloads GPU libs (libhsa-runtime64 for
+# ROCm, libcuda for NVIDIA) at import time and will fail if they are absent.
+if [ -z "${DEEPDANBOORU_ALLOW_GPU}" ]; then
+	export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:--1}"
+	export ROCR_VISIBLE_DEVICES="${ROCR_VISIBLE_DEVICES:-}"
+	export HIP_VISIBLE_DEVICES="${HIP_VISIBLE_DEVICES:--1}"
+fi
+
 # Initialize Alembic only on first boot; production volumes already contain migrations.
 FRESH_DB=0
 if [ ! -f /onani/migrations/alembic.ini ]; then
