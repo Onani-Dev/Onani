@@ -129,6 +129,15 @@ def scan_library(self, library_id: int):
     valid_ratings = {r.value for r in PostRating}
     default_rating = library.default_rating if library.default_rating in valid_ratings else "q"
 
+    # Cache scalar attributes from library before the scan loop.  If a
+    # per-file exception forces db.session.remove(), library becomes
+    # detached and subsequent loop iterations would hit DetachedInstanceError
+    # when accessing library.id / library.path.  Using plain local vars avoids
+    # that entirely; after a session removal we re-fetch library to keep it
+    # current for the next iteration.
+    _lib_path = library.path
+    _lib_recursive = bool(getattr(library, "recursive", True))
+
     # Commit in batches to avoid per-file expire/reload cycles.
     _BATCH_SIZE = 100
     _batch_dirty = 0
@@ -144,8 +153,8 @@ def scan_library(self, library_id: int):
 
     try:
         for path in _iter_scan_directory(
-            library.path,
-            recursive=bool(getattr(library, "recursive", True)),
+            _lib_path,
+            recursive=_lib_recursive,
         ):
             discovered_count += 1
             seen_paths.add(path)
@@ -258,7 +267,7 @@ def scan_library(self, library_id: int):
                     can_create_tags=True,
                     tag_char_limit=current_app.config["TAG_CHAR_LIMIT"],
                     post_min_tags=current_app.config["POST_MIN_TAGS"],
-                    imported_from=_external_url(library.id, library.path, path),
+                    imported_from=_external_url(library_id, _lib_path, path),
                     is_external=True,
                     persist_file=False,
                 )
@@ -282,10 +291,16 @@ def scan_library(self, library_id: int):
             except Exception as e:
                 db.session.remove()
                 _batch_dirty = 0
-                file_rec_fresh = ExternalLibraryFile.query.filter_by(
-                    library_id=library_id,
-                    file_path=path,
-                ).first()
+                # After session removal all previously loaded ORM objects
+                # (library, existing entries) are detached.  Re-fetch library
+                # and rebuild existing so subsequent iterations don't hit
+                # DetachedInstanceError.
+                library = ExternalLibrary.query.get(library_id)
+                existing = {
+                    f.file_path: f
+                    for f in ExternalLibraryFile.query.filter_by(library_id=library_id).all()
+                }
+                file_rec_fresh = existing.get(path)
                 if file_rec_fresh:
                     file_rec_fresh.status = "FAILED"
                     file_rec_fresh.error = str(e)
