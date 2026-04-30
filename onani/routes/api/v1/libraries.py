@@ -234,10 +234,25 @@ class LibraryDetail(Resource):
         return {"message": "Library deleted."}
 
 
-class LibraryScan(Resource):
-    """POST /libraries/<id>/scan — trigger a scan.
-    GET  /libraries/<id>/scan — get current scan status.
+def _task_is_active(task_id: str) -> bool:
+    """Return True only if the Celery task is genuinely queued or running.
+
+    A bare PENDING state in Celery means the task ID is unknown to the
+    broker/backend — this happens when the worker crashed before writing a
+    result.  We treat that as *not* active so callers can start a fresh scan.
+    STARTED is set by the worker when it actually begins executing, and
+    PROGRESS is the custom intermediate state used by scan_library, so both
+    of those are genuinely active.
     """
+    try:
+        task: AsyncResult = scan_library.AsyncResult(task_id)
+        return task.state in ("STARTED", "PROGRESS")
+    except Exception:
+        return False
+
+
+class LibraryScan(Resource):
+    """GET/POST/DELETE /libraries/<id>/scan — scan status, trigger, and stop."""
 
     decorators = [login_required]
 
@@ -251,7 +266,11 @@ class LibraryScan(Resource):
         if lib.last_scan_task_id:
             task: AsyncResult = scan_library.AsyncResult(lib.last_scan_task_id)
             try:
-                if task.state in ("PENDING", "PROGRESS", "SUCCESS", "FAILURE"):
+                # Only override the DB status when the task has a *known* non-PENDING
+                # state.  A bare PENDING means "task ID unknown to broker" (worker
+                # crashed), not "queued" — in that case keep the DB value so the UI
+                # correctly shows the library as stuck rather than actively running.
+                if task.state in ("STARTED", "PROGRESS", "SUCCESS", "FAILURE", "REVOKED"):
                     state = task.state
                     raw = task.result
                     result = raw if isinstance(raw, dict) else str(raw) if raw else None
@@ -275,17 +294,15 @@ class LibraryScan(Resource):
         if not lib.enabled:
             abort(400, description="Library is disabled.")
 
-        # Prevent concurrent scans.
+        # Prevent concurrent scans — but only when the task is genuinely active.
+        # A PENDING Celery state for an unknown task ID means the worker died
+        # before recording a result; treat it as stale and allow a new scan.
         if lib.last_scan_status == "SCANNING" and lib.last_scan_task_id:
-            task: AsyncResult = scan_library.AsyncResult(lib.last_scan_task_id)
-            try:
-                if task.state in ("PENDING", "STARTED"):
-                    return {
-                        "message": "A scan is already running.",
-                        "task_id": lib.last_scan_task_id,
-                    }, 409
-            except Exception:
-                pass
+            if _task_is_active(lib.last_scan_task_id):
+                return {
+                    "message": "A scan is already running.",
+                    "task_id": lib.last_scan_task_id,
+                }, 409
 
         task_id = str(uuid.uuid4())
         lib.last_scan_task_id = task_id
@@ -295,6 +312,36 @@ class LibraryScan(Resource):
         scan_library.apply_async(args=[library_id], task_id=task_id)
 
         return {"message": "Scan started.", "task_id": task_id}, 202
+
+    @permissions_required(UserPermissions.ADMINISTRATION)
+    def delete(self, library_id: int):
+        """Stop a running scan and reset the library status to IDLE.
+
+        Revokes the Celery task if it is still active, then clears
+        ``last_scan_status`` and ``last_scan_task_id`` so a new scan can be
+        started immediately.
+        """
+        lib = ExternalLibrary.query.get_or_404(library_id)
+
+        task_id = lib.last_scan_task_id
+        revoked = False
+        if task_id:
+            try:
+                task: AsyncResult = scan_library.AsyncResult(task_id)
+                if task.state in ("PENDING", "STARTED", "PROGRESS"):
+                    task.revoke(terminate=True, signal="SIGTERM")
+                    revoked = True
+            except Exception:
+                pass
+
+        lib.last_scan_status = "IDLE"
+        lib.last_scan_task_id = None
+        db.session.commit()
+
+        return {
+            "message": "Scan stopped and status reset to IDLE.",
+            "revoked": revoked,
+        }
 
 
 class LibraryFileList(Resource):

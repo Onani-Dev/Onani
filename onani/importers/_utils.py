@@ -5,7 +5,6 @@ import logging
 from typing import Optional
 from urllib.parse import urlparse
 
-import requests
 from curl_cffi import requests as cffi_requests
 from flask import current_app
 from onani.services.posts import create_post

@@ -135,11 +135,36 @@ def _load_runtime(config) -> dict:
 
         project_path = config.get("DEEPDANBOORU_PROJECT_PATH")
         compile_model = bool(config.get("DEEPDANBOORU_COMPILE_MODEL"))
+        keras = importlib.import_module("keras")
+
+        # Keras 3.12 removed renorm/renorm_clipping/renorm_momentum from
+        # BatchNormalization, but models saved with Keras 3.14 still write
+        # those keys into the config.  Register a compatibility subclass that
+        # silently drops the unknown kwargs so older-saved models load cleanly.
+        _REMOVED_BN_KWARGS = frozenset({"renorm", "renorm_clipping", "renorm_momentum"})
+
+        class _BatchNormCompat(keras.layers.BatchNormalization):
+            def __init__(self, **kwargs):
+                for k in _REMOVED_BN_KWARGS:
+                    kwargs.pop(k, None)
+                super().__init__(**kwargs)
+
+        def _load_model(path):
+            with keras.utils.custom_object_scope({"BatchNormalization": _BatchNormCompat}):
+                return tf.keras.models.load_model(path, compile=compile_model)
+
         if project_path:
-            model = dd.project.load_model_from_project(project_path, compile_model=compile_model)
+            project_context = dd.io.deserialize_from_json(
+                os.path.join(project_path, "project.json")
+            )
+            model_type = project_context["model"]
+            model_path = os.path.join(project_path, f"model-{model_type}.keras")
+            if not os.path.isfile(model_path):
+                model_path = os.path.join(project_path, f"model-{model_type}.h5")
+            model = _load_model(model_path)
             tags = dd.project.load_tags_from_project(project_path)
         else:
-            model = tf.keras.models.load_model(config["DEEPDANBOORU_MODEL_PATH"], compile=compile_model)
+            model = _load_model(config["DEEPDANBOORU_MODEL_PATH"])
             tags = dd.data.load_tags(config["DEEPDANBOORU_TAGS_PATH"])
 
         runtime = {

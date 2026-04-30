@@ -30,17 +30,26 @@ def _sha256_file(path: str) -> str:
 
 
 def _iter_scan_directory(root: str, recursive: bool = True):
-    """Yield absolute paths for supported media files under *root* as discovered."""
+    """Yield absolute paths for supported media files under *root* as discovered.
+
+    Hidden entries (names starting with ".") are skipped in both recursive and
+    non-recursive modes so that system directories such as `.trash`,
+    `.thumbnails`, and `.DS_Store` are never traversed.
+    """
     if recursive:
-        for dirpath, _dirnames, filenames in os.walk(root):
+        for dirpath, dirnames, filenames in os.walk(root):
+            # Prune hidden directories in-place so os.walk won't descend into them.
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
             for fname in filenames:
+                if fname.startswith("."):
+                    continue
                 ext = fname.rsplit(".", 1)[-1].lower() if "." in fname else ""
                 if ext in SUPPORTED_EXTS:
                     yield os.path.join(dirpath, fname)
         return
 
     for entry in os.scandir(root):
-        if not entry.is_file():
+        if not entry.is_file() or entry.name.startswith("."):
             continue
         ext = entry.name.rsplit(".", 1)[-1].lower() if "." in entry.name else ""
         if ext in SUPPORTED_EXTS:
@@ -198,8 +207,11 @@ def scan_library(self, library_id: int):
 
             processed_count += 1
             try:
-                # Compute hash first to detect duplicates without a full import.
-                sha = _sha256_file(path)
+                # Read the file once; compute the hash from the loaded bytes so
+                # we don't open and stream the file a second time for imports.
+                with open(path, "rb") as fh:
+                    file_data = fh.read()
+                sha = hashlib.sha256(file_data).hexdigest()
 
                 # Check for a duplicate post by hash.
                 existing_post = Post.query.filter_by(sha256_hash=sha).first()
@@ -227,9 +239,6 @@ def scan_library(self, library_id: int):
                         "logs": logs,
                     })
                     continue
-
-                with open(path, "rb") as fh:
-                    file_data = fh.read()
 
                 video_fmt = detect_video_format(file_data)
                 if not video_fmt:
@@ -388,19 +397,14 @@ def scan_library(self, library_id: int):
     library_fresh = ExternalLibrary.query.get(library_id)
     if library_fresh:
         library_fresh.last_scan_at = datetime.datetime.now(datetime.timezone.utc)
-        library_fresh.last_scan_status = "FAILED" if failed_count and not imported_count else "SUCCESS"
+        if failed_count and not imported_count:
+            library_fresh.last_scan_status = "FAILED"
+        elif failed_count:
+            library_fresh.last_scan_status = "PARTIAL"
+        else:
+            library_fresh.last_scan_status = "SUCCESS"
         library_fresh.last_scan_task_id = self.request.id
         db.session.commit()
-
-    # Recount tag post_counts so the Tags page reflects new imports.
-    if imported_count:
-        try:
-            from onani.models import Tag
-            for tag in Tag.query.all():
-                tag.recount_posts()
-            db.session.commit()
-        except Exception:
-            pass
 
     summary = (
         f"Scan complete. Discovered: {discovered_count}, imported: {imported_count}, "

@@ -329,6 +329,95 @@ class TestLibraryAPI:
         data = json.loads(resp.data)
         assert data["library_id"] == lib_id
 
+    def test_stop_scan_resets_status(self, admin_client, app):
+        """DELETE /scan resets a stuck SCANNING library to IDLE."""
+        from onani.models import ExternalLibrary
+        from onani import db as _db
+        from unittest.mock import patch, MagicMock
+        client, admin = admin_client
+        with app.app_context():
+            lib = ExternalLibrary(
+                name="StuckScan",
+                path="/tmp/stuck",
+                owner_id=admin.id,
+                last_scan_status="SCANNING",
+                last_scan_task_id="dead-task-id-1234",
+            )
+            _db.session.add(lib)
+            _db.session.commit()
+            lib_id = lib.id
+
+        # Patch AsyncResult so revoke() is a no-op (task is PENDING = unknown)
+        mock_result = MagicMock()
+        mock_result.state = "PENDING"
+        with patch("onani.routes.api.v1.libraries.scan_library.AsyncResult", return_value=mock_result):
+            resp = client.delete(f"/api/v1/libraries/{lib_id}/scan")
+
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert "IDLE" in data["message"]
+
+        with app.app_context():
+            lib = ExternalLibrary.query.get(lib_id)
+            assert lib.last_scan_status == "IDLE"
+            assert lib.last_scan_task_id is None
+
+    def test_stop_scan_revokes_active_task(self, admin_client, app):
+        """DELETE /scan calls revoke() when the task is genuinely running."""
+        from onani.models import ExternalLibrary
+        from onani import db as _db
+        from unittest.mock import patch, MagicMock
+        client, admin = admin_client
+        with app.app_context():
+            lib = ExternalLibrary(
+                name="ActiveScan",
+                path="/tmp/active",
+                owner_id=admin.id,
+                last_scan_status="SCANNING",
+                last_scan_task_id="active-task-id-5678",
+            )
+            _db.session.add(lib)
+            _db.session.commit()
+            lib_id = lib.id
+
+        mock_result = MagicMock()
+        mock_result.state = "PROGRESS"
+        with patch("onani.routes.api.v1.libraries.scan_library.AsyncResult", return_value=mock_result):
+            resp = client.delete(f"/api/v1/libraries/{lib_id}/scan")
+
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["revoked"] is True
+
+    def test_post_scan_allows_restart_after_crashed_worker(self, admin_client, app):
+        """POST /scan succeeds when last_scan_status=SCANNING but task ID is unknown (worker crashed)."""
+        from onani.models import ExternalLibrary
+        from onani import db as _db
+        from unittest.mock import patch, MagicMock
+        import tempfile
+        client, admin = admin_client
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with app.app_context():
+                lib = ExternalLibrary(
+                    name="CrashedScan",
+                    path=tmpdir,
+                    owner_id=admin.id,
+                    last_scan_status="SCANNING",
+                    last_scan_task_id="orphaned-task-id",
+                )
+                _db.session.add(lib)
+                _db.session.commit()
+                lib_id = lib.id
+
+            # Celery returns PENDING for unknown task IDs (worker crashed)
+            mock_result = MagicMock()
+            mock_result.state = "PENDING"
+            with patch("onani.routes.api.v1.libraries.scan_library.AsyncResult", return_value=mock_result), \
+                 patch("onani.routes.api.v1.libraries.scan_library.apply_async"):
+                resp = client.post(f"/api/v1/libraries/{lib_id}/scan")
+
+            assert resp.status_code == 202
+
 
 class TestLibraryFileList:
     """Listing files tracked for a library."""

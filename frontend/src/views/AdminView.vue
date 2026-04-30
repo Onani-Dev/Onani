@@ -692,6 +692,7 @@
                 </div>
                 <div class="library-actions">
                   <button class="btn-sm" @click="triggerLibraryScan(lib)" :disabled="isLibraryScanActive(lib)">Scan</button>
+                  <button class="btn-sm danger" @click="stopLibraryScan(lib)" v-if="isLibraryScanActive(lib)">Stop</button>
                   <button class="btn-sm" @click="openEditLibraryWizard(lib)">Edit</button>
                   <button class="btn-sm" @click="toggleLibraryEnabled(lib)">{{ lib.enabled ? 'Disable' : 'Enable' }}</button>
                   <button class="btn-sm danger" @click="deleteLibrary(lib)">Delete</button>
@@ -1287,6 +1288,23 @@ async function triggerLibraryScan(lib, silent = false) {
     pollLibraryScan(lib.id)
   } catch (err) {
     if (!silent) alert(err.response?.data?.message || 'Could not start scan.')
+  }
+}
+
+async function stopLibraryScan(lib) {
+  try {
+    await api.delete(`/libraries/${lib.id}/scan`)
+    lib.last_scan_status = 'IDLE'
+    lib.last_scan_task_id = null
+    if (libraryScanPollers[lib.id]) {
+      clearTimeout(libraryScanPollers[lib.id])
+      delete libraryScanPollers[lib.id]
+    }
+    if (selectedLibraryId.value === lib.id) {
+      selectedLibraryScan.value = { status: 'IDLE', task_id: null, meta: null, result: null }
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || 'Could not stop scan.')
   }
 }
 

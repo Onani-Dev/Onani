@@ -1,6 +1,6 @@
 deepdanbooru>=1.0.4
-# CPU-only TensorFlow for Docker/prod images (no ROCm or CUDA stack required).
-# tensorflow-rocm requires libhsa-runtime64 (AMD ROCm) at import time which
-# is not present in production containers.
-tensorflow-cpu>=2.14,<2.15
+# Model files are saved in Keras 3 format (.keras with keras.src.* module paths).
+# Keras 3 is bundled with TensorFlow >= 2.16; do not use an older version.
+# tensorflow-rocm was a failed experiment and should not be used in containers.
+tensorflow-cpu>=2.16
 tensorflow-io>=0.34.0,<0.38.0
