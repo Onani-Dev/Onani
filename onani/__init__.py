@@ -81,7 +81,7 @@ def init_app():
     def _error_handler(e):
         import traceback
         from werkzeug.exceptions import HTTPException
-        from .controllers.database.errors import log_error
+        from .services.errors import log_error
 
         code = e.code if isinstance(e, HTTPException) else 500
         if app.testing:

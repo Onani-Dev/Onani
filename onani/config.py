@@ -139,7 +139,6 @@ PER_PAGE_COLLECTIONS = int(os.environ.get("PER_PAGE_COLLECTIONS") or _t("paginat
 API_PER_PAGE_POSTS = int(os.environ.get("API_PER_PAGE_POSTS") or _t("pagination", "posts", 30))
 API_PER_PAGE_COMMENTS = int(os.environ.get("API_PER_PAGE_COMMENTS") or _t("pagination", "comments", 30))
 API_PER_PAGE_TAGS = int(os.environ.get("API_PER_PAGE_TAGS") or _t("pagination", "tags", 30))
-API_PER_PAGE_NEWS = int(os.environ.get("API_PER_PAGE_NEWS") or _t("pagination", "news", 30))
 API_AUTOCOMPLETE_LIMIT = int(os.environ.get("API_AUTOCOMPLETE_LIMIT") or _t("pagination", "autocomplete_limit", 10))
 API_MAX_PER_PAGE = int(os.environ.get("API_MAX_PER_PAGE") or _t("pagination", "max_per_page", 100))
 

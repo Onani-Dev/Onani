@@ -9,7 +9,6 @@ Vue 3 SPA for the Onani booru, served at `/`.
 - **Vue Router 4** — client routing (HTML5 history, base `/`)
 - **Pinia 3** — state management
 - **Axios** — HTTP client with automatic CSRF handling
-- **Sass** — styling
 
 ## Project Structure
 
@@ -35,8 +34,6 @@ src/
     ├── TagView.vue        /tags/:id
     ├── UsersView.vue      /users  (auth)
     ├── UserView.vue       /users/:id
-    ├── NewsView.vue       /news
-    ├── ArticleView.vue    /news/:id
     ├── CollectionsView.vue /collections
     ├── UploadView.vue     /upload  (auth)
     ├── LoginView.vue      /login

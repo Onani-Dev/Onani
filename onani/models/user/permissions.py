@@ -38,7 +38,7 @@ class UserPermissions(IntFlag):
     DELETE_COMMENTS = 131072
     LOCK_COMMENTS = 262144
 
-    # NEWS
+    # NEWS (feature removed; bits reserved so existing user permissions aren't misread)
     CREATE_NEWS = 524288
     DELETE_NEWS = 1048576
     EDIT_NEWS = 2097152

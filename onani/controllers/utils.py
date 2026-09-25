@@ -5,9 +5,7 @@
 # @Last Modified time: 2022-08-10 11:20:30
 
 import re
-from typing import List, Optional, Tuple, Union
-
-from flask import request
+from typing import List, Optional, Tuple
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:
@@ -84,19 +82,6 @@ def colour_contrast(colour: str) -> str:
     return rgb_to_hex((d, d, d))
 
 
-def complete_file_url(file_url: str) -> str:
-    """Get the full url for a file.
-
-    Args:
-        file_url (str): The partial url
-
-    Returns:
-        str: The full url
-    """
-    return f"{request.base_url}{file_url.lstrip('/')}"
-
-
-
 _URL_RE = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}"
     r"|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}"
@@ -115,16 +100,4 @@ def is_url(string: str) -> bool:
         bool: True if a url false if not
     """
     return bool(_URL_RE.match(string))
-
-
-def url_hostname(url: str) -> Union[str, None]:
-    """Returns the hostname of a url, or none
-
-    Args:
-        url (str): the url to return the hostname of
-
-    Returns:
-        Union[str, None]: The hostname or none
-    """
-    return url.split("/")[2] if is_url(url) else url or None
 

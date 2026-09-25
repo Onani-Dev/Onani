@@ -68,7 +68,6 @@ gunicorn -b 0.0.0.0:5000 -w 10 --threads 100 run:app
 - Vote on posts (upvote, downvote) and "water" (like/favourite) posts
 - Create and manage collections of posts
 - Import content from 900+ external sites via gallery-dl
-- Write and read news/announcements
 - Manage user profiles (avatar, bio, social links, custom CSS)
 - Apply SFW mode to blur explicit content
 - Role-based access control with granular bitmask permissions
@@ -109,12 +108,11 @@ gunicorn -b 0.0.0.0:5000 -w 10 --threads 100 run:app
   - `collections.py` — CRUD collections, add/remove posts
   - `comments.py` — GET/POST/DELETE comments on posts
   - `tags.py` — GET tags (sortable), PUT tag edits
-  - `news.py` — GET news posts
   - `profile.py` — GET/PUT user profile, avatar upload
   - `users.py` — GET users list and a user's posts
   - `importer.py` — GET import task status, POST import URL
   - `index.py` — API root info (version, current user, IP)
-  - `_admin/` — admin-only endpoints (ban, unban, stats, news management)
+  - `_admin/` — admin-only endpoints (ban, unban, stats)
 
 ### `Onani/models/`
 
@@ -138,11 +136,9 @@ gunicorn -b 0.0.0.0:5000 -w 10 --threads 100 run:app
 **Other:**
 - `collection/collection_.py` — `Collection`: title, description, status (enum), created_at, creator FK. M2M posts via `collection_posts`.
 - `collection/status.py` — `CollectionStatus`: PENDING, ACCEPTED, REJECTED.
-- `news/_news.py` — `NewsPost`: author_id FK, title, content (HTML-escaped), type (enum), created_at.
-- `news/type.py` — `NewsType`: ANNOUNCEMENT, PATCH_NOTES, MAINTENANCE.
 - `error/error_.py` — `Error`: timestamp, exception_type, message, traceback, request_path, request_method. Used to log unhandled 500s.
 
-**Schemas** (`Onani/models/schemas/`) — Marshmallow serialisers for all models: `user.py`, `post.py`, `tag.py`, `collection.py`, `news.py`, `comment.py`, `ban.py`.
+**Schemas** (`Onani/models/schemas/`) — Marshmallow serialisers for all models: `user.py`, `post.py`, `tag.py`, `collection.py`, `comment.py`, `ban.py`.
 
 ### `Onani/services/`
 
@@ -154,7 +150,6 @@ Pure business logic — no Flask globals, raises typed exceptions:
 - `posts.py` — `create_post()`, `upload_post()`, `parse_tags()`, `set_tags()`, `create_comment()`, video format detection, GIF conversion
 - `files.py` — `create_avatar()`, `get_file_data()`, `determine_meta_tags()`, ffmpeg-based video processing
 - `queries.py` — `query_posts(tags, exclude_tags, show_hidden, show_removed)` — tag filtering, deduplication, ordering
-- `news.py` — `create_news(title, content, type, author)`
 - `default.py` — `create_default_tags(filename)` bulk loader from JSON
 - `errors.py` — `log_error(exception)` stores 500s in the Error table
 
@@ -166,7 +161,6 @@ Route decorators and helpers:
 - `role.py` — `@role_required(UserRoles.X)` — checks `current_user.role.value >= required.value`
 - `utils.py` — `is_url()`, `natural_join()`, misc helpers
 - `crypto.py` — password/OTP hashing utilities
-- `database/` — DB transaction helpers
 - `exceptions/` — custom exception types
 
 ### `Onani/importers/`
@@ -183,7 +177,7 @@ Content import via gallery-dl:
 Celery async tasks (remember: **restart the celery container after editing**):
 
 - `importer.py` — `import_post(post_url, importer_id, cookies_content)` — fetches & saves imported posts, reports progress via `self.update_state()`, cleans up DB session on error
-- `database.py` — `database_test(user_id)`, `delete_user_posts(user_id)`
+- `database.py` — `delete_user_posts(user_id)`
 - `video.py` — placeholder video task
 
 ### Media and thumbnails
@@ -213,7 +207,6 @@ Celery async tasks (remember: **restart the celery container after editing**):
 | `tags` | id, name (unique), type, description, explicit, restricted, alias_of FK, post_count, url, user_id FK |
 | `collections` | id, title, description, status, created_at, creator FK |
 | `collection_posts` | collection_id FK, post_id FK |
-| `news` | id, author_id FK, created_at, title, content, type |
 | `errors` | id, timestamp, exception_type, message, traceback, request_path, request_method |
 | `tag_blacklist` | user_id FK, tag_id FK |
 
@@ -229,11 +222,11 @@ Migrations live in `migrations/versions/`. Always generate new migrations with `
 
 **Roles** (numeric, compared with `>=`): MEMBER → ARTIST → PREMIUM → HELPER → MODERATOR → ADMIN → OWNER.
 
-**Permissions** (IntFlag bitmask on `User.permissions`). Granular flags cover: posts, tags, collections, comments, flags/reports, news, users, site-wide. Presets:
+**Permissions** (IntFlag bitmask on `User.permissions`). Granular flags cover: posts, tags, collections, comments, flags/reports, users, site-wide (the CREATE/EDIT/DELETE_NEWS bits are reserved but unused since the News feature was removed — existing user permission values must not be reinterpreted). Presets:
 - `DEFAULT` — create posts/comments/collections, flag
 - `TRUSTED` — + create tags, import, priority flag
 - `MODERATION` — + edit/merge/delete content and comments
-- `ADMINISTRATION` — + delete/ban/manage users, news, bypass rate limits, view logs
+- `ADMINISTRATION` — + delete/ban/manage users, bypass rate limits, view logs
 
 **Bans:** stored as a `Ban` row linked to the user. Checked in the route loader — banned users are treated as unauthenticated. Expired bans are auto-removed by the cron job.
 
@@ -248,4 +241,4 @@ Migrations live in `migrations/versions/`. Always generate new migrations with `
 - `layouts/DefaultLayout.vue` — main shell (header/nav/footer)
 - `composables/useSfwMode.js` — reactive SFW mode toggle
 - `components/Pagination.vue` — reusable pagination
-- `views/` — 18 route-level components: HomeView, PostsView, PostView, TagsView, TagView, UsersView, UserView, NewsView, ArticleView, CollectionsView, CollectionView, UploadView, ImportView, ProfileView, AdminView, LoginView, RegisterView, NotFoundView
+- `views/` — 16 route-level components: HomeView, PostsView, PostView, TagsView, TagView, UsersView, UserView, CollectionsView, CollectionView, UploadView, ImportView, ProfileView, AdminView, LoginView, RegisterView, NotFoundView
