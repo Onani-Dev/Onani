@@ -50,7 +50,15 @@ def app():
 
 @pytest.fixture(scope="function")
 def db(app):
-    """Provide a clean database session per test with automatic rollback."""
+    """Provide a clean database session per test with automatic rollback.
+
+    Note: application code calls db.session.commit() in several places,
+    which ends this transaction early (Flask-SQLAlchemy's session doesn't
+    honor a connection-scoped transaction wrapper here), so this rollback
+    only cleans up state that a test adds but never commits. Tests that
+    assert on absolute row counts should not assume a pristine database —
+    other tests in the suite may have committed rows that outlive them.
+    """
     from onani import db as _db
 
     with app.app_context():

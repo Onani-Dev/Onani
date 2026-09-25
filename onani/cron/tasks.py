@@ -8,8 +8,13 @@
 from typing import List
 from . import crontab, db
 
+# On platforms without flask_crontab (e.g. Windows dev), crontab is None —
+# fall back to a no-op decorator so these functions still exist and are
+# testable, they just won't be scheduled.
+_job = crontab.job if crontab else (lambda **kw: (lambda f: f))
 
-@crontab.job(minute="*/1")
+
+@_job(minute="*/1")
 def remove_expired_bans():
     from onani.models import Ban
     from onani.services import delete_ban
@@ -22,7 +27,7 @@ def remove_expired_bans():
             delete_ban(ban.user)
 
 
-@crontab.job(minute="*/1")
+@_job(minute="*/1")
 def run_scheduled_imports():
     import datetime
     from onani.models.scheduled_import import ScheduledImport

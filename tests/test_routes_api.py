@@ -1311,8 +1311,15 @@ class TestAdminAPI:
         assert not os.path.exists(os.path.join(app.config["AVATARS_DIR"], ".thumbs"))
 
     def test_scan_post_storage_reports_missing_originals(self, admin_client, make_post, app):
+        # scan_post_storage scans every Post row in the DB, not just ones
+        # this test creates, so the test DB may already have rows left over
+        # from other tests (the db fixture only rolls back uncommitted
+        # changes — see tests/conftest.py). Assert the count went up by
+        # exactly one rather than asserting an absolute total.
         client, _user = admin_client
         with app.app_context():
+            from onani.services.maintenance import scan_post_storage
+            before = scan_post_storage(app.config["IMAGES_DIR"])["missing_originals"]
             make_post(sha256_hash="missingposthash1", filename="missingposthash1.png")
 
         resp = client.post(
@@ -1323,7 +1330,7 @@ class TestAdminAPI:
 
         assert resp.status_code == 200
         data = json.loads(resp.data)
-        assert "missing_originals:1" in data["message"]
+        assert f"missing_originals:{before + 1}" in data["message"]
 
     def test_admin_database_backup_downloads_sql(self, admin_client, make_user):
         client, _user = admin_client

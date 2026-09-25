@@ -3,7 +3,13 @@ import os
 
 from flask import Flask, request
 from flask_celeryext import FlaskCeleryExt
-from flask_crontab import Crontab
+try:
+    from flask_crontab import Crontab
+except ImportError:
+    # flask_crontab hard-depends on fcntl, which doesn't exist on Windows.
+    # Cron scheduling isn't available there; only matters for local dev
+    # since deployment is always Linux/Docker.
+    Crontab = None
 from flask_limiter import Limiter
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
@@ -12,7 +18,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-crontab = Crontab()
+crontab = Crontab() if Crontab else None
 csrf = CSRFProtect()
 db = SQLAlchemy()
 ext = FlaskCeleryExt()
@@ -58,7 +64,8 @@ def init_app():
     # REST API
     app.register_blueprint(main_api, url_prefix="/api")
 
-    crontab.init_app(app)
+    if crontab:
+        crontab.init_app(app)
     csrf.init_app(app)
     db.init_app(app)
     ext.init_app(app)
