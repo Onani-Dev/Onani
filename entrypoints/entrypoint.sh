@@ -42,12 +42,17 @@ else
 fi
 flask crontab add
 
-# Start Caddy in background
-caddy run --config /onani/caddy/Caddyfile &
+# Volumes (named or bind-mounted) are root-owned on first creation regardless
+# of what the image set up, so re-chown before dropping privileges below.
+chown -R app:app /onani/migrations /images /avatars /logs 2>/dev/null || true
+
+# Start Caddy in background, as the unprivileged app user (it only binds
+# :8080 now, so it doesn't need root).
+su -s /bin/sh app -c "caddy run --config /onani/caddy/Caddyfile" &
 CADDY_PID=$!
 
-# Start Gunicorn; clean up Caddy when it exits
-gunicorn -b 127.0.0.1:8000 -w 10 --threads 100 run:app &
+# Start Gunicorn the same way; clean up Caddy when it exits.
+su -s /bin/sh app -c "gunicorn -b 127.0.0.1:8000 -w 10 --threads 100 run:app" &
 GUNICORN_PID=$!
 
 trap 'kill $CADDY_PID $GUNICORN_PID 2>/dev/null' TERM INT
