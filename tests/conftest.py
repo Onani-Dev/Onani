@@ -40,6 +40,8 @@ def app():
         # Session cookies don't need secure flag in tests
         SESSION_COOKIE_SECURE=False,
         SECRET_KEY="test-secret-key-do-not-use-in-prod",
+        # Tests create libraries under the temp dir (and literal /tmp paths)
+        LIBRARY_ROOTS=[tempfile.gettempdir(), "/tmp"],
     )
 
     with application.app_context():

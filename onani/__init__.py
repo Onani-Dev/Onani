@@ -111,8 +111,12 @@ def init_app():
         from .models.user.roles import UserRoles
         try:
             if User.query.count() == 0:
+                import secrets
                 from .services.users import create_user
-                default_pw = os.environ.get("DEFAULT_ADMIN_PASSWORD", "admin")
+                default_pw = os.environ.get("DEFAULT_ADMIN_PASSWORD")
+                generated = not default_pw
+                if generated:
+                    default_pw = secrets.token_urlsafe(16)
                 owner = create_user(
                     username="admin",
                     password=default_pw,
@@ -120,10 +124,16 @@ def init_app():
                 )
                 owner.permissions = UserPermissions.ADMINISTRATION
                 db.session.commit()
-                app.logger.warning(
-                    "Created default admin account (username: admin). "
-                    "Change the password immediately!"
-                )
+                if generated:
+                    # Printed once, on first start only.
+                    app.logger.warning(
+                        "Created default admin account. username: admin  password: %s  "
+                        "(change it after logging in)", default_pw
+                    )
+                else:
+                    app.logger.warning(
+                        "Created default admin account (username: admin) with DEFAULT_ADMIN_PASSWORD."
+                    )
             else:
                 owners = User.query.filter_by(role=UserRoles.OWNER).all()
                 for owner in owners:
@@ -131,7 +141,8 @@ def init_app():
                         owner.permissions = UserPermissions.ADMINISTRATION
                         db.session.commit()
         except Exception:
-            pass
+            # Tables may not exist yet (before `flask db upgrade`).
+            app.logger.debug("Default admin bootstrap skipped", exc_info=True)
 
     # ── CLI: migrate flat image/video files to sharded layout ────────────
     @app.cli.command("migrate-images")

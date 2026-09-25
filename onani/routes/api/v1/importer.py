@@ -6,10 +6,11 @@
 import datetime
 
 from celery.result import AsyncResult
-from flask import abort, session
+from flask import abort
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
-from onani.controllers.crypto import decrypt_cookies
+from onani.controllers.crypto import server_decrypt
+from onani.controllers.utils import assert_public_url
 from onani.models import ImportJob, UserRoles
 from onani.services import enqueue_import_job
 from onani.tasks import import_post
@@ -25,20 +26,20 @@ class Importer(Resource):
         parser.add_argument("url", location="json", type=str, required=True)
         args = parser.parse_args()
 
-        # Attempt to decrypt cookies if the user has them stored
+        try:
+            assert_public_url(args["url"])
+        except ValueError as e:
+            return {"message": str(e)}, 400
+
+        # Legacy password-encrypted cookies (cookies_salt set) are migrated at
+        # the next login; until then the import runs without them.
         cookies_content = None
         settings = current_user.settings
-        if settings and settings.encrypted_cookies and settings.cookies_salt:
-            pw = session.get("_cookie_pw")
-            if pw:
-                try:
-                    cookies_content = decrypt_cookies(
-                        settings.encrypted_cookies,
-                        settings.cookies_salt,
-                        pw,
-                    ).decode("utf-8", errors="replace")
-                except Exception:
-                    pass  # wrong key / corrupt — import without cookies
+        if settings and settings.encrypted_cookies and not settings.cookies_salt:
+            try:
+                cookies_content = server_decrypt(settings.encrypted_cookies).decode("utf-8", errors="replace")
+            except Exception:
+                pass  # corrupt / SECRET_KEY rotated — import without cookies
 
         task_id, queued = enqueue_import_job(args["url"], current_user.id, cookies_content)
         return {"id": task_id, "queued": queued}

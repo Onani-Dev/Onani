@@ -4,7 +4,7 @@ import datetime
 import io
 import os
 
-from flask import abort, request, send_file
+from flask import abort, current_app, request, send_file
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
 from sqlalchemy import func, or_
@@ -114,9 +114,11 @@ class AdminErrors(Resource):
         parser.add_argument("per_page", location="args", type=int, default=20)
         args = parser.parse_args()
 
+        per_page = max(1, min(args["per_page"], current_app.config["API_MAX_PER_PAGE"]))
         page = Error.query.order_by(Error.created_at.desc()).paginate(
-            page=args["page"], per_page=args["per_page"], error_out=False
+            page=args["page"], per_page=per_page, error_out=False
         )
+        show_tb = current_user.has_role(UserRoles.OWNER)
 
         return {
             "data": [
@@ -124,7 +126,7 @@ class AdminErrors(Resource):
                     "id": str(e.id),
                     "exception_type": e.exception_type,
                     "created_at": e.created_at.isoformat() if e.created_at else None,
-                    "traceback": e.traceback,
+                    "traceback": e.traceback if show_tb else None,
                 }
                 for e in page.items
             ],
@@ -369,6 +371,12 @@ class AdminDatabaseRestore(Resource):
         return {"message": message}
 
 
+def _check_assignable_role(role_name: str) -> None:
+    """Non-owners may only assign roles strictly below their own."""
+    if not current_user.has_role(UserRoles.OWNER) and UserRoles[role_name].value >= current_user.role.value:
+        abort(403, description="Cannot assign a role equal to or higher than your own.")
+
+
 class AdminUsers(Resource):
     decorators = [login_required, role_required(UserRoles.MODERATOR)]
 
@@ -384,7 +392,8 @@ class AdminUsers(Resource):
             query = query.filter(User.username.ilike(f"%{args['q']}%"))
         query = query.order_by(User.id.asc())
 
-        page = query.paginate(page=args["page"], per_page=args["per_page"], error_out=False)
+        per_page = max(1, min(args["per_page"], current_app.config["API_MAX_PER_PAGE"]))
+        page = query.paginate(page=args["page"], per_page=per_page, error_out=False)
         return {
             "data": UserSchema(many=True).dump(page.items),
             "total": page.total,
@@ -410,6 +419,7 @@ class AdminUsers(Resource):
         if User.query.filter_by(username=args["username"]).first():
             return {"message": "Username already taken."}, 409
 
+        _check_assignable_role(args["role"])
         user = User(username=args["username"], email=args["email"] or None)
         user.set_password(args["password"])
         user.role = UserRoles[args["role"]]
@@ -434,6 +444,7 @@ class AdminUsers(Resource):
             abort(400)
         if user.has_role(UserRoles.OWNER) and not current_user.has_role(UserRoles.OWNER):
             abort(403)
+        _check_assignable_role(args["role"])
 
         user.role = UserRoles[args["role"]]
         db.session.commit()

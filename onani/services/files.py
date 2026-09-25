@@ -24,13 +24,20 @@ _NAMED_THUMB_SIZES = {
 }
 
 
+def _snap_thumb_size(px: int) -> int:
+    """Round up to the nearest preset so anonymous callers can't fill the disk
+    with one cached file per arbitrary size."""
+    presets = sorted(_NAMED_THUMB_SIZES.values())
+    return next((p for p in presets if p >= px), presets[-1])
+
+
 def parse_thumbnail_size(size: str | int | None, default: int = 150) -> int:
     """Normalize thumbnail size from named presets or numeric query values."""
     if size is None:
         return default
 
     if isinstance(size, int):
-        return max(16, min(2048, size))
+        return _snap_thumb_size(size)
 
     size_raw = str(size).strip().lower()
     if not size_raw:
@@ -40,7 +47,7 @@ def parse_thumbnail_size(size: str | int | None, default: int = 150) -> int:
         return _NAMED_THUMB_SIZES[size_raw]
 
     with contextlib.suppress(ValueError):
-        return max(16, min(2048, int(size_raw)))
+        return _snap_thumb_size(int(size_raw))
 
     return default
 

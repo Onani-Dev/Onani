@@ -65,6 +65,11 @@ if not SECRET_KEY:
         "Set the FLASK_SECRET_KEY environment variable, "
         "or set secret_key under [flask] in your ONANI_CONFIG file."
     )
+if SECRET_KEY == "change-me-in-production":
+    raise RuntimeError(
+        "Flask secret key is still the placeholder from onani.toml.example. "
+        "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+    )
 
 TESTING = os.getenv("TESTING", "").lower() == "true"
 
@@ -109,8 +114,18 @@ SQLALCHEMY_ECHO = _bool("FLASK_SQLALCHEMY_ECHO", "database", "echo", False)
 SESSION_COOKIE_SECURE = _bool("SESSION_COOKIE_SECURE", "cookies", "secure", True)
 SESSION_COOKIE_HTTPONLY = _bool("SESSION_COOKIE_HTTPONLY", "cookies", "httponly", True)
 SESSION_COOKIE_SAMESITE = (
-    os.environ.get("SESSION_COOKIE_SAMESITE") or _t("cookies", "samesite", "strict")
+    os.environ.get("SESSION_COOKIE_SAMESITE") or _t("cookies", "samesite", "lax")
 )
+# Flask-Login's remember-me cookie restores the session, so it needs the same flags.
+REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
+REMEMBER_COOKIE_HTTPONLY = True
+REMEMBER_COOKIE_SAMESITE = SESSION_COOKIE_SAMESITE
+
+# CSRF is enforced by a before_request hook on the API blueprint (see
+# onani/routes/api/v1/__init__.py) so API-key clients can skip it.
+WTF_CSRF_CHECK_DEFAULT = False
+# The SPA caches one token per session; don't let it expire mid-session.
+WTF_CSRF_TIME_LIMIT = None
 PREFERRED_URL_SCHEME = (
     os.environ.get("PREFERRED_URL_SCHEME") or _t("cookies", "preferred_scheme", "https")
 )
@@ -120,6 +135,14 @@ PREFERRED_URL_SCHEME = (
 # ---------------------------------------------------------------------------
 IMAGES_DIR = os.environ.get("IMAGES_DIR") or _t("storage", "images_dir", "/images")
 AVATARS_DIR = os.environ.get("AVATARS_DIR") or _t("storage", "avatars_dir", "/avatars")
+# External libraries may only point inside these directories (comma-separated
+# in the LIBRARY_ROOTS env var).
+_library_roots = os.environ.get("LIBRARY_ROOTS")
+LIBRARY_ROOTS = (
+    [p.strip() for p in _library_roots.split(",") if p.strip()]
+    if _library_roots
+    else _t("storage", "library_roots", ["/mnt", "/media", "/srv", "/libraries"])
+)
 MAX_CONTENT_LENGTH = (
     int(os.environ.get("MAX_UPLOAD_MB") or _t("storage", "max_upload_mb", 50)) * 1024 * 1024
 )

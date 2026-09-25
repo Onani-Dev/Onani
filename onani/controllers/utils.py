@@ -4,8 +4,41 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-08-10 11:20:30
 
+import ipaddress
 import re
+import socket
 from typing import List, Optional, Tuple
+from urllib.parse import urlparse
+
+
+def in_library_roots(path: str) -> bool:
+    """True if *path* (symlinks resolved) is inside a configured LIBRARY_ROOTS dir."""
+    import os
+    from flask import current_app
+
+    real = os.path.realpath(path)
+    for root in current_app.config.get("LIBRARY_ROOTS") or []:
+        root = os.path.realpath(root)
+        if real == root or real.startswith(root.rstrip(os.sep) + os.sep):
+            return True
+    return False
+
+
+def assert_public_url(url: str) -> None:
+    """Raise ValueError unless *url* is http(s) and every address its host
+    resolves to is public (blocks SSRF to loopback/private/link-local)."""
+    # ponytail: resolve-then-fetch leaves a DNS-rebinding window and redirects
+    # aren't re-checked; pin the resolved IP in the HTTP client if that matters.
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise ValueError("Only http(s) URLs are allowed.")
+    try:
+        infos = socket.getaddrinfo(parsed.hostname, None)
+    except (socket.gaierror, UnicodeError):
+        raise ValueError("Could not resolve host.")
+    for info in infos:
+        if not ipaddress.ip_address(info[4][0].split("%")[0]).is_global:
+            raise ValueError("URL points to a private or reserved address.")
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:

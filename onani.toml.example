@@ -15,6 +15,7 @@
 # Required — a long random string used to sign session cookies.
 # Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
 # Can also be set via the FLASK_SECRET_KEY env var (which takes precedence).
+# The app refuses to start while this is left as the placeholder below.
 secret_key = "change-me-in-production"
 
 # ---------------------------------------------------------------------------
@@ -47,6 +48,10 @@ echo = false
 images_dir = "/images"
 avatars_dir = "/avatars"
 
+# External libraries can only be created under these directories (checked
+# after resolving symlinks). Env var: LIBRARY_ROOTS (comma-separated).
+library_roots = ["/mnt", "/media", "/srv", "/libraries"]
+
 # To store data at a specific HOST path instead of a Docker named volume,
 # set these environment variables (not in TOML — they are docker-compose vars):
 #   IMAGES_HOST_DIR=/srv/onani/images
@@ -68,8 +73,8 @@ secure = true
 # Prevent JavaScript from reading the session cookie.
 httponly = true
 
-# SameSite attribute for the session cookie ("strict", "lax", or "none").
-samesite = "strict"
+# SameSite attribute for the session and remember-me cookies ("strict", "lax", or "none").
+samesite = "lax"
 
 # Scheme used when building absolute URLs (e.g. for redirects behind a proxy).
 preferred_scheme = "https"

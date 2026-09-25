@@ -3,6 +3,7 @@
 import os
 
 from flask import Blueprint, abort, current_app, request, send_file, send_from_directory
+from onani.controllers.utils import in_library_roots
 from onani.models import ExternalLibrary, Post
 
 from onani.services.files import (
@@ -46,9 +47,13 @@ def _resolve_external_path(library_name: str, relative_path: str) -> str:
     if rel_norm.startswith("..") or rel_norm in ("", "."):
         abort(404)
 
-    root = os.path.normpath(library.path)
-    resolved = os.path.normpath(os.path.join(root, rel_norm))
-    if resolved != root and not resolved.startswith(root + os.sep):
+    # realpath so symlinks can't escape the root; the root itself must still
+    # be inside LIBRARY_ROOTS (catches libraries created before the allowlist).
+    if not in_library_roots(library.path):
+        abort(404)
+    root = os.path.realpath(library.path)
+    resolved = os.path.realpath(os.path.join(root, rel_norm))
+    if resolved != root and not resolved.startswith(root.rstrip(os.sep) + os.sep):
         abort(404)
 
     if not os.path.isfile(resolved):

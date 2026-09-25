@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 from curl_cffi import requests as cffi_requests
 from flask import current_app
+from onani.controllers.utils import assert_public_url
 from onani.services.posts import create_post
 from onani.services.files import get_file_data, get_video_data, is_video_url, detect_video_format
 from onani.models import Post, User
@@ -155,6 +156,7 @@ def _fetch(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requ
 
 
 def download_file(url: str, cookies_path: str = None, referer: str = None) -> bytes:
+    assert_public_url(url)
     headers = dict(_DOWNLOAD_HEADERS)
     if referer:
         headers["Referer"] = referer
@@ -168,8 +170,7 @@ def download_file(url: str, cookies_path: str = None, referer: str = None) -> by
     for prefix in _TEXT_PREFIXES:
         if data[: len(prefix)].lower() == prefix:
             raise ValueError(
-                f"Server returned non-binary content for {url!r} "
-                f"(starts with {data[:64]!r})"
+                f"Server returned non-binary content for {url!r}."
             )
     return data
 
@@ -261,7 +262,8 @@ def save_imported_post(post: ImportedPost, importer_id: int, cookies_path: str =
             ) = get_file_data(file_data)
 
     user = User.query.filter_by(id=importer_id).first()
-    can_create_tags = True
+    from onani.models import UserPermissions
+    can_create_tags = bool(user and user.has_permissions(UserPermissions.CREATE_TAGS))
 
     post_obj = create_post(
         post.sources[0],

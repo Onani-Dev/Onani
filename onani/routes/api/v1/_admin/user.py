@@ -30,7 +30,7 @@ class AdminUserSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = User
-        exclude = ("password_hash", "otp_token", "comments", "posts", "api_key", "tag_blacklist", "login_id")
+        exclude = ("password_hash", "otp_token", "otp_last_step", "comments", "posts", "api_key", "tag_blacklist", "login_id")
 
 
 _ROLE_MAP = {r.name: r for r in UserRoles}
@@ -97,6 +97,9 @@ class AdminUser(Resource):
                     new_perms = UserPermissions(args["permissions"])
                 except ValueError:
                     abort(400, description="Invalid permissions value.")
+                # Non-owners may only grant bits they hold themselves.
+                if not current_user.has_role(UserRoles.OWNER) and int(new_perms) & ~int(current_user.permissions):
+                    abort(403, description="Cannot grant permissions you do not have.")
                 user.permissions = new_perms
 
             db.session.commit()

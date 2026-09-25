@@ -7,10 +7,11 @@ The CSRF token endpoint lets the SPA bootstrap the X-CSRFToken header.
 import html
 from datetime import timedelta
 
-from flask import make_response, request, session
+from flask import make_response, request
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_restful import Resource, reqparse
 from flask_wtf.csrf import generate_csrf
+from onani.controllers.crypto import decrypt_cookies, server_encrypt
 from onani.models import User, UserSchema
 from onani.services.auth import (
     AuthError,
@@ -49,9 +50,16 @@ class AuthLogin(Resource):
 
         login_user(user, remember=True, duration=timedelta(days=7))
 
-        # Cache password for encrypted cookies decryption in imports
-        if user.settings and user.settings.encrypted_cookies:
-            session["_cookie_pw"] = args["password"]
+        # Migrate legacy password-encrypted cookies to the server-key format.
+        settings = user.settings
+        if settings and settings.encrypted_cookies and settings.cookies_salt:
+            try:
+                plain = decrypt_cookies(settings.encrypted_cookies, settings.cookies_salt, args["password"])
+                settings.encrypted_cookies = server_encrypt(plain)
+            except Exception:
+                settings.encrypted_cookies = None  # undecryptable; user must re-upload
+            settings.cookies_salt = None
+        db.session.commit()  # also persists the TOTP step used by check_otp
 
         resp = make_response(UserSchema().dump(current_user), 200)
         resp.set_cookie(

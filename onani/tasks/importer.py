@@ -83,6 +83,12 @@ def import_post(self, post_url: str, importer_id: int, cookies_content: str = No
     # Write cookies to a temp file if provided
     cookies_path = None
     if cookies_content:
+        from cryptography.fernet import InvalidToken
+        from onani.controllers.crypto import server_decrypt
+        try:
+            cookies_content = server_decrypt(cookies_content.encode("ascii")).decode("utf-8", errors="replace")
+        except (InvalidToken, UnicodeEncodeError):
+            pass  # plaintext job queued before cookies were encrypted in transit
         try:
             fd, cookies_path = tempfile.mkstemp(suffix=".txt", prefix="gdl_cookies_")
             os.write(fd, cookies_content.encode("utf-8"))
