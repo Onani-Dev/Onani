@@ -1,8 +1,8 @@
 # Container Image
 # Use slim (glibc/Debian) when INSTALL_ML=true because tensorflow has no musl/Alpine wheels.
 ARG INSTALL_ML=false
-FROM python:3.10-slim AS base-true
-FROM python:3.10-alpine AS base-false
+FROM python:3.14-slim AS base-true
+FROM python:3.14-alpine AS base-false
 FROM base-${INSTALL_ML}
 
 ARG INSTALL_ML=false
