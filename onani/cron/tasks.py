@@ -16,15 +16,20 @@ _job = crontab.job if crontab else (lambda **kw: (lambda f: f))
 
 @_job(minute="*/1")
 def remove_expired_bans():
+    import datetime
+
     from onani.models import Ban
     from onani.services import delete_ban
 
-    # Only query bans that have an expiry date set; permanent bans are never expired
-    expiring_bans: List[Ban] = Ban.query.filter(Ban.expires.isnot(None)).all()
+    # Filter to already-expired bans in the query itself, instead of loading
+    # every non-permanent ban and re-checking expiry in Python.
+    now = datetime.datetime.now(datetime.timezone.utc)
+    expired_bans: List[Ban] = Ban.query.filter(
+        Ban.expires.isnot(None), Ban.expires <= now
+    ).all()
 
-    for ban in expiring_bans:
-        if ban.has_expired:
-            delete_ban(ban.user)
+    for ban in expired_bans:
+        delete_ban(ban.user)
 
 
 @_job(minute="*/1")

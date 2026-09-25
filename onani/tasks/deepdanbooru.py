@@ -9,6 +9,8 @@ from . import db
 def _run_deepdanbooru_batch(self, scope: str):
     from flask import current_app
 
+    from sqlalchemy.orm import lazyload
+
     from onani.models import Post, PostRating, Tag
     from onani.services.deepdanbooru import (
         DeepDanbooruUnavailableError,
@@ -24,18 +26,25 @@ def _run_deepdanbooru_batch(self, scope: str):
         except Exception:
             pass
 
+    # Post.notes is lazy="joined" (a collection), which SQLAlchemy refuses
+    # to combine with yield_per's batched fetching — turn it back into a
+    # normal lazy-load for this streamed query only.
     if scope == "all":
-        posts = Post.query.order_by(Post.id.asc()).all()
-        logs = [f"Starting DeepDanbooru tagging for {len(posts)} post(s)."]
+        base_query = Post.query.options(lazyload(Post.notes)).order_by(Post.id.asc())
+        total = base_query.count()
+        posts = base_query.yield_per(500)
+        logs = [f"Starting DeepDanbooru tagging for {total} post(s)."]
     else:
-        posts = (
+        base_query = (
             Post.query
+            .options(lazyload(Post.notes))
             .join(Post.tags)
             .filter(Tag.name == "tag_request")
             .order_by(Post.id.asc())
-            .all()
         )
-        logs = [f"Starting DeepDanbooru tagging for {len(posts)} tag_request post(s)."]
+        total = base_query.count()
+        posts = base_query.yield_per(500)
+        logs = [f"Starting DeepDanbooru tagging for {total} tag_request post(s)."]
 
     processed = 0
     updated_posts = 0
@@ -47,7 +56,7 @@ def _run_deepdanbooru_batch(self, scope: str):
     for index, post in enumerate(posts, start=1):
         _update("PROGRESS", {
             "current": index - 1,
-            "total": len(posts),
+            "total": total,
             "logs": logs,
         })
         try:
@@ -76,12 +85,12 @@ def _run_deepdanbooru_batch(self, scope: str):
                 added_tags += delta
                 if delta and rating_changed:
                     logs.append(
-                        f"[{index}/{len(posts)}] Post #{post.id}: added {delta} tag(s), rating -> {inferred_rating}."
+                        f"[{index}/{total}] Post #{post.id}: added {delta} tag(s), rating -> {inferred_rating}."
                     )
                 elif delta:
-                    logs.append(f"[{index}/{len(posts)}] Post #{post.id}: added {delta} tag(s).")
+                    logs.append(f"[{index}/{total}] Post #{post.id}: added {delta} tag(s).")
                 else:
-                    logs.append(f"[{index}/{len(posts)}] Post #{post.id}: rating -> {inferred_rating}.")
+                    logs.append(f"[{index}/{total}] Post #{post.id}: rating -> {inferred_rating}.")
             else:
                 skipped += 1
         except DeepDanbooruUnavailableError as exc:
@@ -99,11 +108,11 @@ def _run_deepdanbooru_batch(self, scope: str):
         except ValueError as exc:
             db.session.rollback()
             skipped += 1
-            logs.append(f"[{index}/{len(posts)}] Post #{post.id}: skipped ({exc}).")
+            logs.append(f"[{index}/{total}] Post #{post.id}: skipped ({exc}).")
         except Exception as exc:
             db.session.rollback()
             failed += 1
-            logs.append(f"[{index}/{len(posts)}] Post #{post.id}: failed ({exc}).")
+            logs.append(f"[{index}/{total}] Post #{post.id}: failed ({exc}).")
 
     summary = (
         f"DeepDanbooru finished at {datetime.datetime.now(datetime.timezone.utc).isoformat()} "

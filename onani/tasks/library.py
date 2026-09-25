@@ -12,6 +12,7 @@ import os
 from urllib.parse import quote
 
 from celery import shared_task
+from sqlalchemy import text
 
 from . import db
 
@@ -56,6 +57,32 @@ def _iter_scan_directory(root: str, recursive: bool = True):
             yield entry.path
 
 
+def _fenced_status_update(library_id: int, owner_task_id: str, **fields) -> bool:
+    """Update the library row only if it's still owned by *owner_task_id*.
+
+    A stop request (DELETE /libraries/<id>/scan) clears last_scan_task_id
+    once it revokes this task. If this task's own commits raced past that
+    revoke and would otherwise blindly overwrite the row, the stopped scan
+    could resurrect itself (H1). Every status write this task makes goes
+    through here so a lost race is a no-op instead of a silent write.
+    """
+    set_clause = ", ".join(f"{k} = :{k}" for k in fields)
+    params = {**fields, "id": library_id, "tid": owner_task_id}
+    # "= NULL" never matches in SQL, so a task run without a real Celery
+    # request id (e.g. called directly in tests, not via apply_async) needs
+    # an explicit IS NULL branch to still be able to claim/update its row.
+    owner_clause = (
+        "last_scan_task_id IS NULL" if owner_task_id is None
+        else "last_scan_task_id = :tid"
+    )
+    result = db.session.execute(
+        text(f"UPDATE external_libraries SET {set_clause} WHERE id = :id AND {owner_clause}"),
+        params,
+    )
+    db.session.commit()
+    return result.rowcount > 0
+
+
 def _external_url(library_id: int, library_root: str, file_path: str) -> str:
     rel_path = os.path.relpath(file_path, library_root)
     rel_path = rel_path.replace(os.sep, "/")
@@ -94,16 +121,26 @@ def scan_library(self, library_id: int):
     if library is None:
         return {"error": f"Library {library_id} not found."}
 
+    task_id = self.request.id
+
+    # Claim the row for this task. Every later status write in this function
+    # goes through _fenced_status_update, which only takes effect while
+    # last_scan_task_id still equals task_id — so if a stop request (DELETE)
+    # revokes us and clears/reassigns the row after this point, our later
+    # commits become no-ops instead of resurrecting SCANNING (H1).
+    library.last_scan_status = "SCANNING"
+    library.last_scan_task_id = task_id
+    db.session.commit()
+
     if not os.path.isdir(library.path):
-        library.last_scan_status = "FAILED"
-        library.last_scan_at = datetime.datetime.now(datetime.timezone.utc)
-        db.session.commit()
+        _fenced_status_update(
+            library_id, task_id,
+            last_scan_status="FAILED",
+            last_scan_at=datetime.datetime.now(datetime.timezone.utc),
+        )
         return {"error": f"Path does not exist or is not a directory: {library.path}"}
 
     logs = [f"Starting scan of '{library.name}' ({library.path})"]
-    library.last_scan_status = "SCANNING"
-    library.last_scan_task_id = self.request.id
-    db.session.commit()
 
     _update("PROGRESS", {"library_id": library_id, "logs": logs})
 
@@ -298,22 +335,32 @@ def scan_library(self, library_id: int):
                     )
 
             except Exception as e:
-                db.session.remove()
+                # rollback() (not remove()) only undoes this file's pending
+                # writes — unlike a full session reset it doesn't detach
+                # every previously-loaded row, so there's no need to reload
+                # the whole `existing` dict on every failure (was O(n) per
+                # failure, i.e. O(n^2) over a scan with many failing files).
+                db.session.rollback()
                 _batch_dirty = 0
-                # After session removal all previously loaded ORM objects
-                # (library, existing entries) are detached.  Re-fetch library
-                # and rebuild existing so subsequent iterations don't hit
-                # DetachedInstanceError.
-                library = ExternalLibrary.query.get(library_id)
-                existing = {
-                    f.file_path: f
-                    for f in ExternalLibraryFile.query.filter_by(library_id=library_id).all()
-                }
-                file_rec_fresh = existing.get(path)
-                if file_rec_fresh:
-                    file_rec_fresh.status = "FAILED"
-                    file_rec_fresh.error = str(e)
-                    db.session.commit()
+                file_rec_fresh = ExternalLibraryFile.query.filter_by(
+                    library_id=library_id, file_path=path
+                ).first()
+                if file_rec_fresh is None:
+                    # rollback() undid this file's own flushed insert along
+                    # with the failed write; recreate the row so the file is
+                    # retried on the next scan instead of vanishing silently.
+                    file_rec_fresh = ExternalLibraryFile(
+                        library_id=library_id,
+                        file_path=path,
+                        first_seen_at=now,
+                        last_seen_at=now,
+                        status="PENDING",
+                    )
+                    db.session.add(file_rec_fresh)
+                file_rec_fresh.status = "FAILED"
+                file_rec_fresh.error = str(e)
+                db.session.commit()
+                existing[path] = file_rec_fresh
                 failed_count += 1
                 if processed_count == 1 or processed_count % import_log_interval == 0:
                     logs.append(
@@ -333,11 +380,11 @@ def scan_library(self, library_id: int):
 
     except SoftTimeLimitExceeded:
         db.session.remove()
-        lib_partial = ExternalLibrary.query.get(library_id)
-        if lib_partial:
-            lib_partial.last_scan_status = "PARTIAL" if (imported_count or skipped_count or failed_count) else "FAILED"
-            lib_partial.last_scan_at = datetime.datetime.now(datetime.timezone.utc)
-            db.session.commit()
+        _fenced_status_update(
+            library_id, task_id,
+            last_scan_status="PARTIAL" if (imported_count or skipped_count or failed_count) else "FAILED",
+            last_scan_at=datetime.datetime.now(datetime.timezone.utc),
+        )
         logs.append(
             "Scan reached time limit during discovery/import; rerun scan to continue."
         )
@@ -351,11 +398,11 @@ def scan_library(self, library_id: int):
         }
     except Exception as e:
         db.session.remove()
-        library_err = ExternalLibrary.query.get(library_id)
-        if library_err:
-            library_err.last_scan_status = "FAILED"
-            library_err.last_scan_at = datetime.datetime.now(datetime.timezone.utc)
-            db.session.commit()
+        _fenced_status_update(
+            library_id, task_id,
+            last_scan_status="FAILED",
+            last_scan_at=datetime.datetime.now(datetime.timezone.utc),
+        )
         logs.append(f"Scan failed: {e}")
         return {
             "library_id": library_id,
@@ -394,17 +441,17 @@ def scan_library(self, library_id: int):
     # -----------------------------------------------------------------------
     # Phase 4: finalise
     # -----------------------------------------------------------------------
-    library_fresh = ExternalLibrary.query.get(library_id)
-    if library_fresh:
-        library_fresh.last_scan_at = datetime.datetime.now(datetime.timezone.utc)
-        if failed_count and not imported_count:
-            library_fresh.last_scan_status = "FAILED"
-        elif failed_count:
-            library_fresh.last_scan_status = "PARTIAL"
-        else:
-            library_fresh.last_scan_status = "SUCCESS"
-        library_fresh.last_scan_task_id = self.request.id
-        db.session.commit()
+    if failed_count and not imported_count:
+        final_status = "FAILED"
+    elif failed_count:
+        final_status = "PARTIAL"
+    else:
+        final_status = "SUCCESS"
+    _fenced_status_update(
+        library_id, task_id,
+        last_scan_status=final_status,
+        last_scan_at=datetime.datetime.now(datetime.timezone.utc),
+    )
 
     summary = (
         f"Scan complete. Discovered: {discovered_count}, imported: {imported_count}, "
