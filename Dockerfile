@@ -14,8 +14,8 @@ RUN npm run build
 FROM caddy:2-alpine AS caddy
 
 # Base image variants — selected via INSTALL_ML build arg
-FROM python:3.10-slim AS app-base-true
-FROM python:3.10-alpine AS app-base-false
+FROM python:3.14-slim AS app-base-true
+FROM python:3.14-alpine AS app-base-false
 FROM app-base-${INSTALL_ML}
 
 # Re-declare after FROM so it is available in the build stage
