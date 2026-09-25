@@ -18,6 +18,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+
+      - name: Verify tag matches VERSION
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.inputs.tag || github.ref_name }}"
+          tag_version="${tag#v}"
+          file_version="$(tr -d '[:space:]' < VERSION)"
+          if [[ "${tag_version}" != "${file_version}" ]]; then
+            echo "::error::Tag ${tag} does not match VERSION (${file_version})." \
+              "release.sh keeps these in sync — did you tag manually?"
+            exit 1
+          fi
+          echo "Tag ${tag} matches VERSION."
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
