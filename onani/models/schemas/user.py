@@ -26,6 +26,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         exclude = (
             "password_hash",
             "otp_token",
+            "otp_last_step",
             "comments",
             "posts",
             "email",

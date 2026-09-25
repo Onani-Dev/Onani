@@ -5,11 +5,13 @@
       <div class="form-container">
         <h2 class="login-header">Login</h2>
         <form @submit.prevent="handleLogin">
-          <input v-model="username" placeholder="Username" required autocomplete="username" />
-          <input v-model="password" type="password" placeholder="Password" required autocomplete="current-password" />
+          <label for="login-username">Username</label>
+          <input id="login-username" v-model="username" placeholder="Username" required autocomplete="username" />
+          <label for="login-password">Password</label>
+          <input id="login-password" v-model="password" type="password" placeholder="Password" required autocomplete="current-password" />
           <div v-if="showOtp" class="otp-field">
-            <label>OTP Code</label>
-            <input v-model="otp" type="number" placeholder="Enter your OTP code" ref="otpInput" />
+            <label for="login-otp">OTP Code</label>
+            <input id="login-otp" v-model="otp" type="number" placeholder="Enter your OTP code" ref="otpInput" />
           </div>
           <p v-if="error && !otpPrompted" class="text-error">{{ error }}</p>
           <button type="submit" :disabled="loading">{{ loading ? 'Logging in...' : 'Login' }}</button>

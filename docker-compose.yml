@@ -11,8 +11,16 @@ x-env: &dev-env
   FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev}
   FLASK_SQLALCHEMY_ECHO: "True"
   TESTING: "True"
-  DB_PASSWORD: ${DB_PASSWORD:-onani_db}
-  DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin}
+  # No default: run ./generate_env.sh (or set it in .env yourself) before
+  # starting any profile — dev included, now that postgres:5432 is bound to
+  # 127.0.0.1 instead of the weak-default/publicly-reachable combo this used
+  # to be.
+  DB_PASSWORD: ${DB_PASSWORD:?}
+  # No default here either: onani/__init__.py (security H6) generates and
+  # logs a random admin password on first start when this is unset. A
+  # ":-admin" default here would silently override that and put the app
+  # back to the admin/admin state H6 exists to prevent.
+  DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-}
 
 x-env-ml: &dev-env-ml
   DEEPDANBOORU_ENABLED: "true"
@@ -25,7 +33,7 @@ x-env-prod-ml: &prod-env-ml
 x-env-prod: &prod-env
   FLASK_APP: run
   FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
-  DB_PASSWORD: ${DB_PASSWORD}
+  DB_PASSWORD: ${DB_PASSWORD:?}
 
 x-db-deps: &db-deps
   postgres:
@@ -98,9 +106,7 @@ services:
       args:
         INSTALL_ML: "false"
     restart: unless-stopped
-    environment:
-      <<: *dev-env
-      C_FORCE_ROOT: "yes"
+    environment: *dev-env
     depends_on: *db-deps
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images
@@ -119,7 +125,6 @@ services:
     restart: unless-stopped
     environment:
       <<: [*dev-env, *dev-env-ml]
-      C_FORCE_ROOT: "yes"
     depends_on: *db-deps
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images
@@ -138,13 +143,21 @@ services:
     image: ${REGISTRY:-ghcr.io/onani-dev/onani}-app:${VERSION:-latest}
     restart: unless-stopped
     ports:
-      - ${PORT:-80}:80
+      # Caddy inside the container now binds :8080 (unprivileged), not :80 —
+      # see Dockerfile/entrypoints/entrypoint.sh (non-root USER).
+      - ${PORT:-80}:8080
     environment: *prod-env
     depends_on: *db-deps
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./migrations:/onani/migrations
+    healthcheck:
+      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=3)" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   celery:
     profiles: [ "prod" ]
@@ -156,13 +169,19 @@ services:
       - ${IMAGES_HOST_DIR:-images}:/images
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./migrations:/onani/migrations
+    healthcheck:
+      test: [ "CMD", "celery", "--app", "celery_worker.celery", "inspect", "ping", "-t", "5" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   app-ml:
     profiles: [ "prod-ml" ]
     image: ${REGISTRY:-ghcr.io/onani-dev/onani}-app-ml:${VERSION:-latest}
     restart: unless-stopped
     ports:
-      - ${PORT:-80}:80
+      - ${PORT:-80}:8080
     environment:
       <<: [*prod-env, *prod-env-ml]
     depends_on: *db-deps
@@ -171,6 +190,12 @@ services:
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./migrations:/onani/migrations
       - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
+    healthcheck:
+      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=3)" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   celery-ml:
     profiles: [ "prod-ml" ]
@@ -184,7 +209,12 @@ services:
       - ${AVATARS_HOST_DIR:-avatars}:/avatars
       - ./migrations:/onani/migrations
       - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
-      - ${DEEPDANBOORU_MODEL_HOST_DIR:-./models/deepdanbooru}:/models/deepdanbooru:ro
+    healthcheck:
+      test: [ "CMD", "celery", "--app", "celery_worker.celery", "inspect", "ping", "-t", "5" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # ──────────────────────────────────────────────────────────
   # SHARED: Postgres + Redis (both dev and prod)
@@ -194,13 +224,17 @@ services:
     image: postgres:14-alpine
     restart: unless-stopped
     ports:
-      - 5432:5432
+      # Loopback-only — was published on all interfaces (0.0.0.0:5432),
+      # reachable from the whole LAN/host network with just DB_PASSWORD as
+      # the barrier. Still reachable from `app`/`celery` over the compose
+      # network either way; this only affects host access.
+      - 127.0.0.1:5432:5432
     volumes:
       - ${DATABASE_HOST_DIR:-database}:/var/lib/postgresql/data/
     environment:
       PGUSER: onani_db
       POSTGRES_USER: onani_db
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-onani_db}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
       POSTGRES_DB: onani_db
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U onani_db -d onani_db -h 127.0.0.1 -p 5432" ]

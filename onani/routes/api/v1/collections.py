@@ -34,7 +34,7 @@ class Collections(Resource):
 
         if args["id"]:
             collection = Collection.query.filter_by(id=args["id"]).first_or_404()
-            paginated = collection.posts.paginate(
+            paginated = collection.posts.filter(Post.hidden.is_(False)).paginate(
                 page=args["post_page"], per_page=args["post_per_page"], error_out=False
             )
             result = CollectionSchema(exclude=("posts",)).dump(collection)

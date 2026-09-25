@@ -10,7 +10,14 @@
           <router-link :to="`/posts/${data.random.id}`" class="spotlight-link">
             <img :src="data.random.thumbnail_url" class="spotlight-img" :alt="`Post #${data.random.id}`" :class="{ 'sfw-blurred': shouldBlur(data.random) }" />
           </router-link>
-          <div v-if="shouldBlur(data.random)" class="sfw-overlay spotlight-sfw-overlay" @click.stop="reveal(data.random.id)">Click to reveal</div>
+          <div
+            v-if="shouldBlur(data.random)"
+            class="sfw-overlay spotlight-sfw-overlay"
+            role="button"
+            tabindex="0"
+            @click.stop="reveal(data.random.id)"
+            @keydown.enter.space.prevent="reveal(data.random.id)"
+          >Click to reveal</div>
         </div>
       </article>
 
@@ -38,7 +45,7 @@
       </header>
       <div class="post-group-grid">
         <PostThumb v-for="post in data.recent" :key="post.id" :post="post" />
-        <p v-if="!loading && !data.recent.length" class="empty-msg">No posts yet.</p>
+        <p v-if="!loading && !error && !data.recent.length" class="empty-msg">No posts yet.</p>
       </div>
     </section>
 
@@ -49,9 +56,13 @@
       </header>
       <div class="post-group-grid">
         <PostThumb v-for="post in data.popular" :key="post.id" :post="post" />
-        <p v-if="!loading && !data.popular.length" class="empty-msg">No posts yet.</p>
+        <p v-if="!loading && !error && !data.popular.length" class="empty-msg">No posts yet.</p>
       </div>
     </section>
+
+    <p v-if="error" class="text-error empty-msg">
+      {{ error }} <a href="#" @click.prevent="fetchHome">Retry</a>
+    </p>
   </div>
 </template>
 
@@ -65,15 +76,22 @@ const { shouldBlur, reveal } = useSfwMode()
 
 const data = ref({ recent: [], popular: [], random: null, tags: [] })
 const loading = ref(true)
+const error = ref('')
 
-onMounted(async () => {
+async function fetchHome() {
+  loading.value = true
+  error.value = ''
   try {
     const { data: d } = await api.get('/posts/home')
     data.value = d
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load.'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(fetchHome)
 </script>
 
 <style scoped>

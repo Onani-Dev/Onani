@@ -188,7 +188,13 @@
 
           <div v-if="filteredImportJobs.length" class="import-list">
             <div v-for="job in filteredImportJobs" :key="job.id" class="import-job">
-              <div class="job-header" @click="job.expanded = !job.expanded">
+              <div
+                class="job-header"
+                role="button"
+                tabindex="0"
+                @click="job.expanded = !job.expanded"
+                @keydown.enter.space.prevent="job.expanded = !job.expanded"
+              >
                 <span class="status-dot" :class="dotClass(job)"></span>
                 <span class="job-url">{{ job.url || job.id }}</span>
                 <span v-if="job.user" class="job-user text-muted" title="Submitted by">@{{ job.user.username }}</span>

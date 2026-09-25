@@ -31,6 +31,14 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         const status = error.response?.status
+        // Stale CSRF token (e.g. the session was rebuilt from the remember-me
+        // cookie): fetch a fresh one and retry the request once.
+        const cfg = error.config
+        if (status === 400 && cfg && !cfg._csrfRetried && /CSRF/i.test(error.response?.data?.message || '')) {
+            cfg._csrfRetried = true
+            csrfToken = null
+            return api(cfg)
+        }
         if (status === 429) {
             // Lazily import the router to avoid circular deps (client ← router ← auth ← client)
             import('@/router').then(({ default: router }) => {

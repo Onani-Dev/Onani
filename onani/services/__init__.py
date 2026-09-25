@@ -6,7 +6,6 @@ from .users import create_user
 from .errors import log_error
 from .imports import enqueue_import_job
 from .queries import query_posts
-from .news import create_news
 from .default import create_default_tags
 from .maintenance import (
 	MaintenanceError,

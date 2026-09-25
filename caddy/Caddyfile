@@ -2,9 +2,18 @@
 	auto_https off
 }
 
-:80 {
+:8080 {
 	# Serve Vue SPA from /frontend/dist
 	root * /frontend/dist
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Content-Security-Policy "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'"
+		-Server
+	}
 
 	# Route API and media traffic to Flask before SPA rewrite logic.
 	@backend path /api* /images* /avatars* /videos* /static* /external*

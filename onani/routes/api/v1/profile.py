@@ -4,10 +4,13 @@
 # @Last Modified by:   Mattlau04
 # @Last Modified time: 2023-02-04 16:03:50
 
-from flask import current_app, request, session
-from flask_login import current_user, login_required
+from datetime import timedelta
+
+import pyotp
+from flask import current_app, request
+from flask_login import current_user, login_required, login_user
 from flask_restful import Resource, reqparse
-from onani.controllers.crypto import encrypt_cookies, decrypt_cookies
+from onani.controllers.crypto import server_encrypt
 from onani.services.files import create_avatar
 from onani.models import UserSchema, User
 
@@ -84,11 +87,17 @@ class Profile(Resource):
             if len(args["new_password"]) < 8:
                 return {"message": "Password must be at least 8 characters."}, 400
             current_user.set_password(args["new_password"])
+            # set_password rotated login_id: re-issue this session's cookies
+            # (other sessions stay logged out).
+            login_user(current_user._get_current_object(), remember=True, duration=timedelta(days=7))
 
         if args["otp_enabled"] is not None:
+            if args["otp_enabled"] and not current_user.otp_enabled:
+                return {"message": "Enable 2FA via POST /profile/otp with a valid code."}, 400
             if not args["otp_enabled"] and current_user.otp_enabled:
                 if not current_user.check_password(args.get("current_password") or ""):
                     return {"message": "Current password is required to disable 2FA."}, 403
+                current_user.otp_token = pyotp.random_base32()
             current_user.otp_enabled = args["otp_enabled"]
 
         # PROFILE SETTINGS
@@ -105,8 +114,9 @@ class Profile(Resource):
             try:
                 create_avatar(current_user, args["profile_picture"],
                               avatars_dir=current_app.config.get("AVATARS_DIR", "/avatars"))
-            except Exception as e:
-                return {"message": f"Avatar upload failed: {e}"}, 400
+            except Exception:
+                current_app.logger.info("Avatar upload failed", exc_info=True)
+                return {"message": "Avatar upload failed: unsupported or corrupt image."}, 400
 
         if args["remove_profile_picture"]:
             import os
@@ -147,13 +157,9 @@ class ProfileCookies(Resource):
         if len(data) > 512 * 1024:
             return {"message": "Cookies file too large (max 512 KB)."}, 400
 
-        token, salt = encrypt_cookies(data, password)
-        current_user.settings.encrypted_cookies = token
-        current_user.settings.cookies_salt = salt
+        current_user.settings.encrypted_cookies = server_encrypt(data)
+        current_user.settings.cookies_salt = None  # None = server-key format
         db.session.commit()
-
-        # Cache the password in server-side session so imports can decrypt
-        session["_cookie_pw"] = password
 
         return {"message": "Cookies saved."}
 
@@ -161,7 +167,6 @@ class ProfileCookies(Resource):
         current_user.settings.encrypted_cookies = None
         current_user.settings.cookies_salt = None
         db.session.commit()
-        session.pop("_cookie_pw", None)
         return {"message": "Cookies removed."}
 
 
@@ -170,9 +175,12 @@ class ProfileOTP(Resource):
     decorators = [login_required]
 
     def get(self):
-        """Return current OTP status and QR code for setup."""
+        """Return current OTP status, plus the secret/QR only while setting up."""
         import io, base64
         import qrcode
+
+        if current_user.otp_enabled:
+            return {"enabled": True}
 
         uri = current_user.otp_uri
         buf = io.BytesIO()
@@ -208,6 +216,7 @@ class ProfileOTP(Resource):
             return {"message": "Incorrect password."}, 403
 
         current_user.otp_enabled = False
+        current_user.otp_token = pyotp.random_base32()  # re-enabling needs a fresh secret
         db.session.commit()
         return {"enabled": False}
 

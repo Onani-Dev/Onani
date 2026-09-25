@@ -3,7 +3,13 @@ import os
 
 from flask import Flask, request
 from flask_celeryext import FlaskCeleryExt
-from flask_crontab import Crontab
+try:
+    from flask_crontab import Crontab
+except ImportError:
+    # flask_crontab hard-depends on fcntl, which doesn't exist on Windows.
+    # Cron scheduling isn't available there; only matters for local dev
+    # since deployment is always Linux/Docker.
+    Crontab = None
 from flask_limiter import Limiter
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
@@ -12,7 +18,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-crontab = Crontab()
+crontab = Crontab() if Crontab else None
 csrf = CSRFProtect()
 db = SQLAlchemy()
 ext = FlaskCeleryExt()
@@ -58,7 +64,8 @@ def init_app():
     # REST API
     app.register_blueprint(main_api, url_prefix="/api")
 
-    crontab.init_app(app)
+    if crontab:
+        crontab.init_app(app)
     csrf.init_app(app)
     db.init_app(app)
     ext.init_app(app)
@@ -81,7 +88,7 @@ def init_app():
     def _error_handler(e):
         import traceback
         from werkzeug.exceptions import HTTPException
-        from .controllers.database.errors import log_error
+        from .services.errors import log_error
 
         code = e.code if isinstance(e, HTTPException) else 500
         if app.testing:
@@ -104,8 +111,12 @@ def init_app():
         from .models.user.roles import UserRoles
         try:
             if User.query.count() == 0:
+                import secrets
                 from .services.users import create_user
-                default_pw = os.environ.get("DEFAULT_ADMIN_PASSWORD", "admin")
+                default_pw = os.environ.get("DEFAULT_ADMIN_PASSWORD")
+                generated = not default_pw
+                if generated:
+                    default_pw = secrets.token_urlsafe(16)
                 owner = create_user(
                     username="admin",
                     password=default_pw,
@@ -113,10 +124,16 @@ def init_app():
                 )
                 owner.permissions = UserPermissions.ADMINISTRATION
                 db.session.commit()
-                app.logger.warning(
-                    "Created default admin account (username: admin). "
-                    "Change the password immediately!"
-                )
+                if generated:
+                    # Printed once, on first start only.
+                    app.logger.warning(
+                        "Created default admin account. username: admin  password: %s  "
+                        "(change it after logging in)", default_pw
+                    )
+                else:
+                    app.logger.warning(
+                        "Created default admin account (username: admin) with DEFAULT_ADMIN_PASSWORD."
+                    )
             else:
                 owners = User.query.filter_by(role=UserRoles.OWNER).all()
                 for owner in owners:
@@ -124,7 +141,8 @@ def init_app():
                         owner.permissions = UserPermissions.ADMINISTRATION
                         db.session.commit()
         except Exception:
-            pass
+            # Tables may not exist yet (before `flask db upgrade`).
+            app.logger.debug("Default admin bootstrap skipped", exc_info=True)
 
     # ── CLI: migrate flat image/video files to sharded layout ────────────
     @app.cli.command("migrate-images")

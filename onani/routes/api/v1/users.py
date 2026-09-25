@@ -49,7 +49,7 @@ class UserPosts(Resource):
         args["per_page"] = min(args["per_page"], current_app.config["API_MAX_PER_PAGE"])
 
         user = User.query.filter_by(id=args["user_id"]).first_or_404()
-        posts = user.posts.order_by(Post.id.desc()).paginate(
+        posts = user.posts.filter(Post.hidden.is_(False)).order_by(Post.id.desc()).paginate(
             per_page=args["per_page"], page=args["page"], error_out=False
         )
         return {

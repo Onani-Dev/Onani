@@ -15,15 +15,6 @@ class TestUtils:
         assert is_url("not-a-url") is False
         assert is_url("ftp://example.com") is False
 
-    def test_url_hostname(self):
-        from onani.controllers.utils import url_hostname
-        assert url_hostname("https://example.com/path") == "example.com"
-
-    def test_url_hostname_non_url(self):
-        from onani.controllers.utils import url_hostname
-        result = url_hostname("just-a-string")
-        assert result == "just-a-string" or result is None
-
     def test_hex_to_rgb(self):
         from onani.controllers.utils import hex_to_rgb
         r, g, b = hex_to_rgb("#ff0000")

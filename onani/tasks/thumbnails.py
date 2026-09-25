@@ -37,9 +37,15 @@ def generate_all_thumbnails(self):
         except Exception:
             pass
 
+    from sqlalchemy.orm import lazyload
+
     images_dir = current_app.config["IMAGES_DIR"]
-    posts = Post.query.order_by(Post.id.asc()).all()
-    total = len(posts)
+    # Post.notes is lazy="joined" (a collection), which SQLAlchemy refuses
+    # to combine with yield_per's batched fetching — turn it back into a
+    # normal lazy-load for this streamed query only.
+    base_query = Post.query.options(lazyload(Post.notes)).order_by(Post.id.asc())
+    total = base_query.count()
+    posts = base_query.yield_per(500)
     logs = [f"Starting thumbnail generation for {total} post(s)."]
     generated = skipped = failed = 0
 

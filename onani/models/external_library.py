@@ -55,7 +55,7 @@ class ExternalLibrary(db.Model):
         db.DateTime(timezone=True), nullable=True
     )
 
-    # IDLE / SCANNING / SUCCESS / FAILED
+    # IDLE / SCANNING / SUCCESS / FAILED / PARTIAL
     last_scan_status: str = db.Column(db.String(20), nullable=True)
 
     # Celery task ID of the currently-running (or last) scan so the client

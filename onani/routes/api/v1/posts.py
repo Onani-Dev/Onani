@@ -19,7 +19,7 @@ from onani.services.deepdanbooru import (
 )
 from onani.services.queries import query_posts
 from onani.models import Post as _Post
-from onani.models import PostRating, PostSchema, UserPermissions
+from onani.models import PostRating, PostSchema, UserPermissions, UserRoles
 from onani.models import Tag, TagSchema
 from onani.models.post._post import post_upvotes, post_downvotes, post_waters
 from sqlalchemy import func
@@ -147,6 +147,8 @@ class Post(Resource):
         args = parser.parse_args()
 
         post = _Post.query.filter_by(id=args["id"]).first_or_404()
+        if post.hidden and not (current_user.is_authenticated and current_user.has_role(UserRoles.MODERATOR)):
+            abort(404)
         dump = PostSchema().dump(post)
         dump["has_upvoted"] = current_user.is_authenticated and current_user.has_upvoted(post)
         dump["has_downvoted"] = current_user.is_authenticated and current_user.has_downvoted(post)
@@ -424,7 +426,8 @@ class PostFavourites(Resource):
 class PostsHome(Resource):
     def get(self):
         # Recent
-        recent = _Post.query.order_by(_Post.id.desc()).limit(8).all()
+        visible = _Post.query.filter(_Post.hidden.is_(False))
+        recent = visible.order_by(_Post.id.desc()).limit(8).all()
 
         # Popular by (upvotes - downvotes)
         ups = (
@@ -438,7 +441,7 @@ class PostsHome(Resource):
             .subquery()
         )
         popular = (
-            _Post.query
+            visible
             .outerjoin(ups, _Post.id == ups.c.post_id)
             .outerjoin(downs, _Post.id == downs.c.post_id)
             .order_by(
@@ -449,9 +452,9 @@ class PostsHome(Resource):
         )
 
         # Random single post — use a random offset to avoid full-table ORDER BY random()
-        post_count = _Post.query.count()
+        post_count = visible.count()
         random_post = (
-            _Post.query.offset(random.randint(0, post_count - 1)).first()
+            visible.offset(random.randint(0, post_count - 1)).first()
             if post_count
             else None
         )

@@ -185,7 +185,8 @@ def _postgres_cli_base(program: str) -> tuple[list[str], dict]:
     if not url.host or not url.database or not url.username:
         raise MaintenanceError("PostgreSQL backups require host, database, and username in DATABASE_URL.")
 
-    env = os.environ.copy()
+    # Minimal environment: don't leak the app's secrets to the client tools.
+    env = {k: os.environ[k] for k in ("PATH", "SYSTEMROOT", "LANG", "LC_ALL") if k in os.environ}
     if url.password:
         env["PGPASSWORD"] = url.password
 
@@ -220,13 +221,91 @@ def _sanitize_postgres_restore_sql(backup_bytes: bytes) -> bytes:
             continue
         filtered_lines.append(line)
 
-    return "".join(filtered_lines).encode("utf-8")
+    return _reject_psql_meta_commands("".join(filtered_lines)).encode("utf-8")
+
+
+_COPY_FROM_STDIN = re.compile(r'^COPY\s+[\w\s.,"()]+\s+FROM\s+stdin;\s*$')
+_PG_DUMP_RESTRICT = re.compile(r"^\\(?:un)?restrict\s+\w+\s*$")
+_DOLLAR_TAG = re.compile(r"\$(?:[A-Za-z_]\w*)?\$")
+
+
+def _reject_psql_meta_commands(script: str) -> str:
+    r"""Refuse any psql backslash command (``\!``, ``\o |cmd``, ``\copy ... program``).
+
+    Backslashes are only allowed inside ``COPY ... FROM stdin;`` data blocks
+    (e.g. ``\N``), which psql streams to the server verbatim. Entering a COPY
+    block needs the same quote/comment state psql's lexer would see, otherwise
+    a fake COPY line inside a string could smuggle commands past this check.
+    pg_dump's own ``\restrict``/``\unrestrict`` lines are dropped.
+    """
+    # ponytail: rejects dumps with backslashes outside COPY data (e.g. in
+    # function bodies); onani's schema has none. Switch backups to
+    # pg_dump -Fc / pg_restore if that ever changes.
+    out = []
+    in_copy = False
+    quote = None      # "'", '"' or a $tag$
+    depth = 0         # /* */ nesting
+    stmt_empty = True
+    for lineno, line in enumerate(script.splitlines(keepends=True), 1):
+        if in_copy:
+            if line.rstrip("\r\n") == "\\.":
+                in_copy = False
+            out.append(line)
+            continue
+        if quote is None and depth == 0 and stmt_empty and _PG_DUMP_RESTRICT.match(line.strip()):
+            continue
+        if "\\" in line:
+            raise MaintenanceError(
+                f"Backup rejected: line {lineno} contains a psql backslash command."
+            )
+        copy_start = quote is None and depth == 0 and stmt_empty and _COPY_FROM_STDIN.match(line)
+        i = 0
+        while i < len(line):
+            c = line[i]
+            if quote in ("'", '"'):
+                if c == quote:
+                    quote = None
+            elif quote:
+                if line.startswith(quote, i):
+                    i += len(quote)
+                    quote = None
+                    continue
+            elif depth:
+                if line.startswith("/*", i):
+                    depth += 1
+                    i += 1
+                elif line.startswith("*/", i):
+                    depth -= 1
+                    i += 1
+            elif line.startswith("--", i):
+                break
+            elif line.startswith("/*", i):
+                depth = 1
+                i += 1
+            elif c in ("'", '"'):
+                quote = c
+                stmt_empty = False
+            elif c == "$" and (i == 0 or not (line[i - 1].isalnum() or line[i - 1] in "_$"))                     and (m := _DOLLAR_TAG.match(line, i)):
+                quote = m.group(0)
+                stmt_empty = False
+                i = m.end()
+                continue
+            elif c == ";":
+                stmt_empty = True
+            elif not c.isspace():
+                stmt_empty = False
+            i += 1
+        if copy_start and quote is None and depth == 0 and stmt_empty:
+            in_copy = True
+        out.append(line)
+    return "".join(out)
 
 
 def _restore_postgres_backup(restore_bytes: bytes) -> str:
     db_name = db.engine.url.database
     cmd, env = _postgres_cli_base("psql")
     cmd.extend([
+        "--no-psqlrc",
         "-v",
         "ON_ERROR_STOP=1",
         "-d",

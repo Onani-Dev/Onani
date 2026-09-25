@@ -4,8 +4,7 @@
 # @Last Modified by:   Mattlau04
 # @Last Modified time: 2023-02-22 20:42:16
 import click
-import string
-import random
+import secrets
 
 from onani import db, init_app
 from onani.services import create_default_tags
@@ -76,7 +75,7 @@ def reset_password(id):
     if user is None:
         raise ValueError("User not found.")
 
-    new_password = "".join(random.choices(string.ascii_letters, k=8))
+    new_password = secrets.token_urlsafe(16)
     user.set_password(new_password)
     db.session.commit()
 

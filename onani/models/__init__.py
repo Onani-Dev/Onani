@@ -6,7 +6,6 @@
 
 from .. import db, ma
 from .collection import Collection
-from .news import NewsPost, NewsType
 from .post import Note, Post, PostComment, PostRating
 from .tag import Tag, TagType
 from .user import Ban, User, UserRoles, UserSettings, UserPermissions
@@ -18,7 +17,6 @@ from .external_library import ExternalLibrary, ExternalLibraryFile
 from .schemas import (
     BanSchema,
     CollectionSchema,
-    NewsPostSchema,
     PostCommentSchema,
     PostSchema,
     SettingsSchema,

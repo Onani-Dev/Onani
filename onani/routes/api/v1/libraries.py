@@ -9,11 +9,13 @@ import datetime
 import uuid
 
 from celery.result import AsyncResult
-from flask import abort
+from flask import abort, current_app
 from flask_login import current_user, login_required
 from flask_restful import Resource, reqparse
+from sqlalchemy import text
 
 from onani.controllers.permissions import permissions_required
+from onani.controllers.utils import in_library_roots
 from onani.controllers.role import role_required
 from onani.models import ExternalLibrary, ExternalLibraryFile, Post, UserPermissions, UserRoles
 from onani.tasks import scan_library
@@ -78,6 +80,8 @@ class LibraryList(Resource):
         path = os.path.normpath(path)
         if not os.path.isabs(path):
             abort(400, description="path must be an absolute filesystem path.")
+        if not in_library_roots(path):
+            abort(400, description="path must be inside one of the configured LIBRARY_ROOTS.")
 
         valid_ratings = {"g", "q", "e"}
         if args["default_rating"] not in valid_ratings:
@@ -128,6 +132,8 @@ class LibraryDetail(Resource):
             path = os.path.normpath(args["path"].strip())
             if not os.path.isabs(path):
                 abort(400, description="path must be an absolute filesystem path.")
+            if not in_library_roots(path):
+                abort(400, description="path must be inside one of the configured LIBRARY_ROOTS.")
             lib.path = path
         if args["enabled"] is not None:
             was_enabled = _as_bool(lib.enabled)
@@ -234,6 +240,13 @@ class LibraryDetail(Resource):
         return {"message": "Library deleted."}
 
 
+# States shared between POST (should a new scan be blocked?) and DELETE
+# (is there anything to revoke?). PENDING is deliberately excluded from
+# "active" — see _task_is_active — but is still safe/idempotent to revoke.
+_ACTIVE_STATES = ("STARTED", "PROGRESS")
+_REVOCABLE_STATES = ("PENDING",) + _ACTIVE_STATES
+
+
 def _task_is_active(task_id: str) -> bool:
     """Return True only if the Celery task is genuinely queued or running.
 
@@ -246,8 +259,11 @@ def _task_is_active(task_id: str) -> bool:
     """
     try:
         task: AsyncResult = scan_library.AsyncResult(task_id)
-        return task.state in ("STARTED", "PROGRESS")
+        return task.state in _ACTIVE_STATES
     except Exception:
+        current_app.logger.debug(
+            "Celery status check failed for task %s", task_id, exc_info=True
+        )
         return False
 
 
@@ -276,7 +292,9 @@ class LibraryScan(Resource):
                     result = raw if isinstance(raw, dict) else str(raw) if raw else None
                     meta = task.info if task.state == "PROGRESS" and isinstance(task.info, dict) else None
             except Exception:
-                pass
+                current_app.logger.debug(
+                    "Celery status check failed for task %s", lib.last_scan_task_id, exc_info=True
+                )
 
         return {
             "library_id": library_id,
@@ -304,10 +322,32 @@ class LibraryScan(Resource):
                     "task_id": lib.last_scan_task_id,
                 }, 409
 
+        # Flip to SCANNING with a single conditional UPDATE instead of a
+        # read-then-write, so two concurrent POSTs can't both pass the check
+        # above and both start a scan (H2): only the request whose UPDATE
+        # still finds last_scan_task_id unchanged from what we just read
+        # wins — a compare-and-swap keyed on the old task_id (not on the
+        # status text), so a stale/crashed SCANNING row can still be
+        # reclaimed once the active-check above has cleared it.
+        old_task_id = lib.last_scan_task_id
         task_id = str(uuid.uuid4())
-        lib.last_scan_task_id = task_id
-        lib.last_scan_status = "SCANNING"
+        result = db.session.execute(
+            text(
+                "UPDATE external_libraries "
+                "SET last_scan_status = 'SCANNING', last_scan_task_id = :tid "
+                "WHERE id = :id AND (last_scan_task_id = :old_tid OR "
+                "(last_scan_task_id IS NULL AND :old_tid IS NULL))"
+            ),
+            {"tid": task_id, "id": library_id, "old_tid": old_task_id},
+        )
         db.session.commit()
+
+        if result.rowcount == 0:
+            db.session.refresh(lib)
+            return {
+                "message": "A scan is already running.",
+                "task_id": lib.last_scan_task_id,
+            }, 409
 
         scan_library.apply_async(args=[library_id], task_id=task_id)
 
@@ -328,14 +368,28 @@ class LibraryScan(Resource):
         if task_id:
             try:
                 task: AsyncResult = scan_library.AsyncResult(task_id)
-                if task.state in ("PENDING", "STARTED", "PROGRESS"):
+                if task.state in _REVOCABLE_STATES:
                     task.revoke(terminate=True, signal="SIGTERM")
                     revoked = True
             except Exception:
-                pass
+                current_app.logger.debug(
+                    "Celery revoke failed for task %s", task_id, exc_info=True
+                )
 
-        lib.last_scan_status = "IDLE"
-        lib.last_scan_task_id = None
+        # Only clear the row if it still points at the task_id we just
+        # revoked (or has none) — a conditional UPDATE, not a blind write, so
+        # this can't clobber a newer scan that started between our read above
+        # and this write (H1). The scan task's own finalize commits are
+        # fenced the same way (see tasks/library.py), so a straggling commit
+        # from the task we just revoked can't resurrect SCANNING either.
+        db.session.execute(
+            text(
+                "UPDATE external_libraries "
+                "SET last_scan_status = 'IDLE', last_scan_task_id = NULL "
+                "WHERE id = :id AND (last_scan_task_id = :tid OR last_scan_task_id IS NULL)"
+            ),
+            {"id": library_id, "tid": task_id},
+        )
         db.session.commit()
 
         return {

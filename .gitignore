@@ -135,8 +135,7 @@ result
 onani.toml
 
 # Local ML model artifacts
-models/
-docker-compose.yml
+/models/
 
 # Local DeepDanbooru dataset artifacts
 dataset/

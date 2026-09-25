@@ -40,6 +40,8 @@ def app():
         # Session cookies don't need secure flag in tests
         SESSION_COOKIE_SECURE=False,
         SECRET_KEY="test-secret-key-do-not-use-in-prod",
+        # Tests create libraries under the temp dir (and literal /tmp paths)
+        LIBRARY_ROOTS=[tempfile.gettempdir(), "/tmp"],
     )
 
     with application.app_context():
@@ -50,19 +52,24 @@ def app():
 
 @pytest.fixture(scope="function")
 def db(app):
-    """Provide a clean database session per test with automatic rollback."""
+    """Provide a clean database per test.
+
+    The app fixture is session-scoped (one in-memory SQLite DB for the whole
+    run), and application code calls db.session.commit() in several places,
+    so a rollback-based wrapper can't undo committed state. Instead, drop and
+    recreate all tables before each test — cheap for an in-memory SQLite DB —
+    so every test starts from a known-empty schema and absolute row-count
+    assertions are safe.
+    """
     from onani import db as _db
 
     with app.app_context():
-        connection = _db.engine.connect()
-        transaction = connection.begin()
-        _db.session.bind = connection
+        _db.drop_all()
+        _db.create_all()
 
         yield _db
 
         _db.session.remove()
-        transaction.rollback()
-        connection.close()
 
 
 @pytest.fixture(scope="function")

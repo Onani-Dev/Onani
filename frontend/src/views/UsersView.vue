@@ -11,6 +11,9 @@
       </router-link>
     </div>
     <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" @navigate="goToPage" />
+    <p v-if="error" class="text-error">
+      {{ error }} <a href="#" @click.prevent="fetchUsers">Retry</a>
+    </p>
   </div>
 </template>
 
@@ -23,12 +26,18 @@ const users = ref([])
 const page = ref(1)
 const nextPage = ref(null)
 const prevPage = ref(null)
+const error = ref('')
 
 async function fetchUsers() {
-  const { data } = await api.get('/users', { params: { page: page.value } })
-  users.value = data.data
-  nextPage.value = data.next_page
-  prevPage.value = data.prev_page
+  error.value = ''
+  try {
+    const { data } = await api.get('/users', { params: { page: page.value } })
+    users.value = data.data
+    nextPage.value = data.next_page
+    prevPage.value = data.prev_page
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load users.'
+  }
 }
 
 function goToPage(p) { page.value = p; fetchUsers() }

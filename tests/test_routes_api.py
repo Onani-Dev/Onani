@@ -747,37 +747,6 @@ class TestCommentsAPI:
         assert second_data["has_upvoted"] is False
 
 
-class TestNewsAPI:
-    def test_get_news_empty(self, client):
-        resp = client.get("/api/v1/news")
-        assert resp.status_code == 200
-        data = json.loads(resp.data)
-        assert "data" in data
-
-    def test_get_news_with_articles(self, client, app):
-        from onani.models import NewsPost, NewsType, User, UserSettings
-
-        with app.app_context():
-            user = User(username="newsauthor")
-            user.set_password("pass")
-            user.settings = UserSettings()
-            from onani import db as _db
-            _db.session.add(user)
-            _db.session.commit()
-
-            article = NewsPost()
-            article.author = user
-            article.title = "Test News Article"
-            article.content = "Content here"
-            _db.session.add(article)
-            _db.session.commit()
-
-        resp = client.get("/api/v1/news")
-        assert resp.status_code == 200
-        data = json.loads(resp.data)
-        assert len(data["data"]) >= 1
-
-
 class TestProfileAPI:
     def test_profile_requires_login(self, client):
         resp = client.get("/api/v1/profile")

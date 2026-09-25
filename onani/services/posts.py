@@ -269,19 +269,34 @@ def create_post(
 
     if persist_file:
         filepath = ensure_shard_dir(images_dir, filename)
-        with open(filepath, "wb") as f:
-            image_file.seek(0)
-            f.write(image_file.read())
+        thumb_path = None
+        try:
+            with open(filepath, "wb") as f:
+                image_file.seek(0)
+                f.write(image_file.read())
 
-        # For videos, generate a JPEG thumbnail used by Flask thumbnail/sample routes
-        if file_type in _VIDEO_FORMATS:
-            stem = filename.rsplit(".", 1)[0]
-            thumb_name = f"{stem}.jpg"
-            thumb_path = ensure_shard_dir(images_dir, thumb_name)
-            create_video_thumbnail(filepath, thumb_path)
+            # For videos, generate a JPEG thumbnail used by Flask thumbnail/sample routes
+            if file_type in _VIDEO_FORMATS:
+                stem = filename.rsplit(".", 1)[0]
+                thumb_name = f"{stem}.jpg"
+                thumb_path = ensure_shard_dir(images_dir, thumb_name)
+                create_video_thumbnail(filepath, thumb_path)
 
-    uploader.post_count = uploader.posts.with_entities(func.count()).scalar()
-    db.session.commit()
+            uploader.post_count = uploader.posts.with_entities(func.count()).scalar()
+            db.session.commit()
+        except Exception:
+            # Don't leave an orphaned file on disk if the DB commit (or the
+            # write/thumbnail step) fails.
+            for path in (filepath, thumb_path):
+                if path and os.path.exists(path):
+                    try:
+                        os.remove(path)
+                    except OSError:  # best-effort cleanup; original error re-raised below
+                        pass
+            raise
+    else:
+        uploader.post_count = uploader.posts.with_entities(func.count()).scalar()
+        db.session.commit()
 
     return post
 

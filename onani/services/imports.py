@@ -4,6 +4,7 @@ import uuid
 from urllib.parse import urlparse
 
 from onani import db
+from onani.controllers.crypto import server_encrypt
 from onani.models import ImportJob
 from onani.tasks import import_post
 
@@ -77,6 +78,10 @@ def _reconcile_stale_pending_jobs(domain: str, cutoff: datetime.datetime) -> Non
 def enqueue_import_job(url: str, user_id: int, cookies_content: str = None) -> tuple[str, bool]:
     """Create an ImportJob and dispatch or queue it using the standard importer flow."""
     domain = urlparse(url).hostname or ""
+    # Keep cookies encrypted at rest (queue_meta) and in the broker; the
+    # worker decrypts them.
+    if cookies_content:
+        cookies_content = server_encrypt(cookies_content.encode("utf-8")).decode("ascii")
     task_id = str(uuid.uuid4())
     cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=12)
 

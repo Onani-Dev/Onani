@@ -20,8 +20,27 @@ class ScheduledImport(db.Model):
 
     enabled: bool = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
 
-    # Cookies file contents (plain text netscape/header format), stored admin-side.
-    cookies: str = db.Column(db.Text, nullable=True)
+    # Cookies file contents, Fernet-encrypted with the server key. Legacy
+    # plaintext rows still read fine and are encrypted on the next write.
+    _cookies: str = db.Column("cookies", db.Text, nullable=True)
+
+    @property
+    def cookies(self):
+        from cryptography.fernet import InvalidToken
+        from onani.controllers.crypto import server_decrypt
+
+        if not self._cookies:
+            return self._cookies
+        try:
+            return server_decrypt(self._cookies.encode("ascii")).decode("utf-8")
+        except (InvalidToken, UnicodeEncodeError):
+            return self._cookies  # legacy plaintext
+
+    @cookies.setter
+    def cookies(self, value):
+        from onani.controllers.crypto import server_encrypt
+
+        self._cookies = server_encrypt(value.encode("utf-8")).decode("ascii") if value else None
 
     created_at: datetime.datetime = db.Column(
         db.DateTime(timezone=True),

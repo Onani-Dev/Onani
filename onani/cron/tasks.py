@@ -8,21 +8,31 @@
 from typing import List
 from . import crontab, db
 
+# On platforms without flask_crontab (e.g. Windows dev), crontab is None —
+# fall back to a no-op decorator so these functions still exist and are
+# testable, they just won't be scheduled.
+_job = crontab.job if crontab else (lambda **kw: (lambda f: f))
 
-@crontab.job(minute="*/1")
+
+@_job(minute="*/1")
 def remove_expired_bans():
+    import datetime
+
     from onani.models import Ban
     from onani.services import delete_ban
 
-    # Only query bans that have an expiry date set; permanent bans are never expired
-    expiring_bans: List[Ban] = Ban.query.filter(Ban.expires.isnot(None)).all()
+    # Filter to already-expired bans in the query itself, instead of loading
+    # every non-permanent ban and re-checking expiry in Python.
+    now = datetime.datetime.now(datetime.timezone.utc)
+    expired_bans: List[Ban] = Ban.query.filter(
+        Ban.expires.isnot(None), Ban.expires <= now
+    ).all()
 
-    for ban in expiring_bans:
-        if ban.has_expired:
-            delete_ban(ban.user)
+    for ban in expired_bans:
+        delete_ban(ban.user)
 
 
-@crontab.job(minute="*/1")
+@_job(minute="*/1")
 def run_scheduled_imports():
     import datetime
     from onani.models.scheduled_import import ScheduledImport

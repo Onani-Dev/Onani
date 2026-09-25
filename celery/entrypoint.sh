@@ -14,4 +14,5 @@ if [ -z "${DEEPDANBOORU_ALLOW_GPU}" ]; then
 fi
 
 mkdir -p /logs
-celery --app celery_worker.celery worker --concurrency=10 -E --loglevel INFO --logfile=/logs/celery.log
+chown -R app:app /onani/migrations /images /avatars /logs 2>/dev/null || true
+exec su -s /bin/sh app -c "celery --app celery_worker.celery worker --concurrency=10 -E --loglevel INFO --logfile=/logs/celery.log"

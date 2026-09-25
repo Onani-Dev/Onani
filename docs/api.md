@@ -439,16 +439,6 @@ Remove a post from a collection. Requires ownership or moderator role.
 
 ---
 
-## News
-
-### GET /news
-
-List published news articles.
-
-**Response (200):** `{ "data": [ ...NewsObject... ] }`
-
----
-
 ## Users
 
 ### GET /users
@@ -785,14 +775,6 @@ List active import tasks running on Celery workers. Requires **moderator** role.
 Ban a user. Requires **admin** role.
 
 **Request body** (JSON): `{ "expires": "<ISO datetime>", "reason": "..." }`
-
----
-
-### POST /admin/news _(legacy)_
-
-Create a news article. Requires **admin** role.
-
-**Request body** (JSON): `{ "title": "...", "content": "..." }`
 
 ---
 

@@ -7,7 +7,6 @@ from .. import ma
 from .ban import BanSchema
 from .collection import CollectionSchema
 from .comment import PostCommentSchema
-from .news import NewsPostSchema
 from .post import PostSchema
 from .tag import TagSchema
 from .user import UserSchema, SettingsSchema

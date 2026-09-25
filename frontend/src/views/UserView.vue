@@ -14,6 +14,9 @@
     </div>
     <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" @navigate="goToPage" />
   </div>
+  <p v-else-if="error" class="text-error">
+    {{ error }} <a href="#" @click.prevent="load">Retry</a>
+  </p>
   <p v-else>Loading...</p>
 </template>
 
@@ -29,6 +32,7 @@ const posts = ref([])
 const page = ref(1)
 const nextPage = ref(null)
 const prevPage = ref(null)
+const error = ref('')
 
 async function fetchUser() {
   const { data } = await api.get('/users', { params: { id: props.id } })
@@ -44,10 +48,17 @@ async function fetchPosts() {
 
 function goToPage(p) { page.value = p; fetchPosts() }
 
-onMounted(async () => {
-  await fetchUser()
-  await fetchPosts()
-})
+async function load() {
+  error.value = ''
+  try {
+    await fetchUser()
+    await fetchPosts()
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load user.'
+  }
+}
+
+onMounted(load)
 </script>
 
 <style scoped>

@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Encrypt / decrypt cookie files using a key derived from the user's password."""
+"""Encrypt / decrypt gallery-dl cookie files.
+
+Cookies are encrypted with a server key derived from ``SECRET_KEY``. The
+password-derived helpers remain only to migrate legacy uploads at login.
+"""
 from __future__ import annotations
 
 import base64
+import hashlib
 import os
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -41,3 +46,20 @@ def decrypt_cookies(token: bytes, salt: bytes, password: str) -> bytes:
     """
     key = _derive_key(password, salt)
     return Fernet(key).decrypt(token)
+
+
+def _server_fernet() -> Fernet:
+    from flask import current_app
+
+    digest = hashlib.sha256(b"onani-cookies:" + current_app.config["SECRET_KEY"].encode("utf-8")).digest()
+    return Fernet(base64.urlsafe_b64encode(digest))
+
+
+def server_encrypt(data: bytes) -> bytes:
+    """Encrypt *data* with the app's server key (rotating SECRET_KEY invalidates it)."""
+    return _server_fernet().encrypt(data)
+
+
+def server_decrypt(token: bytes) -> bytes:
+    """Decrypt a :func:`server_encrypt` token. Raises ``InvalidToken`` on failure."""
+    return _server_fernet().decrypt(token)

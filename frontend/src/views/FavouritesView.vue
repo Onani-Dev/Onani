@@ -4,7 +4,10 @@
     <div v-if="posts.length" class="post-grid">
       <PostThumb v-for="post in posts" :key="post.id" :post="post" />
     </div>
-    <p v-else-if="!loading" class="text-muted">You have no favourites yet.</p>
+    <p v-else-if="!loading && !error" class="text-muted">You have no favourites yet.</p>
+    <p v-if="error" class="text-error">
+      {{ error }} <a href="#" @click.prevent="fetchFavourites">Retry</a>
+    </p>
     <Pagination
       :page="page"
       :next-page="nextPage"
@@ -31,16 +34,20 @@ const nextPage = ref(null)
 const prevPage = ref(null)
 const total = ref(0)
 const loading = ref(true)
+const error = ref('')
 const totalPages = computed(() => total.value && perPage.value ? Math.ceil(total.value / perPage.value) : null)
 
 async function fetchFavourites() {
   loading.value = true
+  error.value = ''
   try {
     const { data } = await api.get('/posts/favourites', { params: { page: page.value, per_page: perPage.value } })
     posts.value = data.data ?? []
     nextPage.value = data.next_page
     prevPage.value = data.prev_page
     total.value = data.total ?? 0
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load favourites.'
   } finally {
     loading.value = false
   }

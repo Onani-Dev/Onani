@@ -10,7 +10,14 @@
       @load="imageLoaded = true"
     />
     <span v-else class="thumb-missing">#{{ resolvedId }}</span>
-    <div v-if="shouldBlur(post, resolvedId)" class="sfw-overlay" @click.stop="reveal(resolvedId)">Show</div>
+    <div
+      v-if="shouldBlur(post, resolvedId)"
+      class="sfw-overlay"
+      role="button"
+      tabindex="0"
+      @click.stop="reveal(resolvedId)"
+      @keydown.enter.space.stop.prevent="reveal(resolvedId)"
+    >Show</div>
   </router-link>
 </template>
 

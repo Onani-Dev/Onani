@@ -115,6 +115,9 @@ class User(UserMixin, db.Model):
     )
     """The base32 token used to generate OTP codes for the user."""
 
+    otp_last_step: Optional[int] = db.Column(db.BigInteger, nullable=True)
+    """TOTP time step of the last accepted code; older or equal steps are rejected (replay)."""
+
     ban: Optional[Ban] = db.relationship(Ban, uselist=False, backref="user_ban")
     """The ban that this user has. will be None if not banned."""
 
@@ -208,6 +211,9 @@ class User(UserMixin, db.Model):
             raise ValueError("Password must be between 4 and 50 characters")
 
         self.password_hash = argon2.using(rounds=8).hash(password)
+        # Rotating the Flask-Login id drops every existing session and
+        # remember-me cookie for this user.
+        self.login_id = str(uuid.uuid4())
 
     def check_password(self, password: str) -> bool:
         """Check the user's password against the stored argon2 hash.
@@ -223,9 +229,17 @@ class User(UserMixin, db.Model):
     def check_otp(self, otp: int) -> bool:
         """Check if the user's OTP code is valid and hasn't already been used"""
         totp = pyotp.totp.TOTP(self.otp_token)
-
-        # TODO: check if OTP was used before, to avoid replay attacks
-        return totp.verify(otp, valid_window=1)
+        code = str(otp).zfill(totp.digits)
+        now_step = totp.timecode(datetime.datetime.now())
+        # Accept one step of clock drift either side, but never a step at or
+        # before the last accepted one. Caller must commit to persist it.
+        for step in (now_step - 1, now_step, now_step + 1):
+            if step <= (self.otp_last_step or -1):
+                continue
+            if secrets.compare_digest(totp.generate_otp(step), code):
+                self.otp_last_step = step
+                return True
+        return False
 
     @property
     def otp_uri(self) -> str:

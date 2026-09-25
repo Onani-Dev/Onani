@@ -7,6 +7,5 @@
 from .. import api, db
 
 from .ban import *
-from .news import *
 from .stats import *
 from .user import *

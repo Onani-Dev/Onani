@@ -2,6 +2,10 @@
 FROM python:3.10-slim
 
 ARG INSTALL_ML=false
+# Match the invoking host user so bind-mounted files stay writable/owned
+# correctly on both sides. Override at build time if your host UID/GID isn't 1000.
+ARG UID=1000
+ARG GID=1000
 
 # Environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -11,6 +15,9 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc libffi-dev ffmpeg \
     && rm -rf /var/lib/apt/lists/*
+
+# Unprivileged user the worker runs as.
+RUN groupadd -g "$GID" app && useradd -m -u "$UID" -g app app
 
 # Install requirements (optional ML extras controlled by build arg)
 COPY requirements.txt requirements-ml.txt /

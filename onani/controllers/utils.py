@@ -4,10 +4,41 @@
 # @Last Modified by:   kapsikkum
 # @Last Modified time: 2022-08-10 11:20:30
 
+import ipaddress
 import re
-from typing import List, Optional, Tuple, Union
+import socket
+from typing import List, Optional, Tuple
+from urllib.parse import urlparse
 
-from flask import request
+
+def in_library_roots(path: str) -> bool:
+    """True if *path* (symlinks resolved) is inside a configured LIBRARY_ROOTS dir."""
+    import os
+    from flask import current_app
+
+    real = os.path.realpath(path)
+    for root in current_app.config.get("LIBRARY_ROOTS") or []:
+        root = os.path.realpath(root)
+        if real == root or real.startswith(root.rstrip(os.sep) + os.sep):
+            return True
+    return False
+
+
+def assert_public_url(url: str) -> None:
+    """Raise ValueError unless *url* is http(s) and every address its host
+    resolves to is public (blocks SSRF to loopback/private/link-local)."""
+    # ponytail: resolve-then-fetch leaves a DNS-rebinding window and redirects
+    # aren't re-checked; pin the resolved IP in the HTTP client if that matters.
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise ValueError("Only http(s) URLs are allowed.")
+    try:
+        infos = socket.getaddrinfo(parsed.hostname, None)
+    except (socket.gaierror, UnicodeError):
+        raise ValueError("Could not resolve host.")
+    for info in infos:
+        if not ipaddress.ip_address(info[4][0].split("%")[0]).is_global:
+            raise ValueError("URL points to a private or reserved address.")
 
 
 def startswith_min(s: str, /, start: str, min_len: int) -> bool:
@@ -84,19 +115,6 @@ def colour_contrast(colour: str) -> str:
     return rgb_to_hex((d, d, d))
 
 
-def complete_file_url(file_url: str) -> str:
-    """Get the full url for a file.
-
-    Args:
-        file_url (str): The partial url
-
-    Returns:
-        str: The full url
-    """
-    return f"{request.base_url}{file_url.lstrip('/')}"
-
-
-
 _URL_RE = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}"
     r"|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}"
@@ -115,16 +133,4 @@ def is_url(string: str) -> bool:
         bool: True if a url false if not
     """
     return bool(_URL_RE.match(string))
-
-
-def url_hostname(url: str) -> Union[str, None]:
-    """Returns the hostname of a url, or none
-
-    Args:
-        url (str): the url to return the hostname of
-
-    Returns:
-        Union[str, None]: The hostname or none
-    """
-    return url.split("/")[2] if is_url(url) else url or None
 

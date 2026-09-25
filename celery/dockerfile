@@ -21,6 +21,14 @@ RUN if command -v apk >/dev/null 2>&1; then \
         && rm -rf /var/lib/apt/lists/*; \
     fi
 
+# Unprivileged user the celery worker runs as (entrypoint chowns volumes,
+# then drops to this user before exec'ing celery).
+RUN if command -v apk >/dev/null 2>&1; then \
+        addgroup -g 1000 app && adduser -D -u 1000 -G app app; \
+    else \
+        groupadd -g 1000 app && useradd -m -u 1000 -g app app; \
+    fi
+
 # Install requirements (optional ML extras controlled by build arg)
 COPY requirements.txt requirements-ml.txt /
 RUN pip3 install -r /requirements.txt \
@@ -33,6 +41,9 @@ COPY ./frontend/public/static /static
 COPY . /onani
 
 RUN chmod +x /onani/celery/entrypoint.sh
+
+RUN mkdir -p /images /avatars /logs \
+    && chown -R app:app /onani /static /images /avatars /logs
 
 # Set workdir
 WORKDIR /onani

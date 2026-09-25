@@ -180,14 +180,6 @@ const PERMISSION_GROUPS = [
     ],
   },
   {
-    label: 'News',
-    flags: [
-      { name: 'CREATE_NEWS',    value: 524288   },
-      { name: 'DELETE_NEWS',    value: 1048576  },
-      { name: 'EDIT_NEWS',      value: 2097152  },
-    ],
-  },
-  {
     label: 'Users',
     flags: [
       { name: 'BAN_USERS',      value: 4194304  },

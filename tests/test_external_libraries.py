@@ -614,6 +614,10 @@ class TestScanTask:
 
                 ok = client.get(f"/external/{lib_name}/a.png")
                 assert ok.status_code == 200
+                # send_file keeps the file handle open on Windows until the
+                # response is closed; close it now so the tempdir below can
+                # be removed.
+                ok.close()
 
                 lib = ExternalLibrary.query.get(lib.id)
                 lib.enabled = False
