@@ -205,9 +205,9 @@ class TestSsrf:
         assert resp.status_code == 400
 
     def test_download_file_rejects_private(self):
-        from onani.importers._utils import download_file
+        import onani.importers._utils as u
         with pytest.raises(ValueError):
-            download_file("http://127.0.0.1/x.png")
+            u.download_file("http://127.0.0.1/x.png")
 
 
 # ------------------------------------ M2 password change kills sessions
