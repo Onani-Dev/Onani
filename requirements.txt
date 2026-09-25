@@ -32,4 +32,4 @@ Werkzeug==3.1.8
 qrcode==8.2
 pyotp==2.8.0
 # Dev only - flask-debugtoolbar is loaded conditionally in debug mode
-flask-debugtoolbar==0.13.0
+flask-debugtoolbar==0.16.0
