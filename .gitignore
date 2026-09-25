@@ -135,7 +135,7 @@ result
 onani.toml
 
 # Local ML model artifacts
-models/
+/models/
 
 # Local DeepDanbooru dataset artifacts
 dataset/
