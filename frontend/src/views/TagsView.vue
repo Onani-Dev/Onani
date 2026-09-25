@@ -21,6 +21,9 @@
       </tbody>
     </table>
     <Pagination :page="page" :next-page="nextPage" :prev-page="prevPage" :per-page="perPage" :total-pages="totalPages" @navigate="goToPage" @update:perPage="onPerPage" />
+    <p v-if="error" class="text-error">
+      {{ error }} <a href="#" @click.prevent="fetchTags">Retry</a>
+    </p>
   </div>
 </template>
 
@@ -37,14 +40,20 @@ const total = ref(0)
 const sort = ref('post_count')
 const order = ref('desc')
 const perPage = ref(30)
+const error = ref('')
 const totalPages = computed(() => total.value && perPage.value ? Math.ceil(total.value / perPage.value) : null)
 
 async function fetchTags() {
-  const { data } = await api.get('/tags', { params: { page: page.value, per_page: perPage.value, sort: sort.value, order: order.value, min_posts: 1 } })
-  tags.value = data.data
-  nextPage.value = data.next_page
-  prevPage.value = data.prev_page
-  total.value = data.total ?? 0
+  error.value = ''
+  try {
+    const { data } = await api.get('/tags', { params: { page: page.value, per_page: perPage.value, sort: sort.value, order: order.value, min_posts: 1 } })
+    tags.value = data.data
+    nextPage.value = data.next_page
+    prevPage.value = data.prev_page
+    total.value = data.total ?? 0
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load tags.'
+  }
 }
 
 function onSortChange() {

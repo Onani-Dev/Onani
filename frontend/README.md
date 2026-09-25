@@ -18,28 +18,15 @@ src/
 ├── App.vue              Root component (router-view)
 ├── api/
 │   └── client.js        Axios instance + CSRF helper
-├── components/
-│   └── Pagination.vue   Page navigation (prev/next)
+├── components/          Pagination.vue, PostThumb.vue, ...
+├── composables/         useSfwMode.js, ...
 ├── layouts/
 │   └── DefaultLayout.vue  Navbar + <slot/>
 ├── router/
-│   └── index.js         Route definitions + auth guard
+│   └── index.js         Route definitions + auth guard (source of truth for routes)
 ├── stores/
 │   └── auth.js          Auth state (Pinia)
-└── views/
-    ├── HomeView.vue
-    ├── PostsView.vue      /posts
-    ├── PostView.vue       /posts/:id
-    ├── TagsView.vue       /tags
-    ├── TagView.vue        /tags/:id
-    ├── UsersView.vue      /users  (auth)
-    ├── UserView.vue       /users/:id
-    ├── CollectionsView.vue /collections
-    ├── UploadView.vue     /upload  (auth)
-    ├── LoginView.vue      /login
-    ├── RegisterView.vue   /register
-    ├── ProfileView.vue    /profile (auth)
-    └── NotFoundView.vue   catch-all 404
+└── views/                One component per route; see src/router/index.js for the full list.
 ```
 
 ## Development
@@ -100,8 +87,10 @@ Pinia store exposing:
 | `isAuthenticated` | computed | `!!user`                             |
 | `fetchUser()`     | action   | `GET /auth/me`                       |
 | `login()`         | action   | `POST /auth/login`                   |
-| `register()`      | action   | `POST /auth/register`                |
 | `logout()`        | action   | `POST /auth/logout`                  |
+
+Registration is not a store action — `RegisterView.vue` calls
+`POST /auth/register` directly via `api.post(...)`.
 
 Routes with `meta: { requiresAuth: true }` are guarded by a
 `router.beforeEach` hook that redirects unauthenticated users to `/login`.

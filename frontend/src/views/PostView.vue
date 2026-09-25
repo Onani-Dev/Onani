@@ -22,6 +22,7 @@
       <img
         v-else
         :src="post?.file_url"
+        :alt="post?.title"
         class="fullscreen-img"
         :class="{ 'sfw-blurred': shouldBlur(post) }"
         :style="fsImgStyle"
@@ -59,7 +60,14 @@
               @click="shouldBlur(post) ? reveal(post.id) : (fullscreen = true, fsResetZoom())"
               :title="shouldBlur(post) ? 'Click to reveal' : 'Click to view fullscreen'"
             />
-            <div v-if="shouldBlur(post)" class="sfw-overlay post-sfw-overlay" @click="reveal(post.id)">Click to reveal</div>
+            <div
+              v-if="shouldBlur(post)"
+              class="sfw-overlay post-sfw-overlay"
+              role="button"
+              tabindex="0"
+              @click="reveal(post.id)"
+              @keydown.enter.space.prevent="reveal(post.id)"
+            >Click to reveal</div>
           </div>
           <div class="image-meta">
             <span>{{ post.width }}×{{ post.height }}</span>

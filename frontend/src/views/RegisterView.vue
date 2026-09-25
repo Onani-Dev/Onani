@@ -3,16 +3,16 @@
     <h1>Register</h1>
     <form @submit.prevent="handleRegister" class="auth-form">
       <div class="field">
-        <label>Username</label>
-        <input v-model="username" required autocomplete="username" />
+        <label for="register-username">Username</label>
+        <input id="register-username" v-model="username" required autocomplete="username" />
       </div>
       <div class="field">
-        <label>Email (optional)</label>
-        <input v-model="email" type="email" autocomplete="email" />
+        <label for="register-email">Email (optional)</label>
+        <input id="register-email" v-model="email" type="email" autocomplete="email" />
       </div>
       <div class="field">
-        <label>Password</label>
-        <input v-model="password" type="password" required autocomplete="new-password" />
+        <label for="register-password">Password</label>
+        <input id="register-password" v-model="password" type="password" required autocomplete="new-password" />
       </div>
       <p v-if="error" class="error">{{ error }}</p>
       <button type="submit" :disabled="loading">{{ loading ? 'Creating...' : 'Register' }}</button>
