@@ -106,9 +106,7 @@ services:
       args:
         INSTALL_ML: "false"
     restart: unless-stopped
-    environment:
-      <<: *dev-env
-      C_FORCE_ROOT: "yes"
+    environment: *dev-env
     depends_on: *db-deps
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images
@@ -127,7 +125,6 @@ services:
     restart: unless-stopped
     environment:
       <<: [*dev-env, *dev-env-ml]
-      C_FORCE_ROOT: "yes"
     depends_on: *db-deps
     volumes:
       - ${IMAGES_HOST_DIR:-images}:/images

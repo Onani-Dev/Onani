@@ -31,5 +31,7 @@ else
 fi
 flask crontab add
 
-# Run Flask's built-in dev server in debug mode
-flask run --host=0.0.0.0 --port=5000 --debug
+# Everything above needs root (cron); drop to the unprivileged app user for
+# the dev server itself.
+chown -R app:app /onani/migrations /logs 2>/dev/null || true
+exec su -s /bin/sh app -c "flask run --host=0.0.0.0 --port=5000 --debug"
