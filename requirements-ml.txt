@@ -1,16 +1,6 @@
 deepdanbooru>=1.0.4
-# Pinned exact per docs/audit/infra.md finding #5: this drifted from ==2.14
-# (commit 9ae1f2f) back to an open >=2.16 range in commit 2c81ce6, which was
-# an unrelated feature commit — exactly the kind of silent, unreviewed
-# dependency drift the audit flags. Re-pinned to ==2.14 as instructed.
-#
-# NEEDS VERIFICATION: commit 2c81ce6 also left a comment here claiming
-# "Model files are saved in Keras 3 format (.keras with keras.src.*
-# module paths); Keras 3 is bundled with TensorFlow >= 2.16; do not use an
-# older version." If any deployed DeepDanbooru model files were actually
-# re-saved in that format, pinning back to 2.14 will break loading them.
-# Check the model file format under DEEPDANBOORU_PROJECT_PATH before
-# deploying this — do not assume the drift was accidental.
+# Model files are saved in Keras 3 format (.keras with keras.src.* module paths).
+# Keras 3 is bundled with TensorFlow >= 2.16; do not use an older version.
 # tensorflow-rocm was a failed experiment and should not be used in containers.
-tensorflow-cpu==2.14
+tensorflow-cpu>=2.16
 tensorflow-io>=0.34.0,<0.38.0
