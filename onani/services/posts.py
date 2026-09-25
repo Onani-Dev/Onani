@@ -291,7 +291,7 @@ def create_post(
                 if path and os.path.exists(path):
                     try:
                         os.remove(path)
-                    except OSError:
+                    except OSError:  # best-effort cleanup; original error re-raised below
                         pass
             raise
     else:

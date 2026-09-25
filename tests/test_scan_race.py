@@ -9,7 +9,6 @@ regardless of interleaving, so testing it directly is the meaningful check.
 import tempfile
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 
 class TestDuplicateScanRace:

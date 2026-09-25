@@ -15,7 +15,7 @@ x-env: &dev-env
   # starting any profile — dev included, now that postgres:5432 is bound to
   # 127.0.0.1 instead of the weak-default/publicly-reachable combo this used
   # to be.
-  DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env — run ./generate_env.sh}
+  DB_PASSWORD: ${DB_PASSWORD:?}
   # No default here either: onani/__init__.py (security H6) generates and
   # logs a random admin password on first start when this is unset. A
   # ":-admin" default here would silently override that and put the app
@@ -33,7 +33,7 @@ x-env-prod-ml: &prod-env-ml
 x-env-prod: &prod-env
   FLASK_APP: run
   FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
-  DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env — run ./generate_env.sh}
+  DB_PASSWORD: ${DB_PASSWORD:?}
 
 x-db-deps: &db-deps
   postgres:
@@ -237,7 +237,7 @@ services:
     environment:
       PGUSER: onani_db
       POSTGRES_USER: onani_db
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env — run ./generate_env.sh}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
       POSTGRES_DB: onani_db
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U onani_db -d onani_db -h 127.0.0.1 -p 5432" ]
