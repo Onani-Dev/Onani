@@ -3,7 +3,7 @@
 import http.cookiejar
 import logging
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from curl_cffi import requests as cffi_requests
 from flask import current_app
@@ -123,10 +123,27 @@ def _friendly_http_403_error(url: str) -> str | None:
     return None
 
 
+_MAX_REDIRECTS = 10
+
+
+def _safe_get(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requests.Response:
+    """GET following redirects manually so every hop passes assert_public_url."""
+    for _ in range(_MAX_REDIRECTS + 1):
+        assert_public_url(url)
+        r = session.get(url, headers=headers, timeout=60, allow_redirects=False)
+        location = r.headers.get("location")
+        if r.status_code not in (301, 302, 303, 307, 308) or not location:
+            return r
+        url = urljoin(url, location)
+    raise ValueError("Too many redirects.")
+
+
 def _fetch(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requests.Response:
     """GET *url*, with fallbacks for Danbooru sample URLs and kemono CDN nodes."""
     try:
-        r = session.get(url, headers=headers, timeout=60)
+        r = _safe_get(session, url, headers)
+    except ValueError:
+        raise
     except Exception as exc:
         # Connection-level failure (curl error 7, timeout, etc.).
         # Try alternate kemono CDN nodes before giving up.
@@ -135,7 +152,7 @@ def _fetch(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requ
         for alt in alt_urls:
             log.debug("Connection failed on %s, retrying on %s", url, alt)
             try:
-                r = session.get(alt, headers=headers, timeout=60)
+                r = _safe_get(session, alt, headers)
                 break
             except Exception as alt_exc:
                 last_exc = alt_exc
@@ -146,7 +163,7 @@ def _fetch(session: cffi_requests.Session, url: str, headers: dict) -> cffi_requ
         sample_url = _danbooru_sample_url(url)
         if sample_url:
             log.debug("403 on original, retrying with sample: %s", sample_url)
-            r = session.get(sample_url, headers=headers, timeout=60)
+            r = _safe_get(session, sample_url, headers)
         if r.status_code == 403:
             friendly = _friendly_http_403_error(url)
             if friendly:

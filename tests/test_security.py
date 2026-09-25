@@ -266,3 +266,69 @@ class TestMisc:
         post.hidden = True
         db.session.commit()
         assert client.get(f"/api/v1/post?id={post.id}").status_code == 404
+
+
+class TestSsrfRedirects:
+    class _Resp:
+        def __init__(self, status, location=None):
+            self.status_code = status
+            self.headers = {"location": location} if location else {}
+
+    class _Session:
+        def __init__(self, responses):
+            self.responses = list(responses)
+            self.urls = []
+
+        def get(self, url, **kw):
+            assert kw.get("allow_redirects") is False
+            self.urls.append(url)
+            return self.responses.pop(0)
+
+    def _public_only(self, monkeypatch):
+        import onani.importers._utils as u
+
+        def check(url):
+            if "127.0.0.1" in url:
+                raise ValueError("private")
+        monkeypatch.setattr(u, "assert_public_url", check)
+        return u
+
+    def test_redirect_to_private_blocked(self, monkeypatch):
+        u = self._public_only(monkeypatch)
+        s = self._Session([self._Resp(302, "http://127.0.0.1/admin")])
+        with pytest.raises(ValueError):
+            u._safe_get(s, "https://example.com/a", {})
+        assert s.urls == ["https://example.com/a"]
+
+    def test_public_redirect_followed(self, monkeypatch):
+        u = self._public_only(monkeypatch)
+        s = self._Session([self._Resp(301, "/b"), self._Resp(200)])
+        assert u._safe_get(s, "https://example.com/a", {}).status_code == 200
+        assert s.urls == ["https://example.com/a", "https://example.com/b"]
+
+    def test_redirect_loop_capped(self, monkeypatch):
+        u = self._public_only(monkeypatch)
+        s = self._Session([self._Resp(302, "/x")] * 20)
+        with pytest.raises(ValueError):
+            u._safe_get(s, "https://example.com/a", {})
+
+
+class TestScheduledImportCookies:
+    def test_cookies_encrypted_at_rest(self, app, db):
+        from onani.models.scheduled_import import ScheduledImport
+
+        task = ScheduledImport(url="https://example.com", cookies="secret=1")
+        db.session.add(task)
+        db.session.commit()
+        raw = db.session.execute(
+            db.text("SELECT cookies FROM scheduled_imports WHERE id=:i"), {"i": task.id}
+        ).scalar()
+        assert "secret" not in raw
+        assert task.cookies == "secret=1"
+
+    def test_legacy_plaintext_still_readable(self, app, db):
+        from onani.models.scheduled_import import ScheduledImport
+
+        task = ScheduledImport(url="https://example.com")
+        task._cookies = "legacy=1"
+        assert task.cookies == "legacy=1"
