@@ -3,7 +3,7 @@
 ARG INSTALL_ML=false
 
 # Build frontend first
-FROM node:22-alpine AS frontend-build
+FROM node:25-alpine AS frontend-build
 WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm ci
