@@ -28,7 +28,7 @@ regex==2026.9.10
 curl_cffi==0.16.3
 sqlalchemy-utils==0.42.1
 traceback-with-variables==2.2.1
-Werkzeug==3.1.8
+Werkzeug==3.1.9
 qrcode==8.2
 pyotp==2.8.0
 # Dev only - flask-debugtoolbar is loaded conditionally in debug mode
